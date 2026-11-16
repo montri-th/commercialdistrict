@@ -272,7 +272,7 @@ function setLens(id) {
 function compareSet(ids, {open = true} = {}) {
   state.compare = [...new Set(ids)].filter(id => rowById(id)).slice(0, COMPARE_MAX);
   update();
-  if (open) openInsights(true);
+  if (open) openInsights(true, {fit: false});
   if (state.compare.length > 1 && state.loaded && !state.nb) fitRows(compareRows(), {maxZoom: 14});
 }
 
@@ -362,12 +362,16 @@ function renderCompareTray() {
   state.layers?.setCompare(rows.map(r => r.id));
 }
 
-function openInsights(open) {
+function openInsights(open, {fit = true} = {}) {
   $('insight-content').hidden = !open;
   $('insights').classList.toggle('is-collapsed', !open);
   $('toggle-insights').setAttribute('aria-expanded', String(open));
   $('toggle-insights').textContent = open ? L('ย่อ', 'Collapse') : L('เปิด', 'Open');
-  requestAnimationFrame(syncBottomPanel);
+  requestAnimationFrame(() => {
+    syncBottomPanel();
+    // Opened by the reader with two or more neighbourhoods in it: frame them above the tray (0.1.1).
+    if (fit && open && state.compare.length > 1 && !state.nb && state.loaded && state.map) fitRows(compareRows(), {maxZoom: 14});
+  });
 }
 
 function syncBottomPanel() {
@@ -413,8 +417,15 @@ function renderTable() {
 function cameraPadding() {
   const height = $('map').clientHeight, tray = $('insights').getBoundingClientRect().height;
   const edge = Math.min(48, Math.max(12, (height - tray) / 6));
-  const mapTop = $('map').getBoundingClientRect().top, toolbar = document.querySelector('.map-toolbar').getBoundingClientRect();
+  const mapBox = $('map').getBoundingClientRect(), mapTop = mapBox.top, toolbar = document.querySelector('.map-toolbar').getBoundingClientRect();
   const aha = $('map-aha'), legend = $('map-legend');
+  // The comparison open on a wide screen (0.1.1): the tray covers the bottom of the map and the legend floats above it
+  // at the left, so the view frames the strip above the tray and right of the legend. Framing above the legend left too
+  // thin a strip, and the legend moves up only after the tray has opened (syncBottomPanel).
+  if (!$('insight-content').hidden && !mobilePortrait()) {
+    const chrome = [aha, legend].filter(el => !el.hidden && el.offsetHeight).map(el => el.getBoundingClientRect().right - mapBox.left);
+    return {top: Math.max(edge, toolbar.bottom - mapTop + 12), left: Math.max(edge, ...chrome.map(x => x + 12)), right: edge, bottom: Math.min(height * 0.7, tray + edge)};
+  }
   const chromeTop = !aha.hidden && aha.offsetHeight ? aha.getBoundingClientRect().top : legend.offsetHeight ? legend.getBoundingClientRect().top : null;
   let bottom = chromeTop != null ? height - (chromeTop - mapTop) + 12 : tray + edge;
   if (mobilePortrait() && $('panel').classList.contains('is-open')) bottom = Math.max(bottom, Math.round($('panel').getBoundingClientRect().height) - (window.innerHeight - height - mapTop) + 8);
@@ -961,7 +972,7 @@ async function init() {
     applyTheme();
     wireEvents();
     update();
-    if (state.compare.length) openInsights(true);
+    if (state.compare.length) openInsights(true, {fit: false});
     if (state.nb) openMobilePanel({frame: false});
     window.dispatchEvent(new CustomEvent('citymeter:ready'));
     startMap();
