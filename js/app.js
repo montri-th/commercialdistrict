@@ -1,0 +1,977 @@
+/**
+ * CityMETER · Commercial District — application orchestration (the CityMETER 3D demo family code base, through CityMETER ·
+ * University 0.1.x, montri-th/university).
+ *
+ * One grain per dataset, never added across datasets (DATA_METHOD.md §3): a neighbourhood holds, for each of the 16
+ * CityMETER demo datasets, the dataset's located records whose point lies inside its outline. Scopes:
+ *   rows  — the neighbourhoods after the province (at) and the search: the panel, the table, the ramp of the lens.
+ *   every other neighbourhood stays on the map as a quiet outline / pin (its data colour is never shown paler).
+ * Readings of the map (the legend's switch, `m`): จุดเด่น (default — the pillar of each neighbourhood's first
+ * highlight, LDS categorical series + shape) or one dataset (density per km², LDS density.area, all 41 samples).
+ *
+ * Panel views: overview (Thailand or a province) · neighbourhood. The compare tray (bottom of the map) holds up to four
+ * neighbourhoods side by side; the table (รายชื่อ) is the reading without the map.
+ * Map clicks: a neighbourhood's pin or outline → its view; elsewhere below the neighbourhood zooms → the province.
+ * URL state (own names, inside): province · search · neighborhood · metric · compare · view3d — written in the shared
+ * grammar at · f.search · f.neighborhood · m · cmp · v3d by citymeter-shell (js/shell/url.js); opening a province or a
+ * neighbourhood adds a browser history entry.
+ */
+import {registerDataNames} from './lang.js';
+import {provinces as provinceList, provinceByCode, provinceCodeFrom, provinceName, setProvinces, decodeData, decodePoints, scopeRows, scopePending, cell, rowsBounds, dsName, dsUnit, dsUnitN, num, PILLARS, PILLAR_SERIES} from './model.js';
+import {buildOverview, buildNeighborhood, buildCompare} from './profile.js';
+import {renderOverview, renderNeighborhood, renderCompare, renderFilterChips, tableHeadHTML, tableRowHTML, esc, L, dens, sharePct} from './panel.js';
+import {loadMapLibrary} from './shell/vendors.js';
+import {installAreaLabels} from './map-layers.js';
+import {installNeighborhoodLayers, pinCollection, poiCollection, OUTLINE_MIN_ZOOM} from './layers.js';
+import {provinceLocator} from './provinces.js';
+import {buildMapStyle, basemapPalette, TILEJSON_URL, MASSING_BEFORE} from './shell/map-style.js';
+import {installMassing, outerRings, FOCUS_MIN_ZOOM} from './massing.js';
+import {ringsBox, siteContextRegions, cameraSquare} from './regions.js';
+import {createBuildingUnitStore, cmTileUrl, CM_ATTRIBUTION} from './shell/building-units.js';
+import {presetFor, applyPreset, fitPitched} from './shell/camera.js';
+import {guardRetainedTiles, guardElevationFreeze, mapBudget, budgetPixelRatio, watchContext} from './shell/maplibre-guard.js';
+import {buildBreadcrumb, renderBreadcrumb, breadcrumbText, DATASET} from './breadcrumb.js';
+import {buildDensityRamp, classify, rampLegendHTML} from './scales.js';
+import {cueMarkup} from './cues.js';
+import {createCodec, createNavigator} from './shell/url.js';
+import {pageTitle} from './shell/title.js';
+import {LANG} from './shell/i18n.js';
+
+const $ = id => document.getElementById(id);
+/** Release tag of this module (index.html import map) — also versions the data files fetched later. */
+const RELEASE = (() => { try { return new URL(import.meta.url).searchParams.get('v') || ''; } catch { return ''; } })();
+const THEME_KEY = 'citymeter-commercialdistrict-theme';
+const COLLATOR = new Intl.Collator('th');
+const COMPARE_MAX = 4;
+const PAGE_SIZE = 50;
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const mobilePortrait = () => matchMedia('(max-width: 760px) and (orientation: portrait)').matches;
+const animate = () => !reduced();
+const cssVar = (name, fallback = '') => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+const theme = () => document.documentElement.dataset.theme;
+const announce = text => { $('announcement').textContent = text; };
+
+const state = {
+  model: null, points: null, provincesGeo: null, outlines: null, outlineById: new Map(), locate: null,
+  province: '', search: '', nb: '', lens: '', compare: [], view3d: true, page: 0,
+  rows: [], pending: [], overview: null, ramp: null, fills: new Map(),
+  map: null, loaded: false, mapTheme: '', initialCameraDone: false, tileTemplate: '', budget: null,
+  layers: null, provinceLabels: null, nbLabels: null, massing: null, buildingUnits: null,
+  readerPitch: false, readerMovedAt: 0,
+};
+
+/* ---------- address (citymeter-shell, js/shell/url.js) ---------- */
+const nav = createNavigator(createCodec({
+  dataset: DATASET, levels: ['P'], place: {}, items: {}, filters: ['search', 'neighborhood'], levelFilters: ['neighborhood'],
+  rename: {metric: 'm', compare: 'cmp', view3d: 'v3d'},
+}), {onPop: restoreFromHistory});
+
+function saveURL() {
+  const p = new URLSearchParams();
+  if (state.province) p.set('province', state.province);
+  if (state.search) p.set('search', state.search);
+  if (state.nb) p.set('neighborhood', state.nb);
+  if (state.lens) p.set('metric', state.lens);
+  if (state.compare.length) p.set('compare', state.compare.join(','));
+  if (!state.view3d) p.set('view3d', '0');
+  nav.commit(p);
+}
+
+/* ---------- helpers ---------- */
+const rowById = id => (id && state.model?.byId.get(id)) || null;
+const lensDs = () => (state.lens && state.model?.dsById.get(state.lens)) || null;
+const openRow = () => rowById(state.nb);
+const compareRows = () => state.compare.map(rowById).filter(Boolean);
+/** The ramp colour of a row under the lens ('' without a lens or a value). */
+const fillOfRow = r => state.fills.get(r.id)?.fill || '';
+const bottomSpace = () => ($('insights')?.getBoundingClientRect().height ?? 0) + 12;
+const labelBottomSpace = () => { const panel = document.querySelector('.map-panel'); return bottomSpace() + (panel ? parseFloat(getComputedStyle(panel).getPropertyValue('--attrib-height')) || 0 : 0); };
+const cameraPreset = () => presetFor({view3d: state.view3d, mode: state.nb ? 'detail' : 'overview', twoPoint: false});
+
+/* ---------- theme ---------- */
+function applyTheme() {
+  const value = $('theme').value;
+  const next = value === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : value;
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem(THEME_KEY, value); } catch {}
+  if (state.map && next !== state.mapTheme) {
+    state.loaded = false;
+    disposeSpatial();
+    state.mapTheme = next;
+    state.map.setStyle(buildMapStyle(next), {diff: false});
+  }
+  if (state.model) { computeFills(); renderLegend(); renderPanel(); }
+}
+
+function disposeSpatial() {
+  for (const k of ['massing', 'layers']) { try { state[k]?.dispose(); } catch (e) { console.warn('dispose', k, e); } state[k] = null; }
+}
+
+/* ---------- selection ---------- */
+function refreshScope() {
+  const key = `${state.province}|${state.search}`;
+  if (key === refreshScope.key) return;
+  refreshScope.key = key;
+  state.rows = scopeRows(state.model, {province: state.province, search: state.search});
+  state.pending = scopePending(state.model, {province: state.province, search: state.search});
+  state.page = 0;
+  renderTable.stale = true;
+}
+
+/** Fill and pin of every neighbourhood under the current reading (js/layers.js). */
+function computeFills() {
+  const model = state.model, ds = lensDs();
+  const inScope = new Set(state.rows.map(r => r.id));
+  const fills = new Map();
+  if (ds) {
+    const values = state.rows.map(r => cell(r, ds)).filter(c => c.state === 'measured').map(c => c.density);
+    state.ramp = buildDensityRamp(values, {unit: `${dsUnit(ds)} ${L('ต่อ ตร.กม.', 'per km²')}`});
+    for (const r of model.rows) {
+      const quiet = !inScope.has(r.id), c = cell(r, ds);
+      if (c.state === 'out_of_scope') fills.set(r.id, {fill: null, quiet, icon: quiet ? 'pin:quiet' : 'pin:none'});
+      else if (c.state === 'measured_zero') fills.set(r.id, {fill: state.ramp.zero.fill, zero: true, quiet, icon: quiet ? 'pin:quiet' : 'pin:zero'});
+      else {
+        const k = classify(c.density, state.ramp);
+        fills.set(r.id, {fill: k.fill, quiet, icon: quiet ? 'pin:quiet' : `pin:l${k.index}`, sort: k.index});
+      }
+    }
+  } else {
+    state.ramp = null;
+    for (const r of model.rows) {
+      const quiet = !inScope.has(r.id), series = r.pillar ? PILLAR_SERIES[r.pillar] : 0;
+      fills.set(r.id, {fill: series ? cssVar(`--series-${series}-fill`) : null, series, quiet, icon: quiet ? 'pin:quiet' : series ? `pin:s${series}` : 'pin:none', sort: series ? 10 + r.strong : 0});
+    }
+  }
+  if (state.nb && fills.has(state.nb)) fills.set(state.nb, {...fills.get(state.nb), open: true});
+  state.fills = fills;
+}
+
+function update({fit = false} = {}) {
+  refreshScope();
+  if (state.nb && !openRow()) state.nb = '';
+  state.compare = state.compare.filter(id => rowById(id)).slice(0, COMPARE_MAX);
+  computeFills();
+  $('search').value = state.search;
+  $('province').value = state.province;
+  $('lens').value = state.lens;
+  renderFilterSummary();
+  renderPanel();
+  renderLegend();
+  renderCompareTray();
+  if (!$('results').hidden) renderTable();
+  updateSpatialLayers();
+  saveURL();
+  if (fit) fitMap();
+}
+
+/* ---------- breadcrumb ---------- */
+function renderCrumbs() {
+  const r = openRow();
+  const crumbs = buildBreadcrumb({province: state.province, zone: r ? {id: r.id, name: r.name, province: r.province} : null});
+  $('crumbs').innerHTML = renderBreadcrumb(crumbs);
+  // Tab title: what the view shows, then the product, ≤ 60 characters (LDS FAVICON-01, js/shell/title.js).
+  const ds = lensDs();
+  const place = state.province ? provinceName(state.province) : L('ประเทศไทย', 'Thailand');
+  document.title = pageTitle(r ? L(`ย่าน${r.name}`, r.name) : ds ? `${dsName(ds)} ${L('ในย่าน', 'in neighbourhoods,')} ${place}` : L(`ย่าน${place}`, `Neighbourhoods · ${place}`));
+  return crumbs;
+}
+
+/* ---------- panel ---------- */
+const panelCtx = () => ({meta: state.model.meta, datasetCount: state.model.datasets.length});
+
+function renderPanel() {
+  const view = $('panel-view');
+  renderCrumbs();
+  const r = openRow();
+  let html;
+  if (r) {
+    html = renderNeighborhood(buildNeighborhood(state.model, r), state.model, {inCompare: state.compare.includes(r.id), compareFull: state.compare.length >= COMPARE_MAX,
+      fillOf: ds => (state.lens === ds.id ? fillOfRow(r) : ''), ctx: panelCtx()});
+    $('map-aha').hidden = true;
+  } else {
+    state.overview = buildOverview(state.model, {rows: state.rows, province: state.province, ds: lensDs(), pending: state.pending});
+    state.overview.searching = Boolean(state.search);
+    html = renderOverview(state.overview, state.model, {fillOf: fillOfRow, ctx: panelCtx()});
+    renderMapAha(state.overview);
+  }
+  view.innerHTML = html;
+  const mode = r ? 'neighborhood' : 'overview';
+  view.dataset.mode = mode;
+  $('panel').dataset.mode = mode;
+  $('sheet-back').hidden = !r && !state.province;
+  const key = `${mode}:${state.nb}:${state.province}:${state.lens}`;
+  if (key !== renderPanel.lastKey) { $('panel').scrollTop = 0; setSheet(restSheet()); state.readerPitch = false; state.readerMovedAt = 0; }
+  renderPanel.lastKey = key;
+}
+
+/** The phone's first finding on the map (the dock): the overview's Aha in one line. */
+function renderMapAha(o) {
+  const el = $('map-aha');
+  if (!o?.count || !(o.lens || o.lead)) { el.hidden = true; return; }
+  el.hidden = $('panel').classList.contains('is-open');
+  const crumb = `<p class="map-aha-crumb">${esc(breadcrumbText(buildBreadcrumb({province: state.province})))}</p>`;
+  const where = state.province ? L(`ใน${provinceName(state.province)}`, ` in ${provinceName(state.province)}`) : L('ทั้งประเทศ', ' nationwide');
+  if (o.lens) {
+    const ds = o.lens.ds, best = o.lens.ranking[0];
+    el.innerHTML = `<div>${crumb}<h2><span class="nowrap">${sharePct(o.lens.share)}</span> ${esc(L(`ของ${ds.nameTh}ที่มีพิกัด${where} อยู่ในย่าน`, `of ${dsName(ds)} records with a location${where} lie in neighbourhoods`))}</h2>${best ? `<p>${esc(L('แน่นที่สุด', 'Densest'))}: <span>${esc(best.row.name)}</span></p>` : ''}</div><button type="button" class="btn" data-action="open-sheet">${L('ดู', 'View')}</button>`;
+    return;
+  }
+  el.innerHTML = `<div>${crumb}<h2><span class="nowrap">${sharePct(o.lead.share)}</span> ${esc(L(`ของ${o.lead.ds.nameTh}ที่มีพิกัด${where} อยู่ในย่าน ${num(o.count)} แห่ง`, `of ${dsName(o.lead.ds)} records with a location${where} lie in ${num(o.count)} neighbourhoods`))}</h2><p>${esc(L(`ย่านกินพื้นที่ ${sharePct(o.areaShare)}`, `covering ${sharePct(o.areaShare)} of the area`))}</p></div><button type="button" class="btn" data-action="open-sheet">${L('ดู', 'View')}</button>`;
+}
+
+/** Search and lens as chips under the filters (clear one by one). */
+function renderFilterSummary() {
+  const chips = [];
+  if (state.search) chips.push({label: `“${state.search}”`, action: 'clear-search'});
+  if (state.province) chips.push({label: provinceName(state.province), action: 'leave-province'});
+  const ds = lensDs();
+  if (ds) chips.push({label: dsName(ds), action: 'clear-lens'});
+  $('filter-chips').innerHTML = renderFilterChips(chips);
+  $('filter-count').textContent = state.province || state.search ? `(${num([state.province, state.search].filter(Boolean).length)})` : '';
+}
+
+/* ---------- actions ---------- */
+function selectNb(id, {fit = true} = {}) {
+  const r = rowById(id);
+  if (!r) return;
+  state.nb = r.id;
+  state.province = r.province;
+  // The search found it: it gives way, so the province behind the neighbourhood reads whole (the browser's back button
+  // returns to the search, which is in the address of the previous entry).
+  state.search = '';
+  update({fit});
+  openMobilePanel({frame: false});
+  announce(`${L('ย่าน', 'Neighbourhood')} · ${r.name} · ${provinceName(r.province)}`);
+}
+
+function selectProvince(code) {
+  const p = provinceByCode(code);
+  if (!p) return;
+  state.province = p.code; state.nb = '';
+  update({fit: true});
+  announce(provinceName(p.code));
+}
+
+function leaveProvince() {
+  state.province = ''; state.nb = '';
+  update({fit: true});
+}
+
+function goBack() {
+  if (state.nb) { state.nb = ''; update({fit: true}); return; }
+  if (state.province) leaveProvince();
+}
+
+function setLens(id) {
+  state.lens = state.model.dsById.has(id) ? id : '';
+  update();
+  const ds = lensDs();
+  announce(ds ? L(`ระบายสีย่านตาม${ds.nameTh}`, `Neighbourhoods coloured by ${dsName(ds)}`) : L('ระบายสีตามจุดเด่น', 'Coloured by highlights'));
+}
+
+function compareSet(ids, {open = true} = {}) {
+  state.compare = [...new Set(ids)].filter(id => rowById(id)).slice(0, COMPARE_MAX);
+  update();
+  if (open) openInsights(true);
+  if (state.compare.length > 1 && state.loaded && !state.nb) fitRows(compareRows(), {maxZoom: 14});
+}
+
+/** The top three of the view: under a lens the densest (ranked), else the most distinctive. */
+function compareTop(dsId = '') {
+  const ds = dsId ? state.model.dsById.get(dsId) : lensDs();
+  const list = ds
+    ? buildOverview(state.model, {rows: state.rows, province: state.province, ds}).lens.ranking.map(x => x.row)
+    : (state.overview?.multi?.length ? state.overview.multi : [...state.rows].sort((a, b) => b.strong - a.strong));
+  compareSet(list.slice(0, 3).map(r => r.id));
+}
+
+function onPanelAction(event) {
+  const el = event.target.closest('[data-action]');
+  if (!el) return;
+  const {action, id, value} = el.dataset;
+  if (el.tagName === 'A' && el.getAttribute('href')) return;
+  event.preventDefault();
+  if (action === 'select-nb') selectNb(id);
+  else if (action === 'select-province' || action === 'crumb-province') { if (action === 'crumb-province' && !state.nb && state.province === id) return; selectProvince(id); }
+  else if (action === 'crumb-country' || action === 'leave-province') leaveProvince();
+  else if (action === 'crumb-zone') { if (state.nb) fitMap(); }
+  else if (action === 'set-lens') { setLens(state.lens === value && el.closest('.share-list') ? '' : value); }
+  else if (action === 'clear-lens') setLens('');
+  else if (action === 'clear-search') { state.search = ''; update({fit: true}); }
+  else if (action === 'cmp-add') compareSet([...state.compare, id]);
+  else if (action === 'cmp-remove') compareSet(state.compare.filter(x => x !== id), {open: state.compare.length > 1});
+  else if (action === 'cmp-clear') compareSet([], {open: false});
+  else if (action === 'cmp-top') compareTop(value);
+  else if (action === 'cmp-similar') { const r = rowById(id); if (r) compareSet([r.id, ...buildNeighborhood(state.model, r).similar.map(x => x.row.id)]); }
+  else if (action === 'open-table') openTable();
+  else if (action === 'open-compare') openInsights(true);
+  else if (action === 'open-sheet') openMobilePanel();
+  else if (action === 'back') goBack();
+}
+
+/* ---------- legend ---------- */
+function renderLegend() {
+  const ds = lensDs(), steps = $('legend-steps');
+  $('legend-title').textContent = ds ? `${dsName(ds)} · ${dsUnit(ds)} ${L('ต่อ ตร.กม.', 'per km²')}` : L('ย่าน · เด่นเรื่องแรก', 'Neighbourhood · first highlight');
+  if (ds) {
+    const out = state.rows.filter(r => cell(r, ds).state === 'out_of_scope').length;
+    const zero = state.rows.some(r => cell(r, ds).state === 'measured_zero');
+    steps.innerHTML = state.ramp?.levels.length
+      ? `${rampLegendHTML(state.ramp, {zero, zeroTitle: L(`0 ${dsUnit(ds)} ในขอบย่าน`, `0 ${dsUnit(ds)} inside the outline`)})}${out ? `<span class="legend-step legend-out" title="${esc(L('ชุดนี้ไม่มีข้อมูลในจังหวัดของย่าน', 'This dataset has no data in the neighbourhood’s province'))}"><i class="legend-outline" aria-hidden="true"></i>${L('ไม่มีข้อมูล', 'No data')}</span>` : ''}`
+      : `<span class="hint">${esc(L(`ไม่มี${ds.nameTh}ในขอบย่าน`, `No ${dsName(ds)} inside the outlines`))}</span>`;
+  } else {
+    steps.innerHTML = `${PILLARS.map(p => `<span class="legend-cat">${cueMarkup(PILLAR_SERIES[p])}${esc(p)}</span>`).join('')}<span class="legend-cat" title="${esc(L('ยังไม่มีชุดข้อมูลไหนเด่นเกินเกณฑ์', 'No dataset stands out above the threshold'))}">${cueMarkup(8, {className: 'cue-none'})}${L('ยังไม่เด่น', 'None yet')}</span>`;
+  }
+  spaceTicks(steps);
+  $('legend-areas').title = ds
+    ? L(`สีย่าน = ${ds.nameTh}ต่อ ตร.กม. ของพื้นที่ย่านตามทะเบียน · 41 ระดับตามลำดับค่า สีเข้ม = แน่น`, `Colour = ${dsName(ds)} per km² of the registry area · 41 steps by rank, darker = denser`)
+    : L('สีและรูปทรง = หมวดของจุดเด่นแรกของย่าน (Land · Location · Living)', 'Colour and shape = pillar of the neighbourhood’s first highlight (Land · Location · Living)');
+  const poiItem = $('legend-poi');
+  if (poiItem) poiItem.hidden = !state.nb;
+  const panel = document.querySelector('.map-panel');
+  panel.classList.toggle('is-3d', state.view3d);
+  panel.dataset.reading = ds ? 'lens' : 'highlights';
+}
+
+/** Ramp tick labels on the ramp's actual width: a label that would touch the one before it steps aside. */
+function spaceTicks(root) {
+  for (const ramp of root?.querySelectorAll('.ramp-ticks') || []) {
+    const ticks = [...ramp.querySelectorAll('.ramp-tick')];
+    ticks.forEach(t => t.classList.remove('is-crowded'));
+    if (ticks.length < 3 || !ramp.offsetWidth) continue;
+    const shown = [ticks[0]];
+    for (const t of ticks.slice(1)) {
+      const last = t === ticks.at(-1);
+      while (shown.length > 1 && shown.at(-1).getBoundingClientRect().right + 4 > t.getBoundingClientRect().left) {
+        if (!last) break;
+        shown.pop().classList.add('is-crowded');
+      }
+      if (shown.at(-1).getBoundingClientRect().right + 4 > t.getBoundingClientRect().left && !last) { t.classList.add('is-crowded'); continue; }
+      shown.push(t);
+    }
+  }
+}
+
+/* ---------- compare tray ---------- */
+function renderCompareTray() {
+  const rows = compareRows();
+  $('compare-count').textContent = rows.length ? `${num(rows.length)}/${num(COMPARE_MAX)}` : '';
+  $('compare-clear').hidden = !rows.length;
+  $('chart-scope').textContent = rows.length ? rows.map(r => r.name).join(' · ') : L('ยังไม่ได้เลือกย่าน', 'No neighbourhood chosen yet');
+  $('compare-view').innerHTML = renderCompare(buildCompare(state.model, rows), state.model, {max: COMPARE_MAX});
+  state.layers?.setCompare(rows.map(r => r.id));
+}
+
+function openInsights(open) {
+  $('insight-content').hidden = !open;
+  $('insights').classList.toggle('is-collapsed', !open);
+  $('toggle-insights').setAttribute('aria-expanded', String(open));
+  $('toggle-insights').textContent = open ? L('ย่อ', 'Collapse') : L('เปิด', 'Open');
+  requestAnimationFrame(syncBottomPanel);
+}
+
+function syncBottomPanel() {
+  const tray = $('insights');
+  if (!tray) return;
+  document.documentElement.style.setProperty('--bottom-panel-height', `${tray.getBoundingClientRect().height}px`);
+  state.provinceLabels?.layout();
+  state.nbLabels?.layout();
+}
+
+/* ---------- table ---------- */
+function openTable() {
+  $('results').hidden = false;
+  renderTable();
+  closeMobilePanel();
+  $('toggle-table').focus();
+}
+
+function tableOrder() {
+  const ds = lensDs();
+  const list = [...state.rows];
+  if (ds) return list.sort((a, b) => (b.density[ds.id] ?? -1) - (a.density[ds.id] ?? -1) || COLLATOR.compare(a.name, b.name));
+  return list.sort((a, b) => b.strong - a.strong || (b.hl?.length || 0) - (a.hl?.length || 0) || COLLATOR.compare(provinceName(a.province), provinceName(b.province)) || COLLATOR.compare(a.name, b.name));
+}
+
+function renderTable() {
+  renderTable.stale = false;
+  const list = tableOrder(), start = state.page * PAGE_SIZE;
+  const ds = lensDs();
+  $('results-title').textContent = state.province ? L(`ย่านใน${provinceName(state.province)}`, `Neighbourhoods in ${provinceName(state.province)}`) : L('ย่านทั้งประเทศ', 'Neighbourhoods nationwide');
+  $('table-hint').textContent = ds
+    ? L(`เรียงตาม${ds.nameTh}ต่อ ตร.กม. · ตัวเลข = จำนวนในขอบย่าน · — = ชุดนี้ไม่มีข้อมูลในจังหวัด`, `Sorted by ${dsName(ds)} per km² · figures = records inside the outline · — = no data in the province`)
+    : L('เรียงตามจำนวนจุดเด่น · ตัวเลข = จำนวนในขอบย่าน · — = ชุดนี้ไม่มีข้อมูลในจังหวัด · กดชื่อเพื่อดูย่าน', 'Sorted by highlights · figures = records inside the outline · — = no data in the province · choose a name to open it');
+  $('result-head').innerHTML = tableHeadHTML(state.model, state.lens);
+  $('result-rows').innerHTML = list.slice(start, start + PAGE_SIZE).map(r => tableRowHTML(r, state.model)).join('')
+    || `<tr><td colspan="${4 + state.model.datasets.length}">${L('ไม่พบย่านตามตัวกรอง', 'No neighbourhood matches')}</td></tr>`;
+  $('page-label').textContent = list.length ? `${num(start + 1)}–${num(Math.min(start + PAGE_SIZE, list.length))} / ${num(list.length)}` : '0';
+  $('prev-page').disabled = state.page === 0;
+  $('next-page').disabled = start + PAGE_SIZE >= list.length;
+}
+
+/* ---------- map: camera ---------- */
+function cameraPadding() {
+  const height = $('map').clientHeight, tray = $('insights').getBoundingClientRect().height;
+  const edge = Math.min(48, Math.max(12, (height - tray) / 6));
+  const mapTop = $('map').getBoundingClientRect().top, toolbar = document.querySelector('.map-toolbar').getBoundingClientRect();
+  const aha = $('map-aha'), legend = $('map-legend');
+  const chromeTop = !aha.hidden && aha.offsetHeight ? aha.getBoundingClientRect().top : legend.offsetHeight ? legend.getBoundingClientRect().top : null;
+  let bottom = chromeTop != null ? height - (chromeTop - mapTop) + 12 : tray + edge;
+  if (mobilePortrait() && $('panel').classList.contains('is-open')) bottom = Math.max(bottom, Math.round($('panel').getBoundingClientRect().height) - (window.innerHeight - height - mapTop) + 8);
+  return {top: Math.max(edge, toolbar.bottom - mapTop + 12), left: edge, right: edge, bottom: Math.min(height * 0.7, bottom)};
+}
+
+function boundsOf(boxes) {
+  let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+  for (const b of boxes) if (b) { w = Math.min(w, b[0][0]); s = Math.min(s, b[0][1]); e = Math.max(e, b[1][0]); n = Math.max(n, b[1][1]); }
+  return Number.isFinite(w) ? new maplibregl.LngLatBounds([w, s], [e, n]) : null;
+}
+const countryBox = () => [[97.34, 5.61], [105.64, 20.47]];
+
+function fitBox(box, {preset = 'plan', maxZoom = 12, minZoom = 4, instant = false} = {}) {
+  const b = boundsOf([box]);
+  if (!b || !state.map) return;
+  fitPitched(state.map, b, {preset, padding: cameraPadding(), maxZoom, minZoom, animate: animate() && !instant, shift: mobilePortrait() ? -0.08 : null});
+}
+
+/** Rows framed flat (a province's neighbourhoods, a comparison), never closer than `maxZoom`. */
+function fitRows(rows, {maxZoom = 13.5, instant = false} = {}) {
+  const b = rowsBounds(rows);
+  if (!b) return;
+  fitBox([[b[0], b[1]], [b[2], b[3]]], {maxZoom, minZoom: 4.5, instant});
+}
+
+/** A neighbourhood in the model preset (plan with 3D off or under the phone's open sheet), with some street round it. */
+function fitNb(r, {instant = false} = {}) {
+  if (!r || !state.map) return;
+  const [w, s, e, n] = r.bbox, lat = (s + n) / 2;
+  const kx = 111320 * Math.cos((lat * Math.PI) / 180), ky = 110574;
+  const half = Math.max(((e - w) * kx) / 2, ((n - s) * ky) / 2, 320) + 120;
+  const cx = (w + e) / 2, cy = (s + n) / 2;
+  const box = [[cx - half / kx, cy - half / ky], [cx + half / kx, cy + half / ky]];
+  const phone = mobilePortrait();
+  const preset = state.view3d ? 'model' : 'plan';
+  fitBox(box, {preset, maxZoom: 17, minZoom: phone && state.view3d ? Math.max(12, state.budget?.focusZoom || 0) : 11, instant});
+}
+
+function fitMap({instant = false} = {}) {
+  if (!state.loaded) return;
+  const r = openRow();
+  if (r) { fitNb(r, {instant}); return; }
+  // The comparison open: frame the neighbourhoods side by side.
+  if (state.compare.length > 1 && !$('insight-content').hidden) { fitRows(compareRows(), {maxZoom: 14, instant}); return; }
+  if (state.province) {
+    if (state.rows.length) fitRows(state.rows, {instant});
+    else { const p = provinceByCode(state.province); if (p?.bbox) fitBox([[p.bbox[0], p.bbox[1]], [p.bbox[2], p.bbox[3]]], {maxZoom: 9, instant}); }
+    return;
+  }
+  if (state.search && state.rows.length && state.rows.length <= 40) { fitRows(state.rows, {instant}); return; }
+  fitBox(countryBox(), {maxZoom: 7, instant});
+}
+
+/* ---------- map: layers ---------- */
+/** Province chips below the neighbourhood zooms: provinces with neighbourhoods in scope, with their count. */
+function provinceLabelItems() {
+  const counts = new Map();
+  for (const r of state.rows) counts.set(r.province, (counts.get(r.province) || 0) + 1);
+  return [...counts].sort((a, b) => (b[0] === state.province) - (a[0] === state.province) || b[1] - a[1]).map(([code, n]) => {
+    const p = provinceByCode(code);
+    return p ? {id: code, name: provinceName(code), value: num(n), state: 'measured', selected: code === state.province, quiet: false, center: p.label,
+      title: L(`${provinceName(code)} · ${num(n)} ย่าน`, `${provinceName(code)} · ${num(n)} neighbourhoods`)} : null;
+  }).filter(Boolean);
+}
+
+/** Neighbourhood chips at the city zooms: name + the reading (the first highlight, or the density under the lens). */
+function nbLabelItems() {
+  const ds = lensDs();
+  const inScope = state.rows;
+  const items = inScope.map(r => {
+    const c = ds ? cell(r, ds) : null;
+    const first = !ds && r.hl?.[0] ? state.model.dsById.get(r.hl[0].d) : null;
+    const value = ds ? (c.state === 'measured' ? dens(c.density) : c.state === 'measured_zero' ? '0' : '—') : first ? dsName(first) : '';
+    const title = ds
+      ? `${r.name} · ${c.state === 'out_of_scope' ? L('ไม่มีข้อมูลในจังหวัด', 'no data in the province') : `${num(c.count || 0)} ${dsUnitN(ds, c.count || 0)} · ${dens(c.density || 0)} ${L('ต่อ ตร.กม.', 'per km²')}`}`
+      : `${r.name}${first ? ` · ${L('เด่นเรื่อง', 'stands out for')} ${dsName(first)}` : ''}`;
+    const kind = ds ? (c.state === 'measured_zero' ? 'zero' : c.state === 'out_of_scope' ? 'out' : 'measured') : value ? 'text' : 'none';
+    return {id: r.id, name: r.name, value, title, state: kind, selected: r.id === state.nb, quiet: false, center: r.ref,
+      swatch: state.fills.get(r.id)?.fill || '', rank: r.id === state.nb ? 1e9 : state.compare.includes(r.id) ? 1e8 : ds ? (c.density || 0) : r.strong * 100 + (r.hl?.length || 0)};
+  });
+  return items.sort((a, b) => b.rank - a.rank);
+}
+
+function scheduleLabelView() {
+  clearTimeout(scheduleLabelView.timer);
+  scheduleLabelView.timer = setTimeout(() => { if (state.loaded) { state.provinceLabels?.layout(); state.nbLabels?.layout(); } }, 60);
+}
+
+/** Provinces whose building units the massing regions need: the open neighbourhood's, and those under each region. */
+function massingProvinces(regions) {
+  const codes = new Set([state.province, openRow()?.province].filter(Boolean));
+  if (state.locate) {
+    for (const ring of regions) {
+      if (!ring.length) continue;
+      const [w, s, e, n] = ringsBox([ring]);
+      for (const p of [[(w + e) / 2, (s + n) / 2], [w, s], [e, s], [e, n], [w, n]]) { const code = state.locate(p); if (code) codes.add(code); }
+    }
+  }
+  return [...codes];
+}
+
+/** The open neighbourhood's focus: its outline and the square of its surroundings (js/regions.js). */
+function subjectRegions() {
+  const r = openRow();
+  if (!r) return [];
+  const f = state.outlineById.get(r.id);
+  return siteContextRegions(f ? outerRings(f) : [], r.ref);
+}
+
+/** The camera's square while it looks outside the subject's own focus, from FOCUS_MIN_ZOOM in (js/regions.js). */
+function cameraContext(base = subjectRegions()) {
+  const map = state.map;
+  if (!map || typeof map.getZoom !== 'function') return null;
+  return cameraSquare(map.getCenter().toArray(), map.getZoom(), {base, minZoom: FOCUS_MIN_ZOOM});
+}
+
+function massingRegions() {
+  const base = subjectRegions();
+  const camera = cameraContext(base);
+  state.cameraKey = camera?.key || '';
+  return camera ? [...base, camera.ring] : base;
+}
+
+/** After a move: read again round the camera when it has left its cell or crossed FOCUS_MIN_ZOOM. */
+function followCamera() {
+  if (!state.loaded || !state.massing) return;
+  if ((cameraContext()?.key || '') !== state.cameraKey) updateSpatialLayers();
+}
+
+function updateSpatialLayers() {
+  if (!state.loaded || !state.layers) return;
+  const L_ = state.layers;
+  L_.paint(state.fills);
+  L_.setPins(pinCollection(state.model.rows, r => state.fills.get(r.id)?.icon || 'pin:none', r => state.fills.get(r.id)?.sort || 0));
+  L_.select(state.nb);
+  L_.setCompare(state.compare);
+  L_.setProvince(state.province);
+  const r = openRow();
+  L_.setPoints(r ? poiCollection(state.points[r.index], state.model.datasets, state.lens) : null);
+  state.provinceLabels?.update(provinceLabelItems());
+  state.nbLabels?.update(nbLabelItems());
+  const regions = massingRegions();
+  const codes = massingProvinces(regions);
+  state.buildingUnits?.ensureMany(codes);
+  if (!state.buildingUnits || codes.every(c => state.buildingUnits.settled(c))) {
+    const zones = state.buildingUnits?.zonesFor(regions) || [];
+    const anchors = r ? [r.ref] : [state.map.getCenter().toArray()];
+    state.massing?.update({regions, hosts: [], anchors, zones, enabled: true, city: state.view3d, zoom: state.map.getZoom(), latitude: state.map.getCenter().lat})?.catch(e => console.warn('Massing', e));
+  }
+}
+
+function provinceAt(point) {
+  if (!state.locate) return '';
+  return state.locate(state.map.unproject(point).toArray());
+}
+
+function onMapClick(e) {
+  const id = state.layers?.hitTest(e.point);
+  if (id) { if (id !== state.nb) selectNb(id); return; }
+  if (state.map.getZoom() < OUTLINE_MIN_ZOOM) {
+    const code = provinceAt(e.point);
+    if (code && code !== state.province) selectProvince(code);
+  }
+}
+
+function onMapMove(e) {
+  onMapMove.point = e.point;
+  if (onMapMove.frame) return;
+  onMapMove.frame = requestAnimationFrame(() => {
+    onMapMove.frame = 0;
+    const map = state.map, p = onMapMove.point;
+    if (!map || !state.loaded || !p) return;
+    const id = state.layers?.hitTest(p) || '';
+    state.layers?.hover(id && id !== state.nb ? id : '');
+    let over = Boolean(id) && id !== state.nb;
+    if (!over && map.getZoom() < OUTLINE_MIN_ZOOM) { const code = provinceAt(p); over = Boolean(code) && code !== state.province; }
+    map.getCanvas().style.cursor = over ? 'pointer' : '';
+  });
+}
+
+function installSpatialLayers() {
+  const map = state.map;
+  state.loaded = true;
+  guardRetainedTiles(map, maplibregl.getVersion?.());
+  guardElevationFreeze(map, maplibregl.getVersion?.());
+  const palette = basemapPalette(theme());
+  try {
+    state.layers = installNeighborhoodLayers(map, {provinces: state.provincesGeo, outlines: state.outlines, rows: state.model.rows,
+      iconOptions: () => ({lut: state.ramp?.lut || [], zero: state.ramp?.zero || {}})});
+  } catch (e) { state.layers = null; console.warn('Neighbourhood layers unavailable', e); }
+  state.massing = installMassing(map, {
+    beforeId: MASSING_BEFORE,
+    colors: {quiet: palette.massingQuiet, focus: palette.massingFocus, ground: palette.ground, venue: cssVar('--map-active-layer') || undefined},
+    tileUrl: t => (state.tileTemplate ? state.tileTemplate.replace('{z}', t.z).replace('{x}', t.x).replace('{y}', t.y) : ''),
+    cmTileUrl, cmAttribution: CM_ATTRIBUTION,
+    budget: state.budget.level === 'full' ? null : state.budget,
+    onResult: result => {
+      const status = $('map-status');
+      status.dataset.massing = `${result.features || 0}`;
+      status.dataset.cmBuildings = `${result.cm?.kept || 0}`;
+    },
+  });
+  updateSpatialLayers();
+  if (!state.initialCameraDone) {
+    state.initialCameraDone = true;
+    const resume = state.resumeView; state.resumeView = null;
+    if (resume) state.map.jumpTo(resume);
+    else fitMap({instant: true});
+  }
+  scheduleLabelView();
+}
+
+/** The attribution must stay readable: its live height becomes --attrib-height (the phone dock stays above it). */
+function trackAttribution(map) {
+  const panel = map.getContainer().closest('.map-panel');
+  const el = map.getContainer().querySelector('.maplibregl-ctrl-attrib');
+  if (!panel || !el) return null;
+  const set = () => {
+    panel.style.setProperty('--attrib-height', `${Math.ceil(el.getBoundingClientRect().height) + 10}px`);
+    panel.classList.toggle('is-attrib-compact', el.classList.contains('maplibregl-compact') && !el.classList.contains('maplibregl-compact-show'));
+  };
+  const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(set) : null;
+  observer?.observe(el);
+  if (typeof MutationObserver === 'function') new MutationObserver(set).observe(el, {attributes: true, attributeFilter: ['class']});
+  set();
+  return observer;
+}
+
+/** The legend's height (--legend-height); its ticks are spaced again on resize. */
+function trackLegend() {
+  const panel = document.querySelector('.map-panel'), el = $('map-legend');
+  if (!panel || !el) return null;
+  const set = () => { panel.style.setProperty('--legend-height', `${Math.ceil(el.offsetParent ? el.getBoundingClientRect().height : 0)}px`); spaceTicks(el); };
+  const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(set) : null;
+  observer?.observe(el);
+  set();
+  return observer;
+}
+
+const MAP_LOCALE = LANG === 'en' ? {} : {
+  'Map.Title': 'แผนที่ย่านและสิ่งที่อยู่ในย่าน', 'NavigationControl.ZoomIn': 'ซูมเข้า', 'NavigationControl.ZoomOut': 'ซูมออก',
+  'NavigationControl.ResetBearing': 'หมุนกลับทิศเหนือ (ลากเพื่อหมุนหรือเอียง)', 'Popup.Close': 'ปิด', 'AttributionControl.ToggleAttribution': 'แสดงหรือซ่อนที่มาของแผนที่',
+};
+
+function initMap() {
+  if (!window.maplibregl) throw new Error('Map library is unavailable');
+  try {
+    state.mapTheme = theme();
+    state.budget = mapBudget();
+    state.map = new maplibregl.Map({container: 'map', pixelRatio: budgetPixelRatio(state.budget), maxTileCacheZoomLevels: state.budget.cacheZoomLevels, center: [100.53, 13.74], zoom: 5.4, pitch: 0, maxPitch: 85, attributionControl: {compact: true, customAttribution: L(state.model.meta.attribution || '', 'Neighbourhood outlines: CityMETER central registry (draft) · roads, waterways and buildings used to draw them © OpenStreetMap contributors (ODbL)')}, locale: MAP_LOCALE, style: buildMapStyle(state.mapTheme)});
+    state.map.addControl(new maplibregl.NavigationControl({showCompass: true, visualizePitch: true}), 'top-right');
+    state.attribObserver = trackAttribution(state.map);
+    state.legendObserver ||= trackLegend();
+    document.fonts?.ready?.then(() => spaceTicks($('map-legend')));
+    state.provinceLabels = installAreaLabels(state.map, $('map'), {className: 'province-label', hostId: 'province-labels', hostLabel: L('จังหวัดบนแผนที่', 'Provinces on the map'), minZoom: 4, maxZoom: 8.5, verb: L('กดเพื่อดูจังหวัด', 'open the province'), onSelect: code => selectProvince(code), reservedBottom: labelBottomSpace, maxLabels: mobilePortrait() ? 10 : 18});
+    state.nbLabels = installAreaLabels(state.map, $('map'), {className: 'neighborhood-label', hostId: 'nb-labels', hostLabel: L('ย่านบนแผนที่', 'Neighbourhoods on the map'), minZoom: 11.5, maxZoom: 24, verb: L('กดเพื่อดูย่าน', 'open the neighbourhood'), onSelect: id => selectNb(id), reservedBottom: labelBottomSpace, maxLabels: 36, avoid: '#province-labels .area-label:not([hidden])'});
+    state.map.on('moveend', scheduleLabelView);
+    state.map.on('moveend', followCamera);
+    state.map.on('moveend', tiltWhenNear);
+    state.map.on('style.load', installSpatialLayers);
+    state.map.on('click', onMapClick);
+    state.map.on('mousemove', onMapMove);
+    state.map.on('pitchstart', e => { if (e.originalEvent) state.readerPitch = true; });
+    for (const type of ['wheel', 'touchend', 'pointerup', 'dblclick']) state.map.getCanvasContainer().addEventListener(type, () => { state.readerMovedAt = Date.now(); }, {passive: true});
+    state.map.on('error', e => { watchBasemap.error(e); console.warn('Map resource', e.error?.message || e); });
+    state.map.on('sourcedata', watchBasemap.data);
+    state.contextWatch = watchContext(state.map, () => restartMap('context-lost'));
+    $('map').dataset.budget = state.budget.level;
+    fetch(TILEJSON_URL).then(r => r.json()).then(j => { state.tileTemplate = j.tiles?.[0] || ''; if (state.loaded) updateSpatialLayers(); }).catch(e => { partial('basemap'); console.warn('TileJSON', e); });
+  } catch (e) {
+    dropMap();
+    throw e;
+  }
+}
+
+function dropMap() {
+  state.loaded = false; state.initialCameraDone = false;
+  for (const cleanup of [() => state.contextWatch?.(), () => state.attribObserver?.disconnect(), () => state.provinceLabels?.dispose(), () => state.nbLabels?.dispose(), disposeSpatial, () => state.map?.remove()]) { try { cleanup(); } catch (err) { console.warn('Map cleanup', err); } }
+  state.map = null; state.provinceLabels = null; state.nbLabels = null; state.contextWatch = null; state.attribObserver = null;
+  watchBasemap.reset();
+}
+
+/** The basemap's own tiles: when they fail and none has arrived, the page says so (`basemap` in PARTIAL). */
+const watchBasemap = {
+  errors: 0, loaded: false, told: false,
+  reset() { this.errors = 0; this.loaded = false; },
+  error: e => {
+    const w = watchBasemap;
+    if (w.loaded || e?.sourceId !== 'openmaptiles') return;
+    if (++w.errors >= 3 && !w.told) { w.told = true; partial('basemap'); trouble('basemap-tiles'); }
+  },
+  data: e => {
+    const w = watchBasemap;
+    if (w.loaded || e?.sourceId !== 'openmaptiles' || !e.tile || e.tile.state !== 'loaded') return;
+    w.loaded = true;
+    if (w.told) { w.told = false; window.dispatchEvent(new CustomEvent('citymeter:partial', {detail: {id: 'basemap', resolved: true}})); }
+  },
+};
+function trouble(kind, note = '') { window.dispatchEvent(new CustomEvent('citymeter:map-trouble', {detail: {kind, note}})); }
+
+function restartMap(reason) {
+  if (!state.map) return;
+  const view = {center: state.map.getCenter(), zoom: state.map.getZoom(), pitch: state.map.getPitch(), bearing: state.map.getBearing()};
+  state.mapRestarts = (state.mapRestarts || 0) + 1;
+  trouble(reason, `restart ${state.mapRestarts}`);
+  dropMap();
+  if (state.mapRestarts > 2) {
+    const el = $('map-failure');
+    el.hidden = false;
+    el.innerHTML = `<p>${L('แผนที่หยุดแสดงผล ข้อมูลในแผงและตารางยังใช้งานได้', 'The map stopped drawing; the panel and the table still work')}</p><button type="button" class="btn">${L('เปิดแผนที่อีกครั้ง', 'Open the map again')}</button>`;
+    el.querySelector('button').onclick = event => { event.target.disabled = true; state.mapRestarts = 0; startMap(); };
+    return;
+  }
+  state.resumeView = view;
+  startMap();
+}
+
+async function startMap() {
+  const el = $('map-failure');
+  try { await loadMapLibrary(); el.hidden = true; initMap(); }
+  catch (e) {
+    el.hidden = false;
+    el.innerHTML = `<p>${L('โหลดแผนที่ไม่สำเร็จ ข้อมูลในแผงและตารางยังใช้งานได้', 'The map did not load; the panel and the table still work')}</p><p class="hint">${esc(e.message || '')}</p><button type="button" class="btn">${L('ลองโหลดแผนที่ใหม่', 'Try the map again')}</button>`;
+    el.querySelector('button').onclick = event => { event.target.disabled = true; startMap(); };
+    console.warn(e);
+  }
+}
+
+/** A phone's plan view turns 3D near the buildings once the reader has moved there (the University rule of 2026-11-11). */
+const TILT_ZOOM = 14, FLAT_PITCH = 20;
+function tiltWhenNear() {
+  clearTimeout(state.tiltTimer);
+  if (state.readerPitch || Date.now() - (state.readerMovedAt || 0) > 2500) return;
+  state.tiltTimer = setTimeout(() => {
+    const map = state.map;
+    if (!map || state.readerPitch || !state.view3d || !mobilePortrait() || map.isMoving()) return;
+    if (map.getZoom() < (state.budget?.focusZoom || TILT_ZOOM) || map.getPitch() >= FLAT_PITCH) return;
+    applyPreset(map, 'model', {animate: animate(), duration: 600});
+  }, 220);
+}
+
+function toggle3d() {
+  state.view3d = !state.view3d;
+  state.readerPitch = false;
+  $('toggle-3d').setAttribute('aria-pressed', String(state.view3d));
+  renderLegend();
+  updateSpatialLayers();
+  if (state.map) {
+    if (state.nb) fitNb(openRow());
+    else applyPreset(state.map, state.map.getZoom() >= 12 && state.view3d ? 'model' : cameraPreset(), {animate: animate()});
+  }
+  saveURL();
+}
+
+/* ---------- mobile sheet ---------- */
+const restSheet = () => (state.nb ? 'peek' : 'half');
+function setSheet(next) {
+  const panel = $('panel'), grip = $('sheet-grip');
+  if (!grip || panel.dataset.sheet === next) return;
+  const full = next === 'full', words = full ? L('ย่อแผ่นข้อมูล', 'Shrink the sheet') : L('ขยายแผ่นข้อมูล', 'Expand the sheet');
+  panel.dataset.sheet = next;
+  grip.setAttribute('aria-expanded', String(full));
+  grip.title = words;
+  const label = grip.querySelector('.sr-only');
+  if (label) label.textContent = words;
+  if (!full) panel.scrollTop = 0;
+}
+const toggleSheet = () => setSheet($('panel').dataset.sheet === 'full' ? restSheet() : 'full');
+function installSheetSwipe() {
+  const bar = $('sheet-bar'), grip = $('sheet-grip');
+  if (!bar || !grip) return;
+  let startY = null, pointer = null, swipedAt = 0;
+  bar.addEventListener('pointerdown', e => { if (!e.target.closest('#sheet-back, #close-mobile-panel')) { startY = e.clientY; pointer = e.pointerId; } });
+  const end = e => {
+    if (startY === null || e.pointerId !== pointer) return;
+    const dy = e.clientY - startY;
+    startY = null;
+    if (Math.abs(dy) < 28) return;
+    swipedAt = Date.now();
+    if (dy < 0) setSheet('full');
+    else if ($('panel').dataset.sheet === 'full') setSheet(restSheet());
+    else closeMobilePanel();
+  };
+  window.addEventListener('pointerup', end);
+  window.addEventListener('pointercancel', () => { startY = null; });
+  grip.addEventListener('click', () => { if (Date.now() - swipedAt > 350) toggleSheet(); });
+}
+function openMobilePanel({frame = true} = {}) {
+  if (!mobilePortrait()) return;
+  const wasOpen = $('panel').classList.contains('is-open');
+  $('panel').classList.add('is-open');
+  $('mobile-panel').setAttribute('aria-expanded', 'true');
+  $('map-aha').hidden = true;
+  if (frame && !wasOpen && state.loaded && state.nb) fitNb(openRow());
+}
+function closeMobilePanel() {
+  const wasOpen = $('panel').classList.contains('is-open');
+  $('panel').classList.remove('is-open');
+  $('mobile-panel').setAttribute('aria-expanded', 'false');
+  if (mobilePortrait()) {
+    $('mobile-panel').focus({preventScroll: true});
+    if (!state.nb) renderMapAha(state.overview);
+    else if (wasOpen && state.loaded) fitNb(openRow());
+  }
+}
+
+/* ---------- data loading ---------- */
+function validFeatureCollection(value) {
+  if (value?.type !== 'FeatureCollection' || !Array.isArray(value.features)) return false;
+  const position = p => Array.isArray(p) && p.length >= 2 && p.every(Number.isFinite) && Math.abs(p[0]) <= 180 && Math.abs(p[1]) <= 90;
+  const ring = r => Array.isArray(r) && r.length >= 4 && r.every(position);
+  const polygon = p => Array.isArray(p) && p.length > 0 && p.every(ring);
+  return value.features.every(f => {
+    const g = f?.geometry, id = f?.id ?? f?.properties?.id;
+    return f?.type === 'Feature' && (typeof id === 'string' || typeof id === 'number') && (g?.type === 'Polygon' ? polygon(g.coordinates) : g?.type === 'MultiPolygon' && g.coordinates.every(polygon));
+  });
+}
+
+async function fetchJSON(resource, {timeout = 20000} = {}) {
+  const controller = new AbortController(), timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const r = await fetch(resource, {signal: controller.signal, cache: 'no-cache'});
+    if (!r.ok) { const e = new Error('โหลดข้อมูลไม่สำเร็จ'); e.status = r.status; throw e; }
+    return await r.json();
+  } catch (e) { e.resource = resource; e.phase = 'data'; throw e; }
+  finally { clearTimeout(timer); }
+}
+
+function setOptions() {
+  const counts = new Map();
+  for (const r of state.model.rows) counts.set(r.province, (counts.get(r.province) || 0) + 1);
+  const sel = $('province');
+  while (sel.options.length > 1) sel.remove(1);
+  for (const p of [...provinceList()].filter(p => counts.has(p.code)).sort((a, b) => COLLATOR.compare(provinceName(a.code), provinceName(b.code)))) {
+    const o = document.createElement('option');
+    o.value = p.code; o.textContent = `${provinceName(p.code)} (${num(counts.get(p.code))})`;
+    sel.append(o);
+  }
+  const lens = $('lens');
+  while (lens.options.length > 1) lens.remove(1);
+  for (const pillar of PILLARS) {
+    const group = document.createElement('optgroup');
+    group.label = pillar;
+    for (const ds of state.model.datasets.filter(d => d.group === pillar)) {
+      const o = document.createElement('option');
+      o.value = ds.id; o.textContent = dsName(ds);
+      group.append(o);
+    }
+    lens.append(group);
+  }
+}
+
+function restoreFromURL() {
+  const p = nav.read();
+  state.province = provinceCodeFrom(p.get('province') || '');
+  state.search = (p.get('search') || '').slice(0, 80);
+  state.nb = rowById(p.get('neighborhood')) ? p.get('neighborhood') : '';
+  state.lens = state.model.dsById.has(p.get('metric')) ? p.get('metric') : '';
+  state.compare = (p.get('compare') || '').split(',').filter(id => rowById(id)).slice(0, COMPARE_MAX);
+  state.view3d = p.get('view3d') !== '0';
+  const r = openRow();
+  if (r) state.province = r.province;
+}
+
+function restoreFromHistory() {
+  restoreFromURL();
+  $('toggle-3d').setAttribute('aria-pressed', String(state.view3d));
+  update({fit: true});
+}
+
+function wireEvents() {
+  let timer;
+  $('search').addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { state.search = $('search').value.trim().slice(0, 80); state.nb = ''; update({fit: true}); }, 400);
+  });
+  $('province').addEventListener('change', () => { state.province = $('province').value; state.nb = ''; update({fit: true}); });
+  $('lens').addEventListener('change', () => setLens($('lens').value));
+  $('filters').addEventListener('submit', e => e.preventDefault());
+  $('filters').addEventListener('reset', () => setTimeout(() => { state.search = ''; state.province = ''; state.nb = ''; update({fit: true}); }, 0));
+  for (const id of ['panel-view', 'filter-chips', 'map-aha', 'crumbs', 'compare-view', 'result-rows']) $(id).addEventListener('click', onPanelAction);
+  $('fit-map').onclick = () => fitMap();
+  $('country-map').onclick = () => { state.province = ''; state.nb = ''; state.search = ''; update({fit: true}); announce(L('ทั้งประเทศ', 'Whole country')); };
+  $('toggle-3d').onclick = toggle3d;
+  $('mobile-panel').onclick = () => { $('panel').classList.contains('is-open') ? closeMobilePanel() : openMobilePanel(); };
+  $('close-mobile-panel').onclick = closeMobilePanel;
+  $('sheet-back').onclick = goBack;
+  installSheetSwipe();
+  document.querySelector('.skip').onclick = () => { openMobilePanel(); $('dataset-title').focus(); };
+  $('toggle-insights').onclick = () => openInsights($('insight-content').hidden);
+  $('compare-clear').onclick = () => compareSet([], {open: false});
+  if (typeof ResizeObserver === 'function') new ResizeObserver(syncBottomPanel).observe($('insights')); else window.addEventListener('resize', syncBottomPanel);
+  $('open-table').onclick = openTable;
+  $('toggle-table').onclick = () => { $('results').hidden = true; $('open-table').focus(); };
+  $('prev-page').onclick = () => { state.page--; renderTable(); };
+  $('next-page').onclick = () => { state.page++; renderTable(); };
+  $('theme').onchange = applyTheme;
+  const colorMedia = matchMedia('(prefers-color-scheme: dark)');
+  const onColorChange = () => { if ($('theme').value === 'auto') applyTheme(); };
+  if (colorMedia.addEventListener) colorMedia.addEventListener('change', onColorChange); else colorMedia.addListener(onColorChange);
+  matchMedia('(max-width: 760px) and (orientation: portrait)').addEventListener?.('change', () => { if (!mobilePortrait()) $('panel').classList.remove('is-open'); renderPanel(); });
+}
+
+/** A part of the data that did not load is said on the page (citymeter-shell js/shell/launch.js `citymeter:partial`). */
+const PARTIAL = {
+  'data/provinces.geojson': ['กรอบจังหวัด', 'แผนที่ไม่แสดงขอบจังหวัด ตัวเลขในแผงยังครบ', 'Province outlines', 'The map shows no province outlines; the panel figures are complete'],
+  'data/boundaries.geojson': ['ขอบย่าน', 'แผนที่แสดงเฉพาะหมุดของย่าน ตัวเลขในแผงยังครบ', 'Neighbourhood outlines', 'The map shows pins only; the panel figures are complete'],
+  'data/points.json': ['จุดในย่าน', 'แผนที่ไม่แสดงจุดของแต่ละชุดในย่าน ตัวเลขในแผงยังครบ', 'Records inside the neighbourhoods', 'The map does not draw the records; the panel figures are complete'],
+  'units': ['รูปอาคารของ CityMETER', 'อาคารบางจังหวัดแสดงจากแผนที่ฐานแทนชุดอาคารของ CityMETER', 'CityMETER building shapes', 'Buildings in some provinces come from the basemap instead of the CityMETER set'],
+  'basemap': ['แผนที่ฐาน', 'ถนน แหล่งน้ำ และอาคารพื้นหลังอาจไม่แสดง ข้อมูลในแผงและตารางยังใช้ได้', 'Basemap', 'Roads, water and background buildings may be missing; the panel and the table still work'],
+};
+function partial(key) {
+  const words = PARTIAL[key];
+  if (!words || typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('citymeter:partial', {detail: {id: key, label: words[0], effect: words[1], labelEn: words[2], effectEn: words[3]}}));
+}
+
+async function init() {
+  try {
+    const v = RELEASE ? `?v=${RELEASE}` : '';
+    const [dataJSON, provincesJSON, outlinesJSON, pointsJSON] = await Promise.all([
+      fetchJSON(`data/neighborhoods.json${v}`, {timeout: 30000}),
+      fetchJSON(`data/provinces.geojson${v}`, {timeout: 30000}).catch(e => { partial('data/provinces.geojson'); console.warn('Province frames unavailable', e); return null; }),
+      fetchJSON(`data/boundaries.geojson${v}`, {timeout: 30000}).catch(e => { partial('data/boundaries.geojson'); console.warn('Outlines unavailable', e); return null; }),
+      fetchJSON(`data/points.json${v}`, {timeout: 30000}).catch(e => { partial('data/points.json'); console.warn('Points unavailable', e); return null; }),
+    ]);
+    state.provincesGeo = validFeatureCollection(provincesJSON) ? provincesJSON : {type: 'FeatureCollection', features: []};
+    setProvinces(state.provincesGeo);
+    state.locate = state.provincesGeo.features.length ? provinceLocator(state.provincesGeo) : null;
+    state.model = decodeData(dataJSON);
+    state.outlines = validFeatureCollection(outlinesJSON) ? outlinesJSON : {type: 'FeatureCollection', features: []};
+    state.outlineById = new Map(state.outlines.features.map(f => [String(f.properties.id), f]));
+    state.points = decodePoints(pointsJSON, state.model.rows.length);
+    registerDataNames(state.model);
+    state.buildingUnits = createBuildingUnitStore({fetchJSON, version: RELEASE, onLoad: () => { if (state.loaded) updateSpatialLayers(); },
+      onError: (code, e) => { partial('units'); console.warn('Building units unavailable', code, e); if (state.loaded) updateSpatialLayers(); }});
+    state.buildingUnits.loadIndex();
+
+    setOptions();
+    restoreFromURL();
+    $('toggle-3d').setAttribute('aria-pressed', String(state.view3d));
+    try { $('theme').value = localStorage.getItem(THEME_KEY) || 'auto'; } catch {}
+    applyTheme();
+    wireEvents();
+    update();
+    if (state.compare.length) openInsights(true);
+    if (state.nb) openMobilePanel({frame: false});
+    window.dispatchEvent(new CustomEvent('citymeter:ready'));
+    startMap();
+  } catch (e) {
+    window.dispatchEvent(new CustomEvent('citymeter:load-error', {detail: {message: L('โหลดข้อมูลย่านไม่สำเร็จ กรุณาลองอีกครั้ง', 'The neighbourhood data did not load; please try again'), resource: e.resource, status: e.status, phase: e.phase || 'startup', diagnostic: e.message}}));
+    console.error(e);
+  }
+}
+
+// Developer hook for live tuning in a browser console (not an API; may change without notice).
+window.__citymeter = {state, get map() { return state.map; }, update, fitMap, updateSpatialLayers, selectNb, selectProvince, setLens, compareSet, applyPreset: (name, opts) => state.map && applyPreset(state.map, name, opts), fitPitched: (b, opts) => state.map && fitPitched(state.map, b, opts), cameraPadding};
+
+init();

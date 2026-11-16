@@ -1,0 +1,31 @@
+{
+  "artifact": "CityMETER Commercial District — 3D map of the central neighbourhood registry's closed draft outlines against the located records of 16 CityMETER demo datasets (Land · Location · Living): what each neighbourhood stands out for, what comes together, similar mixes and side-by-side comparison",
+  "productVersion": "0.1.0",
+  "updatedOn": "2026-11-16",
+  "ldsVersion": "0.9.7",
+  "release": "v0.9.7-owner.1",
+  "revision": "standalone-0.9.7-r1",
+  "colorSetId": "color-srgb-10",
+  "baseDocumentSha256": "d3085cbc0a50195f1cbf0c77b1d77c0d19b84364daf2948eb367348d65432d96",
+  "locationIntelligenceProfile": "not applied: both analytical families used are base LDS families (density.area, count)",
+  "layoutReference": "https://landometer.com/v3/citymeter",
+  "fontRoles": {
+    "body": "Bai Jamjuree 400/600",
+    "thaiHeadings": "IBM Plex Sans Thai Looped 700",
+    "latinHeadings": "Arvo 700",
+    "dataAndMetrics": "JetBrains Mono 400; tabular numerals",
+    "navigation": "Material Symbols Rounded approved nav-7 subset; FILL 0 / wght 300 / GRAD 0 / opsz 24",
+    "pictograms": "Material Symbols Rounded pictogram subset (the same file as CityMETER · School, sha256 0c18b9ac…): meanings in js/navigation.js#PICTOGRAM_CONTRACT; no star glyph"
+  },
+  "colors": {
+    "applied": "assets/theme.css — foundation pairs, semantic states, map roles, dataState (noData, zero), categorical series 1–10 (landometer-series-10-v8 soft fill + ink), count classes, basemap-only tokens",
+    "analytical": "js/scales.js — density.area for one dataset per km² of a neighbourhood (scaleVersion 554812a7c19107b3a9b8658ba541fc8e13519cb19708e885a425f32d5b30f101) and count (4ff5c1fb4be71ecd13c48685b38371b528bcd4ce369ce964a75354c2eb4d0980); exact 41-sample LUTs; identical HEX on both themes; all 41 samples by rank among the measured nonzero neighbourhoods in scope (owner standing rule “Color scale ขอให้ใช้ 41 scales ตาม LDS เสมอ”)",
+    "categorical": "js/cues.js — pillar → series as the CityMETER catalog binds them: Land 4 diamond, Location 7 hexagon, Living 1 circle; a ring for no highlight; no star",
+    "outlines": "a fill to zoom 14.5, then the same data colour on the outline from zoom 14 (no opacity on a data colour); quiet outlines: border-default; the open neighbourhood: map.selectedStroke; compared: map.focusStroke dashed",
+    "parity": "scripts/check-lds-parity.mjs against the LDS base file (130 checks, evidence/lds-parity.json)",
+    "notDistributed": "full LDS library, the Location Intelligence Profile, other analytical families"
+  },
+  "firstAha": "the dataset most concentrated in the neighbourhoods of the scope (its share of the located records, numerator and denominator) against the neighbourhoods' share of the area, then the next three; under a dataset, its share and the densest neighbourhood; computed per selection",
+  "countingUnit": "one grain per dataset (its own unit); counts of two datasets are never added; out of scope (the dataset has no located record in the province) is never 0",
+  "noCaveats": "exactness through names, numerator and denominator, the peers of every rank, and one provenance line per view"
+}

@@ -1,0 +1,145 @@
+{
+  "$schema": "./handoff.schema.json",
+  "schemaVersion": "1.5.0",
+  "documentType": "product-brief",
+  "productId": "citymeter-commercialdistrict",
+  "productVersion": "0.1.0",
+  "updatedOn": "2026-11-16",
+  "datasetCheckedOn": "2026-11-16",
+  "language": "th",
+  "productName": "CityMETER · Commercial District",
+  "repository": "https://github.com/montri-th/commercialdistrict",
+  "liveUrl": "https://montri-th.github.io/commercialdistrict/",
+  "productStatement": "PRODUCT_STATEMENT.md",
+  "job": "ย่านไหนเด่นเรื่องอะไร และอะไรมาด้วยกัน — แล้วเจาะลงถึงย่าน จุดเด่นที่สัมพันธ์กัน ทุกชุดข้อมูล ย่านที่คล้ายกัน และการเปรียบเทียบ",
+  "audiences": ["ทีมขยายสาขาและค้าปลีก", "ทีมพัฒนาโครงการและนักลงทุนที่ดิน", "เมืองและหน่วยงานที่วางแผนย่าน", "ทีมลงพื้นที่"],
+  "journey": ["first Aha (whole country)", "province (neighbourhoods of the province)", "neighbourhood (highlights, how they relate, every dataset, similar mixes)", "compare up to four", "colour by one dataset (density per km²)", "table (reading without the map)", "English reading (?lang=en)"],
+  "basedOn": "CityMETER · University 0.1.4 (montri-th/university @ed2f350, citymeter-shell 0.6.1): every engine contract (camera, basemap, massing, building units, MapLibre guards, launch card, partial-result notice, phone sheet, English layer)",
+  "rowScopes": {
+    "scopeRows": "model.rows filtered by the province (at) and the search: the panel, the table, the lens ramp",
+    "baseRows": "model.rows (343): every outline stays on the map; outside the scope as a quiet outline and hollow pin",
+    "rows": "one row per closed outline of the registry; 27 pending codes are searchable, never counted"
+  },
+  "firstAha": {
+    "scope": "the neighbourhoods in scope (whole country or a province, after the search)",
+    "ranking": "datasets by the share of their located records inside the neighbourhoods of the scope; the first, then the next three",
+    "numerator": "records of the dataset inside the neighbourhoods of the scope",
+    "denominator": "located records of the dataset nationwide, or in the province (byProvince)",
+    "action": "เทียบ 3 ย่านที่เด่นหลายด้าน · รายชื่อย่าน",
+    "model": "js/profile.js#buildOverview",
+    "filter": "province (at), search (f.search); under a dataset (m) the Aha becomes that dataset's share and its densest neighbourhood",
+    "defaultSnapshot": "69% of the luxury points of sale with a location (237 of 345) lie in 343 neighbourhoods covering 0.016% of the country; then offices 42%, camera shops 40%, fitness 38% (release 0.1.0 fixture)",
+    "fallbacks": "no row: “ไม่พบย่านตามคำค้นนี้” with clear actions; no dataset inside: the neighbourhood count alone; a dataset with nothing inside: “ยังไม่มี…ในขอบย่าน” with its located count"
+  },
+  "countingUnitContract": {
+    "default": "per dataset, its located records inside the outline, in the dataset's own unit",
+    "alternatives": ["records per km² of the registry area (the lens)", "measures some datasets carry (rooms, workers, beds, students, recorded staff) in the closed details only"],
+    "words": "แห่ง · สาขา · ร้าน · จุดขาย · ทะเบียน · รายการ · สถานี–สาย (datasets[].unitTh)",
+    "rule": "never add counts of two datasets; out of scope (no located record in the province) is never 0"
+  },
+  "metricContract": {
+    "areas": "neighbourhoods: count and density per km² of one dataset (registry area_m2)",
+    "provinces": "neighbourhoods per province (count) in the province chips and list",
+    "eligibility": "density is ranked among neighbourhoods holding at least 3 records of the dataset (meta.rules.minCount)",
+    "combined": "none: no index combines datasets; pairs (Spearman ρ) and similar mix (centred cosine) are inferences shown as such"
+  },
+  "coverageContract": {
+    "covered": "a dataset reaches a province when one of its located records lies in the province's production outline (datasets[].byProvince)",
+    "states": {"measured": "count ≥ 1", "measured_zero": "reached, nothing inside: 0, sample 0 + zero outline", "out_of_scope": "not reached: —, no fill, “ไม่มีข้อมูลในจังหวัดนี้”"}
+  },
+  "categoricalCueContract": {
+    "registry": "landometer-series-10-v8",
+    "bindBy": "dataset group (pillar) → series: Land 4, Location 7, Living 1 (js/cues.js#GROUP_SERIES)",
+    "groups": ["Land: diamond", "Location: hexagon", "Living: circle", "no highlight: ring"]
+  },
+  "framesContract": {
+    "index": "data/neighborhoods.json rows[] (id, province, areaM2, ref, bbox)",
+    "frames": "data/boundaries.geojson (display outlines, mapshaper interval 1.5, shared edges kept)",
+    "loading": "the outlines load with the data; the points load in parallel (data/points.json)",
+    "failure": "partial-result notice per file (PARTIAL in js/app.js): pins only without outlines; no records drawn without points; the panel figures stay complete"
+  },
+  "mapFocusContract": {
+    "principle": "the scope in colour, everything else a quiet outline; the open neighbourhood with its records and 3D buildings; compared neighbourhoods dashed",
+    "states": ["overview (country / province)", "neighbourhood open", "compare open", "lens (one dataset)"],
+    "choropleth": "fill to zoom 14.5, then the same colour on the outline from zoom 14; pins below zoom 13; no opacity on a data colour"
+  },
+  "panel": {
+    "modes": ["overview", "neighborhood"],
+    "actions": ["select-nb", "select-province", "leave-province", "set-lens", "clear-lens", "cmp-add", "cmp-remove", "cmp-clear", "cmp-top", "cmp-similar", "open-table", "clear-search"],
+    "models": ["js/profile.js#buildOverview", "js/profile.js#buildNeighborhood", "js/profile.js#buildCompare", "js/profile.js#similarRows"]
+  },
+  "buildingJoinContract": {
+    "buildings": "OpenStreetMap or CityMETER Building V4 per data/building-units/ (js/massing.js)",
+    "points": "none: neighbourhood records are never joined to buildings",
+    "rule": "the open neighbourhood's outline and its surroundings are the focus (js/regions.js#siteContextRegions); elsewhere the camera's square from zoom 12",
+    "click": "buildings are not click targets in this product",
+    "neverChanges": "building ids and slots of data/building-units/ (copied unchanged from montri-th/university)"
+  },
+  "cameraContract": {
+    "presets": "js/shell/camera.js: plan for the country, a province and a comparison; model (3D) for a neighbourhood",
+    "fitting": "fitPitched with the free box (toolbar, legend, tray, phone sheet); a neighbourhood framed with at least 320 m round its middle"
+  },
+  "basemapContract": {
+    "generator": "js/shell/map-style.js (buildMapStyle, theme palettes)",
+    "tiles": "OpenFreeMap TileJSON (planet) and glyphs",
+    "palette": "basemapPalette(theme): foundation tones only, never data colours"
+  },
+  "massingContract": {
+    "cityTier": "city-massing from zoom 13 (js/massing.js)",
+    "focusTier": "the open neighbourhood and its surroundings, rounded and lifted",
+    "hostTier": "none (no venue footprints)",
+    "rounding": "roundingRadiusM by zoom (3–12 m)",
+    "enclosure": "encloseOffsetM"
+  },
+  "breadcrumbContract": {
+    "levels": ["ประเทศไทย", "จังหวัด", "ย่าน (zone, no production link)"],
+    "productionPath": "https://landometer.com/v3/citymeter/<province>",
+    "demoQuery": "?at=<province>&f.neighborhood=<CMN-TH code>",
+    "provinceCodes": "CityMETER production province codes (BKK, CMI, …)"
+  },
+  "provinceContract": {
+    "outlines": "data/provinces.geojson (77 production provinces) — quiet frames below zoom 11, the selected one stroked",
+    "chips": "provinces with neighbourhoods in scope, with their count, below zoom 8.5"
+  },
+  "pictogramContract": {
+    "file": "assets/icons/material-pictogram-300.woff2 (sha256 0c18b9ac…)",
+    "meanings": "js/navigation.js#PICTOGRAM_CONTRACT: maps = ย่าน, area = พื้นที่/ขอบ, province, dataset, rank, compare, date, history, ai, streetview"
+  },
+  "contextActionsContract": "js/ask.js: ถาม Google AI with a question for the view, Google Maps, Street View at the reference point",
+  "englishContract": "?lang=en: fixed words in js/lang-en.js, data sentences built in English (L(th, en)), neighbourhood names stay Thai (keepThai)",
+  "data": {
+    "files": ["data/neighborhoods.json", "data/boundaries.geojson", "data/points.json", "data/provinces.geojson", "data/building-units/"],
+    "build": "scripts/build-data.py",
+    "method": "DATA_METHOD.md"
+  },
+  "visualSystem": {
+    "lds": "0.9.7 (v0.9.7-owner.1, standalone-0.9.7-r1, color-srgb-10, sha256 d3085cbc…96)",
+    "analytical": "density.area and count, all 41 samples, same HEX on both themes",
+    "categorical": "landometer-series-10-v8 by pillar, with shape cues",
+    "parity": "scripts/check-lds-parity.mjs (130 checks)"
+  },
+  "invariants": [
+    {"id": "INV-01", "rule": "Counts of two datasets are never added; no total of POIs is shown."},
+    {"id": "INV-02", "rule": "A dataset with no located record in the neighbourhood's province is out of scope there: “—”, never 0."},
+    {"id": "INV-03", "rule": "Every share shows its numerator and denominator (visible or in its title and accessible name)."},
+    {"id": "INV-04", "rule": "Every rank names its peers with their number (“จาก N ย่าน …”)."},
+    {"id": "INV-05", "rule": "Density uses the registry's area_m2, never a recomputed area."},
+    {"id": "INV-06", "rule": "Pairs and similar mixes are correlations, never stated as causes or performance."},
+    {"id": "INV-07", "rule": "Colour scales use all 41 LDS samples; the same HEX on light and dark; no opacity on a data colour."},
+    {"id": "INV-08", "rule": "Outlines are drawn as the registry delivers them (display simplification only) and called drafts."},
+    {"id": "INV-09", "rule": "Every panel view ends with one provenance line: dataset · source · date · boundary · วิธีนับ."},
+    {"id": "INV-10", "rule": "No caveat line on screen; method and limits live in DATA_METHOD.md."},
+    {"id": "INV-11", "rule": "The registry's address, export and cells never enter the repository."},
+    {"id": "INV-12", "rule": "Neighbourhood names stay Thai in English; no view is left untranslated otherwise."}
+  ],
+  "chartContracts": [
+    {"viewKey": "shares", "title": "สิ่งที่อยู่ในย่าน", "question": "ชุดไหนกระจุกในย่าน", "encoding": "bar per dataset on 0–100 %, pillar series + shape, grouped Land · Location · Living", "metric": "share of located records inside the neighbourhoods", "scope": "the overview's scope"},
+    {"viewKey": "pairs", "title": "อะไรมาด้วยกัน", "question": "ชุดไหนขึ้นลงด้วยกันในย่านทั่วประเทศ", "encoding": "neutral bar of ρ (0–1) with the two datasets' cues", "metric": "Spearman ρ of density", "scope": "nationwide (neighbourhoods both datasets cover)"},
+    {"viewKey": "lens", "title": "ย่านที่มี…แน่นที่สุด", "question": "ย่านไหนแน่นที่สุดในชุดนี้", "encoding": "bar per neighbourhood in the map's density.area sample", "metric": "records per km²", "scope": "the overview's scope, ranked when ≥ 3"},
+    {"viewKey": "compare", "title": "เปรียบเทียบย่าน", "question": "ย่านเหล่านี้ต่างกันตรงไหน", "encoding": "matrix datasets × neighbourhoods: count, density, bar against the densest of the row, densest ringed", "metric": "count and records per km²", "scope": "up to four neighbourhoods"}
+  ],
+  "delivery": {
+    "cacheTag": "?v=20261116-r1",
+    "shell": "citymeter-shell 0.6.1 (the picker gains this demo in a shell release of its own)"
+  }
+}

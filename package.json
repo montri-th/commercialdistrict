@@ -1,0 +1,19 @@
+{
+  "name": "citymeter-commercialdistrict",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CityMETER · Commercial District — 3D map of the central neighbourhood registry's closed draft outlines against the located records of 16 CityMETER demo datasets (Land · Location · Living): highlights against named peers, what comes together, similar mixes and side-by-side comparison",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "start": "python3 -m http.server 4173 --bind 127.0.0.1",
+    "build:data": "python3 -I scripts/build-data.py --help",
+    "check:lds": "node scripts/check-lds-parity.mjs",
+    "handoff:manifest": "node scripts/build-handoff.mjs",
+    "handoff:bundle": "node scripts/build-handoff.mjs --zip dist/CityMETER-CommercialDistrict-Developer-Handoff.zip",
+    "verify:live": "node scripts/verify-live.mjs"
+  }
+}

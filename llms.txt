@@ -1,0 +1,35 @@
+# CityMETER · Commercial District
+
+> The central neighbourhood registry of CityMETER (343 closed draft outlines in 77 provinces, 80.2 km²) against the located records of 16 CityMETER demo datasets — Land (hotels, industrial estates, offices, shopping centers), Location (camera shops, factories, fitness, grocery, luxury brands, pharmacies, restaurants), Living (government offices, hospitals, schools, rail stations, universities): what each neighbourhood stands out for against named peers, which datasets rise together across neighbourhoods, which neighbourhoods have a similar mix, and up to four side by side. A Landometer CityMETER demo, release 0.1.0 (2026-11-16), Thai with an English reading (?lang=en). Registry read 2026-11-16; each dataset's date is its own.
+
+What one figure means:
+- neighbourhood = a closed draft outline of the central registry (code CMN-TH-…). Drafts pending local confirmation: not an administrative boundary, a legal line or a title. 27 more registry codes have no closed outline yet; they are searchable, never counted.
+- count = a dataset's records with a point inside the outline, in the dataset's own unit (places, branches, stores, points of sale, registrations, records, station-line records). Counts of two datasets are never added.
+- per km² = count ÷ the registry's own area for the neighbourhood.
+- no data (—) = the dataset has no located record in the neighbourhood's province: unknown, never 0. 0 = the dataset reaches the province, nothing of it lies inside the outline.
+- share = a dataset's records inside the neighbourhoods ÷ its located records (nationwide or in the province).
+- highlight = near the top among named peers: ≥ 5% of the dataset's located records nationwide, a count or density rank in the top quarter (with the number of peers), or one of the few neighbourhoods holding any.
+- comes together = Spearman's ρ of density across the neighbourhoods both datasets cover (a correlation, not a cause).
+- similar mix = correlation of centred log density across the datasets two neighbourhoods share (an inference, a starting point for a comparison).
+
+Snapshot (release 0.1.0; fixtures, recompute from data):
+- 343 neighbourhoods = 0.016% of the area of the 77 provinces, but 69% of the located luxury points of sale (237 of 345), 42% of the offices (178 of 427), 40% of the camera shops (94 of 236), 38% of the fitness branches (56 of 149), 29% of the rail station-line records (88 of 301); 0 of 46 industrial estates.
+- Bangkok: 75 neighbourhoods = 1.3% of the province; 82% of its luxury points of sale (232 of 284).
+- Strongest pairs: camera shops + luxury brands ρ 0.67 (136 neighbourhoods), fitness + luxury brands 0.56, camera shops + fitness 0.54, offices + fitness 0.52, grocery + restaurants 0.40.
+
+Deep links (https://montri-th.github.io/commercialdistrict/):
+- ?at={province code} — e.g. BKK, CMI, PKT (production codes)
+- ?f.neighborhood={CMN-TH code} — a neighbourhood (with its province in at)
+- ?m={dataset} — colour by one dataset's density: hotel, industrialestate, office, shoppingcenter, camera, factory, fitness, grocery, luxurybrands, pharmacy, restaurant, governmentoffice, hospital, school, transit, university
+- ?cmp={code},{code}… — compare up to four · ?f.search={text} · ?v3d=0 — plan view · ?lang=en — English
+
+Data and method:
+- [Product statement](https://montri-th.github.io/commercialdistrict/PRODUCT_STATEMENT.md): users, problem, claim boundary
+- [Data and method](https://montri-th.github.io/commercialdistrict/DATA_METHOD.md): sources, placement, coverage, highlights, pairs, roles, limits
+- [Dataset](https://montri-th.github.io/commercialdistrict/data/neighborhoods.json): neighbourhoods, datasets with their sources, roles, pairs, pending codes, provenance (meta)
+- [Outlines](https://montri-th.github.io/commercialdistrict/data/boundaries.geojson) · [Records inside](https://montri-th.github.io/commercialdistrict/data/points.json)
+- [Developer handoff](https://montri-th.github.io/commercialdistrict/handoff/START_HERE.md)
+
+Ask Google: every view links to a Google Search for the question of the view. Google's answers are not CityMETER data and are never copied into it.
+
+Do not claim from this data: footfall, sales, revenue, demand or market share; that two datasets cause each other; that an outline is an official or legal boundary; that a neighbourhood without data in a dataset has none of it; a total of all POIs.

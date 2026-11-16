@@ -1,0 +1,66 @@
+{
+  "$schema": "./handoff.schema.json",
+  "schemaVersion": "1.5.0",
+  "documentType": "implementation-plan",
+  "productId": "citymeter-commercialdistrict",
+  "productVersion": "0.1.0",
+  "updatedOn": "2026-11-16",
+  "language": "en",
+  "architecture": {
+    "runtime": "static site, ES modules with one cache tag through the import map; MapLibre GL 5.6.2 from unpkg (SRI); OpenFreeMap tiles",
+    "commands": {"serve": "npm start", "test": "npm test", "lds": "npm run check:lds -- --lds <LDS 0.9.7 .md>", "data": "python3 -I scripts/build-data.py …", "live": "npm run verify:live"},
+    "libraries": ["maplibre-gl 5.6.2 (runtime, CDN)", "earcut (vendored)", "shapely, pyproj, openpyxl, mapshaper (build only)"],
+    "modules": {
+      "js/app.js": "orchestration: scope, fills, panel, legend, compare tray, table, map, camera, sheet, URL",
+      "js/model.js": "decode data, cell states, scope, rankings",
+      "js/profile.js": "view models: overview, neighbourhood, compare, similar mix, pairs",
+      "js/panel.js": "HTML views, provenance, words in both languages",
+      "js/layers.js": "outlines, pins, records, province frames on the map",
+      "js/scales.js": "LDS density.area and count LUTs, 41-sample rank ramp",
+      "js/cues.js": "pillar series and shape cues",
+      "js/massing.js, js/regions.js, js/map-layers.js, js/provinces.js": "3D buildings, focus regions, area chips, province locator",
+      "js/lang.js, js/lang-en.js, js/ask.js, js/breadcrumb.js, js/navigation.js": "English layer, outbound actions, breadcrumb, controls",
+      "js/shell/": "citymeter-shell 0.6.1 (never edited alone)"
+    }
+  },
+  "selection": {
+    "filterFields": ["province (at)", "search (f.search)"],
+    "queryFields": ["at", "f.neighborhood", "f.search", "m", "cmp", "v3d", "lang"],
+    "rowScopes": "scopeRows (province + search) for the panel, table and ramp; every row stays on the map, quiet outside the scope",
+    "panelActions": ["select-nb", "select-province", "leave-province", "set-lens", "clear-lens", "cmp-add", "cmp-remove", "cmp-clear", "cmp-top", "cmp-similar", "open-table", "clear-search"]
+  },
+  "tasks": [
+    {"id": "T01", "title": "Build the data from the registry export, the bundle and the 16 demo files", "dependsOn": [], "acceptanceCriteria": ["AC01", "AC02", "AC03"], "files": ["scripts/build-data.py", "data/"], "status": "done"},
+    {"id": "T02", "title": "Decode, cell states, scopes", "dependsOn": ["T01"], "acceptanceCriteria": ["AC02", "AC04"], "files": ["js/model.js"], "status": "done"},
+    {"id": "T03", "title": "View models: overview, neighbourhood, compare, similar mix", "dependsOn": ["T02"], "acceptanceCriteria": ["AC05", "AC06", "AC07"], "files": ["js/profile.js"], "status": "done"},
+    {"id": "T04", "title": "Panel views with provenance, both languages", "dependsOn": ["T03"], "acceptanceCriteria": ["AC05", "AC08", "AC13"], "files": ["js/panel.js", "js/lang.js", "js/lang-en.js"], "status": "done"},
+    {"id": "T05", "title": "Map layers: outlines, pins, records, province frames; LDS colours", "dependsOn": ["T02"], "acceptanceCriteria": ["AC09", "AC10"], "files": ["js/layers.js", "js/scales.js", "js/cues.js"], "status": "done"},
+    {"id": "T06", "title": "Orchestration, URL, camera, phone sheet, compare tray, table", "dependsOn": ["T04", "T05"], "acceptanceCriteria": ["AC11", "AC12", "AC14"], "files": ["js/app.js", "index.html", "styles.css"], "status": "done"},
+    {"id": "T07", "title": "Tests and LDS parity", "dependsOn": ["T06"], "acceptanceCriteria": ["AC01", "AC09"], "files": ["tests/", "scripts/check-lds-parity.mjs"], "status": "done"},
+    {"id": "T08", "title": "Publish and family sync (repository, Pages, shell picker, hub, deploy system)", "dependsOn": ["T07"], "acceptanceCriteria": ["AC15", "AC16"], "files": ["js/shell/datasets.js (all demos)", "montri-th/CityMETER demos/", "montri-th/citymeter-pages-deploy"], "status": "awaiting owner approval"}
+  ],
+  "acceptanceCriteria": [
+    {"id": "AC01", "scenario": "npm test on the shipped data", "expected": "every test passes", "verificationType": "automated"},
+    {"id": "AC02", "scenario": "a dataset that has no located record in a province", "expected": "no key in rows[].c; the page shows —, never 0", "verificationType": "automated"},
+    {"id": "AC03", "scenario": "counts per dataset", "expected": "rows sum to datasets[].inside and to the points drawn", "verificationType": "automated"},
+    {"id": "AC04", "scenario": "search by name, other name, code or province", "expected": "matching neighbourhoods; pending codes listed with their related codes", "verificationType": "browser"},
+    {"id": "AC05", "scenario": "open the whole country", "expected": "Aha with numerator and denominator against the area share", "verificationType": "automated"},
+    {"id": "AC06", "scenario": "open a neighbourhood", "expected": "highlights with their peers, pairs, roles, every dataset by pillar, similar mixes, provenance", "verificationType": "automated"},
+    {"id": "AC07", "scenario": "compare up to four", "expected": "matrix with count and density, densest ringed, out of scope as —", "verificationType": "automated"},
+    {"id": "AC08", "scenario": "every view", "expected": "one provenance line: dataset · source · date · boundary · วิธีนับ", "verificationType": "automated"},
+    {"id": "AC09", "scenario": "LDS parity", "expected": "check-lds-parity reports 0 mismatch against the approved file", "verificationType": "automated"},
+    {"id": "AC10", "scenario": "colour by a dataset", "expected": "41-sample density ramp, zero swatch when zero occurs, no data as outline only", "verificationType": "browser"},
+    {"id": "AC11", "scenario": "browser back after opening a province and a neighbourhood", "expected": "the previous level returns", "verificationType": "browser"},
+    {"id": "AC12", "scenario": "phone 393 px", "expected": "dock with the Aha and legend; the neighbourhood card at the sheet's resting height; nothing covers the map's substance", "verificationType": "browser"},
+    {"id": "AC13", "scenario": "?lang=en on every view", "expected": "no Thai left except neighbourhood names and registry notes", "verificationType": "browser"},
+    {"id": "AC14", "scenario": "the table", "expected": "every neighbourhood with the 16 datasets, sorted by the lens or by highlights", "verificationType": "browser"},
+    {"id": "AC15", "scenario": "live GitHub Pages", "expected": "files equal the repository (verify-live)", "verificationType": "live"},
+    {"id": "AC16", "scenario": "citymeter.pages.dev menus", "expected": "every page's dataset picker equals the hub's list, this demo under Location", "verificationType": "live"}
+  ],
+  "developerWorkflow": "edit → npm test → check:lds → local walk TH/EN desktop and 393 px → bump the cache tag and versions → publish → verify-live and walk the live site",
+  "backlog": [
+    "English names for neighbourhoods when the registry carries them",
+    "field-checked outlines replace drafts as the registry closes them",
+    "a dataset registry row and a production code for this dataset"
+  ]
+}
