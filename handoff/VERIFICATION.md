@@ -1,11 +1,26 @@
 # CityMETER Commercial District — verification
 
+## Release 0.1.2 — 16 พ.ย. 2569
+
+Found on the live 0.1.1 (citymeter.pages.dev, a 393 × 852 frame of the same origin in the owner's Chrome, English, light theme): with the comparison open, “Compare neighbourhoods”, the count and three buttons were wider than the phone, and the last button (“List”) was cut at the right edge (369–411 px of 391).
+
+- Fix (`styles.css`): in the tray header the buttons and the count keep their width and the title and the names give way with an ellipsis.
+- Local (Chromium through Playwright), every visible control and heading inside the viewport in the overview, a neighbourhood, the comparison, a lens and the table, Thai and English at 393 × 852 and 360 × 780; the same probe on the live 0.1.1 found the cut button in English (comparison and lens views). `npm test` 131 pass, 0 fail.
+
 ## Release 0.1.1 — 16 พ.ย. 2569
 
 Found on the live 0.1.0 (citymeter.pages.dev, the owner's Chrome, page 1710 × 871, after 18:40 ICT): “เทียบ 3 ย่านที่เด่นหลายด้าน” opened the comparison, but the camera framed the three neighbourhoods as if the tray were closed, so the southernmost (กิมหยง–ลีการ์เดนส์, Songkhla) sat under the tray. The legend moves above the tray only after it opens (`syncBottomPanel`, next frame), and the camera read the legend before it moved.
 
 - Fix (`js/app.js`): with the comparison open on a wide screen, `cameraPadding()` frames the strip above the tray and right of the legend (the phone keeps its own rule); opening the tray from its own button frames the compared neighbourhoods again (`openInsights`). Cache tag `20261116-r2`.
 - Local (Chromium through Playwright, no basemap here), the compared neighbourhoods' outlines projected with the map: all inside the strip (above the tray, below the toolbar, clear of the legend) after “เทียบ 3” and again after closing and reopening the tray — 1710 × 871, 1540 × 784 and 1440 × 900 for the whole country, 1440 × 900 in Bangkok, 393 × 852. No page error. `npm test` 131 pass, 0 fail; ESLint 0 errors.
+
+### Live (UTC, 2026-11-16)
+
+- GitHub Pages: deployment of `c919bd1` (pull request #1) succeeded 11:51:29; `npm run verify:live` 172 ok, 0 failed.
+- citymeter.pages.dev: run 43861441168 (11:51:51, publish on): 17 sources, 8,947 files, release SHA-256 `02227a76…e229`, 108 / 108 live checks; the family check before upload passed. The family check on the live site warned (exit 2): 3 seconds after the upload it still read Commercial District's previous page and its static key `bb4eeb1c…`, a path the new deployment no longer has. Read again 11:53:21–11:53:34: 17 / 17 pages consistent (static key, cache tag, shell 0.6.2, a menu of 17 equal to the hub); Commercial District `c919bd1`, 0.1.1, key `5bf56c45…`, the fix in its `app.js`.
+- Desktop, the owner's Chrome, page 1710 × 871: “เทียบ 3” frames the three neighbourhoods at zoom 4.17, all inside the strip (Songkhla's outline ends at 422 px, the tray starts at 470).
+- English (`?at=BKK&lang=en`): the overview → ย่านสยาม → similar mixes (4 in the comparison) → the Restaurants lens → the table: `__citymeterI18n.missing` empty.
+- 393 × 852 frame of the same origin (391 px inside its border): Bangkok overview in the dark theme with the Aha line and the legend in one dock; ย่านสยาม with its sheet at 34 % of the height, buildings in 3D and its records; no horizontal scroll. Light theme in English with the comparison open: `missing` empty, no horizontal scroll — and the cut button above. The test set the demo's theme back to `auto` in that browser.
 
 ## Release 0.1.0 — 16 พ.ย. 2569
 
