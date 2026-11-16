@@ -3,7 +3,7 @@
   "schemaVersion": "1.5.0",
   "documentType": "product-brief",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.1.2",
+  "productVersion": "0.1.3",
   "updatedOn": "2026-11-16",
   "datasetCheckedOn": "2026-11-16",
   "language": "th",
@@ -55,8 +55,8 @@
   "framesContract": {
     "index": "data/neighborhoods.json rows[] (id, province, areaM2, ref, bbox)",
     "frames": "data/boundaries.geojson (display outlines, mapshaper interval 1.5, shared edges kept)",
-    "loading": "the outlines load with the data; the points load in parallel (data/points.json)",
-    "failure": "partial-result notice per file (PARTIAL in js/app.js): pins only without outlines; no records drawn without points; the panel figures stay complete"
+    "loading": "the outlines load with the data; a neighbourhood's records load when it opens (data/records/<id>.json, 0.1.3); condominium points by 0.1° cell in view while chosen (data/condo/)",
+    "failure": "partial-result notice per file (PARTIAL in js/app.js): pins only without outlines; no records drawn without a neighbourhood's shard; some condominium points missing without a cell; the panel figures stay complete"
   },
   "mapFocusContract": {
     "principle": "the scope in colour, everything else a quiet outline; the open neighbourhood with its records and 3D buildings; compared neighbourhoods dashed",
@@ -108,7 +108,7 @@
   "contextActionsContract": "js/ask.js: ถาม Google AI with a question for the view, Google Maps, Street View at the reference point",
   "englishContract": "?lang=en: fixed words in js/lang-en.js, data sentences built in English (L(th, en)), neighbourhood names stay Thai (keepThai)",
   "data": {
-    "files": ["data/neighborhoods.json", "data/boundaries.geojson", "data/points.json", "data/provinces.geojson", "data/building-units/"],
+    "files": ["data/neighborhoods.json", "data/boundaries.geojson", "data/records/", "data/condo/", "data/provinces.geojson", "data/building-units/"],
     "build": "scripts/build-data.py",
     "method": "DATA_METHOD.md"
   },
@@ -139,7 +139,7 @@
     {"viewKey": "compare", "title": "เปรียบเทียบย่าน", "question": "ย่านเหล่านี้ต่างกันตรงไหน", "encoding": "matrix datasets × neighbourhoods: count, density, bar against the densest of the row, densest ringed", "metric": "count and records per km²", "scope": "up to four neighbourhoods"}
   ],
   "delivery": {
-    "cacheTag": "?v=20261116-r3",
-    "shell": "citymeter-shell 0.6.1 (the picker gains this demo in a shell release of its own)"
+    "cacheTag": "?v=20261116-r4",
+    "shell": "citymeter-shell 0.6.2 (0.6.1 + this demo in the picker, shipped by release 0.1.0 to all 17 demos)"
   }
 }

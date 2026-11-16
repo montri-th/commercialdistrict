@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {decodeData, decodePoints, setProvinces} from '../js/model.js';
+import {decodeData, setProvinces} from '../js/model.js';
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const cache = new Map();
@@ -20,9 +20,17 @@ export function load() {
     const raw = readJSON('data/neighborhoods.json');
     const model = decodeData(raw);
     const outlines = readJSON('data/boundaries.geojson');
-    const pointsRaw = readJSON('data/points.json');
-    const points = decodePoints(pointsRaw, model.rows.length);
-    loaded = {raw, model, provincesGeo, outlines, pointsRaw, points};
+    // The records of every neighbourhood (data/records/<id>.json, 0.1.3), in the shape the counts are checked in:
+    // points[row index] = [[dataset index, lon, lat, subgroup]…]; shards[id] = the file as shipped.
+    const shards = {}, points = [], rows = [];
+    model.rows.forEach((r, i) => {
+      const shard = readJSON(`data/records/${r.id}.json`);
+      shards[r.id] = shard;
+      const F = Object.fromEntries(shard.fields.map((f, k) => [f, k]));
+      points[i] = shard.rows.map(x => [x[F.dataset], x[F.lon], x[F.lat], x[F.subgroup]]);
+      for (const x of points[i]) rows.push([x[0], i, x[1], x[2], x[3]]);
+    });
+    loaded = {raw, model, provincesGeo, outlines, pointsRaw: {rows}, points, shards};
   }
   return loaded;
 }

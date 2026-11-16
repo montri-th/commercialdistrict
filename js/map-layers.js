@@ -101,3 +101,78 @@ export function installAreaLabels(map, container, {onSelect, reservedBottom = ()
   map.on('resize', schedule);
   return {update, layout: schedule, dispose() { cancelAnimationFrame(frame); map.off('move', schedule); map.off('resize', schedule); host.remove(); }};
 }
+
+/**
+ * Names beside the chosen set's pins (0.1.3): HTML buttons (Thai shapes correctly, and keyboard reachable), one per
+ * pin, beside it to the right — else left, above or below — never over another name, a neighbourhood chip or the map
+ * chrome; a name that finds no room waits for a closer zoom. A name opens the same card as its pin.
+ * items: [{id, name, title, center: [lng, lat]}] in priority order.
+ */
+export function installRecordLabels(map, container, {onSelect, reservedBottom = () => 0, minZoom = 13.5, maxLabels = 60, avoid = '', gap = 11, pinRadius = () => 10} = {}) {
+  const host = document.createElement('div');
+  host.id = 'record-labels';
+  host.className = 'record-labels';
+  container.append(host);
+  let labels = [], frame = 0;
+  const overlaps = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+
+  function layout() {
+    const width = container.clientWidth, height = container.clientHeight - reservedBottom();
+    const panel = container.closest('.map-panel'), rect = container.getBoundingClientRect();
+    const boxOf = e => { const b = e.getBoundingClientRect(); return {left: b.left - rect.left - 3, right: b.right - rect.left + 3, top: b.top - rect.top - 3, bottom: b.bottom - rect.top + 3}; };
+    const chrome = [...panel.querySelectorAll(`.map-toolbar, .map-legend, .map-status, .map-aha, .focus-bar, .maplibregl-ctrl-top-right, .maplibregl-popup${avoid ? `, ${avoid}` : ''}`)]
+      .filter(e => e.offsetWidth && e.offsetHeight).map(boxOf);
+    const show = map.getZoom() >= minZoom;
+    // every pin of the set stays in sight: a name never covers one (its own sits beside it)
+    const r = pinRadius();
+    const pins = labels.map(e => { const p = map.project(e.center); return {left: p.x - r, right: p.x + r, top: p.y - r, bottom: p.y + r}; });
+    const placed = [];
+    let shown = 0;
+    labels.forEach((e, k) => {
+      e.button.hidden = true;
+      if (!show || shown >= maxLabels) return;
+      const p = map.project(e.center);
+      if (p.x < 0 || p.x > width || p.y < 0 || p.y > height) return;
+      e.button.hidden = false;
+      if (!e.size) e.size = {w: e.button.offsetWidth, h: e.button.offsetHeight};
+      const {w, h} = e.size;
+      let position = null;
+      for (const [x, y] of [[p.x + gap, p.y - h / 2], [p.x - gap - w, p.y - h / 2], [p.x - w / 2, p.y - gap - h], [p.x - w / 2, p.y + gap]]) {
+        const box = {left: x - 2, right: x + w + 2, top: y - 1, bottom: y + h + 1};
+        if (box.left < 4 || box.right > width - 4 || box.top < 4 || box.bottom > height || placed.some(b => overlaps(box, b)) || chrome.some(b => overlaps(box, b))
+          || pins.some((b, j) => j !== k && overlaps(box, b))) continue;
+        position = {x, y, box};
+        break;
+      }
+      e.button.hidden = !position;
+      if (!position) return;
+      e.button.style.left = `${position.x}px`;
+      e.button.style.top = `${position.y}px`;
+      placed.push(position.box);
+      shown++;
+    });
+  }
+  const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(layout); };
+
+  function update(items = []) {
+    host.replaceChildren();
+    labels = [];
+    for (const a of items) {
+      if (!Array.isArray(a.center)) continue;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'record-label';
+      button.setAttribute('translate', 'no');
+      button.textContent = a.name;
+      button.title = a.title || a.name;
+      button.hidden = true;
+      button.onclick = () => onSelect?.(a.id);
+      host.append(button);
+      labels.push({button, center: a.center});
+    }
+    schedule();
+  }
+  map.on('move', schedule);
+  map.on('resize', schedule);
+  return {update, layout: schedule, dispose() { cancelAnimationFrame(frame); map.off('move', schedule); map.off('resize', schedule); host.remove(); }};
+}

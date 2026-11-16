@@ -13,6 +13,13 @@
  * outline and a small hollow pin; the open neighbourhood shows its records instead of its fill.
  *
  * Outlines: data/boundaries.geojson — the registry's closed draft outlines simplified for display (shared edges kept).
+ *
+ * Records (0.1.3, owner 2026-11-16 “เลือกดูทีละชุด”): one pin per spot (js/records.js#spotsOf) in its pillar's shape and
+ * series colour; a spot holding more records of its dataset has a second outline behind (no number). With one dataset
+ * chosen (the map's dataset bar, `f.show`) its pins are larger and on top, with their names beside them (HTML labels,
+ * js/map-layers.js#installRecordLabels), and every other record is a small neutral dot that still answers the pointer.
+ * Condominium display points (never counted) are drawn only when they are the chosen set: Land's diamond with a dashed
+ * outline, round the open neighbourhood. A ring marks the record whose card is open.
  */
 import {GEOJSON_MAXZOOM, firstLineLayerId} from './map-layers.js';
 import {cueImage} from './cues.js';
@@ -20,9 +27,9 @@ import {cueImage} from './cues.js';
 export const LAYERS = Object.freeze({
   provinceLine: 'nb-province-line', provinceSelected: 'nb-province-selected',
   fill: 'nb-fill', edge: 'nb-edge', zero: 'nb-zero', line: 'nb-line', compare: 'nb-compare', hover: 'nb-hover', selected: 'nb-selected',
-  pins: 'nb-pins', pinSelected: 'nb-pin-selected', poi: 'nb-poi',
+  pins: 'nb-pins', pinSelected: 'nb-pin-selected', condo: 'nb-condo', poi: 'nb-poi', poiSelected: 'nb-poi-selected',
 });
-const SRC = {provinces: 'nb-provinces', outlines: 'nb-outlines', pins: 'nb-pin-points', poi: 'nb-poi-points'};
+const SRC = {provinces: 'nb-provinces', outlines: 'nb-outlines', pins: 'nb-pin-points', poi: 'nb-poi-points', condo: 'nb-condo-points', poiSelected: 'nb-poi-selected-point'};
 const EMPTY = {type: 'FeatureCollection', features: []};
 /** Outlines are drawn from this zoom; pins until PIN_MAX_ZOOM; the open neighbourhood's records from POI_MIN_ZOOM. */
 export const OUTLINE_MIN_ZOOM = 9;
@@ -30,6 +37,21 @@ export const PIN_MAX_ZOOM = 13;
 export const POI_MIN_ZOOM = 12;
 /** Province frames are drawn below this zoom. */
 export const PROVINCE_MAX_ZOOM = 11;
+/** Record pins (CSS px at icon-size 1): every set · the chosen set · the others while one is chosen; scaled by zoom. */
+export const PIN = 14, PIN_CHOSEN = 20, PIN_QUIET = 7;
+const PIN_STOPS = [[POI_MIN_ZOOM, 0.7], [15, 1], [18, 1.25]];
+const PIN_SCALE = ['interpolate', ['linear'], ['zoom'], ...PIN_STOPS.flat()];
+/** The pins' icon-size at a zoom (the same stops as PIN_SCALE), for hit tests and the names' room. */
+export function pinScale(zoom) {
+  if (zoom <= PIN_STOPS[0][0]) return PIN_STOPS[0][1];
+  for (let i = 1; i < PIN_STOPS.length; i++) {
+    const [z0, v0] = PIN_STOPS[i - 1], [z1, v1] = PIN_STOPS[i];
+    if (zoom <= z1) return v0 + ((zoom - z0) / (z1 - z0)) * (v1 - v0);
+  }
+  return PIN_STOPS.at(-1)[1];
+}
+/** Screen distance (px) within which the pointer is on a pin (a little more than the chosen pin's half, for touch). */
+export const POI_HIT = 12;
 /**
  * Up close a fill would hide the streets and buildings that make the place readable: the fill stops at FILL_MAX_ZOOM
  * and the same colour, unchanged, draws the outline instead from EDGE_MIN_ZOOM (no opacity on a data colour).
@@ -46,7 +68,8 @@ const fs = (key, on, off = 0) => ['case', ['boolean', ['feature-state', key], fa
 /**
  * Icon names → how to draw them (js/cues.js#cueImage): `pin:s<series>` a pillar pin, `pin:l<index>` a density pin
  * (LUT sample), `pin:zero` measured zero, `pin:none` nothing stands out / out of scope, `pin:quiet` outside the scope,
- * `poi:s<series>` a record of the open neighbourhood, `poi:s<series>:big` a record of the dataset being read.
+ * `poi:s<series>[:big][:stack][:dash]` a record pin (0.1.3: `big` the chosen set, `stack` more records at the point,
+ * `dash` an unconfirmed display point), `poi:quiet` a record of another set while one is chosen.
  */
 export function iconSpec(name, {lut = [], zero = {}} = {}) {
   const ink = cssVar('--map-marker-stroke', '#182327');
@@ -56,9 +79,17 @@ export function iconSpec(name, {lut = [], zero = {}} = {}) {
   if (name === 'pin:zero') return {series: 1, size: 13, fill: zero.fill || '#FFF1D9', stroke: zero.outline || '#7D877F', strokeWidth: 2.2};
   if (name === 'pin:none') return {series: 8, size: 12, fill: cssVar('--surface-card', '#FCFCFA'), stroke: cssVar('--text-secondary', '#4E5B52'), strokeWidth: 1.1};
   if (name === 'pin:quiet') return {series: 1, size: 8, fill: cssVar('--surface-card', '#FCFCFA'), stroke: cssVar('--border-emphasis', '#7D877F'), strokeWidth: 1};
-  if ((m = /^poi:s(\d+)(:big)?$/.exec(name))) return {series: +m[1], size: m[2] ? 14 : 10, fill: cssVar(`--series-${m[1]}-fill`, '#8AA4AA'), stroke: m[2] ? cssVar('--text-primary', '#182327') : cssVar('--surface-card', '#FCFCFA'), strokeWidth: m[2] ? 1.4 : 0.9};
+  if (name === 'poi:quiet') return {series: 1, size: PIN_QUIET, fill: cssVar('--text-muted', '#7D877F'), stroke: cssVar('--surface-card', '#FCFCFA'), strokeWidth: 1};
+  if ((m = /^poi:s(\d+)((?::big|:stack|:dash)*)$/.exec(name))) {
+    const flags = m[2] || '', big = flags.includes(':big');
+    return {series: +m[1], size: big ? PIN_CHOSEN : PIN, fill: cssVar(`--series-${m[1]}-fill`, '#8AA4AA'), stroke: ink, strokeWidth: big ? 1.4 : 1.1,
+      stacked: flags.includes(':stack'), dashed: flags.includes(':dash')};
+  }
   return null;
 }
+
+/** A record pin's icon name (iconSpec). */
+export const pinIcon = (series, {chosen = false, stacked = false, dashed = false} = {}) => `poi:s${series}${chosen ? ':big' : ''}${stacked ? ':stack' : ''}${dashed ? ':dash' : ''}`;
 
 /** Pins: one point per neighbourhood at the registry's reference point (area focus, not an entrance). */
 export function pinCollection(rows, iconOf = () => 'pin:none', sortOf = () => 0) {
@@ -66,12 +97,16 @@ export function pinCollection(rows, iconOf = () => 'pin:none', sortOf = () => 0)
     properties: {id: r.id, icon: iconOf(r), sort: sortOf(r)}}))};
 }
 
-/** Records inside one neighbourhood: [[dataset index, lon, lat, subgroup]…] → points with the dataset's series icon. */
-export function poiCollection(list, datasets, lensId = '') {
-  return {type: 'FeatureCollection', features: (list || []).map(([d, lon, lat, s], i) => {
-    const ds = datasets[d], series = ds?.series || 9, big = Boolean(lensId) && ds?.id === lensId;
-    return {type: 'Feature', id: i, geometry: {type: 'Point', coordinates: [lon, lat]},
-      properties: {d: ds?.id || '', s, icon: `poi:s${series}${big ? ':big' : ''}`, sort: big ? 1 : 0}};
+/**
+ * Spots (js/records.js#spotsOf) → one pin each; `seriesOf(ds)` gives the pillar's series. Feature id = the spot's index
+ * (the app keeps the spots to read the records back). `chosen`: the set the reader picked ('' = every set alike): its
+ * pins larger and on top, every other a quiet dot. `dashed`: unconfirmed display points (the condominium layer).
+ */
+export function poiCollection(spots, seriesOf, {chosen = '', dashed = false} = {}) {
+  return {type: 'FeatureCollection', features: (spots || []).map((g, i) => {
+    const isChosen = Boolean(chosen) && g.ds.id === chosen, quiet = Boolean(chosen) && !isChosen;
+    return {type: 'Feature', id: i, geometry: {type: 'Point', coordinates: [g.lon, g.lat]},
+      properties: {d: g.ds.id, icon: quiet ? 'poi:quiet' : pinIcon(seriesOf(g.ds), {chosen: isChosen, stacked: g.items.length > 1, dashed}), sort: isChosen ? 3 : quiet ? 1 : 2}};
   })};
 }
 
@@ -81,6 +116,8 @@ export function installNeighborhoodLayers(map, {provinces, outlines, rows, iconO
   map.addSource(SRC.outlines, {type: 'geojson', data: outlines, maxzoom: GEOJSON_MAXZOOM, promoteId: 'id'});
   map.addSource(SRC.pins, {type: 'geojson', data: pinCollection(rows), maxzoom: GEOJSON_MAXZOOM});
   map.addSource(SRC.poi, {type: 'geojson', data: EMPTY, maxzoom: GEOJSON_MAXZOOM});
+  map.addSource(SRC.condo, {type: 'geojson', data: EMPTY, maxzoom: GEOJSON_MAXZOOM});
+  map.addSource(SRC.poiSelected, {type: 'geojson', data: EMPTY, maxzoom: GEOJSON_MAXZOOM});
 
   // Icons are drawn on demand (a missing image asks once; theme changes reload the style and clear them).
   const onMissing = e => {
@@ -117,9 +154,14 @@ export function installNeighborhoodLayers(map, {provinces, outlines, rows, iconO
   map.addLayer({id: LAYERS.pinSelected, type: 'circle', source: SRC.pins, maxzoom: PIN_MAX_ZOOM,
     paint: {'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 8, 12, 12], 'circle-color': 'rgba(0,0,0,0)',
       'circle-stroke-color': cssVar('--map-selected-stroke', '#176B82'), 'circle-stroke-width': 2.4, 'circle-stroke-opacity': fs('selected', 1)}});
-  map.addLayer({id: LAYERS.poi, type: 'symbol', source: SRC.poi, minzoom: POI_MIN_ZOOM,
-    layout: {'icon-image': ['get', 'icon'], 'icon-size': ['interpolate', ['linear'], ['zoom'], POI_MIN_ZOOM, 0.75, 16, 1.15],
-      'icon-allow-overlap': true, 'icon-ignore-placement': true, 'symbol-sort-key': ['get', 'sort']}});
+  // Every pin drawn (overlap allowed: a hidden record would read as absent); the condominium points under the records.
+  const pinLayout = {'icon-image': ['get', 'icon'], 'icon-size': PIN_SCALE, 'icon-allow-overlap': true, 'icon-ignore-placement': true,
+    'symbol-sort-key': ['get', 'sort'], 'icon-pitch-alignment': 'viewport'};
+  map.addLayer({id: LAYERS.condo, type: 'symbol', source: SRC.condo, minzoom: POI_MIN_ZOOM, layout: pinLayout});
+  map.addLayer({id: LAYERS.poi, type: 'symbol', source: SRC.poi, minzoom: POI_MIN_ZOOM, layout: pinLayout});
+  map.addLayer({id: LAYERS.poiSelected, type: 'circle', source: SRC.poiSelected, minzoom: POI_MIN_ZOOM,
+    paint: {'circle-radius': ['interpolate', ['linear'], ['zoom'], POI_MIN_ZOOM, 10, 15, 14, 18, 17.5], 'circle-color': 'rgba(0,0,0,0)',
+      'circle-stroke-color': cssVar('--map-selected-stroke', '#176B82'), 'circle-stroke-width': 2.6, 'circle-pitch-alignment': 'viewport'}});
 
   const ids = (outlines.features || []).map(f => String(f.properties.id));
   const locateOutline = outlineLocator(outlines);
@@ -157,6 +199,29 @@ export function installNeighborhoodLayers(map, {provinces, outlines, rows, iconO
   }
   /** The located records of the open neighbourhood (poiCollection), or none. */
   const setPoints = collection => map.getSource(SRC.poi)?.setData(collection || EMPTY);
+  /** The condominium display points round the open neighbourhood (poiCollection of their spots), or none. */
+  const setCondo = collection => map.getSource(SRC.condo)?.setData(collection || EMPTY);
+  /** The ring round the record whose card is open ([lon, lat]), or none. */
+  const markPoi = at => map.getSource(SRC.poiSelected)?.setData(at ? {type: 'FeatureCollection', features: [{type: 'Feature', geometry: {type: 'Point', coordinates: at}, properties: {}}]} : EMPTY);
+  /**
+   * Pins under a screen point, nearest first: [{layer: 'poi' | 'condo', id, d}] — every pin within POI_HIT px (scaled
+   * with the zoom like the pins), so a pile at one point and its close neighbours read together.
+   */
+  function hitPoi(point, {pad = POI_HIT} = {}) {
+    const layers = [LAYERS.poi, LAYERS.condo].filter(id => map.getLayer(id));
+    if (!layers.length || map.getZoom() < POI_MIN_ZOOM) return [];
+    const r = Math.max(8, pad * pinScale(map.getZoom()));
+    const hits = map.queryRenderedFeatures([[point.x - r, point.y - r], [point.x + r, point.y + r]], {layers});
+    const seen = new Set(), out = [];
+    for (const h of hits) {
+      const layer = h.layer.id === LAYERS.condo ? 'condo' : 'poi', key = `${layer}:${h.id}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const p = map.project(h.geometry.coordinates), d = Math.hypot(p.x - point.x, p.y - point.y);
+      if (d <= r) out.push({layer, id: h.id, d: h.properties.d, dist: d});
+    }
+    return out.sort((a, b) => a.dist - b.dist || (a.layer === 'poi' ? -1 : 1));
+  }
   /** The neighbourhood under a screen point: its pin below PIN_MAX_ZOOM, else its outline. */
   function hitTest(point) {
     const pad = 6;
@@ -180,7 +245,7 @@ export function installNeighborhoodLayers(map, {provinces, outlines, rows, iconO
     for (const id of Object.values(LAYERS)) if (map.getLayer(id)) map.removeLayer(id);
     for (const id of Object.values(SRC)) if (map.getSource(id)) map.removeSource(id);
   }
-  return {paint, setPins, select, hover, setCompare, setProvince, setPoints, hitTest, dispose, layerIds: LAYERS};
+  return {paint, setPins, select, hover, setCompare, setProvince, setPoints, setCondo, markPoi, hitPoi, hitTest, dispose, layerIds: LAYERS};
 }
 
 /** The outline under a lng/lat (point in polygon over the display outlines; boxes first), or ''. */

@@ -132,15 +132,54 @@ claim that two places perform alike.
 - A data colour is never made paler: no opacity on a fill; neighbourhoods outside the province or the search go quiet as
   an outline and a small hollow pin. Up close (from zoom 14) the fill gives way to the same colour on the outline so the
   streets and buildings stay readable.
-- The open neighbourhood shows its located records (the pillar's colour and shape; the dataset being read larger with a
-  dark edge) and its buildings in 3D with their surroundings (`js/regions.js`, CityMETER Building V4 where
-  `data/building-units/` says so, else OpenStreetMap).
+- The open neighbourhood shows its located records and its buildings in 3D with their surroundings (`js/regions.js`,
+  CityMETER Building V4 where `data/building-units/` says so, else OpenStreetMap). Records (0.1.3, §9a): one pin per
+  dataset and exact point in the pillar's colour and shape.
+
+## 9a. Records of the open neighbourhood (0.1.3)
+
+Owner 2026-11-16: “จุดในย่าน ตอนนี้คลิกไม่ได้ ช่วยทำให้ click ดูรายละเอียดที่เกี่ยวข้องได้หน่อย และควรแสดงจุด
+Condominium ด้วย / icon หมุดต่างๆตอนนี้ดูยากมาก … / หรือ mouse hover ที่หมุดก็ควรมี popup ให้รู้ว่ามันคืออะไร / เอา condo
+จาก dataset ใน registry ไง”; on the first draft (a dataset glyph inside each pin) “icon ใน symbol ที่ทำอยู่ไม่ช่วยเท่าไรนะครับ”,
+then the choice **“เลือกดูทีละชุด”**.
+
+- **Shards.** `data/records/<CMN-TH code>.json` holds, per neighbourhood, the records counted in it (§4): dataset, point,
+  subgroup, the record's key in its own demo, the names that demo publishes (an office's Thai name is its `alt`, a grocery
+  store is its banner and branch, a factory its registered or operator name — a natural person's never reaches a demo),
+  the dataset's figure (rooms, workers, staff, beds, students) and a station's line. It loads when the neighbourhood
+  opens. The counts it holds equal `rows[].c` (`tests/data.test.js`).
+- **One set at a time.** A bar on the map names the sets in the open neighbourhood (its highlights first, then the
+  pillar order; no number on it). “ทั้งหมด” draws every record alike; a chosen set (`f.show`) draws its pins larger with
+  their names beside them (HTML, so Thai shapes correctly and every name is a keyboard target; a name never covers a pin
+  of its set), every other record as a small neutral dot (`text.muted`, not a paler data colour). Reading a dataset
+  (`m`) with a neighbourhood open chooses that set too. Colours and shapes stay the pillars' (LDS DATAVIZ-05): one set
+  stands out at a time, so no two sets need telling apart by colour, and no glyph is drawn inside a pin.
+- **Pointer and card.** A pointer over a pin names its records (a pile: the first names, then “and more”); a click
+  opens a card: the record's name, set and subgroup, its figure under the dataset's own exact name, a link that opens the
+  record in its own demo (`<demo>/?e=<kind>:<key>`, the kinds each demo's address reads), Google Maps by name and Street
+  View at the point, and dataset · source · date · boundary. Several records at a point open as a list of names by set.
+  No tip, list or card shows a total across datasets. On a phone the card docks under the bar.
+- **The panel.** “รายชื่อในย่าน” (closed) lists every name by set; each opens its card (the reading without the map).
+- **Condominium (display only).** The dataset registry's condominium dataset (group Land; CityMETER Condominium
+  Thailand — Research Master, tab 07_PRODUCTION, read 16 Nov 2026, export SHA-256 in `meta.condo`): the points the
+  CityMETER condominium appraisal map draws, checked 5 Nov 2026. Drawn: the 7,887 rows the source marks as observed in the
+  production map (`observed_in_provider_tile_not_independent_site_confirmation`) whose search area is not held; not
+  drawn: 328 held for a geography conflict or a duplicate and 131 with no unambiguous point. They are a set of the bar of
+  their own (shown when points lie within 1 km of the outline), drawn round the open neighbourhood by 0.1° cell in view
+  (`data/condo/`), with a dashed outline. **Never counted** in a neighbourhood, a share, a rank or a role: the
+  dataset's own spatial policy says a display point does not make an area membership (Observed fact: the policy row
+  `spatial_gate`). The card shows the source's buildings and floors and the appraisal per unit (median P50 and the
+  P25–P75 range, baht per m²; an appraisal, not a sale price) with the source's search area as its boundary.
 
 ## 10. Published fields
 
 Per neighbourhood: code, name, other names, province, registry area, reference point, box, name status, whether the
 outline was walked, the proposed roles, and the counts, measures, subgroup counts, ranks, highlights and pairs. Per held
-or collection code: code, name, province, status and the related codes. Not published (owner 2026-11-16, “ตัดออก”): the
+or collection code: code, name, province, status and the related codes. Per record (0.1.3, `data/records/`): dataset,
+point, subgroup, the key and names its own public demo already publishes, its figure and a station's line. Per
+condominium point (`data/condo/`): point, project name, buildings, floors, appraisal P25 / P50 / P75 and the source's
+search area and province — not its production ids, observation ids, API addresses, pin roles or review notes, and not
+the research master's address. Not published (owner 2026-11-16, “ตัดออก”): the
 registry's internal working fields — field questions and the segments still to walk, the registry's source ids, merge
 notes, outline policy versions and the bundle's review counts — nor the registry's address, its export, its evidence
 rows' text, reviewer notes or any person's name.
@@ -150,11 +189,14 @@ rows' text, reviewer notes or any person's name.
 ```
 # 1. the owner's .xlsx export of the registry (internal, never committed) and the bundle, unzipped into its own folder
 # 2. the 16 demo repositories cloned side by side, their commits in commits.json ({repo: {commit, committed}})
+# 3. (0.1.3) the condominium research master's .xlsx export (internal, never committed)
 python3 -I scripts/build-data.py --bundle <bundle dir> --bundle-zip <bundle.zip> --registry <export.xlsx> \
-  --repos <clones> --commits commits.json --mapshaper <mapshaper> --out data
+  --repos <clones> --commits commits.json --mapshaper <mapshaper> --condo <condominium export.xlsx> --out data
 npm test
 node scripts/check-lds-parity.mjs --lds <Landometer-Design-System-v0.9.7.md>
 ```
 
-The build prints, per dataset, records · located · inside · provinces reached, and writes `data/build-report.json`
-(files with bytes and SHA-256, totals, the strongest pairs).
+The build prints, per dataset, records · located · inside · provinces reached (and the condominium points shown, held and
+without a point), and writes `data/build-report.json` (files with bytes and SHA-256, the shard folders with their file
+count, bytes and a digest, totals, the strongest pairs). Rows' pairs follow the highlights' order (0.1.3; a set's order
+changed with Python's string hashing before).

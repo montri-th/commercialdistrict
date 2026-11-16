@@ -1077,3 +1077,69 @@ td.num, th.num { text-align: right; }
   /* The comparison open on a phone: the map keeps its strip; the dock steps aside until the tray folds. */
   .map-column:has(.insights:not(.is-collapsed)) .map-dock { display: none; }
 }
+
+/* 13. Records of the open neighbourhood (0.1.3) ---------------------------
+   The dataset bar (one set at a time, owner 2026-11-16 “เลือกดูทีละชุด”), the chosen set's names beside its pins,
+   the hover tip, the record card (docked under the bar on a phone) and the panel's list of names. */
+.focus-bar { position: absolute; left: 8px; right: 52px; top: 56px; z-index: 5; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; padding: 0 2px 4px; pointer-events: none; }
+.focus-bar[hidden] { display: none; }
+.focus-chip { pointer-events: auto; display: inline-flex; align-items: center; gap: 6px; flex: none; min-height: 40px; padding: 6px 13px 6px 11px; font-size: 13px; font-weight: 600; background: color-mix(in srgb, var(--surface-card) 94%, transparent); }
+.focus-chip .cue-shape { width: 13px; height: 13px; flex-basis: 13px; }
+.focus-chip small { font-size: 11px; font-weight: 400; color: var(--text-metadata); }
+.focus-chip[aria-pressed="true"] { background: var(--text-primary); border-color: var(--text-primary); color: var(--surface-canvas); }
+.focus-chip[aria-pressed="true"]:hover { background: var(--text-secondary); border-color: var(--text-secondary); }
+.focus-chip[aria-pressed="true"] small { color: inherit; }
+.cue-shape.is-dashed { stroke-dasharray: 2.4 1.6; }
+
+.record-labels { position: absolute; inset: 0; z-index: 3; pointer-events: none; overflow: hidden; }
+.record-label { position: absolute; pointer-events: auto; min-height: 0; max-width: 184px; padding: 1px 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border: 1px solid var(--border-default); border-radius: 4px; background: var(--surface-card); color: var(--text-primary); font: 600 12px/1.45 var(--font-body); }
+.record-label:hover { border-color: var(--map-hover-stroke); background: var(--surface-card); }
+
+.maplibregl-popup.poi-tip-popup { z-index: 8; pointer-events: none; }
+.map-panel .poi-tip-popup .maplibregl-popup-content { padding: 8px 11px; font-size: 13px; line-height: 1.45; }
+.poi-tip-row { display: flex; gap: 8px; align-items: flex-start; }
+.poi-tip-row + .poi-tip-row { margin-top: 6px; }
+.poi-tip-row .cue-shape { margin-top: 4px; }
+.poi-tip-text { display: flex; flex-direction: column; min-width: 0; }
+.poi-tip-text strong { color: var(--text-primary); overflow-wrap: anywhere; }
+.poi-tip-text small { font-size: 12px; color: var(--text-metadata); overflow-wrap: anywhere; }
+.map-panel .poi-tip-popup .poi-tip-hint { margin-top: 6px; font-size: 11px; color: var(--text-metadata); }
+
+.maplibregl-popup.poi-card-popup { z-index: 9; }
+.map-panel .poi-card-popup .maplibregl-popup-content { padding: 14px 16px 12px; max-height: min(46vh, 360px); overflow-y: auto; overscroll-behavior: contain; }
+.poi-card { display: grid; gap: 10px; }
+.poi-card .poi-back { justify-self: start; min-height: 36px; padding: 4px 12px; font-size: 12px; }
+.poi-head { display: flex; gap: 10px; align-items: flex-start; margin-right: 30px; }
+.poi-head .cue-shape { width: 18px; height: 18px; flex: 0 0 18px; margin-top: 4px; }
+.map-panel .maplibregl-popup-content .poi-eyebrow { margin: 0; font-size: 12px; color: var(--text-metadata); }
+.map-panel .maplibregl-popup-content .poi-card h3 { margin-right: 0; overflow-wrap: anywhere; }
+.map-panel .maplibregl-popup-content .poi-line { margin-top: 2px; font-size: 12px; color: var(--text-secondary); }
+.poi-facts { display: grid; gap: 6px; margin: 0; }
+.poi-facts > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-top: 6px; border-top: 1px solid var(--border-hairline); }
+.poi-facts dt { font-size: 12px; color: var(--text-secondary); }
+.poi-facts dd { margin: 0; font-size: 13px; color: var(--text-primary); white-space: nowrap; }
+.poi-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.poi-actions .poi-open { padding-left: 12px; }
+.map-panel .maplibregl-popup-content .poi-prov { margin-top: 0; font-size: 11px; line-height: 1.5; }
+.poi-prov .prov-part + .prov-part::before { content: "·"; margin: 0 5px; color: var(--text-metadata); }
+.map-panel .maplibregl-popup-content .poi-group h3 { display: flex; align-items: center; gap: 6px; margin-right: 0; font-family: var(--font-body); font-size: 13px; font-weight: 600; }
+.poi-group ul { display: grid; gap: 2px; margin: 4px 0 0; padding: 0; list-style: none; }
+.poi-item { display: flex; flex-direction: column; align-items: flex-start; width: 100%; min-height: 40px; padding: 6px 10px; border: 1px solid transparent; border-radius: 6px; background: transparent; font-size: 13px; font-weight: 600; line-height: 1.4; text-align: left; white-space: normal; }
+.poi-item small { font-size: 11px; font-weight: 400; color: var(--text-metadata); }
+.poi-item:hover { background: var(--surface-alt); border-color: var(--border-default); }
+
+.records-details .records-group { margin-top: 10px; }
+.records-details h4 { display: flex; align-items: center; gap: 6px; margin: 0 0 4px; font-size: 13px; font-weight: 600; }
+.records-details ul { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.records-details li { font-size: 13px; line-height: 1.5; }
+.records-details .link-button { font-weight: 500; }
+
+@media (max-width: 760px) and (orientation: portrait) {
+  .focus-bar { top: 52px; right: 8px; scrollbar-width: none; }
+  .focus-bar::-webkit-scrollbar { display: none; }
+  .focus-chip { min-height: 38px; padding: 5px 11px 5px 9px; font-size: 12px; }
+  /* The card docks under the bar (a point's own popup would sit under the sheet or the thumb). */
+  .maplibregl-popup.poi-card-popup.is-docked { transform: none !important; top: calc(var(--focus-bar-bottom, 52px) + 8px) !important; left: 8px !important; right: 8px !important; max-width: none !important; }
+  .poi-card-popup.is-docked .maplibregl-popup-tip { display: none; }
+  .map-panel .poi-card-popup.is-docked .maplibregl-popup-content { max-height: 44vh; }
+}
