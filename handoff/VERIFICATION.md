@@ -11,7 +11,7 @@ Owner 2026-11-16, looking at 0.1.3 on citymeter.pages.dev (23:27 and 23:28 ICT),
 
 - Preview before merging: run 43909786491 (16:38, preview, override `16504d0`) to preview.citymeter.pages.dev; `release.json` names Commercial District `16504d0`, version 0.1.4, tag `20261116-r5`. The owner's Chrome (dark theme, page 1710 × 871), the same path as the owner: Bangkok → search สยาม → Siam. แบรนด์หรู opens pressed, names beside its pins (Richard Mille Siam Kempinski…, SIAM SWISS Siam Square, GENTLEWOMAN Siam Square…, FREITAG Store Siam by Pronto…), the other sets as small dots; buildings rise inside the outline only; one zoom step out, no block of buildings round it; no failed request.
 - GitHub Pages: pull request #8 merged as `bd0c695` (16:41:04); deployment succeeded 16:41:47; `npm run verify:live` 743 ok, 0 failed.
-- citymeter.pages.dev: run 43910520250 (16:42, publish on): 108 / 108 live checks; the family check passed before upload and on the live site (hub=17, shell 0.6.2, nothing missing or extra). The owner's Chrome 16:46: `release.json` names Commercial District `bd0c695`, version 0.1.4, tag `20261116-r5`, shell 0.6.2; Siam from its address opens with แบรนด์หรู pressed and five names, no failed request.
+- citymeter.pages.dev: run 43910520250 (16:42, publish on): 108 / 108 live checks; the family check passed before upload and on the live site (hub=17, shell 0.6.2, nothing missing or extra). The owner's Chrome, before 16:44: `release.json` names Commercial District `bd0c695`, version 0.1.4, tag `20261116-r5`, shell 0.6.2; Siam from its address opens with แบรนด์หรู pressed and five names, no failed request.
 
 ## Release 0.1.3 — 16 พ.ย. 2569
 
