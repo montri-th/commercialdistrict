@@ -396,9 +396,12 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 .insights { position: absolute; left: 0; right: 0; bottom: 0; height: 360px; max-height: 58%; background: var(--surface-card); border-top: 1px solid var(--border-default); padding: 0 14px 10px; z-index: 6; display: flex; flex-direction: column; }
 .insights.is-collapsed { height: 52px; padding-bottom: 0; }
 .insight-heading { display: flex; align-items: center; gap: 12px; min-height: 51px; flex-shrink: 0; }
-.insight-heading h2 { font-size: 15px; white-space: nowrap; }
-.insight-heading .hint { margin-right: auto; }
+.insight-heading h2 { font-size: 15px; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.insight-heading .hint { margin-right: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .insight-heading button { font-size: 12px; min-height: 36px; padding: 5px 12px; }
+/* The buttons and the count keep their width; the title and the names give way (0.1.2: “Compare neighbourhoods” and
+   three buttons did not fit a 393 px phone in English, and the last button was cut). */
+.insight-heading > button, .insight-heading .compare-count { flex: none; }
 #insight-content { min-height: 0; display: flex; flex: 1; flex-direction: column; gap: 6px; }
 .tabs { display: flex; gap: 4px; overflow-x: auto; flex-shrink: 0; }
 .tabs button { min-height: 36px; padding: 5px 12px; border-color: transparent; background: transparent; font-size: 13px; }
