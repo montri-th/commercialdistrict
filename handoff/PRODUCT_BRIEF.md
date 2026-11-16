@@ -1,6 +1,6 @@
 # CityMETER Commercial District — Product Brief
 
-รุ่น 0.1.2 · 16 พ.ย. 2569 · คู่กับ `product-brief.json` (schema 1.5.0)
+รุ่น 0.1.3 · 16 พ.ย. 2569 · คู่กับ `product-brief.json` (schema 1.5.0)
 
 ## งานของหน้า
 

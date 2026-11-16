@@ -74,13 +74,6 @@ export function decodeData(json) {
   return {meta: json.meta || {}, datasets, dsById, rows, byId, pending, pendingById, roles, pairs: json.pairs || [], stations: json.stations || []};
 }
 
-/** Columnar points of data/points.json → per neighbourhood index: [[dataset index, lon, lat, subgroup]…]. */
-export function decodePoints(json, rowCount) {
-  const by = Array.from({length: rowCount}, () => []);
-  for (const [d, n, lon, lat, s] of json?.rows || []) if (by[n]) by[n].push([d, lon, lat, s]);
-  return by;
-}
-
 /** The value of one dataset in one neighbourhood (EVID-05 state, count, density, ranks, measure). */
 export function cell(row, ds) {
   if (!(ds.id in (row.c || {}))) return {state: 'out_of_scope'};

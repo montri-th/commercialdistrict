@@ -71,13 +71,14 @@ test('publication hygiene: no private document links, credentials, research shee
     const text = readFileSync(p, 'utf8');
     for (const host of google) assert.ok(!text.includes(host), `${rel}: no ${host} link`);
     assert.ok(!secret.test(text), `${rel}: no credential-like string`);
-    // The research master's, the dataset registry's and the neighbourhood registry's addresses, known here only by their SHA-256.
+    // The research masters', the dataset registry's and the neighbourhood registry's addresses, known here only by their SHA-256.
     for (const [token] of text.matchAll(/[A-Za-z0-9_-]{40,48}/g)) {
       assert.ok(!PRIVATE_SHEETS.has(createHash('sha256').update(token).digest('hex')), `${rel}: a private sheet address`);
     }
   }
 });
-const PRIVATE_SHEETS = new Set(['261e556ac29478c99cbba245d646c55e7a38eed7cf8bb07211db1797fa378f4c', '656ea9951755c242dce6a16b06c81654c26adf0006d5f0c1bb9f9c967f6e8a25', 'd43b5dd22ee5d0a360a7f180ec48953337deae590015d352944d19e6d33f933e']);
+// + the condominium research master read for 0.1.3 (data/condo/)
+const PRIVATE_SHEETS = new Set(['261e556ac29478c99cbba245d646c55e7a38eed7cf8bb07211db1797fa378f4c', '656ea9951755c242dce6a16b06c81654c26adf0006d5f0c1bb9f9c967f6e8a25', 'd43b5dd22ee5d0a360a7f180ec48953337deae590015d352944d19e6d33f933e', 'e3c7046e0c1ab66bc1dea11af597ba703224dd3f344fa76e213ad33468e12fd5']);
 
 /** A small JSON Schema subset (type object, required, properties, items, minItems, const, enum, pattern, allOf + if/then). */
 function validate(schema, value, path = '$', errors = []) {

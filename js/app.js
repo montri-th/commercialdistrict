@@ -11,18 +11,21 @@
  *
  * Panel views: overview (Thailand or a province) · neighbourhood. The compare tray (bottom of the map) holds up to four
  * neighbourhoods side by side; the table (รายชื่อ) is the reading without the map.
- * Map clicks: a neighbourhood's pin or outline → its view; elsewhere below the neighbourhood zooms → the province.
- * URL state (own names, inside): province · search · neighborhood · metric · compare · view3d — written in the shared
- * grammar at · f.search · f.neighborhood · m · cmp · v3d by citymeter-shell (js/shell/url.js); opening a province or a
- * neighbourhood adds a browser history entry.
+ * Map clicks: a record's pin (0.1.3) → its card; a neighbourhood's pin or outline → its view; elsewhere below the
+ * neighbourhood zooms → the province. The open neighbourhood's records (js/records.js): the dataset bar on the map picks
+ * one set (its pins larger with names, the others quiet dots), a pointer over a pin names it, a click opens its card.
+ * URL state (own names, inside): province · search · neighborhood · show · metric · compare · view3d — written in the
+ * shared grammar at · f.search · f.neighborhood · f.show · m · cmp · v3d by citymeter-shell (js/shell/url.js); opening a
+ * province or a neighbourhood adds a browser history entry.
  */
 import {registerDataNames} from './lang.js';
-import {provinces as provinceList, provinceByCode, provinceCodeFrom, provinceName, setProvinces, decodeData, decodePoints, scopeRows, scopePending, cell, rowsBounds, dsName, dsUnit, dsUnitN, num, PILLARS, PILLAR_SERIES} from './model.js';
+import {provinces as provinceList, provinceByCode, provinceCodeFrom, provinceName, setProvinces, decodeData, scopeRows, scopePending, cell, rowsBounds, dsName, dsUnit, dsUnitN, num, PILLARS, PILLAR_SERIES} from './model.js';
 import {buildOverview, buildNeighborhood, buildCompare} from './profile.js';
 import {renderOverview, renderNeighborhood, renderCompare, renderFilterChips, tableHeadHTML, tableRowHTML, esc, L, dens, sharePct} from './panel.js';
 import {loadMapLibrary} from './shell/vendors.js';
-import {installAreaLabels} from './map-layers.js';
-import {installNeighborhoodLayers, pinCollection, poiCollection, OUTLINE_MIN_ZOOM} from './layers.js';
+import {installAreaLabels, installRecordLabels} from './map-layers.js';
+import {installNeighborhoodLayers, pinCollection, poiCollection, pinScale, OUTLINE_MIN_ZOOM, POI_MIN_ZOOM, PIN_CHOSEN} from './layers.js';
+import {CONDO, decodeRecords, condoDataset, decodeCondo, cellsIn, growBox, spotsOf, seriesOfDs, barSets, barHTML, labelItems, tipHTML, detailHTML, listHTML, panelListHTML, recordName} from './records.js';
 import {provinceLocator} from './provinces.js';
 import {buildMapStyle, basemapPalette, TILEJSON_URL, MASSING_BEFORE} from './shell/map-style.js';
 import {installMassing, outerRings, FOCUS_MIN_ZOOM} from './massing.js';
@@ -52,8 +55,13 @@ const theme = () => document.documentElement.dataset.theme;
 const announce = text => { $('announcement').textContent = text; };
 
 const state = {
-  model: null, points: null, provincesGeo: null, outlines: null, outlineById: new Map(), locate: null,
+  model: null, provincesGeo: null, outlines: null, outlineById: new Map(), locate: null,
   province: '', search: '', nb: '', lens: '', compare: [], view3d: true, page: 0,
+  // records of the open neighbourhood (0.1.3): shards by neighbourhood id, the pins drawn (spots), the chosen set
+  // (`show`: a dataset id, 'condo' or ''), the condominium cells, the card and the hover tip
+  records: new Map(), recordsLoading: new Set(), spots: [], focus: '', recordsOpen: false,
+  condoDs: null, condoIndex: new Set(), condoCells: new Map(), condoSpots: [], condoNear: new Map(),
+  poiPopup: null, poiCard: null, poiTip: null, poiTipKey: '', recordLabels: null,
   rows: [], pending: [], overview: null, ramp: null, fills: new Map(),
   map: null, loaded: false, mapTheme: '', initialCameraDone: false, tileTemplate: '', budget: null,
   layers: null, provinceLabels: null, nbLabels: null, massing: null, buildingUnits: null,
@@ -62,7 +70,7 @@ const state = {
 
 /* ---------- address (citymeter-shell, js/shell/url.js) ---------- */
 const nav = createNavigator(createCodec({
-  dataset: DATASET, levels: ['P'], place: {}, items: {}, filters: ['search', 'neighborhood'], levelFilters: ['neighborhood'],
+  dataset: DATASET, levels: ['P'], place: {}, items: {}, filters: ['search', 'neighborhood', 'show'], levelFilters: ['neighborhood'],
   rename: {metric: 'm', compare: 'cmp', view3d: 'v3d'},
 }), {onPop: restoreFromHistory});
 
@@ -71,6 +79,7 @@ function saveURL() {
   if (state.province) p.set('province', state.province);
   if (state.search) p.set('search', state.search);
   if (state.nb) p.set('neighborhood', state.nb);
+  if (state.focus) p.set('show', state.focus);
   if (state.lens) p.set('metric', state.lens);
   if (state.compare.length) p.set('compare', state.compare.join(','));
   if (!state.view3d) p.set('view3d', '0');
@@ -104,6 +113,7 @@ function applyTheme() {
 }
 
 function disposeSpatial() {
+  closePoiCard(); hideTip();
   for (const k of ['massing', 'layers']) { try { state[k]?.dispose(); } catch (e) { console.warn('dispose', k, e); } state[k] = null; }
 }
 
@@ -186,7 +196,7 @@ function renderPanel() {
   let html;
   if (r) {
     html = renderNeighborhood(buildNeighborhood(state.model, r), state.model, {inCompare: state.compare.includes(r.id), compareFull: state.compare.length >= COMPARE_MAX,
-      fillOf: ds => (state.lens === ds.id ? fillOfRow(r) : ''), ctx: panelCtx()});
+      fillOf: ds => (state.lens === ds.id ? fillOfRow(r) : ''), ctx: panelCtx(), recordsHTML: panelListHTML(state.records.get(r.id) ?? null, {open: state.recordsOpen})});
     $('map-aha').hidden = true;
   } else {
     state.overview = buildOverview(state.model, {rows: state.rows, province: state.province, ds: lensDs(), pending: state.pending});
@@ -264,6 +274,8 @@ function goBack() {
 
 function setLens(id) {
   state.lens = state.model.dsById.has(id) ? id : '';
+  // With a neighbourhood open, the set being read is also the set its records show (the dataset bar follows).
+  if (state.nb) state.focus = state.lens;
   update();
   const ds = lensDs();
   announce(ds ? L(`ระบายสีย่านตาม${ds.nameTh}`, `Neighbourhoods coloured by ${dsName(ds)}`) : L('ระบายสีตามจุดเด่น', 'Coloured by highlights'));
@@ -304,6 +316,7 @@ function onPanelAction(event) {
   else if (action === 'cmp-top') compareTop(value);
   else if (action === 'cmp-similar') { const r = rowById(id); if (r) compareSet([r.id, ...buildNeighborhood(state.model, r).similar.map(x => x.row.id)]); }
   else if (action === 'open-table') openTable();
+  else if (action === 'open-record') openRecordFromList(+value);
   else if (action === 'open-compare') openInsights(true);
   else if (action === 'open-sheet') openMobilePanel();
   else if (action === 'back') goBack();
@@ -424,13 +437,15 @@ function cameraPadding() {
   // thin a strip, and the legend moves up only after the tray has opened (syncBottomPanel).
   if (!$('insight-content').hidden && !mobilePortrait()) {
     const chrome = [aha, legend].filter(el => !el.hidden && el.offsetHeight).map(el => el.getBoundingClientRect().right - mapBox.left);
-    return {top: Math.max(edge, toolbar.bottom - mapTop + 12), left: Math.max(edge, ...chrome.map(x => x + 12)), right: edge, bottom: Math.min(height * 0.7, tray + edge)};
+    return {top: Math.max(edge, toolbar.bottom - mapTop + 12 + barRoom()), left: Math.max(edge, ...chrome.map(x => x + 12)), right: edge, bottom: Math.min(height * 0.7, tray + edge)};
   }
   const chromeTop = !aha.hidden && aha.offsetHeight ? aha.getBoundingClientRect().top : legend.offsetHeight ? legend.getBoundingClientRect().top : null;
   let bottom = chromeTop != null ? height - (chromeTop - mapTop) + 12 : tray + edge;
   if (mobilePortrait() && $('panel').classList.contains('is-open')) bottom = Math.max(bottom, Math.round($('panel').getBoundingClientRect().height) - (window.innerHeight - height - mapTop) + 8);
-  return {top: Math.max(edge, toolbar.bottom - mapTop + 12), left: edge, right: edge, bottom: Math.min(height * 0.7, bottom)};
+  return {top: Math.max(edge, toolbar.bottom - mapTop + 12 + barRoom()), left: edge, right: edge, bottom: Math.min(height * 0.7, bottom)};
 }
+/** Room the dataset bar takes under the toolbar while a neighbourhood is open (0.1.3; kept before its records arrive). */
+const barRoom = () => (state.nb ? 48 : 0);
 
 function boundsOf(boxes) {
   let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
@@ -512,7 +527,8 @@ function nbLabelItems() {
 
 function scheduleLabelView() {
   clearTimeout(scheduleLabelView.timer);
-  scheduleLabelView.timer = setTimeout(() => { if (state.loaded) { state.provinceLabels?.layout(); state.nbLabels?.layout(); } }, 60);
+  // record names after the neighbourhood chips (they keep clear of the chips' final places)
+  scheduleLabelView.timer = setTimeout(() => { if (state.loaded) { state.provinceLabels?.layout(); state.nbLabels?.layout(); state.recordLabels?.layout(); } }, 60);
 }
 
 /** Provinces whose building units the massing regions need: the open neighbourhood's, and those under each region. */
@@ -565,7 +581,13 @@ function updateSpatialLayers() {
   L_.setCompare(state.compare);
   L_.setProvince(state.province);
   const r = openRow();
-  L_.setPoints(r ? poiCollection(state.points[r.index], state.model.datasets, state.lens) : null);
+  if (r) ensureRecords(r);
+  if (state.poiCard && state.poiCard.row?.id !== state.nb) closePoiCard();
+  const recs = r ? state.records.get(r.id) : null, chosen = chosenSet();
+  state.spots = recs ? spotsOf(recs) : [];
+  L_.setPoints(recs ? poiCollection(state.spots, seriesOfDs, {chosen}) : null);
+  refreshCondo();
+  renderFocusBar();
   state.provinceLabels?.update(provinceLabelItems());
   state.nbLabels?.update(nbLabelItems());
   const regions = massingRegions();
@@ -584,6 +606,10 @@ function provinceAt(point) {
 }
 
 function onMapClick(e) {
+  // A record's pin first (0.1.3): its card; a click elsewhere closes an open card and reads the map as before.
+  const spots = state.nb ? spotsAt(e.point) : [];
+  if (spots.length) { openPoiCard(spots); return; }
+  if (state.poiPopup) { closePoiCard(); return; }
   const id = state.layers?.hitTest(e.point);
   if (id) { if (id !== state.nb) selectNb(id); return; }
   if (state.map.getZoom() < OUTLINE_MIN_ZOOM) {
@@ -599,12 +625,212 @@ function onMapMove(e) {
     onMapMove.frame = 0;
     const map = state.map, p = onMapMove.point;
     if (!map || !state.loaded || !p) return;
+    const spots = state.nb ? spotsAt(p) : [];
+    if (spots.length) {
+      state.layers?.hover('');
+      if (HOVER() && !state.poiPopup) showTip(spots);
+      map.getCanvas().style.cursor = 'pointer';
+      return;
+    }
+    hideTip();
     const id = state.layers?.hitTest(p) || '';
     state.layers?.hover(id && id !== state.nb ? id : '');
     let over = Boolean(id) && id !== state.nb;
     if (!over && map.getZoom() < OUTLINE_MIN_ZOOM) { const code = provinceAt(p); over = Boolean(code) && code !== state.province; }
     map.getCanvas().style.cursor = over ? 'pointer' : '';
   });
+}
+
+/* ---------- map: records of the open neighbourhood (0.1.3) ---------- */
+const HOVER = () => matchMedia('(hover: hover) and (pointer: fine)').matches;
+const V = () => (RELEASE ? `?v=${RELEASE}` : '');
+
+/** The set whose records stand out: the reader's pick when the open neighbourhood has it ('' = every set alike). */
+function chosenSet() {
+  const f = state.focus, r = openRow();
+  if (!f || !r) return '';
+  if (f === CONDO) return state.condoDs && state.condoNear.get(r.id) ? CONDO : '';
+  const recs = state.records.get(r.id);
+  return recs?.some(x => x.ds.id === f) ? f : '';
+}
+
+/** The open neighbourhood's records (data/records/<id>.json), once; the map, the bar and the panel list follow. */
+function ensureRecords(r) {
+  if (!r || state.records.has(r.id) || state.recordsLoading.has(r.id)) return;
+  state.recordsLoading.add(r.id);
+  fetchJSON(`data/records/${encodeURIComponent(r.id)}.json${V()}`)
+    .then(json => state.records.set(r.id, decodeRecords(json, state.model)))
+    .catch(e => { partial('records'); console.warn('Records unavailable', r.id, e); state.records.set(r.id, []); })
+    .finally(() => {
+      state.recordsLoading.delete(r.id);
+      if (state.nb !== r.id) return;
+      if (state.loaded) updateSpatialLayers();
+      refreshRecordsList();
+    });
+  // Whether condominium points lie round it: the cells of its box and 1 km round (the bar offers the set only then).
+  if (state.condoDs && !state.condoNear.has(r.id)) {
+    const near = growBox(r.bbox, 1000);
+    loadCondoCells(cellsIn(near, state.condoDs.meta.cell, state.condoIndex)).then(rows => {
+      state.condoNear.set(r.id, rows.some(x => x.lon >= near[0] && x.lon <= near[2] && x.lat >= near[1] && x.lat <= near[3]));
+      if (state.nb === r.id) { renderFocusBar(); if (state.focus === CONDO && state.loaded) updateSpatialLayers(); }
+    });
+  }
+}
+
+/** The panel's list of names, swapped in place once the records arrive (the panel keeps its scroll). */
+function refreshRecordsList() {
+  const r = openRow(), el = document.querySelector('#panel-view .records-details');
+  if (!r || !el) return;
+  const html = panelListHTML(state.records.get(r.id) ?? null, {open: state.recordsOpen});
+  if (html) el.outerHTML = html; else el.remove();
+}
+
+/** Condominium cells (data/condo/<cell>.json), each fetched once; resolves to the rows of the cells asked for. */
+function loadCondoCells(keys) {
+  return Promise.all(keys.map(k => {
+    const have = state.condoCells.get(k);
+    if (have) return have;
+    const p = fetchJSON(`data/condo/${k}.json${V()}`).then(json => decodeCondo(json, state.condoDs))
+      .catch(e => { partial('condo'); console.warn('Condominium cell unavailable', k, e); return []; });
+    state.condoCells.set(k, p);
+    p.then(rows => state.condoCells.set(k, rows));
+    return p;
+  })).then(parts => parts.flat());
+}
+
+/** The condominium points of the cells in view, drawn only while they are the chosen set and a neighbourhood is open. */
+function refreshCondo() {
+  const L_ = state.layers, map = state.map;
+  if (!L_ || !map) return;
+  if (chosenSet() !== CONDO || map.getZoom() < POI_MIN_ZOOM - 0.5) { state.condoSpots = []; L_.setCondo(null); updateRecordLabels(); return; }
+  const b = map.getBounds(), keys = cellsIn([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()], state.condoDs.meta.cell, state.condoIndex);
+  const token = (refreshCondo.token = (refreshCondo.token || 0) + 1);
+  loadCondoCells(keys).then(rows => {
+    if (token !== refreshCondo.token || !state.layers || chosenSet() !== CONDO) return;
+    state.condoSpots = spotsOf(rows);
+    state.layers.setCondo(poiCollection(state.condoSpots, seriesOfDs, {chosen: CONDO, dashed: true}));
+    updateRecordLabels();
+  });
+}
+
+/** The chosen set's names beside its pins (the records' or the condominium points'). */
+function updateRecordLabels() {
+  const chosen = chosenSet();
+  state.recordLabels?.update(chosen === CONDO ? labelItems(state.condoSpots, CONDO).map(x => ({...x, id: `c${x.id}`}))
+    : chosen ? labelItems(state.spots, chosen) : []);
+}
+
+/** The dataset bar on the map: “ทั้งหมด” and the sets of the open neighbourhood (owner 2026-11-16 “เลือกดูทีละชุด”). */
+function renderFocusBar() {
+  const bar = $('focus-bar'), r = openRow();
+  const recs = r ? state.records.get(r.id) : null;
+  const sets = recs ? barSets(recs, {highlights: (r.hl || []).map(h => h.d), condo: state.condoDs && state.condoNear.get(r.id) ? state.condoDs : null}) : [];
+  const html = sets.length ? barHTML(sets, chosenSet()) : '';
+  const fresh = bar.dataset.html !== html;
+  if (fresh) {
+    const scroll = bar.scrollLeft;
+    bar.innerHTML = html;
+    bar.dataset.html = html;
+    bar.scrollLeft = scroll;
+  }
+  bar.hidden = !html;
+  // the pressed set in sight (an address that opens with one chosen, or a choice made from the panel)
+  const on = fresh && bar.querySelector('[aria-pressed="true"]:not([data-focus=""])');
+  if (on && (on.offsetLeft < bar.scrollLeft || on.offsetLeft + on.offsetWidth > bar.scrollLeft + bar.clientWidth)) bar.scrollLeft = on.offsetLeft - 8;
+  document.querySelector('.map-panel')?.style.setProperty('--focus-bar-bottom', `${html ? Math.round(bar.getBoundingClientRect().bottom - $('map').getBoundingClientRect().top) : 0}px`);
+  updateRecordLabels();
+}
+
+function setFocus(id) {
+  state.focus = id || '';
+  closePoiCard();
+  updateSpatialLayers();
+  saveURL();
+  const ds = id === CONDO ? state.condoDs : state.model.dsById.get(id);
+  announce(ds ? L(`แสดง${dsName(ds)}พร้อมชื่อ ชุดอื่นเป็นจุดเล็ก`, `Showing ${dsName(ds)} with names; the other sets as small dots`) : L('แสดงทุกชุดข้อมูลในย่าน', 'Showing every dataset in the neighbourhood'));
+}
+
+/**
+ * The records' spots under a screen point, nearest first (pins of the neighbourhood, then condominium points). With one
+ * set chosen, its pins answer first: the quiet dots answer only where none of its pins is under the pointer.
+ */
+function spotsAt(point) {
+  const spots = (state.layers?.hitPoi(point) || []).map(h => (h.layer === 'condo' ? state.condoSpots[h.id] : state.spots[h.id])).filter(Boolean);
+  const chosen = chosenSet(), mine = chosen ? spots.filter(g => g.ds.id === chosen) : [];
+  return mine.length ? mine : spots;
+}
+
+function showTip(spots) {
+  const key = spots.map(g => `${g.ds.id}|${g.lon}|${g.lat}`).join(';');
+  if (state.poiTip && state.poiTipKey === key) return;
+  hideTip();
+  const html = tipHTML(spots);
+  if (!html || !state.map) return;
+  const el = document.createElement('div');
+  el.className = 'poi-tip';
+  el.innerHTML = html;
+  state.poiTip = new maplibregl.Popup({closeButton: false, closeOnClick: false, closeOnMove: false, focusAfterOpen: false, offset: 14, maxWidth: '280px', className: 'poi-tip-popup'})
+    .setLngLat([spots[0].lon, spots[0].lat]).setDOMContent(el).addTo(state.map);
+  state.poiTipKey = key;
+}
+function hideTip() {
+  state.poiTip?.remove();
+  state.poiTip = null; state.poiTipKey = '';
+}
+
+/** The card of a spot (or of the spots under a click): one record → its details; several → their names, each a card. */
+function openPoiCard(spots, {index = null} = {}) {
+  const items = spots.flatMap(g => g.items);
+  if (!items.length || !state.map) return;
+  hideTip();
+  state.poiCard = {items, at: [spots[0].lon, spots[0].lat], row: openRow()};
+  renderPoiCard(index ?? (items.length === 1 ? 0 : -1));
+}
+
+function renderPoiCard(index) {
+  const c = state.poiCard;
+  if (!c || !state.map) return;
+  const one = index >= 0 ? c.items[index] : null;
+  const el = document.createElement('div');
+  el.className = 'poi-card-wrap';
+  el.innerHTML = one ? detailHTML(one, {row: c.row, back: c.items.length > 1}) : listHTML(c.items, {row: c.row});
+  el.addEventListener('click', ev => {
+    const b = ev.target.closest('button[data-poi]');
+    if (!b) return;
+    ev.preventDefault();
+    renderPoiCard(b.dataset.poi === 'list' ? -1 : +b.dataset.poi);
+    state.poiPopup?.getElement()?.querySelector('.poi-card button, .poi-card a')?.focus({preventScroll: true});
+  });
+  const at = one ? [one.lon, one.lat] : c.at;
+  state.layers?.markPoi(at);
+  if (state.poiPopup) state.poiPopup.setLngLat(at).setDOMContent(el);
+  else {
+    const docked = mobilePortrait();
+    state.poiPopup = new maplibregl.Popup({closeButton: true, closeOnClick: false, focusAfterOpen: true, offset: docked ? 0 : 16, maxWidth: docked ? 'none' : '320px',
+      className: `poi-card-popup${docked ? ' is-docked' : ''}`}).setLngLat(at).setDOMContent(el).addTo(state.map);
+    const popup = state.poiPopup;
+    popup.on('close', () => { if (state.poiPopup !== popup) return; state.poiPopup = null; state.poiCard = null; state.layers?.markPoi(null); });
+  }
+  announce(one ? `${dsName(one.ds)} · ${recordName(one) || ''}` : L('รายชื่อที่จุดนี้', 'The names at this point'));
+}
+
+function closePoiCard() {
+  const p = state.poiPopup;
+  state.poiPopup = null; state.poiCard = null;
+  p?.remove();
+  state.layers?.markPoi(null);
+}
+
+/** A name of the panel's list: its card on the map (the sheet steps down on a phone so the card can be seen). */
+function openRecordFromList(i) {
+  const r = openRow(), rec = r && state.records.get(r.id)?.find(x => x.i === i);
+  if (!rec) return;
+  if (!state.map || !state.loaded) return;
+  if (mobilePortrait()) setSheet('peek');
+  const spot = state.spots.find(g => g.items.includes(rec));
+  const c = state.map.getContainer(), p = state.map.project([rec.lon, rec.lat]);
+  if (p.x < 40 || p.y < 80 || p.x > c.clientWidth - 40 || p.y > c.clientHeight - 80) state.map.easeTo({center: [rec.lon, rec.lat], duration: animate() ? 500 : 0});
+  openPoiCard(spot ? [spot] : [{ds: rec.ds, lon: rec.lon, lat: rec.lat, items: [rec]}], {index: spot ? spot.items.indexOf(rec) : 0});
 }
 
 function installSpatialLayers() {
@@ -681,10 +907,16 @@ function initMap() {
     state.attribObserver = trackAttribution(state.map);
     state.legendObserver ||= trackLegend();
     document.fonts?.ready?.then(() => spaceTicks($('map-legend')));
-    state.provinceLabels = installAreaLabels(state.map, $('map'), {className: 'province-label', hostId: 'province-labels', hostLabel: L('จังหวัดบนแผนที่', 'Provinces on the map'), minZoom: 4, maxZoom: 8.5, verb: L('กดเพื่อดูจังหวัด', 'open the province'), onSelect: code => selectProvince(code), reservedBottom: labelBottomSpace, maxLabels: mobilePortrait() ? 10 : 18});
-    state.nbLabels = installAreaLabels(state.map, $('map'), {className: 'neighborhood-label', hostId: 'nb-labels', hostLabel: L('ย่านบนแผนที่', 'Neighbourhoods on the map'), minZoom: 11.5, maxZoom: 24, verb: L('กดเพื่อดูย่าน', 'open the neighbourhood'), onSelect: id => selectNb(id), reservedBottom: labelBottomSpace, maxLabels: 36, avoid: '#province-labels .area-label:not([hidden])'});
+    state.provinceLabels = installAreaLabels(state.map, $('map'), {className: 'province-label', hostId: 'province-labels', hostLabel: L('จังหวัดบนแผนที่', 'Provinces on the map'), minZoom: 4, maxZoom: 8.5, verb: L('กดเพื่อดูจังหวัด', 'open the province'), onSelect: code => selectProvince(code), reservedBottom: labelBottomSpace, maxLabels: mobilePortrait() ? 10 : 18, avoid: '.focus-bar'});
+    state.nbLabels = installAreaLabels(state.map, $('map'), {className: 'neighborhood-label', hostId: 'nb-labels', hostLabel: L('ย่านบนแผนที่', 'Neighbourhoods on the map'), minZoom: 11.5, maxZoom: 24, verb: L('กดเพื่อดูย่าน', 'open the neighbourhood'), onSelect: id => selectNb(id), reservedBottom: labelBottomSpace, maxLabels: 36, avoid: '#province-labels .area-label:not([hidden]), .focus-bar'});
+    state.recordLabels = installRecordLabels(state.map, $('map'), {onSelect: id => {
+      const spot = typeof id === 'string' && id.startsWith('c') ? state.condoSpots[+id.slice(1)] : state.spots[id];
+      if (spot) openPoiCard([spot]);
+    }, reservedBottom: labelBottomSpace, avoid: '#nb-labels .area-label:not([hidden])', pinRadius: () => (PIN_CHOSEN * pinScale(state.map?.getZoom() || 15)) / 2 + 1});
     state.map.on('moveend', scheduleLabelView);
     state.map.on('moveend', followCamera);
+    state.map.on('moveend', () => { if (state.nb && chosenSet() === CONDO) refreshCondo(); });
+    state.map.getCanvas().addEventListener('mouseleave', hideTip);
     state.map.on('moveend', tiltWhenNear);
     state.map.on('style.load', installSpatialLayers);
     state.map.on('click', onMapClick);
@@ -704,8 +936,8 @@ function initMap() {
 
 function dropMap() {
   state.loaded = false; state.initialCameraDone = false;
-  for (const cleanup of [() => state.contextWatch?.(), () => state.attribObserver?.disconnect(), () => state.provinceLabels?.dispose(), () => state.nbLabels?.dispose(), disposeSpatial, () => state.map?.remove()]) { try { cleanup(); } catch (err) { console.warn('Map cleanup', err); } }
-  state.map = null; state.provinceLabels = null; state.nbLabels = null; state.contextWatch = null; state.attribObserver = null;
+  for (const cleanup of [() => state.contextWatch?.(), () => state.attribObserver?.disconnect(), () => state.provinceLabels?.dispose(), () => state.nbLabels?.dispose(), () => state.recordLabels?.dispose(), disposeSpatial, () => state.map?.remove()]) { try { cleanup(); } catch (err) { console.warn('Map cleanup', err); } }
+  state.map = null; state.provinceLabels = null; state.nbLabels = null; state.recordLabels = null; state.contextWatch = null; state.attribObserver = null;
   watchBasemap.reset();
 }
 
@@ -884,6 +1116,8 @@ function restoreFromURL() {
   state.province = provinceCodeFrom(p.get('province') || '');
   state.search = (p.get('search') || '').slice(0, 80);
   state.nb = rowById(p.get('neighborhood')) ? p.get('neighborhood') : '';
+  const show = p.get('show') || '';
+  state.focus = show === CONDO || state.model.dsById.has(show) ? show : '';
   state.lens = state.model.dsById.has(p.get('metric')) ? p.get('metric') : '';
   state.compare = (p.get('compare') || '').split(',').filter(id => rowById(id)).slice(0, COMPARE_MAX);
   state.view3d = p.get('view3d') !== '0';
@@ -908,6 +1142,9 @@ function wireEvents() {
   $('filters').addEventListener('submit', e => e.preventDefault());
   $('filters').addEventListener('reset', () => setTimeout(() => { state.search = ''; state.province = ''; state.nb = ''; update({fit: true}); }, 0));
   for (const id of ['panel-view', 'filter-chips', 'map-aha', 'crumbs', 'compare-view', 'result-rows']) $(id).addEventListener('click', onPanelAction);
+  $('focus-bar').addEventListener('click', e => { const b = e.target.closest('button[data-focus]'); if (b) setFocus(b.dataset.focus); });
+  $('panel-view').addEventListener('toggle', e => { if (e.target.classList?.contains('records-details')) state.recordsOpen = e.target.open; }, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && state.poiPopup) { closePoiCard(); state.map?.getCanvas().focus({preventScroll: true}); } });
   $('fit-map').onclick = () => fitMap();
   $('country-map').onclick = () => { state.province = ''; state.nb = ''; state.search = ''; update({fit: true}); announce(L('ทั้งประเทศ', 'Whole country')); };
   $('toggle-3d').onclick = toggle3d;
@@ -934,7 +1171,8 @@ function wireEvents() {
 const PARTIAL = {
   'data/provinces.geojson': ['กรอบจังหวัด', 'แผนที่ไม่แสดงขอบจังหวัด ตัวเลขในแผงยังครบ', 'Province outlines', 'The map shows no province outlines; the panel figures are complete'],
   'data/boundaries.geojson': ['ขอบย่าน', 'แผนที่แสดงเฉพาะหมุดของย่าน ตัวเลขในแผงยังครบ', 'Neighbourhood outlines', 'The map shows pins only; the panel figures are complete'],
-  'data/points.json': ['จุดในย่าน', 'แผนที่ไม่แสดงจุดของแต่ละชุดในย่าน ตัวเลขในแผงยังครบ', 'Records inside the neighbourhoods', 'The map does not draw the records; the panel figures are complete'],
+  'records': ['จุดในย่าน', 'แผนที่ไม่แสดงจุดของย่านนี้ ตัวเลขในแผงยังครบ', 'Records inside the neighbourhood', 'The map does not draw this neighbourhood’s records; the panel figures are complete'],
+  'condo': ['จุดคอนโดมิเนียม', 'แผนที่อาจไม่แสดงจุดคอนโดมิเนียมบางส่วน', 'Condominium points', 'Some condominium points may be missing from the map'],
   'units': ['รูปอาคารของ CityMETER', 'อาคารบางจังหวัดแสดงจากแผนที่ฐานแทนชุดอาคารของ CityMETER', 'CityMETER building shapes', 'Buildings in some provinces come from the basemap instead of the CityMETER set'],
   'basemap': ['แผนที่ฐาน', 'ถนน แหล่งน้ำ และอาคารพื้นหลังอาจไม่แสดง ข้อมูลในแผงและตารางยังใช้ได้', 'Basemap', 'Roads, water and background buildings may be missing; the panel and the table still work'],
 };
@@ -947,11 +1185,10 @@ function partial(key) {
 async function init() {
   try {
     const v = RELEASE ? `?v=${RELEASE}` : '';
-    const [dataJSON, provincesJSON, outlinesJSON, pointsJSON] = await Promise.all([
+    const [dataJSON, provincesJSON, outlinesJSON] = await Promise.all([
       fetchJSON(`data/neighborhoods.json${v}`, {timeout: 30000}),
       fetchJSON(`data/provinces.geojson${v}`, {timeout: 30000}).catch(e => { partial('data/provinces.geojson'); console.warn('Province frames unavailable', e); return null; }),
       fetchJSON(`data/boundaries.geojson${v}`, {timeout: 30000}).catch(e => { partial('data/boundaries.geojson'); console.warn('Outlines unavailable', e); return null; }),
-      fetchJSON(`data/points.json${v}`, {timeout: 30000}).catch(e => { partial('data/points.json'); console.warn('Points unavailable', e); return null; }),
     ]);
     state.provincesGeo = validFeatureCollection(provincesJSON) ? provincesJSON : {type: 'FeatureCollection', features: []};
     setProvinces(state.provincesGeo);
@@ -959,7 +1196,8 @@ async function init() {
     state.model = decodeData(dataJSON);
     state.outlines = validFeatureCollection(outlinesJSON) ? outlinesJSON : {type: 'FeatureCollection', features: []};
     state.outlineById = new Map(state.outlines.features.map(f => [String(f.properties.id), f]));
-    state.points = decodePoints(pointsJSON, state.model.rows.length);
+    state.condoDs = condoDataset(state.model.meta.condo);
+    state.condoIndex = new Set(state.model.meta.condo?.cells || []);
     registerDataNames(state.model);
     state.buildingUnits = createBuildingUnitStore({fetchJSON, version: RELEASE, onLoad: () => { if (state.loaded) updateSpatialLayers(); },
       onError: (code, e) => { partial('units'); console.warn('Building units unavailable', code, e); if (state.loaded) updateSpatialLayers(); }});

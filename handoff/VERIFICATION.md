@@ -1,5 +1,13 @@
 # CityMETER Commercial District — verification
 
+## Release 0.1.3 — 16 พ.ย. 2569
+
+Owner 2026-11-16 (20:55–20:57 ICT): “จุดในย่าน ตอนนี้คลิกไม่ได้ ช่วยทำให้ click ดูรายละเอียดที่เกี่ยวข้องได้หน่อย และควรแสดงจุด Condominium ด้วย / icon หมุดต่างๆตอนนี้ดูยากมาก สีสัญลักษณ์คล้ายกันเกินไปดูยากมาก มี design ที่ดีกว่านี้มั้ย / หรือ mouse hover ที่หมุดก็ควรมี popup ให้รู้ว่ามันคืออะไร ตอนนี้ใช้ยากมาก / เอา condo จาก dataset ใน registry ไง”. On a draft with a dataset glyph inside each pin (21:21): “icon ใน symbol ที่ทำอยู่ไม่ช่วยเท่าไรนะครับ”; asked for a direction, the owner chose **“เลือกดูทีละชุด (แนะนำ)”**.
+
+- Data: `data/records/` (343 shards, one per closed outline; the counts equal `rows[].c`), `data/condo/` (7,887 points in 227 cells of 0.1°; 328 held and 131 without a point not drawn); `data/points.json` retired. Every count, rank, highlight and pair unchanged from 0.1.2 (rows compared field by field; only the order of a row's pairs changed, now the highlights' order and the same on every run).
+- Code: `js/records.js` (new), `js/layers.js`, `js/map-layers.js#installRecordLabels`, `js/app.js`, `js/cues.js` (a second outline behind a pile, a dashed outline), `styles.css` §13. The glyph draft was removed before release.
+- Local (Chromium through Playwright, no basemap here), Siam: the bar lists ทั้งหมด, the four highlights, the other sets and คอนโดมิเนียม; choosing แบรนด์หรู draws its pins larger with names (no name over a pin of the set), the rest as dots, writes `f.show`; the pointer names the records at Siam Paragon (luxury only while luxury is chosen); a click lists them; a record card links to its own demo with `?e=`, Google Maps and Street View, and ends with dataset · source · date · boundary. Phone 393 × 852: the card docks under the bar. English and dark theme with the condominium set: names stay as the source writes them, `missing` empty. `npm test` 139 pass, 0 fail.
+
 ## Release 0.1.2 — 16 พ.ย. 2569
 
 Found on the live 0.1.1 (citymeter.pages.dev, a 393 × 852 frame of the same origin in the owner's Chrome, English, light theme): with the comparison open, “Compare neighbourhoods”, the count and three buttons were wider than the phone, and the last button (“List”) was cut at the right edge (369–411 px of 391).

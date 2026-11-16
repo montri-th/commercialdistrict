@@ -338,7 +338,7 @@ function registryDetails(d, model) {
 }
 
 /** d = js/profile.js#buildNeighborhood. inCompare: the row is in the compare set. */
-export function renderNeighborhood(d, model, {inCompare = false, compareFull = false, fillOf = () => '', ctx = {}} = {}) {
+export function renderNeighborhood(d, model, {inCompare = false, compareFull = false, fillOf = () => '', ctx = {}, recordsHTML = ''} = {}) {
   const r = d.row, province = provinceName(r.province);
   const top = d.highlights[0];
   const tw = top ? highlightWordsL(top, r) : null;
@@ -358,7 +358,7 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
     ${metricTile(Object.values(r.c || {}).filter(n => n > 0).length, L('ชุดที่มีในย่าน', 'datasets present'), 'dataset', L(`จาก ${num(Object.keys(r.c || {}).length)} ชุดที่มีข้อมูลในจังหวัด`, `of ${num(Object.keys(r.c || {}).length)} with data in the province`))}
     ${metricTile(d.inProvince, L(`ย่านใน${province}`, `in ${province}`), 'province')}
   </section>`;
-  return `${aha}${metrics}${highlightsSection(d)}${togetherSection(d)}${datasetsSection(d, fillOf)}${similarSection(d)}
+  return `${aha}${metrics}${highlightsSection(d)}${togetherSection(d)}${datasetsSection(d, fillOf)}${recordsHTML}${similarSection(d)}
     ${actionBar({kind: 'neighborhood', name: r.name, province, point: {lat: r.ref[1], lon: r.ref[0]}})}
     ${registryDetails(d, model)}
     ${provenance(ctx, {boundary: L(`${r.name} · ขอบย่านฉบับร่าง ${hectares(r.areaM2)} เฮกตาร์`, `${r.name} · draft outline ${hectares(r.areaM2)} ha`)})}`;
