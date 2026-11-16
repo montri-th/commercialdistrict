@@ -1,6 +1,6 @@
 # CityMETER Commercial District — Developer Handoff
 
-รุ่นเผยแพร่ 0.1.0 · 16 พ.ย. 2569 · ทะเบียนย่านกลางอ่านและสร้างข้อมูล 16 พ.ย. 2569 (ไฟล์ส่งออกของเจ้าของ) · ข้อมูลจุดจาก 16 เดโมของ CityMETER ตาม commit ที่บันทึกใน `data/neighborhoods.json`
+รุ่นเผยแพร่ 0.1.1 · 16 พ.ย. 2569 · ทะเบียนย่านกลางอ่านและสร้างข้อมูล 16 พ.ย. 2569 (ไฟล์ส่งออกของเจ้าของ) · ข้อมูลจุดจาก 16 เดโมของ CityMETER ตาม commit ที่บันทึกใน `data/neighborhoods.json`
 
 เริ่มอ่าน `source/handoff/README.md` จากนั้น Product Statement (`source/PRODUCT_STATEMENT.md` + `source/handoff/product-statement.json`), Product Brief และ Implementation Plan ในโฟลเดอร์ `source/handoff` ทั้ง `.md` และ `.json` ใช้คู่กัน
 

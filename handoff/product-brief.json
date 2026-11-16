@@ -3,7 +3,7 @@
   "schemaVersion": "1.5.0",
   "documentType": "product-brief",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.1.0",
+  "productVersion": "0.1.1",
   "updatedOn": "2026-11-16",
   "datasetCheckedOn": "2026-11-16",
   "language": "th",
@@ -139,7 +139,7 @@
     {"viewKey": "compare", "title": "เปรียบเทียบย่าน", "question": "ย่านเหล่านี้ต่างกันตรงไหน", "encoding": "matrix datasets × neighbourhoods: count, density, bar against the densest of the row, densest ringed", "metric": "count and records per km²", "scope": "up to four neighbourhoods"}
   ],
   "delivery": {
-    "cacheTag": "?v=20261116-r1",
+    "cacheTag": "?v=20261116-r2",
     "shell": "citymeter-shell 0.6.1 (the picker gains this demo in a shell release of its own)"
   }
 }
