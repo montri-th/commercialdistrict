@@ -23,6 +23,7 @@ Set 2026-11-16 (release 0.1.0) on the owner request, VERBATIM: “สร้า�
 
 - Every page carries `<meta name="robots" content="noindex, nofollow">` (owner 2026-11-08). Keep the rest of the SEO metadata ready for production, do not block crawlers in a robots.txt, add no sitemap, never point `rel="canonical"` at landometer.com (`tests/discovery-and-group.test.js`).
 - The panel eyebrow `CITYMETER · LOCATION` follows the owner's request of 2026-11-16 (“ในหมวด Location”). When the dataset registry gains its row, the eyebrow follows `R01_DATASETS.dataset_group`.
+- No card in the showcase catalog (montri-th/CityMETER `src/catalog.json`): the catalog holds the 43 data views of CityMETER production, each opening landometer.com, and a demo without a production dataset has none (eight other demos too). Owner 2026-11-16, asked after “หน้าในแค็ตตาล็อก showcase: ทำเลย”, chose “ใช้หน้าดูเดโมทั้งหมด (แนะนำ)”: this demo is found on the hub's “ดูเดโมทั้งหมด” page only. A demo section for all of them would be a release of its own.
 
 ## Shared shell (citymeter-shell)
 
