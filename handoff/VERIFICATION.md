@@ -9,7 +9,7 @@ Found on the live 0.1.1 (citymeter.pages.dev, a 393 × 852 frame of the same ori
 
 ### Live (UTC, 2026-11-16)
 
-- GitHub Pages: deployment of `68d9e64` (pull request #2) succeeded 11:59:08; `npm run verify:live` 172 ok, 0 failed. The phone probe on that site, 393 × 852: English clean (the tray header fits); Thai with no control cut. In the table view the headless browser placed map labels at the left edge, under the table; the owner's Chrome on citymeter.pages.dev had shown no label outside the screen with the table open (0.1.1, English, 11:57).
+- GitHub Pages: deployment of `68d9e64` (pull request #2) succeeded 11:59:08; `npm run verify:live` 172 ok, 0 failed. The phone probe on that site, 393 × 852: English clean (the tray header fits); Thai with no control cut. In the table view the headless browser placed map labels at the left edge, under the table; the owner's Chrome on citymeter.pages.dev had shown no label outside the screen with the table open (0.1.1, English, between 11:54 and 11:58).
 - citymeter.pages.dev: run 43862544908 (11:59:31, publish on): 17 sources, 8,947 files, release SHA-256 `004a0517…facc`, 108 / 108 live checks; the family check passed before upload and on the live site (hub=17, shell 0.6.2, nothing missing or extra).
 - SSO portal (sso-citymeter.pages.dev, which takes four of these demos and the hub): run 43863093244 (12:03, publish off) selected the new production sources, passed its tests, assembled and verified the four-dataset portal; it publishes on its next scheduled run. Not deployed by this release.
 - Not verified on 0.1.2 in a real browser: the Chrome extension disconnected after the 0.1.1 walk.
