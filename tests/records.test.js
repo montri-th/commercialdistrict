@@ -9,7 +9,7 @@ import {readdirSync} from 'node:fs';
 import {join} from 'node:path';
 import {load, readJSON, ROOT} from './helpers.js';
 import {DEMOS} from '../js/shell/datasets.js';
-import {CONDO, decodeRecords, condoDataset, decodeCondo, cellsIn, growBox, spotsOf, barSets, barHTML, labelItems, tipHTML, detailHTML, listHTML,
+import {CONDO, ALL, resolveChosen, decodeRecords, condoDataset, decodeCondo, cellsIn, growBox, spotsOf, barSets, barHTML, labelItems, tipHTML, detailHTML, listHTML,
   panelListHTML, recordHref, measureLabel, byDataset} from '../js/records.js';
 
 const SIAM = 'CMN-TH-0001';
@@ -71,10 +71,40 @@ test('the bar: “ทั้งหมด” first, the highlights next, condomini
   assert.equal(sets.at(-1).id, CONDO);
   assert.equal(new Set(sets.map(d => d.id)).size, sets.length);
   const html = barHTML(sets, 'luxurybrands');
-  assert.match(html, /data-focus="" aria-pressed="false"/);
+  assert.match(html, /data-focus="all" aria-pressed="false"/);
   assert.match(html, /data-focus="luxurybrands" aria-pressed="true"/);
   assert.equal((html.match(/aria-pressed="true"/g) || []).length, 1);
   assert.ok(!/\d/.test(strip(html)), 'no number on the bar');
+  const all = barHTML(sets, '');
+  assert.match(all, /data-focus="all" aria-pressed="true"/);
+  assert.equal((all.match(/aria-pressed="true"/g) || []).length, 1);
+});
+
+test('a neighbourhood opens on its first highlight (0.1.4); the reader’s pick, the dataset read and “ทั้งหมด” come first', () => {
+  const {model} = load();
+  const row = model.byId.get(SIAM);
+  const records = decodeRecords(readJSON(`data/records/${SIAM}.json`), model);
+  const highlights = row.hl.map(h => h.d);
+  assert.equal(highlights[0], 'luxurybrands', 'Siam: luxury brands first');
+  // Nothing picked: the first highlight with records.
+  assert.equal(resolveChosen('', {records, highlights}), 'luxurybrands');
+  // A highlight without records here is passed over.
+  assert.equal(resolveChosen('', {records, highlights: ['nosuchset', ...highlights]}), 'luxurybrands');
+  // The dataset the map is read by, when the neighbourhood has it.
+  const other = records.map(r => r.ds.id).find(id => !highlights.includes(id));
+  assert.ok(other);
+  assert.equal(resolveChosen('', {records, highlights, lens: other}), other);
+  assert.equal(resolveChosen('', {records, highlights, lens: 'nosuchset'}), 'luxurybrands');
+  // The reader's own pick wins; one the neighbourhood lacks falls back to the default.
+  assert.equal(resolveChosen(highlights[1], {records, highlights, lens: other}), highlights[1]);
+  assert.equal(resolveChosen('nosuchset', {records, highlights}), 'luxurybrands');
+  // “ทั้งหมด”: every set alike.
+  assert.equal(resolveChosen(ALL, {records, highlights, lens: other}), '');
+  // Condominiums only when they lie round the neighbourhood.
+  assert.equal(resolveChosen(CONDO, {records, highlights, condo: true}), CONDO);
+  assert.equal(resolveChosen(CONDO, {records, highlights, condo: false}), 'luxurybrands');
+  // No records yet (still loading) or none at all: nothing chosen.
+  assert.equal(resolveChosen('', {records: [], highlights}), '');
 });
 
 test('names go beside the chosen set only; a pile says so in words, never with a count', () => {

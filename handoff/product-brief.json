@@ -3,7 +3,7 @@
   "schemaVersion": "1.5.0",
   "documentType": "product-brief",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.1.3",
+  "productVersion": "0.1.4",
   "updatedOn": "2026-11-16",
   "datasetCheckedOn": "2026-11-16",
   "language": "th",
@@ -71,7 +71,7 @@
   "buildingJoinContract": {
     "buildings": "OpenStreetMap or CityMETER Building V4 per data/building-units/ (js/massing.js)",
     "points": "none: neighbourhood records are never joined to buildings",
-    "rule": "the open neighbourhood's outline and its surroundings are the focus (js/regions.js#siteContextRegions); elsewhere the camera's square from zoom 12",
+    "rule": "the open neighbourhood's outline only is the focus (0.1.4; owner 2026-11-16 23:28 ICT, VERBATIM: “กับอาคาร 3d ที่ขึ้นรอบๆผมว่ามันแปลกๆ”): no square of surroundings and no camera square; the camera's cell (js/regions.js#cameraSquare) only adds an anchor of the quiet fade",
     "click": "buildings are not click targets in this product",
     "neverChanges": "building ids and slots of data/building-units/ (copied unchanged from montri-th/university)"
   },
@@ -86,7 +86,7 @@
   },
   "massingContract": {
     "cityTier": "city-massing from zoom 13 (js/massing.js)",
-    "focusTier": "the open neighbourhood and its surroundings, rounded and lifted",
+    "focusTier": "the open neighbourhood's outline only (0.1.4), rounded and lifted; round it the city tier, quiet and fading with distance",
     "hostTier": "none (no venue footprints)",
     "rounding": "roundingRadiusM by zoom (3–12 m)",
     "enclosure": "encloseOffsetM"
@@ -139,7 +139,7 @@
     {"viewKey": "compare", "title": "เปรียบเทียบย่าน", "question": "ย่านเหล่านี้ต่างกันตรงไหน", "encoding": "matrix datasets × neighbourhoods: count, density, bar against the densest of the row, densest ringed", "metric": "count and records per km²", "scope": "up to four neighbourhoods"}
   ],
   "delivery": {
-    "cacheTag": "?v=20261116-r4",
+    "cacheTag": "?v=20261116-r5",
     "shell": "citymeter-shell 0.6.2 (0.6.1 + this demo in the picker, shipped by release 0.1.0 to all 17 demos)"
   }
 }

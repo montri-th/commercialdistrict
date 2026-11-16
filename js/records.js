@@ -31,6 +31,8 @@ import {mapsSearchURL, streetViewURL} from './ask.js';
 
 const EN = LANG === 'en';
 export const CONDO = 'condo';
+/** The bar's “ทั้งหมด” (`f.show=all`): every set alike, chosen by the reader (0.1.4). */
+export const ALL = 'all';
 /** Names a tip shows per set before “and more” (the card lists them all). */
 export const TIP_NAMES = 3;
 
@@ -151,12 +153,26 @@ export function barSets(records, {highlights = [], condo = null} = {}) {
   return out;
 }
 
-/** The bar: “ทั้งหมด” and one button per set (cue + name, no number), the chosen one pressed. */
+/**
+ * The set the open neighbourhood shows (0.1.4; owner 2026-11-16 23:27, VERBATIM: “เวลาคลิกย่าน ควรจะเห็น venue ที่
+ * highlighted ก่อนมั้ย”): the reader's own pick when the neighbourhood has it; “ทั้งหมด” (ALL) → none, every set alike;
+ * otherwise the dataset the map is read by (`m`) when the neighbourhood has it, else its first highlight with records.
+ */
+export function resolveChosen(focus, {records = [], highlights = [], lens = '', condo = false} = {}) {
+  if (focus === ALL) return '';
+  if (focus === CONDO && condo) return CONDO;
+  const has = id => !!id && id !== CONDO && (records || []).some(r => r.ds.id === id);
+  if (has(focus)) return focus;
+  if (has(lens)) return lens;
+  return (highlights || []).find(has) || '';
+}
+
+/** The bar: “ทั้งหมด” and one button per set (cue + name, no number), the chosen one pressed (none chosen → ทั้งหมด). */
 export function barHTML(sets, chosen = '') {
   if (!sets.length) return '';
-  const button = (id, inner, title) => `<button type="button" class="focus-chip${id === CONDO ? ' is-condo' : ''}" data-focus="${esc(id)}" aria-pressed="${String(id === chosen)}"${title ? ` title="${esc(title)}"` : ''}>${inner}</button>`;
+  const button = (id, inner, title) => `<button type="button" class="focus-chip${id === CONDO ? ' is-condo' : ''}" data-focus="${esc(id)}" aria-pressed="${String(id === ALL ? !chosen : id === chosen)}"${title ? ` title="${esc(title)}"` : ''}>${inner}</button>`;
   return [
-    button('', `<span>${esc(L('ทั้งหมด', 'All'))}</span>`, L('ทุกชุดข้อมูลในย่าน ขนาดเท่ากัน', 'Every dataset in the neighbourhood, alike')),
+    button(ALL, `<span>${esc(L('ทั้งหมด', 'All'))}</span>`, L('ทุกชุดข้อมูลในย่าน ขนาดเท่ากัน', 'Every dataset in the neighbourhood, alike')),
     ...sets.map(ds => button(ds.id, `${dsCue(ds)}<span>${esc(dsName(ds))}</span>${ds.id === CONDO ? `<small>${esc(L('จุดตามแหล่ง', 'source points'))}</small>` : ''}`,
       ds.id === CONDO ? L('คอนโดมิเนียมรอบย่าน: จุดที่แผนที่ราคาประเมินของ CityMETER วาด ยังไม่ยืนยันตำแหน่งรายโครงการ ไม่นับในตัวเลขของย่าน', 'Condominiums round the neighbourhood: the points the CityMETER appraisal map draws, not confirmed project locations, never counted in a neighbourhood')
         : L(`ดู${dsName(ds)}ในย่านพร้อมชื่อ`, `Show ${dsName(ds)} in the neighbourhood with names`))),

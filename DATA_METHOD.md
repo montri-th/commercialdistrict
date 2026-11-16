@@ -132,8 +132,9 @@ claim that two places perform alike.
 - A data colour is never made paler: no opacity on a fill; neighbourhoods outside the province or the search go quiet as
   an outline and a small hollow pin. Up close (from zoom 14) the fill gives way to the same colour on the outline so the
   streets and buildings stay readable.
-- The open neighbourhood shows its located records and its buildings in 3D with their surroundings (`js/regions.js`,
-  CityMETER Building V4 where `data/building-units/` says so, else OpenStreetMap). Records (0.1.3, §9a): one pin per
+- The open neighbourhood shows its located records and its own buildings in 3D — inside its outline only (0.1.4; owner
+  2026-11-16 23:28: “กับอาคาร 3d ที่ขึ้นรอบๆผมว่ามันแปลกๆ”), CityMETER Building V4 where `data/building-units/` says so, else OpenStreetMap; round it
+  the basemap's buildings stay quiet and fade with distance, as in the Hotel demo. Records (0.1.3, §9a): one pin per
   dataset and exact point in the pillar's colour and shape.
 
 ## 9a. Records of the open neighbourhood (0.1.3)
@@ -149,7 +150,9 @@ then the choice **“เลือกดูทีละชุด”**.
   the dataset's figure (rooms, workers, staff, beds, students) and a station's line. It loads when the neighbourhood
   opens. The counts it holds equal `rows[].c` (`tests/data.test.js`).
 - **One set at a time.** A bar on the map names the sets in the open neighbourhood (its highlights first, then the
-  pillar order; no number on it). “ทั้งหมด” draws every record alike; a chosen set (`f.show`) draws its pins larger with
+  pillar order; no number on it). A neighbourhood opens on its first highlight with records (0.1.4; owner 2026-11-16
+  23:27: “เวลาคลิกย่าน ควรจะเห็น venue ที่ highlighted ก่อนมั้ย”), or on the dataset the map is read by (`m`) when it has records there; a pick does not follow to the
+  next neighbourhood. “ทั้งหมด” (`f.show=all`) draws every record alike; a chosen set (`f.show`) draws its pins larger with
   their names beside them (HTML, so Thai shapes correctly and every name is a keyboard target; a name never covers a pin
   of its set), every other record as a small neutral dot (`text.muted`, not a paler data colour). Reading a dataset
   (`m`) with a neighbourhood open chooses that set too. Colours and shapes stay the pillars' (LDS DATAVIZ-05): one set
