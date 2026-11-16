@@ -1,26 +1,20 @@
 /**
- * Where the map draws buildings in detail (js/regions.js; University rule of 2026-11-12 07:31): the open neighbourhood
- * with its surroundings, and the camera's square when the reader looks elsewhere.
+ * Helpers of the focus tier (js/regions.js). Since 0.1.4 the focus is the open neighbourhood's outline only (owner
+ * 2026-11-16 23:28); the camera's cell still tells when the reader has moved away from it.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {SITE_CONTEXT_MIN_M, SITE_CONTEXT_PAD_M, CAMERA_CELL_M, CAMERA_REACH_M, squareAround, ringsBox, siteContextRegions, cameraSquare} from '../js/regions.js';
+import * as regions from '../js/regions.js';
 
+const {CAMERA_CELL_M, CAMERA_REACH_M, squareAround, ringsBox, cameraSquare} = regions;
 const metres = ([w, s, e, n], lat) => [(e - w) * 111320 * Math.cos((lat * Math.PI) / 180), (n - s) * 110574];
 
-test('a campus is drawn with its surroundings: the extent and a square reaching past it', () => {
-  const lat = 13.7384, lon = 100.5321;
-  // A 1.2 km × 0.6 km extent: the square reaches SITE_CONTEXT_PAD_M past the longer half.
-  const ext = squareAround(lon, lat, 600).map(([x, y]) => [x, lat + (y - lat) / 2]);
-  const regions = siteContextRegions([ext], [lon, lat]);
-  assert.equal(regions.length, 2);
-  assert.deepEqual(regions[0], ext, 'the extent itself stays a region');
-  const [wide, high] = metres(ringsBox([regions[1]]), lat);
-  assert.ok(Math.abs(wide / 2 - (600 + SITE_CONTEXT_PAD_M)) < 1 && Math.abs(high / 2 - (600 + SITE_CONTEXT_PAD_M)) < 1, `${wide} × ${high}`);
-  // A small extent or a campus with only a point: at least SITE_CONTEXT_MIN_M from its centre.
-  const [w2] = metres(ringsBox(siteContextRegions([], [lon, lat])), lat);
-  assert.ok(Math.abs(w2 / 2 - SITE_CONTEXT_MIN_M) < 1);
-  assert.deepEqual(siteContextRegions([], null), [], 'neither extent nor point: nothing');
+test('no square of surroundings: the University helper is gone from this demo', () => {
+  assert.equal(regions.siteContextRegions, undefined);
+  assert.equal(regions.SITE_CONTEXT_MIN_M, undefined);
+  const lat = 13.7458, lon = 100.5341;
+  const [wide, high] = metres(ringsBox([squareAround(lon, lat, 250)]), lat);
+  assert.ok(Math.abs(wide - 500) < 1 && Math.abs(high - 500) < 1, `${wide} × ${high}`);
 });
 
 test('the camera square: from the focus zoom in, snapped to its cell, never while the camera looks at the subject', () => {
@@ -33,8 +27,8 @@ test('the camera square: from the focus zoom in, snapped to its cell, never whil
   assert.notEqual(far.key, a.key, 'a move of about 5 km reads a new square');
   const [wide] = metres(ringsBox([a.ring]), lat);
   assert.ok(Math.abs(wide / 2 - CAMERA_REACH_M) < 5);
-  const campus = siteContextRegions([], [lon, lat]);
-  assert.equal(cameraSquare([lon, lat], 15, {base: campus}), null, 'inside the subject’s own focus: no extra square');
-  assert.ok(cameraSquare([lon + 0.05, lat], 15, {base: campus}), 'away from it: the camera’s square');
+  const outline = [squareAround(lon, lat, 600)];
+  assert.equal(cameraSquare([lon, lat], 15, {base: outline}), null, 'inside the neighbourhood’s box: the camera is at the subject');
+  assert.ok(cameraSquare([lon + 0.05, lat], 15, {base: outline}), 'away from it: the camera’s cell is read');
   assert.ok(CAMERA_CELL_M < CAMERA_REACH_M, 'the square always covers the camera');
 });

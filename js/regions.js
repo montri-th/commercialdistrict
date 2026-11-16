@@ -1,15 +1,12 @@
 /**
- * Where the map draws buildings in detail (the focus tier of js/massing.js) — pure lon/lat helpers for js/app.js.
+ * Pure lon/lat helpers for the focus tier of js/massing.js (js/app.js).
  *
- * A campus is drawn with its surroundings (owner 2026-11-12 07:31, VERBATIM: “อาคาร 3 มิติ นอกเขตมหาวิทยาลัยไม่แสดงเลย
- * มันไม่เหมือนกับ demo ของ hotel เลย” and “ในต่างจังหวัดที่อาคาร 3d ของ OSM มีน้อยหรือไม่มี ไม่ได้เอา CityMETER มาเสริมให้”):
- * its extent and a square reaching SITE_CONTEXT_PAD_M past it, at least SITE_CONTEXT_MIN_M from its centre — from
- * CityMETER Building V4 wherever a CityMETER unit holds the ground (data/building-units/, extended round the campuses
- * by scripts/build-campus-units.py with the same two figures). Wherever the reader moves the camera away from the
- * subject, from the focus tier's zoom in, a square CAMERA_REACH_M round the camera, its centre snapped to
- * CAMERA_CELL_M so that a small pan reads nothing new: the focus follows the reader, as the Hotel's district focus does.
+ * The focus tier draws the open neighbourhood's outline only (0.1.4; owner 2026-11-16 23:28, VERBATIM: “กับอาคาร 3d
+ * ที่ขึ้นรอบๆผมว่ามันแปลกๆ”). The University square of a campus's surroundings (siteContextRegions, 1 km and more round
+ * the subject) is no longer used here: round a neighbourhood it rose as a block wider than the neighbourhood itself.
+ * The camera's cell (cameraSquare, CAMERA_CELL_M) still tells js/app.js when the reader has moved away, so the quiet
+ * buildings fade round the camera too; its square (CAMERA_REACH_M) is no longer drawn in full.
  */
-export const SITE_CONTEXT_MIN_M = 1000, SITE_CONTEXT_PAD_M = 800;
 export const CAMERA_CELL_M = 1500, CAMERA_REACH_M = 3000;
 
 const KY = 110574;
@@ -26,19 +23,6 @@ export function ringsBox(rings) {
   let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
   for (const ring of rings) for (const [x, y] of ring) { if (x < w) w = x; if (x > e) e = x; if (y < s) s = y; if (y > n) n = y; }
   return [w, s, e, n];
-}
-
-/**
- * A campus's focus: its extent rings and the square of its surroundings — centred on the extent's box, or on the point
- * of a campus without an extent; nothing for a campus with neither.
- */
-export function siteContextRegions(rings = [], point = null) {
-  const [w, s, e, n] = ringsBox(rings);
-  const boxed = Number.isFinite(w);
-  const lon = boxed ? (w + e) / 2 : point?.[0], lat = boxed ? (s + n) / 2 : point?.[1];
-  if (!Number.isFinite(lon) || !Number.isFinite(lat)) return rings;
-  const half = boxed ? Math.max((e - w) * kx(lat), (n - s) * KY) / 2 : 0;
-  return [...rings, squareAround(lon, lat, Math.max(SITE_CONTEXT_MIN_M, half + SITE_CONTEXT_PAD_M))];
 }
 
 /**

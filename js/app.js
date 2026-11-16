@@ -25,11 +25,11 @@ import {renderOverview, renderNeighborhood, renderCompare, renderFilterChips, ta
 import {loadMapLibrary} from './shell/vendors.js';
 import {installAreaLabels, installRecordLabels} from './map-layers.js';
 import {installNeighborhoodLayers, pinCollection, poiCollection, pinScale, OUTLINE_MIN_ZOOM, POI_MIN_ZOOM, PIN_CHOSEN} from './layers.js';
-import {CONDO, decodeRecords, condoDataset, decodeCondo, cellsIn, growBox, spotsOf, seriesOfDs, barSets, barHTML, labelItems, tipHTML, detailHTML, listHTML, panelListHTML, recordName} from './records.js';
+import {CONDO, ALL, resolveChosen, decodeRecords, condoDataset, decodeCondo, cellsIn, growBox, spotsOf, seriesOfDs, barSets, barHTML, labelItems, tipHTML, detailHTML, listHTML, panelListHTML, recordName} from './records.js';
 import {provinceLocator} from './provinces.js';
 import {buildMapStyle, basemapPalette, TILEJSON_URL, MASSING_BEFORE} from './shell/map-style.js';
 import {installMassing, outerRings, FOCUS_MIN_ZOOM} from './massing.js';
-import {ringsBox, siteContextRegions, cameraSquare} from './regions.js';
+import {ringsBox, cameraSquare} from './regions.js';
 import {createBuildingUnitStore, cmTileUrl, CM_ATTRIBUTION} from './shell/building-units.js';
 import {presetFor, applyPreset, fitPitched} from './shell/camera.js';
 import {guardRetainedTiles, guardElevationFreeze, mapBudget, budgetPixelRatio, watchContext} from './shell/maplibre-guard.js';
@@ -57,8 +57,8 @@ const announce = text => { $('announcement').textContent = text; };
 const state = {
   model: null, provincesGeo: null, outlines: null, outlineById: new Map(), locate: null,
   province: '', search: '', nb: '', lens: '', compare: [], view3d: true, page: 0,
-  // records of the open neighbourhood (0.1.3): shards by neighbourhood id, the pins drawn (spots), the chosen set
-  // (`show`: a dataset id, 'condo' or ''), the condominium cells, the card and the hover tip
+  // records of the open neighbourhood (0.1.3): shards by neighbourhood id, the pins drawn (spots), the reader's pick
+  // (`show`: a dataset id, 'condo', 'all', or '' = the default of resolveChosen), the condominium cells, the card and the tip
   records: new Map(), recordsLoading: new Set(), spots: [], focus: '', recordsOpen: false,
   condoDs: null, condoIndex: new Set(), condoCells: new Map(), condoSpots: [], condoNear: new Map(),
   poiPopup: null, poiCard: null, poiTip: null, poiTipKey: '', recordLabels: null,
@@ -244,6 +244,8 @@ function renderFilterSummary() {
 function selectNb(id, {fit = true} = {}) {
   const r = rowById(id);
   if (!r) return;
+  // A neighbourhood opens on its own highlight (0.1.4): the pick made in another one does not follow.
+  if (r.id !== state.nb) state.focus = '';
   state.nb = r.id;
   state.province = r.province;
   // The search found it: it gives way, so the province behind the neighbourhood reads whole (the browser's back button
@@ -274,8 +276,8 @@ function goBack() {
 
 function setLens(id) {
   state.lens = state.model.dsById.has(id) ? id : '';
-  // With a neighbourhood open, the set being read is also the set its records show (the dataset bar follows).
-  if (state.nb) state.focus = state.lens;
+  // With a neighbourhood open, the set being read is also the set its records show (resolveChosen; the bar follows).
+  if (state.nb) state.focus = '';
   update();
   const ds = lensDs();
   announce(ds ? L(`ระบายสีย่านตาม${ds.nameTh}`, `Neighbourhoods coloured by ${dsName(ds)}`) : L('ระบายสีตามจุดเด่น', 'Coloured by highlights'));
@@ -544,12 +546,16 @@ function massingProvinces(regions) {
   return [...codes];
 }
 
-/** The open neighbourhood's focus: its outline and the square of its surroundings (js/regions.js). */
+/**
+ * Where buildings are drawn in full (0.1.4): inside the open neighbourhood's outline only. Owner 2026-11-16 23:28,
+ * VERBATIM: “กับอาคาร 3d ที่ขึ้นรอบๆผมว่ามันแปลกๆ” — the University square of surroundings (1 km and more round the
+ * subject) rose round every neighbourhood as a block wider than the neighbourhood itself. Round it the basemap's
+ * buildings stay quiet and fade with distance (js/massing.js SCENE and FADE_*), as in the Hotel demo.
+ */
 function subjectRegions() {
   const r = openRow();
-  if (!r) return [];
-  const f = state.outlineById.get(r.id);
-  return siteContextRegions(f ? outerRings(f) : [], r.ref);
+  const f = r ? state.outlineById.get(r.id) : null;
+  return f ? outerRings(f) : [];
 }
 
 /** The camera's square while it looks outside the subject's own focus, from FOCUS_MIN_ZOOM in (js/regions.js). */
@@ -559,11 +565,16 @@ function cameraContext(base = subjectRegions()) {
   return cameraSquare(map.getCenter().toArray(), map.getZoom(), {base, minZoom: FOCUS_MIN_ZOOM});
 }
 
+/**
+ * The focus tier's regions: the open neighbourhood only. The camera's cell is still followed (cameraKey), so the quiet
+ * buildings round the reader come back where the camera has gone (an anchor of the fade, updateSpatialLayers).
+ */
 function massingRegions() {
   const base = subjectRegions();
   const camera = cameraContext(base);
   state.cameraKey = camera?.key || '';
-  return camera ? [...base, camera.ring] : base;
+  state.cameraAway = !!camera;
+  return base;
 }
 
 /** After a move: read again round the camera when it has left its cell or crossed FOCUS_MIN_ZOOM. */
@@ -595,7 +606,8 @@ function updateSpatialLayers() {
   state.buildingUnits?.ensureMany(codes);
   if (!state.buildingUnits || codes.every(c => state.buildingUnits.settled(c))) {
     const zones = state.buildingUnits?.zonesFor(regions) || [];
-    const anchors = r ? [r.ref] : [state.map.getCenter().toArray()];
+    const centre = state.map.getCenter().toArray();
+    const anchors = r ? (state.cameraAway ? [r.ref, centre] : [r.ref]) : [centre];
     state.massing?.update({regions, hosts: [], anchors, zones, enabled: true, city: state.view3d, zoom: state.map.getZoom(), latitude: state.map.getCenter().lat})?.catch(e => console.warn('Massing', e));
   }
 }
@@ -645,13 +657,12 @@ function onMapMove(e) {
 const HOVER = () => matchMedia('(hover: hover) and (pointer: fine)').matches;
 const V = () => (RELEASE ? `?v=${RELEASE}` : '');
 
-/** The set whose records stand out: the reader's pick when the open neighbourhood has it ('' = every set alike). */
+/** The set whose records stand out ('' = every set alike): js/records.js resolveChosen. */
 function chosenSet() {
-  const f = state.focus, r = openRow();
-  if (!f || !r) return '';
-  if (f === CONDO) return state.condoDs && state.condoNear.get(r.id) ? CONDO : '';
-  const recs = state.records.get(r.id);
-  return recs?.some(x => x.ds.id === f) ? f : '';
+  const r = openRow();
+  if (!r) return '';
+  return resolveChosen(state.focus, {records: state.records.get(r.id) || [], highlights: (r.hl || []).map(h => h.d), lens: state.lens,
+    condo: !!(state.condoDs && state.condoNear.get(r.id))});
 }
 
 /** The open neighbourhood's records (data/records/<id>.json), once; the map, the bar and the panel list follow. */
@@ -735,7 +746,7 @@ function renderFocusBar() {
   }
   bar.hidden = !html;
   // the pressed set in sight (an address that opens with one chosen, or a choice made from the panel)
-  const on = fresh && bar.querySelector('[aria-pressed="true"]:not([data-focus=""])');
+  const on = fresh && bar.querySelector(`[aria-pressed="true"]:not([data-focus="${ALL}"])`);
   if (on && (on.offsetLeft < bar.scrollLeft || on.offsetLeft + on.offsetWidth > bar.scrollLeft + bar.clientWidth)) bar.scrollLeft = on.offsetLeft - 8;
   document.querySelector('.map-panel')?.style.setProperty('--focus-bar-bottom', `${html ? Math.round(bar.getBoundingClientRect().bottom - $('map').getBoundingClientRect().top) : 0}px`);
   updateRecordLabels();
@@ -1117,7 +1128,7 @@ function restoreFromURL() {
   state.search = (p.get('search') || '').slice(0, 80);
   state.nb = rowById(p.get('neighborhood')) ? p.get('neighborhood') : '';
   const show = p.get('show') || '';
-  state.focus = show === CONDO || state.model.dsById.has(show) ? show : '';
+  state.focus = show === CONDO || show === ALL || state.model.dsById.has(show) ? show : '';
   state.lens = state.model.dsById.has(p.get('metric')) ? p.get('metric') : '';
   state.compare = (p.get('compare') || '').split(',').filter(id => rowById(id)).slice(0, COMPARE_MAX);
   state.view3d = p.get('view3d') !== '0';

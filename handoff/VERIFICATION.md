@@ -1,5 +1,12 @@
 # CityMETER Commercial District — verification
 
+## Release 0.1.4 — 16 พ.ย. 2569
+
+Owner 2026-11-16, looking at 0.1.3 on citymeter.pages.dev (23:27 and 23:28 ICT), VERBATIM: “เวลาคลิกย่าน ควรจะเห็น venue ที่ highlighted ก่อนมั้ย” and “กับอาคาร 3d ที่ขึ้นรอบๆผมว่ามันแปลกๆ”. Seen in Chrome on production at Siam before the change: the bar opened on “ทั้งหมด” (every pin alike, no names), and the focus tier rose as a square 2,645 m wide round the neighbourhood (the University rule of a campus's surroundings: max(1,000 m, half the outline's box + 800 m) from its centre; Siam's box is 1,045 × 725 m), wider than the neighbourhood itself.
+
+- Code: `js/records.js#resolveChosen` (new; the bar's “ทั้งหมด” is `ALL`, `f.show=all`), `js/app.js` (`selectNb` clears a pick made elsewhere, `setLens`, `chosenSet`, `subjectRegions` and `massingRegions`: the outline only, the camera's cell an anchor of the fade), `js/regions.js` (`siteContextRegions` and its two figures removed). No data changed.
+- Local (Chromium through Playwright, no basemap here): Siam opens with แบรนด์หรู pressed and five names beside its pins, no `f.show` in the address; choosing ร้านอาหาร writes `f.show=restaurant`; opening คลองสาน–ไอคอนสยาม from the panel returns to its own first highlight (แบรนด์หรู); “ทั้งหมด” writes `f.show=all` and stays after a reload; reading by Hotels (`m=hotel`) chooses the hotels; English reads the same; no page error. `npm test` 140 pass, 0 fail · `check:lds` 130 ok · ESLint clean on the changed files.
+
 ## Release 0.1.3 — 16 พ.ย. 2569
 
 Owner 2026-11-16 (20:55–20:57 ICT): “จุดในย่าน ตอนนี้คลิกไม่ได้ ช่วยทำให้ click ดูรายละเอียดที่เกี่ยวข้องได้หน่อย และควรแสดงจุด Condominium ด้วย / icon หมุดต่างๆตอนนี้ดูยากมาก สีสัญลักษณ์คล้ายกันเกินไปดูยากมาก มี design ที่ดีกว่านี้มั้ย / หรือ mouse hover ที่หมุดก็ควรมี popup ให้รู้ว่ามันคืออะไร ตอนนี้ใช้ยากมาก / เอา condo จาก dataset ใน registry ไง”. On a draft with a dataset glyph inside each pin (21:21): “icon ใน symbol ที่ทำอยู่ไม่ช่วยเท่าไรนะครับ”; asked for a direction, the owner chose **“เลือกดูทีละชุด (แนะนำ)”**.

@@ -3,7 +3,7 @@
   "schemaVersion": "1.5.0",
   "documentType": "product-statement",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.1.3",
+  "productVersion": "0.1.4",
   "updatedOn": "2026-11-16",
   "language": "th",
   "dataset_id": "citymeter-commercialdistrict (central neighbourhood registry, CMN-TH codes; no dataset registry row or production code yet)",
