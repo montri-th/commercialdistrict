@@ -56,6 +56,8 @@ export function decodeData(json) {
   if (!json?.rows || !Array.isArray(json.datasets)) throw new Error('Invalid neighbourhood data');
   const datasets = json.datasets.map((d, index) => ({...d, index, series: PILLAR_SERIES[d.group] || 9}));
   const dsById = new Map(datasets.map(d => [d.id, d]));
+  const formerIds = json.meta?.lodging?.aliases || {};
+  const former = new Map(Object.entries(formerIds).map(([old, now]) => [now, old]));
   const rows = json.rows.map((r, index) => {
     const km2 = r.areaM2 / 1e6;
     const density = {};
@@ -65,13 +67,15 @@ export function decodeData(json) {
     const strong = (r.hl || []).filter(h => h.p >= 0.9).length;
     const p = provinceByCode(r.province);
     return {...r, index, km2, density, pillar, strong,
-      haystack: lower([r.name, ...(r.aliases || []), p?.th, p?.en, r.id].filter(Boolean).join(' '))};
+      haystack: lower([r.name, ...(r.aliases || []), p?.th, p?.en, r.id, former.get(r.id)].filter(Boolean).join(' '))};
   });
   const byId = new Map(rows.map(r => [r.id, r]));
-  const pending = (json.pending || []).map(p => ({...p, haystack: lower([p.name, provinceByCode(p.province)?.th, p.id].join(' '))}));
+  const pending = (json.pending || []).map(p => ({...p, haystack: lower([p.name, provinceByCode(p.province)?.th, p.id, former.get(p.id)].filter(Boolean).join(' '))}));
   const pendingById = new Map(pending.map(p => [p.id, p]));
   const roles = (json.roles || []).map(r => ({...r}));
-  return {meta: json.meta || {}, datasets, dsById, rows, byId, pending, pendingById, roles, pairs: json.pairs || [], stations: json.stations || []};
+  // (0.2.1) an id of the 0.2.0 links (LP-NEW-…) opens the central code the registry gave the same area
+  const canonicalId = id => (byId.has(id) || pendingById.has(id) ? id : formerIds[id] || id);
+  return {meta: json.meta || {}, datasets, dsById, rows, byId, pending, pendingById, roles, pairs: json.pairs || [], stations: json.stations || [], canonicalId};
 }
 
 /** The value of one dataset in one neighbourhood (EVID-05 state, count, density, ranks, measure). */
@@ -108,8 +112,9 @@ export function pairsOf(row, model) {
 
 /** Rows of a province (or every row) after the search. */
 /**
- * Kinds of neighbourhood (0.2.0; `f.kind`): registry = the central registry's closed outlines; lodging = the draft outlines
- * of the lodging screen's new areas (owner 2026-11-18); added = first drawn in this data release.
+ * Groups of neighbourhoods (0.2.0; `f.kind`): registry = outlines closed by the registry's own rules; lodging = the draft
+ * outlines of the lodging screen's new areas (owner 2026-11-18; central codes of the registry since 0.2.1); added = first
+ * drawn in this data release.
  */
 export const KINDS = ['registry', 'lodging', 'added'];
 export const kindMatch = (r, kind) => !kind || (kind === 'added' ? Boolean(r.added) : (r.kind || 'registry') === kind);
@@ -123,7 +128,8 @@ export function scopeRows(model, {province = '', search = '', kind = ''} = {}) {
 export function scopePending(model, {province = '', search = '', kind = ''} = {}) {
   const terms = lower(search).trim().split(/\s+/).filter(Boolean);
   if (!terms.length) return [];
-  const fits = p => !kind || (kind === 'lodging' ? p.status === 'lodging' : kind === 'registry' ? p.status !== 'lodging' : false);
+  const fromLodging = p => p.screen === 'lodging' || p.status === 'lodging';
+  const fits = p => !kind || (kind === 'lodging' ? fromLodging(p) : kind === 'registry' ? !fromLodging(p) : false);
   return model.pending.filter(p => (!province || p.province === province) && fits(p) && terms.every(t => p.haystack.includes(t)));
 }
 

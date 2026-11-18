@@ -15,10 +15,13 @@ Read only. Inputs:
   lodging   (0.2.0) the bundle's current lodging review (lodging-held78-recovery-2026-11-18): decision-ledger.json (268
             proposals screened from 30,730 lodging records by walking 400/800 m, model only) and boundaries/current-
             all268-review-drafts.geojson (130 review drafts). Owner 2026-11-18, VERBATIM: “2 และ update เป็นย่านในทะเบียน”:
-            the 79 new lodging areas (LP-NEW codes) are neighbourhoods of this demo — the 37 with a review draft are drawn
-            and counted like the registry's outlines, the 42 without one are searchable only. The review's walking figures
-            are published per neighbourhood (status, lodging reached, reported rooms/units, services reached); its origins,
-            evidence names, links, reviewers and field questions are not.
+            the 79 new lodging areas are neighbourhoods of this demo — the 37 with a review draft are drawn and counted
+            like the registry's outlines, the 42 without one are searchable only. (0.2.1) Owner 2026-11-18, VERBATIM:
+            “update เป็นย่านในทะเบียน”, then “ทั้ง 79”: the registry admitted all 79 as central codes the same day
+            (tab ชื่อกลาง, code CMN-TH-<the proposal's hex> for LP-NEW-<hex>; --admitted is the read-back of those rows,
+            checked by SHA-256 against the sheet); the 37 drafts stay draft outlines, the 42 are held codes. The review's
+            walking figures are published per neighbourhood (status, lodging reached, reported rooms/units, services
+            reached); its origins, evidence names, links, reviewers and field questions are not.
   registry  the central neighbourhood registry (Google Sheet, internal) exported as .xlsx: aliases (ชื่อกลาง) and the
             roles it proposes from its evidence rows (หลักฐานบทบาท). Its internal working fields (field questions, source
             ids, merge notes, outline policy versions) are not published (owner 2026-11-16).
@@ -427,6 +430,8 @@ def main():
     ap.add_argument('--condo-read-on', default='2026-11-16')
     ap.add_argument('--lodging', default='', help='current lodging review folder of the bundle (0.2.0)')
     ap.add_argument('--prev-canonical', default='', help='canonical-boundaries.geojson of the previous data release (marks the outlines new since)')
+    ap.add_argument('--admitted', default='', help='read-back of the lodging areas the registry admitted (0.2.1): {spec: [[hex, name, province, status, review]], blockSha}')
+    ap.add_argument('--admitted-on', default='2026-11-18')
     a = ap.parse_args()
 
     canon_path = os.path.join(a.bundle, 'national-gis', 'canonical-boundaries.geojson')
@@ -458,12 +463,24 @@ def main():
 
     # ----- lodging review (0.2.0): the 268 proposals of the registry's lodging screen. The 79 new areas (LP-NEW) become
     # neighbourhoods of this demo (owner 2026-11-18); those with a review draft are appended after the registry's
-    # outlines (none overlaps them: measured 0), the others are searchable. The registry has admitted none of them.
+    # outlines (none overlaps them: measured 0), the others are searchable. (0.2.1) The registry admitted all 79 as
+    # central codes on 2026-11-18 (owner: “ทั้ง 79”): CMN-TH-<hex> replaces LP-NEW-<hex>, the old ids stay as aliases.
     lodging, lod_pending, lod_meta = {}, [], None
+    admit, admitted_sha = {}, ''
+    if a.admitted:
+        spec = json.load(open(a.admitted, encoding='utf-8'))
+        admit = {'LP-NEW-' + s_[0]: 'CMN-TH-' + s_[0] for s_ in spec['spec']}
+        admitted_sha = spec['blockSha']
     if a.lodging:
         ledger = json.load(open(os.path.join(a.lodging, 'decision-ledger.json'), encoding='utf-8'))
         drafts = {f['properties']['proposal_group_id']: f for f in
                   json.load(open(os.path.join(a.lodging, 'boundaries', 'current-all268-review-drafts.geojson'), encoding='utf-8'))['features']}
+        new_ids = {g['proposal_group_id'] for g in ledger if not g['existing_canonical_id']}
+        if admit:  # the registry admitted exactly the screen's new areas, and drew the same 37
+            assert set(admit) == new_ids, 'the registry admitted another set of lodging areas'
+            assert {'LP-NEW-' + s_[0] for s_ in spec['spec'] if s_[4] < 0} == {gid for gid in new_ids if gid in drafts}
+            assert not set(admit.values()) & {f['properties']['canonical_id'] for f in feats}, 'an admitted code collides'
+        code_of = lambda gid: admit.get(gid, gid)
         _, lod_rows = registry_tables(a.registry)('ย่านที่พัก 268')
         lod_hdr = registry_tables(a.registry)('ย่านที่พัก 268')[0]
         lc = {h: k for k, h in enumerate(lod_hdr)}
@@ -479,7 +496,7 @@ def main():
             st = LODGING_STATUS[g['status']]
             status_th.setdefault(st, g['status_th'])
             gid = g['proposal_group_id']
-            key = g['existing_canonical_id'] or gid
+            key = g['existing_canonical_id'] or code_of(gid)
             lodging[key] = {
                 'st': st, 'h4': whole(g.get('hotel_count_400m_plus_review_allowance')), 'h8': whole(g.get('hotel_count_800m_plus_review_allowance')),
                 'ru': whole(g.get('guarded_800_reported_room_units')), 'rx': whole(g.get('guarded_800_room_unknown_groups')),
@@ -497,11 +514,11 @@ def main():
                 if area_m2 is None:  # 11 retained drafts carry no area: measured in UTM 47N/48N as the registry does
                     area_m2 = utm_area(geom)
                 closed.append({'type': 'Feature', 'geometry': d['geometry'], 'properties': {
-                    'canonical_id': gid, 'name_th': g['name_th'], 'area_m2': area_m2,
+                    'canonical_id': code_of(gid), 'name_th': g['name_th'], 'area_m2': area_m2,
                     'neighbourhood_reference_point': [rp.x, rp.y], 'source_province_codes': [],
                     'name_status': 'draft_pending_local_name_validation', 'field_verified': False, '_kind': 'lodging'}})
             else:
-                lod_pending.append((gid, g['name_th'], (g.get('origin') or {}).get('xy'), g.get('province', '')))
+                lod_pending.append((code_of(gid), g['name_th'], (g.get('origin') or {}).get('xy'), g.get('province', '')))
         lod_meta = {
             'title': 'ผลคัดย่านที่พัก', 'titleEn': 'Lodging neighbourhood screen',
             'source': 'ทะเบียนย่านกลาง CityMETER: แท็บ «ย่านที่พัก 268» และ lodging-held78-recovery-2026-11-18/decision-ledger.json ของ ZIP',
@@ -510,7 +527,8 @@ def main():
             'supported': sum(1 for g in ledger if not g['status'].startswith('H_')), 'held': sum(1 for g in ledger if g['status'].startswith('H_')),
             'onRegistry': sum(1 for g in ledger if g['existing_canonical_id']), 'newAreas': sum(1 for g in ledger if not g['existing_canonical_id']),
             'newAreasDrawn': sum(1 for g in ledger if not g['existing_canonical_id'] and g['proposal_group_id'] in drafts),
-            'walkM': [400, 800], 'allowanceM': 50, 'admitted': 0,
+            'walkM': [400, 800], 'allowanceM': 50, 'admitted': len(admit), 'admittedOn': a.admitted_on if admit else None,
+            'aliases': dict(sorted(admit.items())),
             'statuses': {k: {'th': status_th.get(k, ''), 'en': LODGING_STATUS_EN[k]} for k in LODGING_STATUS_ORDER},
             'boundaries': blabels, 'boundariesEn': [LODGING_BOUNDARY_EN.get(b, b) for b in blabels], 'services': {k: {'th': service_th.get(k, k), 'en': LODGING_SERVICE_EN.get(k, k)} for k in LODGING_SERVICE_ORDER},
             'boundaryTh': 'ระยะเดินตามข่ายทางเดินจากจุดเริ่มประเมินของทะเบียน นับเมื่อระยะเดินบวกเผื่อ 50 ม. ยังไม่เกิน 400 หรือ 800 ม.',
@@ -702,8 +720,9 @@ def main():
     # (a start point at the shore falls outside the simplified province outlines: the screen's display province then)
     by_name = {f['properties']['name']: f['properties']['id'] for f in prov['features']}
     for gid, name, xy, pname in sorted(lod_pending):
-        pend.append({'id': gid, 'name': name, 'province': (province_of(*xy) if xy else '') or by_name.get(pname, ''), 'status': 'lodging',
-                     'related': [], 'lodging': lodging[gid]})
+        # (0.2.1) admitted by the registry: a held code (no closed outline), like the registry's own held codes
+        pend.append({'id': gid, 'name': name, 'province': (province_of(*xy) if xy else '') or by_name.get(pname, ''),
+                     'status': 'held' if admit else 'lodging', 'screen': 'lodging', 'related': [], 'lodging': lodging[gid]})
 
     # ----- display outlines: simplified with shared edges kept (mapshaper), 6 decimals
     with tempfile.TemporaryDirectory() as tmp:
@@ -716,7 +735,7 @@ def main():
                        check=True, capture_output=True)
         display = json.load(open(dst, encoding='utf-8'))
     display['metadata'] = {
-        'source': 'CityMETER central neighbourhood registry — national-gis/canonical-boundaries.geojson of the owner bundle; kind=lodging: review drafts of its lodging screen (boundaries/current-all268-review-drafts.geojson), not admitted by the registry',
+        'source': 'CityMETER central neighbourhood registry — national-gis/canonical-boundaries.geojson of the owner bundle; kind=lodging: review drafts of its lodging screen (boundaries/current-all268-review-drafts.geojson); the registry admitted these areas as central codes on ' + a.admitted_on + ' (tab ชื่อกลาง), the outlines stay drafts' if admit else 'CityMETER central neighbourhood registry — national-gis/canonical-boundaries.geojson of the owner bundle; kind=lodging: review drafts of its lodging screen (boundaries/current-all268-review-drafts.geojson), not admitted by the registry',
         'features': len(display['features']),
         'simplification': 'mapshaper -simplify interval=1.5 keep-shapes (display only; shared edges kept); every count uses the delivered outline',
         'status': 'draft outlines pending local confirmation; not an administrative boundary or a title',
@@ -785,9 +804,9 @@ def main():
     totals = {
         'closed': n_registry, 'lodgingDrawn': len(closed) - n_registry, 'outlined': len(closed),
         'held': sum(1 for p in pend if p['status'] == 'held'), 'collections': sum(1 for p in pend if p['status'] == 'collection'),
-        'lodgingUndrawn': sum(1 for p in pend if p['status'] == 'lodging'), 'added': sum(1 for r in out_rows if r.get('added')),
+        'lodgingUndrawn': sum(1 for p in pend if p.get('screen') == 'lodging'), 'added': sum(1 for r in out_rows if r.get('added')),
         'addedRegistry': sum(1 for r in out_rows if r.get('added') and r['kind'] == 'registry'),
-        'codes': len(feats), 'areaKm2': round(sum(area) / 1e6, 2), 'provinces': len(set(nprov)),
+        'codes': len(feats) + len(admit), 'admitted': len(admit), 'areaKm2': round(sum(area) / 1e6, 2), 'provinces': len(set(nprov)),
         'thailandKm2': round(sum(f['properties']['areaSqm'] for f in prov['features']) / 1e6, 1), 'insidePoints': len(inside_points),
     }
     meta = {
@@ -795,7 +814,9 @@ def main():
         # Owner 2026-11-16: the registry's internal working fields (field questions, source ids, merge notes, outline
         # policy versions) are not published — the registry is known here by its read date and export hash only.
         'registry': {'title': 'ทะเบียนย่านกลาง CityMETER', 'kind': 'Google Sheet (internal)', 'readOn': a.read_on,
-                     'exportSha256': sha256_file(a.registry)},
+                     'exportSha256': sha256_file(a.registry),
+                     # (0.2.1) the rows added after that export, read back from the sheet and checked by SHA-256
+                     'admitted': {'on': a.admitted_on, 'tab': 'ชื่อกลาง', 'codes': len(admit), 'rowsSha256': admitted_sha} if admit else None},
         'bundle': {'title': 'CityMETER • ทะเบียนย่าน ขอบเขต และหลักฐานล่าสุด.zip', 'sha256': sha256_file(a.bundle_zip) if a.bundle_zip else '',
                    'boundaries': 'national-gis/canonical-boundaries.geojson', 'boundariesSha256': sha256_file(canon_path),
                    'revision': {k: revision.get(k) for k in ('policy_version', 'canonical_codes', 'closed_neighbourhoods', 'pending_without_closed_geometry', 'collection_codes')}

@@ -11,15 +11,15 @@ export default {
   exact: {
     // Page and header
     'ย่านไหนเด่นเรื่องอะไร และอะไรมาด้วยกัน': 'Which neighbourhood stands out for what, and what comes together',
-    'ย่านไหนเด่นเรื่องอะไร และอะไรมาด้วยกัน — ย่านกลาง 358 ย่านและย่านที่พัก 37 ย่านทั่วประเทศ เทียบกับ 16 ชุดข้อมูล CityMETER ทั้ง Land Location Living บนแผนที่ 3 มิติ': 'Which neighbourhood stands out for what, and what comes together: 358 central neighbourhoods and 37 lodging areas nationwide against 16 CityMETER datasets across Land, Location and Living, on a 3D map',
-    // Kinds of neighbourhood (0.2.0)
-    'ประเภทย่าน': 'Kind',
+    'ย่านไหนเด่นเรื่องอะไร และอะไรมาด้วยกัน — ย่านกลาง 395 ย่านทั่วประเทศ รวมย่านที่พัก 37 ย่าน เทียบกับ 16 ชุดข้อมูล CityMETER ทั้ง Land Location Living บนแผนที่ 3 มิติ': 'Which neighbourhood stands out for what, and what comes together: 395 central neighbourhoods nationwide, 37 of them lodging areas, against 16 CityMETER datasets across Land, Location and Living, on a 3D map',
+    // Groups of neighbourhoods (0.2.0; outline words 0.2.1)
+    'ย่านที่แสดง': 'Show',
     'ทุกย่าน': 'Every neighbourhood',
-    'ย่านในทะเบียนกลาง': 'Central registry neighbourhoods',
-    'ย่านที่พักจากผลคัด': 'Lodging areas of the screen',
+    'ขอบตามหลักเกณฑ์ทะเบียน': 'Outlines by the registry\'s rules',
+    'ขอบร่างจากผลคัดที่พัก': 'Draft outlines from the lodging screen',
     'ใหม่ในรุ่นนี้': 'New in this release',
     'ย่านที่พัก': 'Lodging area',
-    'ขอบร่างของย่านที่พักจากผลคัดย่านที่พักของทะเบียน ทะเบียนยังไม่ออกรหัสกลาง': 'Draft outline of a lodging area from the registry\'s lodging screen; the registry has issued no central code',
+    'ขอบร่างจากผลคัดย่านที่พัก ย่านเหล่านี้รับเป็นรหัสกลางของทะเบียนแล้ว รอตรวจตามหลักเกณฑ์ขอบย่าน': 'Draft outline from the registry\'s lodging screen; these areas are central codes of the registry now, their outlines await the registry\'s rules',
     'ย่านไหนเด่นเรื่องอะไร และอะไรมาด้วยกัน — ย่านกลางทั่วประเทศเทียบกับ 16 ชุดข้อมูล CityMETER': 'Which neighbourhood stands out for what, and what comes together: central neighbourhoods nationwide against 16 CityMETER datasets',
     'กำลังโหลดข้อมูล': 'Loading the data',
     'กำลังอ่านข้อมูลย่านและขอบย่าน': 'Reading the neighbourhoods and their outlines',
@@ -87,7 +87,7 @@ export default {
     'อะไรมาด้วยกัน': 'What comes together',
     'คู่ชุดข้อมูลที่ขึ้นลงด้วยกันในย่านทั่วประเทศ (สหสัมพันธ์อันดับของความหนาแน่น) · ในย่าน: คู่ที่เด่นทั้งคู่ที่นี่ และบทบาทที่ทะเบียนเสนอเทียบกับข้อมูล': 'Pairs of datasets that rise and fall together across the neighbourhoods (rank correlation of density) · in a neighbourhood: the pairs that both stand out there, and the roles the registry proposes against the data',
     'ในย่าน': 'In a neighbourhood',
-    'เส้นจุด = ย่านที่พักจากผลคัดย่านที่พักของทะเบียน · ในหน้าย่าน: ที่พักและบริการที่เดินถึงใน 400 และ 800 ม. ตามแบบจำลองของทะเบียน · “ประเภทย่าน” ในตัวกรองเลือกดูย่านในทะเบียนกลาง ย่านที่พัก หรือย่านใหม่ในรุ่นนี้': 'Dotted outline = a lodging area of the registry\'s lodging screen · on a neighbourhood: the lodging places and services reached within 400 and 800 m in the registry\'s walking model · “Kind” in the filters shows the central registry neighbourhoods, the lodging areas or the new ones of this release',
+    'เส้นจุด = ขอบร่างจากผลคัดย่านที่พักของทะเบียน ย่านเหล่านี้รับเป็นรหัสกลางแล้ว · ในหน้าย่าน: ที่พักและบริการที่เดินถึงใน 400 และ 800 ม. ตามแบบจำลองของทะเบียน · “ย่านที่แสดง” ในตัวกรองเลือกดูขอบตามหลักเกณฑ์ทะเบียน ขอบร่างจากผลคัดที่พัก หรือย่านใหม่ในรุ่นนี้': 'Dotted outline = a draft outline from the registry\'s lodging screen; these areas are central codes now · on a neighbourhood: the lodging places and services reached within 400 and 800 m in the registry\'s walking model · “Show” in the filters picks the outlines by the registry\'s rules, the draft outlines from the lodging screen or the new ones of this release',
     'ทุกชุดข้อมูลแยก Land · Location · Living พร้อมจำนวน ต่อ ตร.กม. และอันดับ · ซูมใกล้เห็นจุดของแต่ละชุดในขอบย่านและอาคาร 3 มิติ': 'Every dataset by Land · Location · Living, with its count, per km² and rank · zoom in to see each dataset’s records inside the outline and the 3D buildings',
     'เปรียบเทียบ': 'Compare',
     'เพิ่มย่านได้ถึง 4 ย่าน วางเทียบในแถบล่างของแผนที่ · วงกรอบ = แน่นที่สุดในกลุ่มที่เทียบ · “ย่านที่ส่วนผสมคล้ายกัน” ช่วยหาย่านมาเทียบ': 'Add up to 4 neighbourhoods, side by side in the strip under the map · ringed = densest of the compared · “Neighbourhoods with a similar mix” suggests what to compare',

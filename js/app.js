@@ -91,8 +91,8 @@ function saveURL() {
 
 /* ---------- helpers ---------- */
 const rowById = id => (id && state.model?.byId.get(id)) || null;
-/** The words of a kind filter (0.2.0). */
-const kindLabel = kind => ({registry: L('ย่านในทะเบียนกลาง', 'Central registry neighbourhoods'), lodging: L('ย่านที่พักจากผลคัด', 'Lodging areas of the screen'),
+/** The words of a group filter (0.2.0; outline words 0.2.1, when the registry admitted the lodging areas). */
+const kindLabel = kind => ({registry: L('ขอบตามหลักเกณฑ์ทะเบียน', 'Outlines by the registry\'s rules'), lodging: L('ขอบร่างจากผลคัดที่พัก', 'Draft outlines from the lodging screen'),
   added: L('ใหม่ในรุ่นนี้', 'New in this release')}[kind] || '');
 const lensDs = () => (state.lens && state.model?.dsById.get(state.lens)) || null;
 const openRow = () => rowById(state.nb);
@@ -1140,11 +1140,12 @@ function restoreFromURL() {
   state.province = provinceCodeFrom(p.get('province') || '');
   state.search = (p.get('search') || '').slice(0, 80);
   state.kind = KINDS.includes(p.get('kind')) ? p.get('kind') : '';
-  state.nb = rowById(p.get('neighborhood')) ? p.get('neighborhood') : '';
+  const nbParam = state.model.canonicalId(p.get('neighborhood') || '');
+  state.nb = rowById(nbParam) ? nbParam : '';
   const show = p.get('show') || '';
   state.focus = show === CONDO || show === ALL || state.model.dsById.has(show) ? show : '';
   state.lens = state.model.dsById.has(p.get('metric')) ? p.get('metric') : '';
-  state.compare = (p.get('compare') || '').split(',').filter(id => rowById(id)).slice(0, COMPARE_MAX);
+  state.compare = (p.get('compare') || '').split(',').map(id => state.model.canonicalId(id)).filter(id => rowById(id)).slice(0, COMPARE_MAX);
   state.view3d = p.get('view3d') !== '0';
   const r = openRow();
   if (r) state.province = r.province;

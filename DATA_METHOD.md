@@ -45,7 +45,7 @@ outlines): 15 codes that were held now have a closed draft outline, most under a
 outlines drawn before are the same shapes (131 were written out again with their vertices in another order: area and
 shape unchanged, intersection over union 1.0); no code was added or removed.
 
-## 2a. Lodging areas (0.2.0)
+## 2a. Lodging areas (0.2.0; central codes since 0.2.1)
 
 The registry's lodging screen (`ย่านที่พัก 268`, revision `lodging-held78-recovery-2026-11-18-r1`) proposes 268 lodging
 cores from a lodging register of 30,730 records by walking 400 and 800 m on the path network from an assessment start
@@ -57,6 +57,21 @@ ranked and compared like the registry's outlines; the 42 without one are searcha
 `draft_area_m2`; 11 drafts carry none and are measured the same way (UTM 47N/48N; on the 106 drafts that carry it, the
 largest difference is 1.4 × 10⁻⁶ of the area). A start point at the shore that falls outside the simplified province
 outlines takes the screen's display province.
+
+(0.2.1) Owner 2026-11-18, VERBATIM: “update เป็นย่านในทะเบียน”, then, asked how many of the 79, “ทั้ง 79”. The same day
+the 79 new areas were added to the registry sheet itself, tab `ชื่อกลาง`, after its 431 rows (through the owner's
+browser, read back whole and checked by SHA-256, `meta.registry.admitted.rowsSha256`): code `CMN-TH-<hex>` for the
+screen's `LP-NEW-<hex>` (no collision with an existing code), the screen's name and province, name source
+“ร่างชื่อจากผลคัดย่านที่พัก”, the proposal id as the linked source id, the role “ที่พัก ท่องเที่ยว และวัฒนธรรม” where the
+screen found a lodging core (A, B, C, HS), and an outline status that keeps the evidence: the 37 with a review draft
+“ขอบร่างจากผลคัดย่านที่พัก — รอตรวจตามหลักเกณฑ์ขอบย่าน” (with “ผลคัดยังพักไว้: หลักฐานบริการที่เชื่อมถึงยังไม่ครบ” for
+the 9 the screen holds for services), the 42 without one “ยังพักไว้ — หลักฐานไม่พอปิดขอบ” with the screen's outline review
+(5 of them overlap an existing neighbourhood and need a joint review). The start tab `เริ่มที่นี่` records the admission in
+one dated row. The bundle's GIS files still carry 358 outlines until the registry's next release, so the demo still
+takes the 37 outlines from the screen's drafts. In the data the 37 are rows with their central code (`kind: 'lodging'`
+keeps the outline's origin, drawn dotted), the 42 are held codes (`pending[].status: 'held'`, `screen: 'lodging'`), and
+`meta.lodging.aliases` maps each 0.2.0 id to its code, so a 0.2.0 link (`f.neighborhood=LP-NEW-…`, `cmp`) opens the same
+area and the old id still finds it in the search.
 
 Every proposal publishes, on its neighbourhood (`rows[].lodging`) or its searchable name (`pending[].lodging`): the
 status (`st`, labels of the registry's ledger in `meta.lodging.statuses`), lodging places reached within 400 and 800 m
@@ -167,7 +182,8 @@ claim that two places perform alike.
   streets and buildings stay readable.
 - A lodging area of the screen (§2a) is drawn with a dotted outline, apart from the registry's solid outlines and the
   compared ones' long dashes; the panel names it “ย่านที่พัก · ขอบร่างจากผลคัด”, and a neighbourhood first drawn in this
-  release “ใหม่ในรุ่นนี้”. The filter ประเภทย่าน (`f.kind`: registry · lodging · added) narrows every view to one kind.
+  release “ใหม่ในรุ่นนี้”. The filter ย่านที่แสดง (`f.kind`: registry = outlines by the registry's rules · lodging = draft
+  outlines from the lodging screen · added; 0.2.1 words) narrows every view to one group.
 - The open neighbourhood shows its located records and its own buildings in 3D — inside its outline only (0.1.4; owner
   2026-11-16 23:28: “กับอาคาร 3d ที่ขึ้นรอบๆผมว่ามันแปลกๆ”), CityMETER Building V4 where `data/building-units/` says so, else OpenStreetMap; round it
   the basemap's buildings stay quiet and fade with distance, as in the Hotel demo. Records (0.1.3, §9a): one pin per
@@ -213,9 +229,11 @@ then the choice **“เลือกดูทีละชุด”**.
 ## 10. Published fields
 
 Per neighbourhood: code, name, other names, province, registry area, reference point, box, name status, whether the
-outline was walked, the proposed roles, the kind (registry or lodging) and whether it is first drawn in this release, its
-lodging screen when it has one (§2a), and the counts, measures, subgroup counts, ranks, highlights and pairs. Per held,
-collection or undrawn lodging name: code, name, province, status, the related codes and its lodging screen. Per record (0.1.3, `data/records/`): dataset,
+outline was walked, the proposed roles, the kind (registry or lodging: the outline's origin) and whether it is first
+drawn in this release, its lodging screen when it has one (§2a), and the counts, measures, subgroup counts, ranks,
+highlights and pairs. Per held or collection name: code, name, province, status, the related codes, its lodging screen
+and, for an admitted lodging area without an outline, `screen: 'lodging'`. `meta.lodging.aliases`: the 0.2.0 ids of the
+lodging areas and their central codes (0.2.1). Per record (0.1.3, `data/records/`): dataset,
 point, subgroup, the key and names its own public demo already publishes, its figure and a station's line. Per
 condominium point (`data/condo/`): point, project name, buildings, floors, appraisal P25 / P50 / P75 and the source's
 search area and province — not its production ids, observation ids, API addresses, pin roles or review notes, and not
@@ -231,12 +249,15 @@ rows' text, reviewer notes or any person's name.
 # 2. the 16 demo repositories cloned side by side, their commits in commits.json ({repo: {commit, committed}})
 # 3. (0.1.3) the condominium research master's .xlsx export (internal, never committed)
 # 4. (0.2.0) restore the outlines the bundle stores as a byte alias, beside its revision summary
+# 5. (0.2.1) the rows the registry admitted after that export, read back from the sheet: {spec: [[hex, name, province,
+#    status, outline review]], blockSha} (internal, never committed); the build checks they are the screen's 79 new areas
 python3 -I scripts/restore-bundle-member.py <bundle dir> lodging-review-2026-11-17/inputs/canonical-boundaries-existing358.geojson \
   <outlines dir>/national-gis/canonical-boundaries.geojson
 cp <bundle dir>/gis/revision-summary.json <outlines dir>/national-gis/revision-summary.json
 python3 -I scripts/build-data.py --bundle <outlines dir> --bundle-zip <bundle.zip> --registry <export.xlsx> \
   --repos <clones at main> --commits commits.json --mapshaper <mapshaper> --condo <condominium export.xlsx> --condo-read-on 2026-11-16 \
-  --lodging <bundle dir>/lodging-held78-recovery-2026-11-18 --prev-canonical <the previous release's canonical-boundaries.geojson> --out data
+  --lodging <bundle dir>/lodging-held78-recovery-2026-11-18 --prev-canonical <the previous release's canonical-boundaries.geojson> \
+  --admitted <read-back.json> --admitted-on 2026-11-18 --out data
 npm test
 node scripts/check-lds-parity.mjs --lds <Landometer-Design-System-v0.9.7.md>
 ```

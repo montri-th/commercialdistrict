@@ -15,7 +15,7 @@ import {renderOverview, renderNeighborhood, tableRowHTML} from '../js/panel.js';
 const holes = /undefined|NaN|\[object Object\]|Infinity/;
 const ctx = model => ({meta: model.meta, datasetCount: 16});
 
-test('the lodging screen: 268 proposals, 193 supported, 75 held, none admitted as a central code', () => {
+test('the lodging screen: 268 proposals, 193 supported, 75 held; its 79 new areas admitted as central codes on 2026-11-18', () => {
   const {model} = load();
   const lm = model.meta.lodging;
   assert.equal(lm.proposals, 268);
@@ -24,7 +24,18 @@ test('the lodging screen: 268 proposals, 193 supported, 75 held, none admitted a
   assert.equal(lm.onRegistry + lm.newAreas, lm.proposals);
   assert.equal(lm.newAreas, 79);
   assert.equal(lm.newAreasDrawn, 37);
-  assert.equal(lm.admitted, 0);
+  // (0.2.1) owner 2026-11-18 “ทั้ง 79”: every new area is a central code now, its 0.2.0 id an alias of it
+  assert.equal(lm.admitted, 79);
+  assert.equal(lm.admittedOn, '2026-11-18');
+  assert.equal(Object.keys(lm.aliases).length, 79);
+  for (const [old, now] of Object.entries(lm.aliases)) {
+    assert.equal(now, old.replace(/^LP-NEW-/, 'CMN-TH-'));
+    assert.ok(model.byId.has(now) || model.pendingById.has(now), now);
+    assert.equal(model.canonicalId(old), now);
+  }
+  assert.equal(model.canonicalId('CMN-TH-0001'), 'CMN-TH-0001');
+  assert.equal(model.pending.filter(p => p.screen === 'lodging').length, 42);
+  assert.ok(model.pending.filter(p => p.screen === 'lodging').every(p => p.status === 'held'));
   assert.equal(lm.revision, 'lodging-held78-recovery-2026-11-18-r1');
   assert.deepEqual(lm.walkM, [400, 800]);
   const withLodging = [...model.rows, ...model.pending].filter(x => x.lodging);
@@ -41,9 +52,9 @@ test('the lodging screen: 268 proposals, 193 supported, 75 held, none admitted a
   }
   // every lodging area of the demo has its screen; the drawn ones have a draft, the others none
   for (const r of model.rows.filter(r => r.kind === 'lodging')) assert.ok(r.lodging?.draft, r.id);
-  const undrawn = model.pending.filter(p => p.status === 'lodging');
+  const undrawn = model.pending.filter(p => p.screen === 'lodging');
   assert.equal(undrawn.length, 42);
-  for (const p of undrawn) { assert.ok(p.lodging && !p.lodging.draft, p.id); assert.match(p.id, /^LP-NEW-/); assert.match(p.province, /^[A-Z]{3}$/, p.id); }
+  for (const p of undrawn) { assert.ok(p.lodging && !p.lodging.draft, p.id); assert.match(p.id, /^CMN-TH-[0-9A-F]{10}$/); assert.match(p.province, /^[A-Z]{3}$/, p.id); }
 });
 
 test('what is new since the data of 16 Nov: 15 newly closed registry outlines and the 37 drawn lodging areas', () => {
@@ -63,7 +74,7 @@ test('the kind filter: registry, lodging, added; pending names follow it', () =>
   assert.equal(scopeRows(model, {kind: 'added'}).length, 52);
   assert.equal(scopeRows(model).length, 395);
   assert.ok(model.rows.every(r => kindMatch(r, '')));
-  const lp = model.pending.find(p => p.status === 'lodging');
+  const lp = model.pending.find(p => p.screen === 'lodging');
   assert.deepEqual(scopePending(model, {search: lp.name, kind: 'registry'}).filter(p => p.id === lp.id), []);
   assert.ok(scopePending(model, {search: lp.name, kind: 'lodging'}).some(p => p.id === lp.id));
 });
@@ -79,6 +90,8 @@ test('a lodging area and a registry neighbourhood with a screen render whole, wi
     assert.match(html, /ที่พักที่เดินถึงใน <span class="nowrap">400 ม\.<\/span>/);
     assert.match(html, /ทะเบียนที่พัก 30,730 รายการ/);
     assert.match(html, /data-prov="boundary">[^]*ระยะเดิน/);
+    // (0.2.1) never the 0.2.0 claim that the registry has no code for the area
+    assert.ok(!/ยังไม่ออกรหัสกลาง/.test(html), r.id);
   }
   assert.match(renderNeighborhood(buildNeighborhood(model, lod), model, {ctx: ctx(model)}), /ย่านที่พัก · ขอบร่างจากผลคัด/);
   assert.match(tableRowHTML(lod, model), /kind-word/);
@@ -87,12 +100,21 @@ test('a lodging area and a registry neighbourhood with a screen render whole, wi
   if (blank) assert.match(renderNeighborhood(buildNeighborhood(model, blank), model, {ctx: ctx(model)}), /ยังไม่ทราบ/);
 });
 
+test('an admitted lodging area says so where its outline is described', () => {
+  const {model} = load();
+  const lod = model.rows.find(r => r.kind === 'lodging');
+  const html = renderNeighborhood(buildNeighborhood(model, lod), model, {ctx: ctx(model)});
+  assert.match(html, /ขอบร่างจากผลคัดย่านที่พัก รับเป็นรหัสกลาง 18 พ\.ย\. 2569 รอตรวจตามหลักเกณฑ์ขอบย่าน/);
+  assert.match(html, new RegExp(lod.id));
+});
+
 test('the national overview names what is new and offers the filter', () => {
   const {model} = load();
   const html = renderOverview(buildOverview(model, {rows: model.rows}), model, {ctx: ctx(model)});
   assert.match(html, /ย่านใหม่ในข้อมูลรุ่นนี้/);
   assert.match(html, /ขอบปิดใหม่ในทะเบียน 15 ย่าน/);
-  assert.match(html, /ย่านที่พักจากผลคัด 37 ย่าน/);
+  assert.match(html, /ย่านที่พักรับเข้าทะเบียน 37 ย่าน/);
+  assert.match(html, /รับเป็นรหัสกลาง 18 พ\.ย\. 2569/);
   assert.match(html, /data-action="set-kind" data-value="added"/);
   assert.ok(!holes.test(html));
 });
