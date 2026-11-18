@@ -1,5 +1,19 @@
 # CityMETER Commercial District — verification
 
+## Release 0.2.4 — 18 พ.ย. 2569
+
+Owner 2026-11-18 17:05 ICT, VERBATIM: “ยอดเยี่ยม ระบบรางเงียบไปนิดครับ แทบมองไม่เห็น ปรับหน่อย / ขอปรับย่าน นิมมาน-เมญ่า เชียงใหม่ ควรรวม ศูนย์การค้า Maya, กาดรินคำ, วิทยาลัยสารพัดช่างเชียงใหม่เข้าเป็นส่วนหนึ่งของย่านนี้ด้วย”. Built on main after 0.2.3 (`bc3c730`).
+
+- Outline: `scripts/draw-outline-amendment.py` from the bundle's `canonical-boundaries.geojson` and the OpenStreetMap ways read through Overpass (osm_base 2026-11-18T10:08:51Z) → `amendments/outline-amendments.geojson`: CMN-TH-FB55C19EF1 265,550.82 → 308,121.72 m², one polygon, no hole, the registry outline wholly inside; Maya, Kad Rin Kham, the college campus and The Wall 0 % outside the display outline; no registry outline within 1.2 km; the lodging draft ช้างเผือก–เสริมสุข 13.36 m away (13.4 m from the registry outline), overlap 0.
+- Data: a rebuild with the 0.2.1 inputs and no amendment reproduced the shipped data byte for byte (only `rail.json` and `building-units/` are not the build's); with `--outline-amendments` only `neighborhoods.json`, `boundaries.geojson`, `build-report.json` and `records/CMN-TH-FB55C19EF1.json` change: six records inside (SC-015705, SC-015704, CAM-O-0e17daca5f3e17, f22dde57, POS-a75590100646, PHO-48d82bc21b7dc7d2), area 94.99 → 95.03 km², 147 other rows keep their counts with ranks or highlight strengths moved by the new peer.
+- Code: `js/rail.js` (ink `--text-secondary`, `RAIL_WIDTH`), `styles.css` (legend swatch, tip marks), `js/panel.js` (`amendmentOf`, outline line, area tile, provenance), `js/app.js` (legend words), `scripts/build-data.py` (`--outline-amendments`). Tests 164 / 164 (`tests/amendment.test.js` new, a rail legibility test, one overview fixture 237 → 238). LDS parity 130 ok, 0 failed (LDS 0.9.7 file SHA-256 `d3085cbc…2d96`).
+- Local, on the real map with the basemap stubbed: TH and EN × light and dark — the outline line, area tile and provenance read as written; rail paint `#5F635A` light, `#C4CECA` dark.
+
+### Preview (UTC, 2026-11-18)
+
+- preview.citymeter.pages.dev, preview mode (never production), override `commercialdistrict` → `67bf57f` (pull request #18): run 44286014114 (10:30:14–10:31:17), 18 sources, 114 / 114 live checks, the demo family check passed on the built site and live (shell 0.6.3).
+- On the real basemap, the owner's Chrome (1,710 × 819): cache tag `20261118-r5`. Bangkok in plan at zoom 12 and 15, light and dark: the rail reads apart from the roads (dark grey on white roads in light, light grey on dark roads in dark) and stays under the coloured outlines. `?at=CMI&f.neighborhood=CMN-TH-FB55C19EF1`: plan (light, Thai) and 3D (dark, English) both frame the extended outline across Huay Kaew Road with Rincome night market and NightOut Market inside; the panel reads “ฉบับร่าง ปรับเพิ่ม 18 พ.ย. 2569 ให้รวมเมญ่า กาดรินคำ The Wall และวิทยาลัยสารพัดช่างเชียงใหม่ ตามหลักเกณฑ์ขอบย่าน รอทะเบียนรับในรุ่นถัดไป ยังไม่ตรวจภาคสนาม” and in English “draft, extended on 18 Nov 2026 to take in Maya Lifestyle Shopping Center, Kad Rin Come Night Market, The Wall and Chiang Mai Polytechnic College under the registry's outline rules; awaiting the registry's next release; not yet walked”; nothing left in Thai. The theme switch was set back to the reader's “auto”. Not walked at 393 px.
+
 ## Release 0.2.3 — 18 พ.ย. 2569
 
 Owner 2026-11-18 15:32 ICT, VERBATIM: “ในแผนที่อยากให้แสดง สถานีและแนวเส้นทางระบบรางเพิ่มเติม เพื่อให้เห็น context และการเชื่อมโยงรอบๆและระหว่างแต่ละย่านการค้า ใน visual อาจจะให้ quiet กว่าตัวย่านการค้าเล็กน้อย”; 15:43: “เวลาเลือกย่านควรต้อง zoom to fit ในแผนที่ด้วย”. Built on main after 0.2.2 (citymeter-shell 0.6.3, merged by the family sync at 07:57Z).

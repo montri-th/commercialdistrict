@@ -352,7 +352,7 @@ function renderLegend() {
   }
   spaceTicks(steps);
   $('legend-areas').title = ds
-    ? L(`สีย่าน = ${ds.nameTh}ต่อ ตร.กม. ของพื้นที่ย่านตามทะเบียน · 41 ระดับตามลำดับค่า สีเข้ม = แน่น`, `Colour = ${dsName(ds)} per km² of the registry area · 41 steps by rank, darker = denser`)
+    ? L(`สีย่าน = ${ds.nameTh}ต่อ ตร.กม. ของพื้นที่ขอบย่าน · 41 ระดับตามลำดับค่า สีเข้ม = แน่น`, `Colour = ${dsName(ds)} per km² of the outline area · 41 steps by rank, darker = denser`)
     : L('สีและรูปทรง = หมวดของจุดเด่นแรกของย่าน (Land · Location · Living)', 'Colour and shape = pillar of the neighbourhood’s first highlight (Land · Location · Living)');
   const poiItem = $('legend-poi');
   if (poiItem) poiItem.hidden = !state.nb;

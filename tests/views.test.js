@@ -20,7 +20,7 @@ test('the overview of Thailand: the first finding is the most concentrated datas
   assert.equal(sharePct(o.areaShare), '0.018%');
   const html = renderOverview(o, model, {ctx: ctx()});
   assert.ok(!holes.test(html));
-  assert.match(html, /237 จาก 345 จุดขาย/);
+  assert.match(html, /238 จาก 345 จุดขาย/); // 0.2.4: GENTLEWOMAN at Maya inside the extended นิมมาน–เมญ่า (237 before)
   for (const part of ['dataset', 'source', 'date', 'boundary']) assert.match(html, new RegExp(`data-prov="${part}"`));
 });
 

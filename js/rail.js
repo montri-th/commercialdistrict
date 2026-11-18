@@ -7,7 +7,7 @@
  * dataset สถานีราง counts (tests/rail.test.js); this layer itself counts nothing — no share, rank, role or density reads
  * it (DATA_METHOD.md §9b).
  *
- * Quiet by role, never by opacity: one neutral ink (--text-muted) for every line and station — never a line's identity
+ * Quiet by role, never by opacity: one neutral ink (--text-secondary since 0.2.4) for every line and station — never a line's identity
  * colour or a categorical series, which mark the pillars here — under the neighbourhoods' outlines, pins and records
  * (js/layers.js). Line and shape tell the kinds apart:
  *   in service          solid line on a ground-coloured casing · filled dot
@@ -19,6 +19,11 @@
  * Lines and dots stand under the 3D buildings; the squares and the names sit above them, under the basemap's labels.
  * Lines from RAIL_MIN_ZOOM (the outlines' zoom), stations from STATION_MIN_ZOOM, names from NAME_MIN_ZOOM (stops from
  * STOP_NAME_MIN_ZOOM). A pointer resting on a station shows its name, its lines and a status other than in service.
+ *
+ * 0.2.4 (owner 2026-11-18 17:05, VERBATIM: “ระบบรางเงียบไปนิดครับ แทบมองไม่เห็น ปรับหน่อย”): the 0.2.3 ink (--text-muted)
+ * and widths (1–3.2 px) were lost among the basemap's roads. Now the darker neutral ink (--text-secondary, the ink of the
+ * outlines' own line), lines in service RAIL_WIDTH px with a wider ground-coloured casing, the national railway and the
+ * dots and squares a size up — still neutral and still under the outlines, whose data colours and wider edges lead.
  */
 import {GEOJSON_MAXZOOM} from './map-layers.js';
 
@@ -28,6 +33,9 @@ export const RAIL_LAYERS = Object.freeze({
 });
 const SRC = Object.freeze({lines: 'rail-lines', points: 'rail-points', names: 'rail-names'});
 export const RAIL_MIN_ZOOM = 9, STATION_MIN_ZOOM = 11, NAME_MIN_ZOOM = 14, STOP_NAME_MIN_ZOOM = 12;
+/** Width in px of a line in service by zoom (0.2.4); under construction 0.85 of it, the casing ~2–3 px wider. */
+export const RAIL_WIDTH = Object.freeze({9: 1.4, 12: 2.2, 15: 3.2, 18: 4.6});
+const CASING_WIDTH = Object.freeze({9: 3.4, 12: 4.4, 15: 5.6, 18: 7.4});
 /** The basemap's own layers this replaces (js/shell/map-style.js). */
 export const HIDDEN_BASEMAP = Object.freeze(['rail', 'transit']);
 export const STATUS = Object.freeze(['operating', 'construction', 'unverified']);
@@ -134,9 +142,9 @@ function stopImage(ink, halo) {
  * layer (squares and names go under it). Returns {hit(point) → items under a screen point, dispose()}.
  */
 export function installRailLayers(map, rail, {lang = 'th', basemapSource = 'openmaptiles', beforeGround, beforeLabels, attribution = ''} = {}) {
-  const ink = cssVar('--text-muted', '#7B877D');
+  const ink = cssVar('--text-secondary', '#5F635A');
   const ground = cssVar('--basemap-ground', '#EEF1EE');
-  const labelInk = cssVar('--basemap-label-quiet', '#7B877D');
+  const labelInk = cssVar('--text-secondary', '#5F635A');
   const halo = cssVar('--basemap-halo', '#F6F7F3');
   const under = beforeGround && map.getLayer(beforeGround) ? beforeGround : beforeLabels && map.getLayer(beforeLabels) ? beforeLabels : undefined;
   const above = beforeLabels && map.getLayer(beforeLabels) ? beforeLabels : undefined;
@@ -150,34 +158,35 @@ export function installRailLayers(map, rail, {lang = 'th', basemapSource = 'open
   const img = !map.hasImage?.(STOP_ICON) ? stopImage(ink, halo) : null;
   if (img) map.addImage(STOP_ICON, img, {pixelRatio: 2});
 
-  const width = k => ['interpolate', ['exponential', 1.4], ['zoom'], RAIL_MIN_ZOOM, 1 * k, 12, 1.6 * k, 15, 2.2 * k, 18, 3.2 * k];
-  const casingWidth = ['interpolate', ['exponential', 1.4], ['zoom'], RAIL_MIN_ZOOM, 3, 12, 3.6, 15, 4.2, 18, 5.2];
+  const byZoom = (w, k = 1) => ['interpolate', ['exponential', 1.4], ['zoom'], ...Object.entries(w).flatMap(([z, px]) => [Number(z), +(px * k).toFixed(2)])];
+  const width = k => byZoom(RAIL_WIDTH, k);
+  const casingWidth = byZoom(CASING_WIDTH);
   if (map.getSource(basemapSource)) {
     map.addLayer({id: RAIL_LAYERS.osm, type: 'line', source: basemapSource, 'source-layer': 'transportation', minzoom: RAIL_MIN_ZOOM,
       filter: ['all', ['match', ['geometry-type'], ['LineString', 'MultiLineString'], true, false], ['==', ['get', 'class'], 'rail'],
         ['!', ['has', 'service']], ['!=', ['get', 'brunnel'], 'tunnel']],
       layout: {'line-join': 'round'},
-      paint: {'line-color': ink, 'line-width': ['interpolate', ['linear'], ['zoom'], RAIL_MIN_ZOOM, 0.6, 12, 0.9, 15, 1.3, 18, 2]}}, under);
+      paint: {'line-color': ink, 'line-width': ['interpolate', ['linear'], ['zoom'], RAIL_MIN_ZOOM, 0.9, 12, 1.3, 15, 1.9, 18, 2.8]}}, under);
   }
   map.addLayer({id: RAIL_LAYERS.casing, type: 'line', source: SRC.lines, minzoom: RAIL_MIN_ZOOM, filter: ['==', ['get', 's'], 0],
     layout: {'line-cap': 'round', 'line-join': 'round'}, paint: {'line-color': ground, 'line-width': casingWidth}}, under);
   map.addLayer({id: RAIL_LAYERS.build, type: 'line', source: SRC.lines, minzoom: RAIL_MIN_ZOOM, filter: ['!=', ['get', 's'], 0],
-    layout: {'line-cap': 'butt', 'line-join': 'round'}, paint: {'line-color': ink, 'line-width': width(0.8), 'line-dasharray': [2, 1.6]}}, under);
+    layout: {'line-cap': 'butt', 'line-join': 'round'}, paint: {'line-color': ink, 'line-width': width(0.85), 'line-dasharray': [2, 1.6]}}, under);
   map.addLayer({id: RAIL_LAYERS.line, type: 'line', source: SRC.lines, minzoom: RAIL_MIN_ZOOM, filter: ['==', ['get', 's'], 0],
     layout: {'line-cap': 'round', 'line-join': 'round'}, paint: {'line-color': ink, 'line-width': width(1)}}, under);
   const open = ['==', ['get', 's'], 0];
   map.addLayer({id: RAIL_LAYERS.station, type: 'circle', source: SRC.points, minzoom: STATION_MIN_ZOOM, filter: ['==', ['get', 'k'], 'station'],
-    paint: {'circle-radius': ['interpolate', ['linear'], ['zoom'], STATION_MIN_ZOOM, 1.8, 13, 2.6, 15, 3.4, 18, 4.6],
+    paint: {'circle-radius': ['interpolate', ['linear'], ['zoom'], STATION_MIN_ZOOM, 2.6, 13, 3.4, 15, 4.4, 18, 6],
       'circle-color': ['case', open, ink, ground], 'circle-stroke-color': ['case', open, ground, ink],
-      'circle-stroke-width': ['case', open, 1, 1.3], 'circle-pitch-alignment': 'viewport'}}, under);
+      'circle-stroke-width': ['case', open, 1.2, 1.6], 'circle-pitch-alignment': 'viewport'}}, under);
   map.addLayer({id: RAIL_LAYERS.stop, type: 'symbol', source: SRC.points, minzoom: RAIL_MIN_ZOOM, filter: ['==', ['get', 'k'], 'stop'],
-    layout: {'icon-image': STOP_ICON, 'icon-size': ['interpolate', ['linear'], ['zoom'], RAIL_MIN_ZOOM, 0.55, 12, 0.75, 16, 1],
+    layout: {'icon-image': STOP_ICON, 'icon-size': ['interpolate', ['linear'], ['zoom'], RAIL_MIN_ZOOM, 0.7, 12, 0.95, 16, 1.2],
       'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-pitch-alignment': 'viewport'}}, above);
   const label = en => ['get', en ? 'nameEn' : 'name'];
   const text = (minzoom, kind, id) => map.addLayer({id, type: 'symbol', source: SRC.names, minzoom, filter: ['==', ['get', 'k'], kind],
     layout: {'text-field': label(lang === 'en'), 'text-font': FONT, 'text-size': ['interpolate', ['linear'], ['zoom'], minzoom, 10.5, 17, 12],
       'text-anchor': 'top', 'text-offset': [0, 0.8], 'text-max-width': 8, 'text-padding': 2},
-    paint: {'text-color': labelInk, 'text-halo-color': halo, 'text-halo-width': 1.2}}, above);
+    paint: {'text-color': labelInk, 'text-halo-color': halo, 'text-halo-width': 1.4}}, above);
   text(NAME_MIN_ZOOM, 'station', RAIL_LAYERS.name);
   text(STOP_NAME_MIN_ZOOM, 'stop', RAIL_LAYERS.stopName);
 
