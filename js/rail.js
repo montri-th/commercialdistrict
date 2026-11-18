@@ -93,11 +93,12 @@ export function railTipHTML(items, rail, {lang = 'th'} = {}) {
     const status = r.s === 1 ? L('กำลังก่อสร้าง', 'Under construction') : r.s === 2 ? L('สถานะยังยืนยันไม่ได้', 'Status not confirmed') : '';
     const small = [names.join(' · '), status].filter(Boolean).join(' · ');
     const link = linkWords(r, rail, en);
-    return `<div class="poi-tip-row rail-tip-row"><i class="rail-tip-mark${r.s ? ' is-hollow' : ''}" aria-hidden="true"></i><span class="poi-tip-text"><strong>${esc(title)}</strong>${small ? `<small>${esc(small)}</small>` : ''}${link ? `<small class="rail-tip-link">${esc(link)}</small>` : ''}</span></div>`;
+    return `<div class="poi-tip-row rail-tip-row"><i class="rail-tip-mark${r.s ? ' is-hollow' : ''}" aria-hidden="true"></i><span class="poi-tip-text"><strong>${esc(title)}</strong>${small ? `<small>${esc(small)}</small>` : ''}${link ? `<small class="rail-tip-link">${esc(link[0])} <span class="nowrap">${esc(link[1])}</span></small>` : ''}</span></div>`;
   }).join('');
 }
 
-/** “เชื่อมกับ …” for a tip row: the other stations of its interchange group with their lines (none outside a group). */
+/** “เชื่อมกับ …” for a tip row: the other stations of its interchange group with their lines, and the closing words kept on
+ * one line ('' outside a group). */
 function linkWords(row, rail, en) {
   const groups = new Set(row.ids.map(i => rail.linkOf?.get(i)).filter(g => g != null));
   const others = [], seen = new Set();
@@ -111,7 +112,7 @@ function linkWords(row, rail, en) {
     }
   }
   if (!others.length) return '';
-  return en ? `Connects with ${others.join(' · ')} on the network map` : `เชื่อมกับ ${others.join(' · ')} ตามผังเครือข่าย`;
+  return en ? [`Connects with ${others.join(' · ')}`, 'on the network map'] : [`เชื่อมกับ ${others.join(' · ')}`, 'ตามผังเครือข่าย'];
 }
 
 /** A small square for the national stops, drawn per theme (pixel ratio 2). */

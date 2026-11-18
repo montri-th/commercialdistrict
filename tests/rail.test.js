@@ -95,8 +95,8 @@ test('the tip names a station, its lines as published, a status other than in se
   const th = railTipHTML([item], d, {lang: 'th'}), en = railTipHTML([item], d, {lang: 'en'});
   assert.match(th, new RegExp(st[2]));
   assert.match(th, new RegExp(rail.lines[st[4][0]].name));
-  assert.match(th, /เชื่อมกับ .+ ตามผังเครือข่าย/);
-  assert.match(en, /Connects with .+ on the network map/);
+  assert.match(th, /เชื่อมกับ .+ <span class="nowrap">ตามผังเครือข่าย<\/span>/, 'the closing words stay on one line');
+  assert.match(en, /Connects with .+ <span class="nowrap">on the network map<\/span>/);
   assert.match(en, new RegExp(rail.lines[st[4][0]].nameEn.replace(/[()]/g, '.')));
   const build = rail.stations.findIndex(r => r[5] === 1), b = rail.stations[build];
   assert.match(railTipHTML([{k: 'station', i: build, name: b[2], nameEn: b[3], lines: b[4], s: 1}], d), /กำลังก่อสร้าง/);
