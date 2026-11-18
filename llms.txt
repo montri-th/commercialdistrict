@@ -22,6 +22,7 @@ Deep links (https://montri-th.github.io/commercialdistrict/):
 - ?at={province code} — e.g. BKK, CMI, PKT (production codes)
 - ?f.neighborhood={CMN-TH code} — a neighbourhood (with its province in at)
 - ?m={dataset} — colour by one dataset's density: hotel, industrialestate, office, shoppingcenter, camera, factory, fitness, grocery, luxurybrands, pharmacy, restaurant, governmentoffice, hospital, school, transit, university
+- Rail context of the map (0.2.3): urban rail lines in service (solid) and under construction (dashed), stations, interchanges and the national rail stops with scheduled trips, from CityMETER Transit (data/rail.json; the stations are the file the dataset สถานีราง counts) — drawn in one neutral ink under the neighbourhoods, never counted. Choosing a neighbourhood fits the map to its outline.
 - ?f.kind={registry, lodging or added} — the kind of neighbourhood shown (0.2.0): the registry's outlines, the lodging areas, or those first drawn in this release
 - ?f.show={dataset, condo or all} — with a neighbourhood open, one set at a time: its records larger with names, the others small dots (0.1.3); without it a neighbourhood opens on its first highlight with records, or on the ?m dataset when it has records there (0.1.4); all = every set alike
 - ?cmp={code},{code}… — compare up to four · ?f.search={text} · ?v3d=0 — plan view · ?lang=en — English

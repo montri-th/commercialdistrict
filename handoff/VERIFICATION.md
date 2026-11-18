@@ -1,5 +1,16 @@
 # CityMETER Commercial District — verification
 
+## Release 0.2.3 — 18 พ.ย. 2569
+
+Owner 2026-11-18 15:32 ICT, VERBATIM: “ในแผนที่อยากให้แสดง สถานีและแนวเส้นทางระบบรางเพิ่มเติม เพื่อให้เห็น context และการเชื่อมโยงรอบๆและระหว่างแต่ละย่านการค้า ใน visual อาจจะให้ quiet กว่าตัวย่านการค้าเล็กน้อย”; 15:43: “เวลาเลือกย่านควรต้อง zoom to fit ในแผนที่ด้วย”. Built on main after 0.2.2 (citymeter-shell 0.6.3, merged by the family sync at 07:57Z).
+
+- Rail data: `scripts/build-rail.py` from montri-th/transit @`ad857b0` → `data/rail.json` (104,660 bytes): 17 lines (10 in service, 7 under construction; 16 with an alignment), 305 station rows (195 · 106 · 4 not confirmed), 18 interchange groups, 176 national stops. `data/transit.json`, `data/rail-lines.geojson` and `data/layer-srt.json` are byte-identical at `25711bc` (the commit the dataset สถานีราง was built from) and `ad857b0`; `transit.json` SHA-256 `0916636a…bb18` equals the dataset's own (`tests/rail.test.js`).
+- Code: `js/rail.js` (new module, in the import map), `js/app.js` (rail load and install on every style; station tip; legend item; `fitNb` through the shell's `fitBuilding`; the phone sheet opens before the fit and is read at rest), `js/layers.js` (`framePoints`, `convexHull`, `FIT_*`), `index.html`, `styles.css`, `js/lang-en.js`; `js/panel.js` (the lodging provenance link points at §2a). Tests 160 / 160 (`tests/rail.test.js`, `tests/frame.test.js` new). LDS parity 130 ok, 0 failed (LDS 0.9.7 file SHA-256 `d3085cbc…2d96`).
+- Local, on the real map (MapLibre 5.6.2 from the local copy with the pinned SRI hashes; the basemap stubbed — this sandbox cannot reach the tile host — so streets, the OpenStreetMap railway and map text do not draw here):
+  - Framing, share of the free map the outline takes (the larger of width and height), before → after, desktop 1440 × 900 / phone 393 × 852: 3D desktop 0.04–0.42 → 0.23 (68 m outline, held at the 200 m view) and 0.73–0.77; plan desktop 0.07–0.89 → 0.31 and 0.74–0.78; 3D phone 0.02–0.48 → 0.12 and 0.76; plan phone 0.05–0.66 → 0.28 and 0.76. Every outline wholly inside the free map before and after, also when the phone's sheet was closed before the tap. Six outlines from 68 m to 2,965 m across.
+  - Rail: layer order lines and dots between the basemap's roads and the 3D buildings, squares and names above the buildings under the basemap's labels, the neighbourhood outlines on top; the basemap's `rail` and `transit` hidden; light and dark, desktop and 393 px; the tip at Sukhumvit (MRT) reads “สุขุมวิท · MRT สายสีน้ำเงิน · เชื่อมกับ อโศก (BTS สายสุขุมวิท) ตามผังเครือข่าย” and in English “Sukhumvit · MRT Blue Line · Connects with Asok (BTS Sukhumvit Line) on the network map”; the map credits carry the rail line.
+  - English harvest (national, Bangkok, Siam, Siam under สถานีราง, lodging, a comparison): nothing left in Thai, no page error.
+
 ## Release 0.2.1 — 18 พ.ย. 2569
 
 Owner 2026-11-18 14:08 ICT, VERBATIM, answering three questions of the 0.2.0 report: “1 publish / 2 update เป็นย่านในทะเบียน / 3 อัปโหลดไฟล์ใหม่ชื่อเดิมแล้วทิ้งไฟล์เก่า”; then, asked how many of the lodging screen's 79 new areas the registry should admit and how the demo should follow: “ทั้ง 79” and “ปรับและ publish เลย (แนะนำ)”.
