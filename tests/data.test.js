@@ -5,7 +5,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {load} from './helpers.js';
-import {cell} from '../js/model.js';
+import {readFileSync} from 'node:fs';
+import {cell, rai, km2Text} from '../js/model.js';
 
 test('one row per outline: the registry\'s 358 closed outlines and the 37 lodging areas with a draft, unique codes, a display outline and a province each', () => {
   const {model, outlines} = load();
@@ -136,5 +137,22 @@ test('metadata names the registry read, its export and the bundle by SHA-256, an
     assert.match(ds.source.sha256, /^[0-9a-f]{64}$/, ds.id);
     assert.ok(ds.scope.th && ds.scope.en, ds.id);
     assert.ok(['Land', 'Location', 'Living'].includes(ds.group), ds.id);
+  }
+});
+
+test('areas read in ไร่ (owner 2026-11-18: hectares mean nothing to a Thai reader), the km² beside them never prints as 0', () => {
+  const {model} = load();
+  assert.equal(rai(1600 * 31.25), '31');
+  assert.equal(rai(1600 * 4.24), '4.2');
+  assert.equal(rai(500), '0.31');
+  assert.equal(km2Text(2.17), '2.2');
+  assert.equal(km2Text(0.0005), '0.0005');
+  for (const r of model.rows) {
+    assert.notEqual(rai(r.areaM2), '0', r.id);
+    assert.notEqual(km2Text(r.km2), '0', r.id);
+  }
+  for (const f of ['js/panel.js', 'js/app.js', 'js/lang-en.js', 'index.html']) {
+    const src = readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
+    assert.doesNotMatch(src, /เฮกตาร์|hectares\(|, 'ha'\)/, f);
   }
 });

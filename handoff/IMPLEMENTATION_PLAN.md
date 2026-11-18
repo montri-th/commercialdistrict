@@ -1,6 +1,6 @@
 # CityMETER Commercial District — Implementation Plan
 
-รุ่น 0.2.4 · 18 พ.ย. 2569 · คู่กับ `implementation-plan.json` (schema 1.5.0)
+รุ่น 0.2.5 · 18 พ.ย. 2569 · คู่กับ `implementation-plan.json` (schema 1.5.0)
 
 ## สถาปัตยกรรม
 

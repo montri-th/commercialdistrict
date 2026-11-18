@@ -1,5 +1,13 @@
 # CityMETER Commercial District — verification
 
+## Release 0.2.5 — 18 พ.ย. 2569
+
+Owner 2026-11-18 17:44 ICT, VERBATIM: “หน่วย เฮกตาร์ ไม่มีคนเข้าใจ ควรใช้เป็นไร่ หรือ ตารางกิโลเมตร จะเข้ากับบริบทไทยมากกว่า”; at 17:57 he chose “1” — release it as 0.2.5 through preview and live as before. Built on main after the 0.2.4 live record (`b4b579e`).
+
+- Code: `js/model.js` (`rai`, `km2Text`, `RAI_M2` in place of `hectares`), `js/panel.js` (list line, area tile and its km² line, provenance, comparison head, table cell and header). Data, colours and the shell are unchanged.
+- Tests 165 / 165 (`tests/data.test.js`: the formats, no row printing 0 ไร่ or 0 km², no hectare left in the page's sources).
+- Local render over the shipped data, Thai and English: นิมมาน–เมญ่า reads “193 ไร่ · 0.31 ตร.กม. ตามขอบที่ปรับเพิ่ม 18 พ.ย. 2569” (“193 rai · 0.31 km² per the outline extended on 18 Nov 2026”); the smallest outline (ขัวมุงท่าสิงห์–ชุมชนเวียงยอง, 472.99 m²) “0.3 ไร่ · 0.00047 ตร.กม. ตามทะเบียน”, where 0.2.4 printed its km² as 0; the overview keeps 95 ตร.กม.; the comparison heads read “194 rai”, “312 rai”, “136 rai”; no hectare in any rendered view.
+
 ## Release 0.2.4 — 18 พ.ย. 2569
 
 Owner 2026-11-18 17:05 ICT, VERBATIM: “ยอดเยี่ยม ระบบรางเงียบไปนิดครับ แทบมองไม่เห็น ปรับหน่อย / ขอปรับย่าน นิมมาน-เมญ่า เชียงใหม่ ควรรวม ศูนย์การค้า Maya, กาดรินคำ, วิทยาลัยสารพัดช่างเชียงใหม่เข้าเป็นส่วนหนึ่งของย่านนี้ด้วย”. Built on main after 0.2.3 (`bc3c730`).
