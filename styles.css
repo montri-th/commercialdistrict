@@ -1143,3 +1143,25 @@ td.num, th.num { text-align: right; }
   .poi-card-popup.is-docked .maplibregl-popup-tip { display: none; }
   .map-panel .poi-card-popup.is-docked .maplibregl-popup-content { max-height: 44vh; }
 }
+
+/* 14. Kinds of neighbourhood and the lodging screen (0.2.0) -------------------
+   A lodging area of the registry's lodging screen and a neighbourhood first drawn in this release carry words, not a
+   colour (the outline's colour stays the reading's); its draft outline is dotted on the map. */
+.kind-badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 2px; }
+.kind-badge { display: inline-flex; align-items: center; padding: 2px 8px; border: 1px solid var(--border-default); border-radius: 999px; background: var(--surface-card); color: var(--text-secondary); font-size: 12px; line-height: 1.35; }
+.kind-badge.is-lodging { border-style: dotted; border-width: 1.6px; }
+.kind-word { margin-left: 4px; padding: 0 6px; border: 1px solid var(--border-default); border-radius: 999px; color: var(--text-secondary); font-size: 11px; font-weight: 400; white-space: nowrap; }
+.legend-lodging { box-sizing: border-box; width: 16px; height: 10px; border: 2px dotted var(--text-secondary); border-radius: 2px; }
+.lodging-status { margin: 2px 0 8px; font-weight: 600; }
+.lodging-status.is-held { font-weight: 400; color: var(--text-secondary); }
+.lodging-figures { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0 0 8px; }
+.lodging-figures div { padding: 8px 10px; border: 1px solid var(--border-subtle, var(--border-default)); border-radius: 8px; background: var(--surface-card); }
+.lodging-figures dt { color: var(--text-metadata); font-size: 12px; line-height: 1.35; }
+.lodging-figures dd { margin: 4px 0 0; font-size: 15px; }
+.lodging-figures dd small { color: var(--text-secondary); font-size: 12px; }
+.lodging-services { margin: 4px 0; font-size: 13px; line-height: 1.5; }
+.lodging-services .hint { margin-right: 6px; }
+.added-list li { margin-bottom: 8px; line-height: 1.6; }
+@media (max-width: 720px) {
+  .lodging-figures { grid-template-columns: 1fr; }
+}

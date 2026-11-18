@@ -19,7 +19,7 @@
  * province or a neighbourhood adds a browser history entry.
  */
 import {registerDataNames} from './lang.js';
-import {provinces as provinceList, provinceByCode, provinceCodeFrom, provinceName, setProvinces, decodeData, scopeRows, scopePending, cell, rowsBounds, dsName, dsUnit, dsUnitN, num, PILLARS, PILLAR_SERIES} from './model.js';
+import {provinces as provinceList, provinceByCode, provinceCodeFrom, provinceName, setProvinces, decodeData, scopeRows, scopePending, KINDS, kindMatch, cell, rowsBounds, dsName, dsUnit, dsUnitN, num, PILLARS, PILLAR_SERIES} from './model.js';
 import {buildOverview, buildNeighborhood, buildCompare} from './profile.js';
 import {renderOverview, renderNeighborhood, renderCompare, renderFilterChips, tableHeadHTML, tableRowHTML, esc, L, dens, sharePct} from './panel.js';
 import {loadMapLibrary} from './shell/vendors.js';
@@ -63,6 +63,8 @@ const state = {
   condoDs: null, condoIndex: new Set(), condoCells: new Map(), condoSpots: [], condoNear: new Map(),
   poiPopup: null, poiCard: null, poiTip: null, poiTipKey: '', recordLabels: null,
   rows: [], pending: [], overview: null, ramp: null, fills: new Map(),
+  // kind of neighbourhood shown (0.2.0, `f.kind`): '' every one · registry · lodging · added (js/model.js KINDS)
+  kind: '',
   map: null, loaded: false, mapTheme: '', initialCameraDone: false, tileTemplate: '', budget: null,
   layers: null, provinceLabels: null, nbLabels: null, massing: null, buildingUnits: null,
   readerPitch: false, readerMovedAt: 0,
@@ -70,7 +72,7 @@ const state = {
 
 /* ---------- address (citymeter-shell, js/shell/url.js) ---------- */
 const nav = createNavigator(createCodec({
-  dataset: DATASET, levels: ['P'], place: {}, items: {}, filters: ['search', 'neighborhood', 'show'], levelFilters: ['neighborhood'],
+  dataset: DATASET, levels: ['P'], place: {}, items: {}, filters: ['search', 'neighborhood', 'show', 'kind'], levelFilters: ['neighborhood'],
   rename: {metric: 'm', compare: 'cmp', view3d: 'v3d'},
 }), {onPop: restoreFromHistory});
 
@@ -78,6 +80,7 @@ function saveURL() {
   const p = new URLSearchParams();
   if (state.province) p.set('province', state.province);
   if (state.search) p.set('search', state.search);
+  if (state.kind) p.set('kind', state.kind);
   if (state.nb) p.set('neighborhood', state.nb);
   if (state.focus) p.set('show', state.focus);
   if (state.lens) p.set('metric', state.lens);
@@ -88,6 +91,9 @@ function saveURL() {
 
 /* ---------- helpers ---------- */
 const rowById = id => (id && state.model?.byId.get(id)) || null;
+/** The words of a kind filter (0.2.0). */
+const kindLabel = kind => ({registry: L('ย่านในทะเบียนกลาง', 'Central registry neighbourhoods'), lodging: L('ย่านที่พักจากผลคัด', 'Lodging areas of the screen'),
+  added: L('ใหม่ในรุ่นนี้', 'New in this release')}[kind] || '');
 const lensDs = () => (state.lens && state.model?.dsById.get(state.lens)) || null;
 const openRow = () => rowById(state.nb);
 const compareRows = () => state.compare.map(rowById).filter(Boolean);
@@ -119,11 +125,11 @@ function disposeSpatial() {
 
 /* ---------- selection ---------- */
 function refreshScope() {
-  const key = `${state.province}|${state.search}`;
+  const key = `${state.province}|${state.search}|${state.kind}`;
   if (key === refreshScope.key) return;
   refreshScope.key = key;
-  state.rows = scopeRows(state.model, {province: state.province, search: state.search});
-  state.pending = scopePending(state.model, {province: state.province, search: state.search});
+  state.rows = scopeRows(state.model, {province: state.province, search: state.search, kind: state.kind});
+  state.pending = scopePending(state.model, {province: state.province, search: state.search, kind: state.kind});
   state.page = 0;
   renderTable.stale = true;
 }
@@ -163,6 +169,7 @@ function update({fit = false} = {}) {
   computeFills();
   $('search').value = state.search;
   $('province').value = state.province;
+  $('kind').value = state.kind;
   $('lens').value = state.lens;
   renderFilterSummary();
   renderPanel();
@@ -200,7 +207,7 @@ function renderPanel() {
     $('map-aha').hidden = true;
   } else {
     state.overview = buildOverview(state.model, {rows: state.rows, province: state.province, ds: lensDs(), pending: state.pending});
-    state.overview.searching = Boolean(state.search);
+    state.overview.searching = Boolean(state.search || state.kind);
     html = renderOverview(state.overview, state.model, {fillOf: fillOfRow, ctx: panelCtx()});
     renderMapAha(state.overview);
   }
@@ -233,11 +240,13 @@ function renderMapAha(o) {
 function renderFilterSummary() {
   const chips = [];
   if (state.search) chips.push({label: `“${state.search}”`, action: 'clear-search'});
+  if (state.kind) chips.push({label: kindLabel(state.kind), action: 'clear-kind'});
   if (state.province) chips.push({label: provinceName(state.province), action: 'leave-province'});
   const ds = lensDs();
   if (ds) chips.push({label: dsName(ds), action: 'clear-lens'});
   $('filter-chips').innerHTML = renderFilterChips(chips);
-  $('filter-count').textContent = state.province || state.search ? `(${num([state.province, state.search].filter(Boolean).length)})` : '';
+  const active = [state.province, state.search, state.kind].filter(Boolean).length;
+  $('filter-count').textContent = active ? `(${num(active)})` : '';
 }
 
 /* ---------- actions ---------- */
@@ -312,6 +321,8 @@ function onPanelAction(event) {
   else if (action === 'set-lens') { setLens(state.lens === value && el.closest('.share-list') ? '' : value); }
   else if (action === 'clear-lens') setLens('');
   else if (action === 'clear-search') { state.search = ''; update({fit: true}); }
+  else if (action === 'clear-kind') { state.kind = ''; update({fit: true}); }
+  else if (action === 'set-kind') { state.kind = KINDS.includes(value) ? value : ''; state.nb = ''; update({fit: true}); announce(state.kind ? kindLabel(state.kind) : L('ทุกย่าน', 'Every neighbourhood')); }
   else if (action === 'cmp-add') compareSet([...state.compare, id]);
   else if (action === 'cmp-remove') compareSet(state.compare.filter(x => x !== id), {open: state.compare.length > 1});
   else if (action === 'cmp-clear') compareSet([], {open: false});
@@ -1101,6 +1112,8 @@ async function fetchJSON(resource, {timeout = 20000} = {}) {
 function setOptions() {
   const counts = new Map();
   for (const r of state.model.rows) counts.set(r.province, (counts.get(r.province) || 0) + 1);
+  const kinds = $('kind');
+  for (const o of kinds.options) if (o.value) o.textContent = `${kindLabel(o.value)} (${num(state.model.rows.filter(r => kindMatch(r, o.value)).length)})`;
   const sel = $('province');
   while (sel.options.length > 1) sel.remove(1);
   for (const p of [...provinceList()].filter(p => counts.has(p.code)).sort((a, b) => COLLATOR.compare(provinceName(a.code), provinceName(b.code)))) {
@@ -1126,6 +1139,7 @@ function restoreFromURL() {
   const p = nav.read();
   state.province = provinceCodeFrom(p.get('province') || '');
   state.search = (p.get('search') || '').slice(0, 80);
+  state.kind = KINDS.includes(p.get('kind')) ? p.get('kind') : '';
   state.nb = rowById(p.get('neighborhood')) ? p.get('neighborhood') : '';
   const show = p.get('show') || '';
   state.focus = show === CONDO || show === ALL || state.model.dsById.has(show) ? show : '';
@@ -1149,15 +1163,16 @@ function wireEvents() {
     timer = setTimeout(() => { state.search = $('search').value.trim().slice(0, 80); state.nb = ''; update({fit: true}); }, 400);
   });
   $('province').addEventListener('change', () => { state.province = $('province').value; state.nb = ''; update({fit: true}); });
+  $('kind').addEventListener('change', () => { state.kind = KINDS.includes($('kind').value) ? $('kind').value : ''; state.nb = ''; update({fit: true}); });
   $('lens').addEventListener('change', () => setLens($('lens').value));
   $('filters').addEventListener('submit', e => e.preventDefault());
-  $('filters').addEventListener('reset', () => setTimeout(() => { state.search = ''; state.province = ''; state.nb = ''; update({fit: true}); }, 0));
+  $('filters').addEventListener('reset', () => setTimeout(() => { state.search = ''; state.province = ''; state.kind = ''; state.nb = ''; update({fit: true}); }, 0));
   for (const id of ['panel-view', 'filter-chips', 'map-aha', 'crumbs', 'compare-view', 'result-rows']) $(id).addEventListener('click', onPanelAction);
   $('focus-bar').addEventListener('click', e => { const b = e.target.closest('button[data-focus]'); if (b) setFocus(b.dataset.focus); });
   $('panel-view').addEventListener('toggle', e => { if (e.target.classList?.contains('records-details')) state.recordsOpen = e.target.open; }, true);
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && state.poiPopup) { closePoiCard(); state.map?.getCanvas().focus({preventScroll: true}); } });
   $('fit-map').onclick = () => fitMap();
-  $('country-map').onclick = () => { state.province = ''; state.nb = ''; state.search = ''; update({fit: true}); announce(L('ทั้งประเทศ', 'Whole country')); };
+  $('country-map').onclick = () => { state.province = ''; state.nb = ''; state.search = ''; state.kind = ''; update({fit: true}); announce(L('ทั้งประเทศ', 'Whole country')); };
   $('toggle-3d').onclick = toggle3d;
   $('mobile-panel').onclick = () => { $('panel').classList.contains('is-open') ? closeMobilePanel() : openMobilePanel(); };
   $('close-mobile-panel').onclick = closeMobilePanel;

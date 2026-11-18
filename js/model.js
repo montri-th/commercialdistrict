@@ -107,16 +107,24 @@ export function pairsOf(row, model) {
 }
 
 /** Rows of a province (or every row) after the search. */
-export function scopeRows(model, {province = '', search = ''} = {}) {
+/**
+ * Kinds of neighbourhood (0.2.0; `f.kind`): registry = the central registry's closed outlines; lodging = the draft outlines
+ * of the lodging screen's new areas (owner 2026-11-18); added = first drawn in this data release.
+ */
+export const KINDS = ['registry', 'lodging', 'added'];
+export const kindMatch = (r, kind) => !kind || (kind === 'added' ? Boolean(r.added) : (r.kind || 'registry') === kind);
+
+export function scopeRows(model, {province = '', search = '', kind = ''} = {}) {
   const terms = lower(search).trim().split(/\s+/).filter(Boolean);
-  return model.rows.filter(r => (!province || r.province === province) && terms.every(t => r.haystack.includes(t)));
+  return model.rows.filter(r => (!province || r.province === province) && kindMatch(r, kind) && terms.every(t => r.haystack.includes(t)));
 }
 
 /** Search the pending codes too (held or a collection name): they have no outline to compare. */
-export function scopePending(model, {province = '', search = ''} = {}) {
+export function scopePending(model, {province = '', search = '', kind = ''} = {}) {
   const terms = lower(search).trim().split(/\s+/).filter(Boolean);
   if (!terms.length) return [];
-  return model.pending.filter(p => (!province || p.province === province) && terms.every(t => p.haystack.includes(t)));
+  const fits = p => !kind || (kind === 'lodging' ? p.status === 'lodging' : kind === 'registry' ? p.status !== 'lodging' : false);
+  return model.pending.filter(p => (!province || p.province === province) && fits(p) && terms.every(t => p.haystack.includes(t)));
 }
 
 /**
@@ -127,7 +135,7 @@ export function nationalShares(model) {
   const t = model.meta.totals || {};
   const list = model.datasets.filter(d => d.located > 0).map(d => ({ds: d, inside: d.inside, located: d.located, share: d.inside / d.located}))
     .sort((a, b) => b.share - a.share);
-  return {areaKm2: t.areaKm2, thailandKm2: t.thailandKm2, areaShare: t.areaKm2 / t.thailandKm2, closed: t.closed, list};
+  return {areaKm2: t.areaKm2, thailandKm2: t.thailandKm2, areaShare: t.areaKm2 / t.thailandKm2, closed: t.outlined ?? t.closed, list};
 }
 
 /** Neighbourhoods per province (closed outlines), most first. */

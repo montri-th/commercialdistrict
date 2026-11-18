@@ -7,14 +7,23 @@ import assert from 'node:assert/strict';
 import {load} from './helpers.js';
 import {cell} from '../js/model.js';
 
-test('one row per closed outline: 343 neighbourhoods, unique codes, each with its display outline and a province', () => {
+test('one row per outline: the registry\'s 358 closed outlines and the 37 lodging areas with a draft, unique codes, a display outline and a province each', () => {
   const {model, outlines} = load();
   const ids = model.rows.map(r => r.id);
-  assert.equal(model.rows.length, model.meta.totals.closed);
+  const t = model.meta.totals;
+  assert.equal(t.closed, 358);
+  assert.equal(t.lodgingDrawn, 37);
+  assert.equal(model.rows.length, t.outlined);
+  assert.equal(t.outlined, t.closed + t.lodgingDrawn);
+  assert.equal(model.rows.filter(r => r.kind === 'registry').length, t.closed);
+  assert.equal(model.rows.filter(r => r.kind === 'lodging').length, t.lodgingDrawn);
+  // the registry's outlines first, in canonical order; the lodging areas after them
+  assert.ok(model.rows.slice(0, t.closed).every(r => r.kind === 'registry'));
   assert.equal(new Set(ids).size, ids.length);
   assert.deepEqual(outlines.features.map(f => String(f.properties.id)).sort(), [...ids].sort());
+  for (const f of outlines.features) assert.equal(f.properties.kind, model.byId.get(String(f.properties.id)).kind);
   for (const r of model.rows) {
-    assert.match(r.id, /^CMN-TH-[0-9A-Z]+$/);
+    assert.match(r.id, r.kind === 'lodging' ? /^LP-NEW-[0-9A-F]+$/ : /^CMN-TH-[0-9A-Z]+$/);
     assert.ok(r.areaM2 > 0 && r.km2 > 0, r.id);
     assert.ok(r.province && /^[A-Z]{3}$/.test(r.province), r.id);
     const [w, s, e, n] = r.bbox;
@@ -106,7 +115,10 @@ test('metadata names the registry read, its export and the bundle by SHA-256, an
   assert.match(m.bundle.sha256, /^[0-9a-f]{64}$/);
   assert.match(m.bundle.boundariesSha256, /^[0-9a-f]{64}$/);
   assert.equal(m.totals.closed + m.totals.held + m.totals.collections, m.totals.codes);
-  assert.equal(model.pending.length, m.totals.held + m.totals.collections);
+  assert.equal(model.pending.length, m.totals.held + m.totals.collections + m.totals.lodgingUndrawn);
+  assert.equal(m.bundle.revision.policy_version, '2026-11-17-commercial-recovery-9');
+  assert.equal(m.bundle.revision.closed_neighbourhoods, 358);
+  assert.equal(m.bundle.revision.positive_area_overlap_pairs, 0);
   assert.equal(model.datasets.length, 16);
   for (const ds of model.datasets) {
     assert.match(ds.source.repo, /^montri-th\/[a-z]+$/, ds.id);
