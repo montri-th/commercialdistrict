@@ -19,7 +19,7 @@
 import {LANG} from './shell/i18n.js';
 import {DEMOS} from './shell/datasets.js';
 import {demoHref} from './shell/header.js';
-import {PILLARS, PILLAR_SERIES, num, one, hectares, provinceName, dsName, dsUnit, dsUnitN} from './model.js';
+import {PILLARS, PILLAR_SERIES, num, one, rai, km2Text, provinceName, dsName, dsUnit, dsUnitN} from './model.js';
 import {cueMarkup} from './cues.js';
 import {actionBar} from './ask.js';
 
@@ -184,7 +184,7 @@ const kindWords = r => [r.kind === 'lodging' ? L('ย่านที่พัก
 function listSection(o, model) {
   if (!o.province && !o.searching) return '';
   const rows = [...o.rows].sort((a, b) => b.strong - a.strong || (b.hl?.length || 0) - (a.hl?.length || 0) || a.name.localeCompare(b.name, 'th'));
-  const item = r => `<li><button type="button" class="nb-item" data-action="select-nb" data-id="${esc(r.id)}"><span class="nb-name">${esc(r.name)}${o.province ? '' : ` <small>${esc(provinceName(r.province))}</small>`}${kindWords(r)}</span><span class="nb-meta">${nw(`${hectares(r.areaM2)} ${L('เฮกตาร์', 'ha')}`)}</span><span class="hl-chips">${highlightChips(r, model, 3) || `<span class="hint">${L('ยังไม่มีอะไรเด่นเกินเกณฑ์', 'Nothing above the threshold')}</span>`}</span></button></li>`;
+  const item = r => `<li><button type="button" class="nb-item" data-action="select-nb" data-id="${esc(r.id)}"><span class="nb-name">${esc(r.name)}${o.province ? '' : ` <small>${esc(provinceName(r.province))}</small>`}${kindWords(r)}</span><span class="nb-meta">${nw(`${rai(r.areaM2)} ${L('ไร่', 'rai')}`)}</span><span class="hl-chips">${highlightChips(r, model, 3) || `<span class="hint">${L('ยังไม่มีอะไรเด่นเกินเกณฑ์', 'Nothing above the threshold')}</span>`}</span></button></li>`;
   const shown = rows.slice(0, 30), rest = rows.slice(30);
   return section('maps', o.province ? L(`ย่านใน${provinceName(o.province)}`, `Neighbourhoods in ${provinceName(o.province)}`) : L('ย่านที่ตรงคำค้น', 'Matching neighbourhoods'), esc(L(`${num(rows.length)} ย่าน`, `${num(rows.length)}`)),
     `<ul class="nb-list">${shown.map(item).join('')}</ul>${rest.length ? `<details><summary>${L(`อีก ${num(rest.length)} ย่าน`, `${num(rest.length)} more`)}</summary><ul class="nb-list">${rest.map(item).join('')}</ul></details>` : ''}`);
@@ -438,7 +438,7 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
     : `<p class="aha-copy">${esc(L('ยังไม่มีชุดข้อมูลไหนเด่นเกินเกณฑ์ ดูตัวเลขทุกชุดข้างล่าง', 'No dataset stands out above the threshold; every figure is below'))}</p>`}
     <div class="aha-actions">${cmp}</div></section>`;
   const metrics = `<section class="metrics compact" aria-label="${L('ตัวเลขของย่าน', 'Neighbourhood figures')}">
-    ${metricTile(hectares(r.areaM2), L('เฮกตาร์', 'ha'), 'area', r.kind === 'lodging' ? L(`${one(r.km2)} ตร.กม. ตามขอบร่างของผลคัดย่านที่พัก`, `${one(r.km2)} km² per the lodging screen's draft outline`) : am ? L(`${one(r.km2)} ตร.กม. ตามขอบที่ปรับเพิ่ม ${thaiDate(am.on)}`, `${one(r.km2)} km² per the outline extended on ${thaiDate(am.on)}`) : L(`${one(r.km2)} ตร.กม. ตามทะเบียน`, `${one(r.km2)} km² per the registry`))}
+    ${metricTile(rai(r.areaM2), L('ไร่', 'rai'), 'area', r.kind === 'lodging' ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบร่างของผลคัดย่านที่พัก`, `${km2Text(r.km2)} km² per the lodging screen's draft outline`) : am ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบที่ปรับเพิ่ม ${thaiDate(am.on)}`, `${km2Text(r.km2)} km² per the outline extended on ${thaiDate(am.on)}`) : L(`${km2Text(r.km2)} ตร.กม. ตามทะเบียน`, `${km2Text(r.km2)} km² per the registry`))}
     ${metricTile(d.highlights.length, L('จุดเด่น', 'highlights'), 'rank')}
     ${metricTile(Object.values(r.c || {}).filter(n => n > 0).length, L('ชุดที่มีในย่าน', 'datasets present'), 'dataset', L(`จาก ${num(Object.keys(r.c || {}).length)} ชุดที่มีข้อมูลในจังหวัด`, `of ${num(Object.keys(r.c || {}).length)} with data in the province`))}
     ${metricTile(d.inProvince, L(`ย่านใน${province}`, `in ${province}`), 'province')}
@@ -447,7 +447,7 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
   return `${aha}${metrics}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${datasetsSection(d, fillOf)}${recordsHTML}${similarSection(d)}
     ${actionBar({kind: 'neighborhood', name: r.name, province, point: {lat: r.ref[1], lon: r.ref[0]}})}
     ${registryDetails(d, model)}
-    ${provenance(ctx, {boundary: r.kind === 'lodging' ? L(`${r.name} · ขอบร่างของผลคัดย่านที่พัก ${hectares(r.areaM2)} เฮกตาร์`, `${r.name} · draft outline of the lodging screen ${hectares(r.areaM2)} ha`) : am ? L(`${r.name} · ขอบย่านฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} จาก OpenStreetMap ${hectares(r.areaM2)} เฮกตาร์`, `${r.name} · draft outline extended on ${thaiDate(am.on)} from OpenStreetMap ${hectares(r.areaM2)} ha`) : L(`${r.name} · ขอบย่านฉบับร่าง ${hectares(r.areaM2)} เฮกตาร์`, `${r.name} · draft outline ${hectares(r.areaM2)} ha`)})}`;
+    ${provenance(ctx, {boundary: r.kind === 'lodging' ? L(`${r.name} · ขอบร่างของผลคัดย่านที่พัก ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline of the lodging screen ${rai(r.areaM2)} rai`) : am ? L(`${r.name} · ขอบย่านฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline extended on ${thaiDate(am.on)} from OpenStreetMap ${rai(r.areaM2)} rai`) : L(`${r.name} · ขอบย่านฉบับร่าง ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline ${rai(r.areaM2)} rai`)})}`;
 }
 
 /* ---------- compare ---------- */
@@ -461,7 +461,7 @@ export function renderCompare(c, model, {max = 4} = {}) {
     return `<div class="compare-empty"><p>${esc(L('เลือกย่านแล้วกด “เพิ่มในการเปรียบเทียบ” เพื่อวางเทียบกันได้ถึง 4 ย่าน', 'Open a neighbourhood and choose “Add to the comparison” to set up to 4 side by side'))}</p>
       <div class="aha-actions"><button type="button" class="btn quiet" data-action="cmp-top">${L('เทียบ 3 ย่านที่เด่นหลายด้าน', 'Compare the 3 most distinctive')}</button></div></div>`;
   }
-  const head = c.rows.map(r => `<th scope="col" class="cmp-col"><button type="button" class="link-button" data-action="select-nb" data-id="${esc(r.id)}">${esc(r.name)}</button><small>${esc(provinceName(r.province))} · ${nw(`${hectares(r.areaM2)} ${L('เฮกตาร์', 'ha')}`)}</small><button type="button" class="cmp-remove" data-action="cmp-remove" data-id="${esc(r.id)}" aria-label="${esc(`${L('เอาออกจากการเปรียบเทียบ', 'Remove from the comparison')} · ${r.name}`)}">×</button></th>`).join('');
+  const head = c.rows.map(r => `<th scope="col" class="cmp-col"><button type="button" class="link-button" data-action="select-nb" data-id="${esc(r.id)}">${esc(r.name)}</button><small>${esc(provinceName(r.province))} · ${nw(`${rai(r.areaM2)} ${L('ไร่', 'rai')}`)}</small><button type="button" class="cmp-remove" data-action="cmp-remove" data-id="${esc(r.id)}" aria-label="${esc(`${L('เอาออกจากการเปรียบเทียบ', 'Remove from the comparison')} · ${r.name}`)}">×</button></th>`).join('');
   const hlRow = `<tr class="cmp-hl"><th scope="row">${L('จุดเด่น', 'Highlights')}</th>${c.rows.map(r => `<td>${highlightChips(r, model) || '<span class="hint">—</span>'}</td>`).join('')}</tr>`;
   const body = c.groups.map(g => `<tr class="cmp-group"><th scope="rowgroup" colspan="${c.rows.length + 1}"><span class="eyebrow-cue">${cueMarkup(PILLAR_SERIES[g.pillar])}${esc(g.pillar.toUpperCase())}</span></th></tr>${g.items.map(x => `<tr><th scope="row">${dsLabel(x.ds)}<small>${esc(dsUnit(x.ds))} · ${perKm2}</small></th>${x.cells.map((cell, i) => {
     if (cell.state === 'out_of_scope') return `<td class="is-out" title="${esc(L('ไม่มีข้อมูลชุดนี้ในจังหวัด', 'No data of this dataset in the province'))}"><span class="hint">—</span></td>`;
@@ -485,10 +485,10 @@ export function tableRowHTML(r, model) {
     const n = r.c[ds.id];
     return `<td class="num data-number${n ? '' : ' is-zero'}">${num(n)}</td>`;
   }).join('');
-  return `<tr><th scope="row"><button type="button" class="row-name" data-action="select-nb" data-id="${esc(r.id)}">${esc(r.name)}</button>${kindWords(r)}</th><td>${esc(provinceName(r.province))}</td><td class="num data-number">${esc(hectares(r.areaM2))}</td><td class="num data-number">${num(r.hl?.length || 0)}</td>${cells}</tr>`;
+  return `<tr><th scope="row"><button type="button" class="row-name" data-action="select-nb" data-id="${esc(r.id)}">${esc(r.name)}</button>${kindWords(r)}</th><td>${esc(provinceName(r.province))}</td><td class="num data-number">${esc(rai(r.areaM2))}</td><td class="num data-number">${num(r.hl?.length || 0)}</td>${cells}</tr>`;
 }
 export function tableHeadHTML(model, lensId = '') {
-  return `<tr><th scope="col">${L('ย่าน', 'Neighbourhood')}</th><th scope="col">${L('จังหวัด', 'Province')}</th><th scope="col" class="num">${L('เฮกตาร์', 'ha')}</th><th scope="col" class="num">${L('จุดเด่น', 'Highlights')}</th>${model.datasets.map(ds => `<th scope="col" class="num${ds.id === lensId ? ' is-lens' : ''}" title="${esc(`${ds.group} · ${dsUnit(ds)}`)}"><span class="th-ds">${cueMarkup(PILLAR_SERIES[ds.group] || 9)}${esc(dsName(ds))}</span></th>`).join('')}</tr>`;
+  return `<tr><th scope="col">${L('ย่าน', 'Neighbourhood')}</th><th scope="col">${L('จังหวัด', 'Province')}</th><th scope="col" class="num">${L('พื้นที่ (ไร่)', 'Area (rai)')}</th><th scope="col" class="num">${L('จุดเด่น', 'Highlights')}</th>${model.datasets.map(ds => `<th scope="col" class="num${ds.id === lensId ? ' is-lens' : ''}" title="${esc(`${ds.group} · ${dsUnit(ds)}`)}"><span class="th-ds">${cueMarkup(PILLAR_SERIES[ds.group] || 9)}${esc(dsName(ds))}</span></th>`).join('')}</tr>`;
 }
 
 export function renderFilterChips(chips) {

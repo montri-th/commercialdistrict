@@ -1,5 +1,19 @@
 # CityMETER Commercial District — verification
 
+## Release 0.2.5 — 18 พ.ย. 2569
+
+Owner 2026-11-18 17:44 ICT, VERBATIM: “หน่วย เฮกตาร์ ไม่มีคนเข้าใจ ควรใช้เป็นไร่ หรือ ตารางกิโลเมตร จะเข้ากับบริบทไทยมากกว่า”; at 17:57 he chose “1” — release it as 0.2.5 through preview and live as before. Built on main after the 0.2.4 live record (`b4b579e`).
+
+- Code: `js/model.js` (`rai`, `km2Text`, `RAI_M2` in place of `hectares`), `js/panel.js` (list line, area tile and its km² hover text, provenance, comparison head, table cell and header). Data, colours and the shell are unchanged.
+- Tests 165 / 165 (`tests/data.test.js`: the formats, no row printing 0 ไร่ or 0 km², no hectare left in the page's sources).
+- Local render over the shipped data, Thai and English: นิมมาน–เมญ่า reads “193 ไร่ · 0.31 ตร.กม. ตามขอบที่ปรับเพิ่ม 18 พ.ย. 2569” (“193 rai · 0.31 km² per the outline extended on 18 Nov 2026”); the smallest outline (ขัวมุงท่าสิงห์–ชุมชนเวียงยอง, 472.99 m²) “0.3 ไร่ · 0.00047 ตร.กม. ตามทะเบียน”, where 0.2.4 printed its km² as 0; the overview keeps 95 ตร.กม.; the comparison heads read “194 rai”, “312 rai”, “136 rai”; no hectare in any rendered view.
+
+### Preview (UTC, 2026-11-18)
+
+- preview.citymeter.pages.dev, preview mode (never production), override `commercialdistrict` → `8e1ad2c` (pull request #20): run 44290724765 (11:00:48–11:01:58), 18 sources, 114 / 114 live checks, the demo family check passed on the built site and live (shell 0.6.3); 10 files uploaded, 9,953 already there.
+- The owner's Chrome (1,710 × 819, dark): cache tag `20261118-r6`. `?at=CMI&f.neighborhood=CMN-TH-FB55C19EF1`: area tile “193 ไร่” with the hover text “0.31 ตร.กม. ตามขอบที่ปรับเพิ่ม 18 พ.ย. 2569”, the provenance line ending “193 ไร่”; `?at=CMI&cmp=CMN-TH-FB55C19EF1`: the list “1,358 ไร่ · 603 ไร่ · 193 ไร่ · 530 ไร่”, the comparison head “เชียงใหม่ · 193 ไร่”, the table header “พื้นที่ (ไร่)”; English: “193 rai”, hover “0.31 km² per the outline extended on 18 Nov 2026”, provenance “… 193 rai”, the English harvest empty (`__citymeterI18n.missing` = []); no hectare in either language.
+- 393 px: the window cannot be resized, so the page was read in two same-origin frames 393 px wide in one tab — Thai dark and English light: the tile reads “193 ไร่” / “193 rai”, no overflow, number and unit never split. The shell fell back to its light map in the frames (two maps in one tab), which is the harness, not the release.
+
 ## Release 0.2.4 — 18 พ.ย. 2569
 
 Owner 2026-11-18 17:05 ICT, VERBATIM: “ยอดเยี่ยม ระบบรางเงียบไปนิดครับ แทบมองไม่เห็น ปรับหน่อย / ขอปรับย่าน นิมมาน-เมญ่า เชียงใหม่ ควรรวม ศูนย์การค้า Maya, กาดรินคำ, วิทยาลัยสารพัดช่างเชียงใหม่เข้าเป็นส่วนหนึ่งของย่านนี้ด้วย”. Built on main after 0.2.3 (`bc3c730`).

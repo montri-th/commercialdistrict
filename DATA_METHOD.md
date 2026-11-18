@@ -12,6 +12,8 @@ makes).
 - **จำนวนในย่าน** = จำนวนรายการของชุดข้อมูลนั้นที่มีพิกัดและพิกัดอยู่ในขอบย่าน แต่ละชุดใช้หน่วยของตัวเอง (แห่ง สาขา ร้าน จุดขาย ทะเบียน รายการ สถานี–สาย) และ **ไม่บวกข้ามชุด**
 - **ต่อ ตร.กม.** = จำนวนในย่าน ÷ พื้นที่ย่านตามทะเบียน (`area_m2` ของทะเบียน ไม่คำนวณใหม่) · ย่านนิมมาน–เมญ่าที่ขอบปรับเพิ่ม
   18 พ.ย. 2569 (§2b) ใช้พื้นที่ของขอบที่ปรับ วัดใน UTM 47N แบบที่ทะเบียนวัดของตัวเอง
+- **พื้นที่ย่าน** = บอกเป็นไร่ (1 ไร่ = 1,600 ตร.ม.; หน้า English เขียน rai) ตั้งแต่ 0.2.5 ตามคำเจ้าของ 18 พ.ย. 2569 ไม่ใช้เฮกตาร์ ·
+  ชี้ที่ตัวเลขพื้นที่ในการ์ดจะเห็น ตร.กม. (และโปรแกรมอ่านหน้าจออ่าน) เพราะความหนาแน่นทั้งหน้าคิดต่อ ตร.กม. · พื้นที่รวมของประเทศหรือจังหวัดบอกเป็น ตร.กม.
 - **ไม่มีข้อมูลในจังหวัดนี้ (—)** = ชุดข้อมูลไม่มีรายการที่มีพิกัดเลยในจังหวัดของย่าน จึงไม่รู้ ไม่ใช่ 0 · **0** = ชุดข้อมูลมีรายการในจังหวัด แต่ไม่มีรายการใดอยู่ในขอบย่าน
 - **สัดส่วน** = จำนวนในย่าน ÷ รายการที่มีพิกัดของชุดนั้น (ทั้งประเทศ หรือในจังหวัด) ตัวตั้งและตัวหารอยู่ข้างตัวเลขหรือในคำอธิบายของมัน
 - **จุดเด่น** = ย่านติดกลุ่มบนของกลุ่มเทียบ ทุกข้อบอกกลุ่มเทียบและจำนวน (§5)
@@ -34,7 +36,7 @@ in §9 are published.
 ## 2. Neighbourhoods
 
 **Observed fact.** 395 outlines in 77 provinces, 95.03 km²: the registry's 358 closed outlines (80.86 km², registry
-`area_m2` in its metric CRS, 0.05 ha to 217 ha; since 0.2.4 one of them extended on the owner's word, §2b) and, since
+`area_m2` in its metric CRS, 473 m² to 2.17 km² — 0.3 to 1,358 ไร่ as the page writes it since 0.2.5; since 0.2.4 one of them extended on the owner's word, §2b) and, since
 0.2.0, 37 lodging areas of its lodging screen (14.18 km², §2a).
 The registry's partition has no overlap of positive area (`meta.bundle.revision.positive_area_overlap_pairs` = 0) and
 the 37 lodging areas overlap none of its outlines (measured: 0), so a point belongs to at most one neighbourhood; a

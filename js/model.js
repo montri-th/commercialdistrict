@@ -24,8 +24,19 @@ export const num = n => (Number.isFinite(n) ? NUMBER.format(n) : '—');
 export const one = n => (Number.isFinite(n) ? ONE.format(n) : '—');
 /** Whole-number share; a non-zero part never prints as 0% ("<1%"). */
 export const pct = (part, whole) => (!whole ? '—' : part && Math.round((part / whole) * 100) === 0 ? '<1%' : `${NUMBER.format(Math.round((part / whole) * 100))}%`);
-/** Area of a neighbourhood: hectares ("31 ไร่" would need a second unit; the registry speaks m² and the team ha). */
-export const hectares = m2 => (m2 / 1e4 >= 10 ? NUMBER.format(m2 / 1e4) : ONE.format(m2 / 1e4));
+const SIG2 = new Intl.NumberFormat('th-TH', {maximumSignificantDigits: 2});
+/** 1 ไร่ = 1,600 m². */
+export const RAI_M2 = 1600;
+/**
+ * Area of a neighbourhood in ไร่ on both pages (owner 2026-11-18: hectares mean nothing to a Thai reader; ไร่ or km²
+ * fits). Two significant digits below 1 ไร่, so a small outline never prints as 0.
+ */
+export const rai = m2 => {
+  const v = m2 / RAI_M2;
+  return !Number.isFinite(v) ? '—' : v >= 10 ? NUMBER.format(v) : v >= 1 ? ONE.format(v) : SIG2.format(v);
+};
+/** The same area in km² — the denominator of every "ต่อ ตร.กม." — two significant digits below 1 km² (never 0). */
+export const km2Text = km2 => (!Number.isFinite(km2) ? '—' : km2 >= 10 ? NUMBER.format(km2) : km2 >= 1 ? ONE.format(km2) : SIG2.format(km2));
 
 let PROVINCES = Object.freeze([]);
 let BY_CODE = new Map();
