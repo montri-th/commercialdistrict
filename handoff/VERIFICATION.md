@@ -14,6 +14,12 @@ Owner 2026-11-18 17:44 ICT, VERBATIM: “หน่วย เฮกตาร์ �
 - The owner's Chrome (1,710 × 819, dark): cache tag `20261118-r6`. `?at=CMI&f.neighborhood=CMN-TH-FB55C19EF1`: area tile “193 ไร่” with the hover text “0.31 ตร.กม. ตามขอบที่ปรับเพิ่ม 18 พ.ย. 2569”, the provenance line ending “193 ไร่”; `?at=CMI&cmp=CMN-TH-FB55C19EF1`: the list “1,358 ไร่ · 603 ไร่ · 193 ไร่ · 530 ไร่”, the comparison head “เชียงใหม่ · 193 ไร่”, the table header “พื้นที่ (ไร่)”; English: “193 rai”, hover “0.31 km² per the outline extended on 18 Nov 2026”, provenance “… 193 rai”, the English harvest empty (`__citymeterI18n.missing` = []); no hectare in either language.
 - 393 px: the window cannot be resized, so the page was read in two same-origin frames 393 px wide in one tab — Thai dark and English light: the tile reads “193 ไร่” / “193 rai”, no overflow, number and unit never split. The shell fell back to its light map in the frames (two maps in one tab), which is the harness, not the release.
 
+### Live (UTC, 2026-11-18)
+
+- GitHub Pages (the owner's “1” at 17:57 ICT: preview, then live): pull request #20 merged as `f5beb48`; deployment 7881423991 succeeded (created 11:06:13); `npm run verify:live` 799 ok, 0 failed.
+- citymeter.pages.dev: run 44291811340 (11:07:41–11:08:34, publish on): 18 sources from the latest GitHub Pages deployments (Commercial District `f5beb48`, shell 0.6.3), 114 / 114 live checks, the demo family check passed on the built site and live; 4 files uploaded, 9,959 already there.
+- The live site in the owner's Chrome (1,710 px wide, dark): cache tag `20261118-r6`; `?at=CMI&f.neighborhood=CMN-TH-FB55C19EF1&cmp=CMN-TH-FB55C19EF1`: tile “193 ไร่”, hover text “0.31 ตร.กม. ตามขอบที่ปรับเพิ่ม 18 พ.ย. 2569”, the provenance line ending “193 ไร่”, the comparison head “เชียงใหม่ · 193 ไร่”; English in a frame 393 px wide: “193 rai”, hover text “0.31 km² per the outline extended on 18 Nov 2026”, the English harvest empty; no hectare in either language.
+
 ## Release 0.2.4 — 18 พ.ย. 2569
 
 Owner 2026-11-18 17:05 ICT, VERBATIM: “ยอดเยี่ยม ระบบรางเงียบไปนิดครับ แทบมองไม่เห็น ปรับหน่อย / ขอปรับย่าน นิมมาน-เมญ่า เชียงใหม่ ควรรวม ศูนย์การค้า Maya, กาดรินคำ, วิทยาลัยสารพัดช่างเชียงใหม่เข้าเป็นส่วนหนึ่งของย่านนี้ด้วย”. Built on main after 0.2.3 (`bc3c730`).
