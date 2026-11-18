@@ -23,7 +23,8 @@ test('one row per outline: the registry\'s 358 closed outlines and the 37 lodgin
   assert.deepEqual(outlines.features.map(f => String(f.properties.id)).sort(), [...ids].sort());
   for (const f of outlines.features) assert.equal(f.properties.kind, model.byId.get(String(f.properties.id)).kind);
   for (const r of model.rows) {
-    assert.match(r.id, r.kind === 'lodging' ? /^LP-NEW-[0-9A-F]+$/ : /^CMN-TH-[0-9A-Z]+$/);
+    // (0.2.1) the registry admitted the lodging areas: central codes CMN-TH-<hex of the screen's LP-NEW-<hex>>
+    assert.match(r.id, r.kind === 'lodging' ? /^CMN-TH-[0-9A-F]{10}$/ : /^CMN-TH-[0-9A-Z]+$/);
     assert.ok(r.areaM2 > 0 && r.km2 > 0, r.id);
     assert.ok(r.province && /^[A-Z]{3}$/.test(r.province), r.id);
     const [w, s, e, n] = r.bbox;
@@ -114,8 +115,17 @@ test('metadata names the registry read, its export and the bundle by SHA-256, an
   assert.match(m.registry.exportSha256, /^[0-9a-f]{64}$/);
   assert.match(m.bundle.sha256, /^[0-9a-f]{64}$/);
   assert.match(m.bundle.boundariesSha256, /^[0-9a-f]{64}$/);
-  assert.equal(m.totals.closed + m.totals.held + m.totals.collections, m.totals.codes);
-  assert.equal(model.pending.length, m.totals.held + m.totals.collections + m.totals.lodgingUndrawn);
+  // (0.2.1) every code of the registry: closed outlines, the admitted lodging areas with a draft outline, held codes
+  // (the registry's 2 and the 42 admitted lodging areas without an outline) and collection names
+  assert.equal(m.totals.closed + m.totals.lodgingDrawn + m.totals.held + m.totals.collections, m.totals.codes);
+  assert.equal(m.totals.codes, 449);
+  assert.equal(m.totals.admitted, 79);
+  assert.equal(m.registry.admitted.codes, 79);
+  assert.equal(m.registry.admitted.on, '2026-11-18');
+  assert.match(m.registry.admitted.rowsSha256, /^[0-9a-f]{64}$/);
+  // (0.2.1) the 42 admitted lodging areas without an outline are held codes of the registry now (counted in held)
+  assert.equal(model.pending.length, m.totals.held + m.totals.collections);
+  assert.equal(model.pending.filter(p => p.screen === 'lodging').length, m.totals.lodgingUndrawn);
   assert.equal(m.bundle.revision.policy_version, '2026-11-17-commercial-recovery-9');
   assert.equal(m.bundle.revision.closed_neighbourhoods, 358);
   assert.equal(m.bundle.revision.positive_area_overlap_pairs, 0);

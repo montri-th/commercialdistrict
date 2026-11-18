@@ -139,8 +139,9 @@ export function installNeighborhoodLayers(map, {provinces, outlines, rows, iconO
     paint: {'line-color': ['coalesce', ['feature-state', 'fill'], '#000000'], 'line-width': ['interpolate', ['linear'], ['zoom'], EDGE_MIN_ZOOM, 3, 17, 5], 'line-opacity': fs('filled', 1)}});
   map.addLayer({id: LAYERS.zero, type: 'line', source: SRC.outlines, minzoom: OUTLINE_MIN_ZOOM,
     paint: {'line-color': cssVar('--data-zero-outline', '#7D877F'), 'line-width': 2, 'line-opacity': fs('zero', 1)}}, before);
-  // The outline of a lodging area of the registry's lodging screen is a draft the registry has not admitted (0.2.0):
-  // dotted, so it reads apart from the registry's closed outlines (solid) and from the compared ones (long dashes).
+  // The outline of a lodging area of the registry's lodging screen is the screen's review draft (0.2.0; a central code of
+  // the registry since 0.2.1, its outline still a draft): dotted, so it reads apart from the outlines closed by the
+  // registry's rules (solid) and from the compared ones (long dashes).
   const lineColor = ['case', ['boolean', ['feature-state', 'quiet'], false], cssVar('--border-default', '#C9D0CB'), cssVar('--text-secondary', '#4E5B52')];
   map.addLayer({id: LAYERS.line, type: 'line', source: SRC.outlines, minzoom: OUTLINE_MIN_ZOOM, filter: ['!=', ['get', 'kind'], 'lodging'],
     paint: {'line-color': lineColor, 'line-width': ['interpolate', ['linear'], ['zoom'], 9, 0.6, 13, 1.1, 16, 1.6]}});
