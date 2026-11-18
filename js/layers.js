@@ -254,6 +254,48 @@ export function installNeighborhoodLayers(map, {provinces, outlines, rows, iconO
   return {paint, setPins, select, hover, setCompare, setProvince, setPoints, setCondo, markPoi, hitPoi, hitTest, dispose, layerIds: LAYERS};
 }
 
+/**
+ * Framing a chosen neighbourhood (0.2.3; owner 2026-11-18 15:43, VERBATIM: “เวลาเลือกย่านควรต้อง zoom to fit ในแผนที่ด้วย”):
+ * the view fits the outline itself, a margin of FIT_MARGIN of its size on each side, never narrower than FIT_MIN_SPAN m
+ * (the smallest outlines keep the streets that reach them) and never closer than FIT_MAX_ZOOM. Until 0.2.2 the view
+ * framed a square of at least 880 m round the outline: measured on the 3D view of a desktop, the outline took 4–42 % of
+ * the free map, and 173 of the 395 outlines are under 640 m across.
+ */
+export const FIT_MARGIN = 0.08, FIT_MIN_SPAN = 200, FIT_MAX_ZOOM = 19;
+
+/** Convex hull of [x, y] points (monotone chain), counter-clockwise, without the closing point. */
+export function convexHull(points) {
+  const pts = [...new Map(points.map(p => [`${p[0]},${p[1]}`, p])).values()].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  if (pts.length < 3) return pts;
+  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lower = [], upper = [];
+  for (const p of pts) { while (lower.length >= 2 && cross(lower.at(-2), lower.at(-1), p) <= 0) lower.pop(); lower.push(p); }
+  for (const p of pts.slice().reverse()) { while (upper.length >= 2 && cross(upper.at(-2), upper.at(-1), p) <= 0) upper.pop(); upper.push(p); }
+  return lower.slice(0, -1).concat(upper.slice(0, -1));
+}
+
+/**
+ * The points a chosen neighbourhood is fitted to ([[lng, lat]…], none for a missing geometry): the convex hull of its
+ * outer rings grown by `margin` of its size on each side round the centre of its box, and — when that is narrower than
+ * `minSpan` m — the corners of a `minSpan` square at the same centre. The hull is enough: every vertex of the outline is
+ * inside it, and the camera's projection keeps it convex (js/shell/camera.js#fitPitched tests these points).
+ */
+export function framePoints(geometry, {margin = FIT_MARGIN, minSpan = FIT_MIN_SPAN} = {}) {
+  const rings = geometry?.type === 'Polygon' ? [geometry.coordinates[0]] : geometry?.type === 'MultiPolygon' ? geometry.coordinates.map(p => p[0]) : [];
+  const pts = rings.flat().filter(p => Array.isArray(p) && Number.isFinite(p[0]) && Number.isFinite(p[1]));
+  if (!pts.length) return [];
+  let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+  for (const [x, y] of pts) { if (x < w) w = x; if (x > e) e = x; if (y < s) s = y; if (y > n) n = y; }
+  const cx = (w + e) / 2, cy = (s + n) / 2, grow = 1 + 2 * margin;
+  const kx = 111320 * Math.cos((cy * Math.PI) / 180), ky = 110574;
+  const out = convexHull(pts).map(([x, y]) => [cx + (x - cx) * grow, cy + (y - cy) * grow]);
+  if (Math.max((e - w) * kx, (n - s) * ky) * grow < minSpan) {
+    const hx = minSpan / 2 / kx, hy = minSpan / 2 / ky;
+    out.push([cx - hx, cy - hy], [cx + hx, cy - hy], [cx + hx, cy + hy], [cx - hx, cy + hy]);
+  }
+  return out;
+}
+
 /** The outline under a lng/lat (point in polygon over the display outlines; boxes first), or ''. */
 export function outlineLocator(collection) {
   const inRing = ([x, y], ring) => {

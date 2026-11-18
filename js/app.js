@@ -21,17 +21,18 @@
 import {registerDataNames} from './lang.js';
 import {provinces as provinceList, provinceByCode, provinceCodeFrom, provinceName, setProvinces, decodeData, scopeRows, scopePending, KINDS, kindMatch, cell, rowsBounds, dsName, dsUnit, dsUnitN, num, PILLARS, PILLAR_SERIES} from './model.js';
 import {buildOverview, buildNeighborhood, buildCompare} from './profile.js';
-import {renderOverview, renderNeighborhood, renderCompare, renderFilterChips, tableHeadHTML, tableRowHTML, esc, L, dens, sharePct} from './panel.js';
+import {renderOverview, renderNeighborhood, renderCompare, renderFilterChips, tableHeadHTML, tableRowHTML, esc, L, dens, sharePct, thaiDate} from './panel.js';
 import {loadMapLibrary} from './shell/vendors.js';
 import {installAreaLabels, installRecordLabels} from './map-layers.js';
-import {installNeighborhoodLayers, pinCollection, poiCollection, pinScale, OUTLINE_MIN_ZOOM, POI_MIN_ZOOM, PIN_CHOSEN} from './layers.js';
+import {installNeighborhoodLayers, pinCollection, poiCollection, pinScale, framePoints, OUTLINE_MIN_ZOOM, POI_MIN_ZOOM, PIN_CHOSEN, FIT_MAX_ZOOM} from './layers.js';
 import {CONDO, ALL, resolveChosen, decodeRecords, condoDataset, decodeCondo, cellsIn, growBox, spotsOf, seriesOfDs, barSets, barHTML, labelItems, tipHTML, detailHTML, listHTML, panelListHTML, recordName} from './records.js';
 import {provinceLocator} from './provinces.js';
 import {buildMapStyle, basemapPalette, TILEJSON_URL, MASSING_BEFORE} from './shell/map-style.js';
 import {installMassing, outerRings, FOCUS_MIN_ZOOM} from './massing.js';
+import {decodeRail, installRailLayers, railTipHTML} from './rail.js';
 import {ringsBox, cameraSquare} from './regions.js';
 import {createBuildingUnitStore, cmTileUrl, CM_ATTRIBUTION} from './shell/building-units.js';
-import {presetFor, applyPreset, fitPitched} from './shell/camera.js';
+import {presetFor, applyPreset, fitPitched, fitBuilding, CAMERA} from './shell/camera.js';
 import {guardRetainedTiles, guardElevationFreeze, mapBudget, budgetPixelRatio, watchContext} from './shell/maplibre-guard.js';
 import {buildBreadcrumb, renderBreadcrumb, breadcrumbText, DATASET} from './breadcrumb.js';
 import {buildDensityRamp, classify, rampLegendHTML} from './scales.js';
@@ -260,8 +261,9 @@ function selectNb(id, {fit = true} = {}) {
   // The search found it: it gives way, so the province behind the neighbourhood reads whole (the browser's back button
   // returns to the search, which is in the address of the previous entry).
   state.search = '';
-  update({fit});
+  // On a phone the sheet opens first, so the outline is fitted to the map the sheet leaves free (0.2.3).
   openMobilePanel({frame: false});
+  update({fit});
   announce(`${L('ย่าน', 'Neighbourhood')} · ${r.name} · ${provinceName(r.province)}`);
 }
 
@@ -354,6 +356,15 @@ function renderLegend() {
     : L('สีและรูปทรง = หมวดของจุดเด่นแรกของย่าน (Land · Location · Living)', 'Colour and shape = pillar of the neighbourhood’s first highlight (Land · Location · Living)');
   const poiItem = $('legend-poi');
   if (poiItem) poiItem.hidden = !state.nb;
+  const railItem = $('legend-rail'), rail = state.railData?.meta;
+  if (railItem) {
+    railItem.hidden = !rail;
+    if (rail) {
+      const date = rail.asOf ? thaiDate(rail.asOf) : '';
+      railItem.title = L(`ระบบราง (บริบท ไม่นับรวมในย่าน): เส้นทึบ = เปิดให้บริการ · เส้นประ = กำลังก่อสร้าง · จุดโปร่ง = สถานีของโครงการที่กำลังก่อสร้าง · เส้นบาง = ทางรถไฟจาก OpenStreetMap · สี่เหลี่ยม = ที่หยุดรถไฟทางไกลที่มีเที่ยวตามตาราง · ${rail.dataset?.th || ''} · ${rail.linesSource || ''} · ข้อมูล ${date} · ${rail.boundary?.th || ''} และที่หยุดรถไฟทางไกล ${num(rail.counts?.srtStops || 0)} จุดทั่วประเทศ`,
+        `Rail (context, never counted in a neighbourhood): solid = in service · dashed = under construction · hollow dot = station of a project under construction · thin line = railway from OpenStreetMap · square = conventional rail stop with scheduled trips · ${rail.dataset?.en || ''} · OTP GTFS (CC BY 4.0) and project alignments · data of ${date} · ${rail.boundary?.en || ''}, and ${num(rail.counts?.srtStops || 0)} conventional rail stops nationwide`);
+    }
+  }
   const panel = document.querySelector('.map-panel');
   panel.classList.toggle('is-3d', state.view3d);
   panel.dataset.reading = ds ? 'lens' : 'highlights';
@@ -454,8 +465,20 @@ function cameraPadding() {
   }
   const chromeTop = !aha.hidden && aha.offsetHeight ? aha.getBoundingClientRect().top : legend.offsetHeight ? legend.getBoundingClientRect().top : null;
   let bottom = chromeTop != null ? height - (chromeTop - mapTop) + 12 : tray + edge;
-  if (mobilePortrait() && $('panel').classList.contains('is-open')) bottom = Math.max(bottom, Math.round($('panel').getBoundingClientRect().height) - (window.innerHeight - height - mapTop) + 8);
+  if (mobilePortrait() && $('panel').classList.contains('is-open')) bottom = Math.max(bottom, Math.round(sheetHeight()) - (window.innerHeight - height - mapTop) + 8);
   return {top: Math.max(edge, toolbar.bottom - mapTop + 12 + barRoom()), left: edge, right: edge, bottom: Math.min(height * 0.7, bottom)};
+}
+/**
+ * The phone sheet's height at rest (0.2.3). Its max-height eases from the overview's 42 % to a neighbourhood's 34 %
+ * (styles.css), and a fit made while that ran framed the view above the taller sheet: the easing of max-height is
+ * dropped for the read (it settles at once), the slide of the sheet keeps going.
+ */
+function sheetHeight() {
+  const panel = $('panel');
+  panel.style.transitionProperty = 'transform';
+  const height = panel.getBoundingClientRect().height;
+  panel.style.transitionProperty = '';
+  return height;
 }
 /** Room the dataset bar takes under the toolbar while a neighbourhood is open (0.1.3; kept before its records arrive). */
 const barRoom = () => (state.nb ? 48 : 0);
@@ -480,17 +503,26 @@ function fitRows(rows, {maxZoom = 13.5, instant = false} = {}) {
   fitBox([[b[0], b[1]], [b[2], b[3]]], {maxZoom, minZoom: 4.5, instant});
 }
 
-/** A neighbourhood in the model preset (plan with 3D off or under the phone's open sheet), with some street round it. */
+/**
+ * A neighbourhood fitted to the free map (0.2.3, js/layers.js#framePoints): its outline with a margin is centred in the
+ * map the toolbar, the dataset bar, the legend and the phone's sheet leave free, and fills FIT_FILL of it, in the model
+ * preset (plan with 3D off). js/shell/camera.js#fitBuilding pans and zooms until it does (fitPitched kept the centre of
+ * the outline's box, which a 60° camera shows low: 262 px were free above the largest outline, 36 px below it). On a
+ * phone the outline's own margin replaces the 48 px sides of the map, and there is no floor at the phone's 3D focus
+ * zoom any more: an outline wider than that view reads whole, its buildings rise when the reader comes closer.
+ */
+const FIT_FILL = 0.94;
 function fitNb(r, {instant = false} = {}) {
   if (!r || !state.map) return;
-  const [w, s, e, n] = r.bbox, lat = (s + n) / 2;
-  const kx = 111320 * Math.cos((lat * Math.PI) / 180), ky = 110574;
-  const half = Math.max(((e - w) * kx) / 2, ((n - s) * ky) / 2, 320) + 120;
-  const cx = (w + e) / 2, cy = (s + n) / 2;
-  const box = [[cx - half / kx, cy - half / ky], [cx + half / kx, cy + half / ky]];
-  const phone = mobilePortrait();
+  const [w, s, e, n] = r.bbox;
+  const geometry = state.outlineById?.get(r.id)?.geometry || {type: 'Polygon', coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]]};
+  const points = framePoints(geometry);
+  if (!points.length) return;
+  const map = state.map, pad = cameraPadding(), c = map.getContainer();
+  const side = mobilePortrait() ? 12 : null;
+  const box = {left: side ?? pad.left, top: pad.top, right: c.clientWidth - (side ?? pad.right), bottom: c.clientHeight - pad.bottom};
   const preset = state.view3d ? 'model' : 'plan';
-  fitBox(box, {preset, maxZoom: 17, minZoom: phone && state.view3d ? Math.max(12, state.budget?.focusZoom || 0) : 11, instant});
+  fitBuilding(map, points, {box, preset, bearing: CAMERA[preset].bearing, minZoom: 11, maxZoom: FIT_MAX_ZOOM, fill: FIT_FILL, animate: animate() && !instant});
 }
 
 function fitMap({instant = false} = {}) {
@@ -651,11 +683,15 @@ function onMapMove(e) {
     const spots = state.nb ? spotsAt(p) : [];
     if (spots.length) {
       state.layers?.hover('');
+      hideRailTip();
       if (HOVER() && !state.poiPopup) showTip(spots);
       map.getCanvas().style.cursor = 'pointer';
       return;
     }
     hideTip();
+    // A station or stop under the pointer: its name and lines (0.2.3); the neighbourhood under it still answers.
+    const rails = HOVER() && !state.poiPopup && state.rail ? state.rail.hit(p) : [];
+    if (rails.length) showRailTip(rails); else hideRailTip();
     const id = state.layers?.hitTest(p) || '';
     state.layers?.hover(id && id !== state.nb ? id : '');
     let over = Boolean(id) && id !== state.nb;
@@ -877,6 +913,8 @@ function installSpatialLayers() {
       status.dataset.cmBuildings = `${result.cm?.kept || 0}`;
     },
   });
+  state.rail = null;
+  installRail();
   updateSpatialLayers();
   if (!state.initialCameraDone) {
     state.initialCameraDone = true;
@@ -885,6 +923,42 @@ function installSpatialLayers() {
     else fitMap({instant: true});
   }
   scheduleLabelView();
+}
+
+/* ---------- map: rail context (0.2.3, js/rail.js) ---------- */
+/** data/rail.json once, after the page reads (the map never waits for it); drawn on every style the map loads. */
+function loadRail() {
+  fetchJSON(`data/rail.json${V()}`)
+    .then(json => { state.railData = decodeRail(json); installRail(); renderLegend(); })
+    .catch(e => { partial('rail'); console.warn('Rail context unavailable', e); });
+}
+function installRail() {
+  const map = state.map;
+  if (!map || !state.loaded || !state.railData || state.rail) return;
+  const meta = state.railData.meta, date = meta.asOf ? thaiDate(meta.asOf) : '';
+  try {
+    state.rail = installRailLayers(map, state.railData, {lang: LANG, basemapSource: 'openmaptiles',
+      beforeGround: map.getStyle()?.layers?.find(l => l.type === 'fill-extrusion')?.id, beforeLabels: MASSING_BEFORE,
+      attribution: L(`ระบบราง: CityMETER Transit ${date} จาก GTFS สนข. (CC BY 4.0) และ OpenStreetMap (ODbL)`, `Rail: CityMETER Transit ${date}, from OTP GTFS (CC BY 4.0) and OpenStreetMap (ODbL)`)});
+  } catch (e) { state.rail = null; console.warn('Rail layers unavailable', e); }
+}
+function showRailTip(items) {
+  const key = items.map(it => `${it.k}:${it.name}:${it.lines.join('.')}`).join(';');
+  if (state.railTip && state.railTipKey === key) return;
+  hideRailTip();
+  const html = railTipHTML(items, state.railData, {lang: LANG});
+  if (!html || !state.map) return;
+  const el = document.createElement('div');
+  el.className = 'poi-tip rail-tip';
+  el.innerHTML = html;
+  const at = state.map.unproject([onMapMove.point.x, onMapMove.point.y]);
+  state.railTip = new maplibregl.Popup({closeButton: false, closeOnClick: false, closeOnMove: false, focusAfterOpen: false, offset: 12, maxWidth: '260px', className: 'poi-tip-popup rail-tip-popup'})
+    .setLngLat(at).setDOMContent(el).addTo(state.map);
+  state.railTipKey = key;
+}
+function hideRailTip() {
+  state.railTip?.remove();
+  state.railTip = null; state.railTipKey = '';
 }
 
 /** The attribution must stay readable: its live height becomes --attrib-height (the phone dock stays above it). */
@@ -938,7 +1012,7 @@ function initMap() {
     state.map.on('moveend', scheduleLabelView);
     state.map.on('moveend', followCamera);
     state.map.on('moveend', () => { if (state.nb && chosenSet() === CONDO) refreshCondo(); });
-    state.map.getCanvas().addEventListener('mouseleave', hideTip);
+    state.map.getCanvas().addEventListener('mouseleave', () => { hideTip(); hideRailTip(); });
     state.map.on('moveend', tiltWhenNear);
     state.map.on('style.load', installSpatialLayers);
     state.map.on('click', onMapClick);
@@ -1202,6 +1276,7 @@ const PARTIAL = {
   'condo': ['จุดคอนโดมิเนียม', 'แผนที่อาจไม่แสดงจุดคอนโดมิเนียมบางส่วน', 'Condominium points', 'Some condominium points may be missing from the map'],
   'units': ['รูปอาคารของ CityMETER', 'อาคารบางจังหวัดแสดงจากแผนที่ฐานแทนชุดอาคารของ CityMETER', 'CityMETER building shapes', 'Buildings in some provinces come from the basemap instead of the CityMETER set'],
   'basemap': ['แผนที่ฐาน', 'ถนน แหล่งน้ำ และอาคารพื้นหลังอาจไม่แสดง ข้อมูลในแผงและตารางยังใช้ได้', 'Basemap', 'Roads, water and background buildings may be missing; the panel and the table still work'],
+  'rail': ['ระบบราง', 'แผนที่ไม่แสดงแนวรถไฟฟ้าและสถานี ตัวเลขในแผงยังครบ', 'Rail', 'The map shows no rail lines or stations; the panel figures are complete'],
 };
 function partial(key) {
   const words = PARTIAL[key];
@@ -1241,6 +1316,7 @@ async function init() {
     if (state.nb) openMobilePanel({frame: false});
     window.dispatchEvent(new CustomEvent('citymeter:ready'));
     startMap();
+    loadRail();
   } catch (e) {
     window.dispatchEvent(new CustomEvent('citymeter:load-error', {detail: {message: L('โหลดข้อมูลย่านไม่สำเร็จ กรุณาลองอีกครั้ง', 'The neighbourhood data did not load; please try again'), resource: e.resource, status: e.status, phase: e.phase || 'startup', diagnostic: e.message}}));
     console.error(e);

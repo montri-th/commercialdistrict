@@ -188,6 +188,14 @@ claim that two places perform alike.
   2026-11-16 23:28: “กับอาคาร 3d ที่ขึ้นรอบๆผมว่ามันแปลกๆ”), CityMETER Building V4 where `data/building-units/` says so, else OpenStreetMap; round it
   the basemap's buildings stay quiet and fade with distance, as in the Hotel demo. Records (0.1.3, §9a): one pin per
   dataset and exact point in the pillar's colour and shape.
+- Choosing a neighbourhood fits the map to it (0.2.3; owner 2026-11-18 15:43: “เวลาเลือกย่านควรต้อง zoom to fit ในแผนที่ด้วย”):
+  its own outline, a margin of 8 % of its size on each side, centred in the map that the toolbar, the dataset bar, the
+  legend and a phone's sheet leave free and filling 94 % of it (the family's fit, `js/shell/camera.js#fitBuilding`),
+  never narrower than 200 m and never closer than zoom 19. Until 0.2.2 the view framed a square of at least 880 m round
+  the outline, so the 173 outlines under 640 m across read small. Measured on the real map with the basemap stubbed
+  (`handoff/VERIFICATION.md`): every outline inside the free map; an outline over 200 m across takes 73–78 % of it,
+  on a desktop and at 393 px, in 3D and in plan (before: 4–42 % in 3D on a desktop).
+- Rail runs under the neighbourhoods as context (0.2.3, §9b): lines and stations in one neutral ink.
 
 ## 9a. Records of the open neighbourhood (0.1.3)
 
@@ -226,6 +234,37 @@ then the choice **“เลือกดูทีละชุด”**.
   `spatial_gate`). The card shows the source's buildings and floors and the appraisal per unit (median P50 and the
   P25–P75 range, baht per m²; an appraisal, not a sale price) with the source's search area as its boundary.
 
+## 9b. Rail context of the map (0.2.3)
+
+Owner 2026-11-18 15:32: “ในแผนที่อยากให้แสดง สถานีและแนวเส้นทางระบบรางเพิ่มเติม เพื่อให้เห็น context และการเชื่อมโยงรอบๆ
+และระหว่างแต่ละย่านการค้า ใน visual อาจจะให้ quiet กว่าตัวย่านการค้าเล็กน้อย”.
+
+- **What** (`data/rail.json`, `scripts/build-rail.py`): copied as published from CityMETER · Transit (montri-th/transit,
+  its commit and the SHA-256 of each file in `meta.from`). Lines: `data/rail-lines.geojson`, the parts of each line and
+  status merged, coordinates rounded to 5 decimals — the urban lines in service in Bangkok and its vicinity (10) and the
+  projects under construction with a station list (7, among them the Thai–Chinese HSR and the new northern and
+  north-eastern lines; one, Map Kabao–Thanon Chira, has stations but no alignment). Stations: `data/transit.json`, one
+  row per station of a line (305), status as published (in service · under construction · not confirmed, an existing
+  junction a project names). Interchanges: Transit's groups of stations a current network map connects (its words: a
+  network map, not a confirmed walkway). National stops: `data/layer-srt.json`, the stops of conventional rail with
+  scheduled trips in the OTP GTFS (176, nationwide; not SRT's whole station list). Railway lines outside the Transit
+  data: the basemap's own OpenStreetMap railway (main lines; sidings, yards and tunnels left out).
+- **The same stations as the dataset สถานีราง.** That dataset counts Transit's station–line records per neighbourhood
+  like every dataset (§3; 301 — the 305 less the 4 not confirmed); `data/rail.json` is built from the same file, byte
+  for byte (`tests/rail.test.js`). The rail context itself counts nothing: no share, rank, role or density reads it.
+- **Quiet by role, never by opacity.** One neutral ink (`--text-muted`) for every line and station, never a line's
+  identity colour or a categorical series (those mark the pillars here); the neighbourhoods' fills sit under it, their
+  outlines, pins and records above it. Line and shape tell the kinds apart: in service = solid line on a ground-coloured
+  casing and a filled dot · under construction = dashed line (the Transit demo's dash) and a hollow dot (also the
+  stations not confirmed) · railway = thin solid line · national stop = small square (the Transit demo's shape). The
+  basemap's own rail and transit lines are hidden on this map: they drew the same lines a second time. Lines from zoom 9
+  (the outlines' zoom), stations from 11, names from 14 (national stops from 12); lines and dots under the 3D buildings,
+  squares and names above them under the basemap's labels.
+- **Reading it.** A pointer resting on a station shows its name, its lines as published, a status other than in
+  service and, at an interchange, the stations it connects with; a national stop shows its province. The legend's
+  ระบบราง and the map's credits carry the dataset, sources, date and boundary from `data/rail.json`
+  (GTFS © OTP, CC BY 4.0; alignments and railway © OpenStreetMap contributors, ODbL).
+
 ## 10. Published fields
 
 Per neighbourhood: code, name, other names, province, registry area, reference point, box, name status, whether the
@@ -240,7 +279,9 @@ search area and province — not its production ids, observation ids, API addres
 the research master's address. Not published (owner 2026-11-16, “ตัดออก”): the
 registry's internal working fields — field questions and the segments still to walk, the registry's source ids, merge
 notes, outline policy versions and the bundle's review counts — nor the registry's address, its export, its evidence
-rows' text, reviewer notes or any person's name.
+rows' text, reviewer notes or any person's name. Rail context (0.2.3, `data/rail.json`): per line its id, names and status;
+the merged alignments; per station point, names, lines and status; Transit's interchange groups by name; per national
+stop point, name and province — no ridership, operator records or source addresses.
 
 ## 11. Rebuild
 
@@ -258,6 +299,8 @@ python3 -I scripts/build-data.py --bundle <outlines dir> --bundle-zip <bundle.zi
   --repos <clones at main> --commits commits.json --mapshaper <mapshaper> --condo <condominium export.xlsx> --condo-read-on 2026-11-16 \
   --lodging <bundle dir>/lodging-held78-recovery-2026-11-18 --prev-canonical <the previous release's canonical-boundaries.geojson> \
   --admitted <read-back.json> --admitted-on 2026-11-18 --out data
+# 6. (0.2.3) the rail context, from the Transit clone (clean in data/; its commit and file hashes go into meta)
+python3 -I scripts/build-rail.py --transit <clone of montri-th/transit> --out data/rail.json
 npm test
 node scripts/check-lds-parity.mjs --lds <Landometer-Design-System-v0.9.7.md>
 ```

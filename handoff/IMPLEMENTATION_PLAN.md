@@ -1,6 +1,6 @@
 # CityMETER Commercial District — Implementation Plan
 
-รุ่น 0.2.0 · 18 พ.ย. 2569 · คู่กับ `implementation-plan.json` (schema 1.5.0)
+รุ่น 0.2.3 · 18 พ.ย. 2569 · คู่กับ `implementation-plan.json` (schema 1.5.0)
 
 ## สถาปัตยกรรม
 
@@ -17,6 +17,8 @@ Static site, ES modules ผ่าน import map ที่มี cache tag เด
 | `js/panel.js` · `js/model.js` (0.2.0) | ผลคัดย่านที่พักของทะเบียนในหน้าย่าน · ป้าย “ย่านที่พัก” และ “ใหม่ในรุ่นนี้” · ส่วน “ย่านใหม่ในข้อมูลรุ่นนี้” ในหน้าประเทศ · ตัวกรองย่านที่แสดง `f.kind` (`KINDS`, `kindMatch`) · (0.2.1) รหัสกลางของย่านที่พัก และ `canonicalId` ให้ลิงก์ `LP-NEW-…` เดิมเปิดย่านเดียวกัน |
 | `scripts/restore-bundle-member.py` (0.2.0) | คืนไฟล์ขอบย่านที่ ZIP ของเจ้าของเก็บแบบไบต์ซ้ำ พร้อมตรวจ SHA-256 ทุกขั้น |
 | `js/map-layers.js` | ป้ายชื่อย่าน/จังหวัด และ (0.1.3) ชื่อข้างจุดของชุดที่เลือก |
+| `js/rail.js` · `scripts/build-rail.py` (0.2.3) | ระบบรางเป็นบริบทบนแผนที่: แนวราง สถานี ที่หยุดรถไฟทางไกล ป้ายเมื่อชี้ (สายและสถานีที่เชื่อมกัน) สีกลางสีเดียว ไม่นับรวม |
+| `js/layers.js#framePoints` · `js/app.js#fitNb` (0.2.3) | เลือกย่านแล้วจัดกรอบพอดีขอบย่านในแผนที่ที่ว่าง ด้วย `fitBuilding` ของ shell |
 | `js/scales.js` · `js/cues.js` | สเกล LDS และรูปทรงของหมวด |
 | `js/shell/` | citymeter-shell (ห้ามแก้ที่นี่ที่เดียว) |
 
