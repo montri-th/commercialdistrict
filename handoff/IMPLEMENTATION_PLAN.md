@@ -1,6 +1,6 @@
 # CityMETER Commercial District — Implementation Plan
 
-รุ่น 0.2.3 · 18 พ.ย. 2569 · คู่กับ `implementation-plan.json` (schema 1.5.0)
+รุ่น 0.2.4 · 18 พ.ย. 2569 · คู่กับ `implementation-plan.json` (schema 1.5.0)
 
 ## สถาปัตยกรรม
 
@@ -19,6 +19,7 @@ Static site, ES modules ผ่าน import map ที่มี cache tag เด
 | `js/map-layers.js` | ป้ายชื่อย่าน/จังหวัด และ (0.1.3) ชื่อข้างจุดของชุดที่เลือก |
 | `js/rail.js` · `scripts/build-rail.py` (0.2.3) | ระบบรางเป็นบริบทบนแผนที่: แนวราง สถานี ที่หยุดรถไฟทางไกล ป้ายเมื่อชี้ (สายและสถานีที่เชื่อมกัน) สีกลางสีเดียว ไม่นับรวม |
 | `js/layers.js#framePoints` · `js/app.js#fitNb` (0.2.3) | เลือกย่านแล้วจัดกรอบพอดีขอบย่านในแผนที่ที่ว่าง ด้วย `fitBuilding` ของ shell |
+| `scripts/draw-outline-amendment.py` · `amendments/` · `build-data.py --outline-amendments` (0.2.4) | ขอบย่านที่เจ้าของสั่งปรับ (นิมมาน–เมญ่า) วาดตามหลักเกณฑ์ขอบย่านจากขอบของทะเบียนกับรูปแปลง OpenStreetMap ใช้กับขอบเดิมที่ตรง SHA-256 เท่านั้น ห้ามลดพื้นที่หรือทับขอบอื่น (`DATA_METHOD.md` §2b) |
 | `js/scales.js` · `js/cues.js` | สเกล LDS และรูปทรงของหมวด |
 | `js/shell/` | citymeter-shell (ห้ามแก้ที่นี่ที่เดียว) |
 

@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {readJSON, ROOT} from './helpers.js';
-import {decodeRail, railTipHTML, installRailLayers, RAIL_LAYERS, HIDDEN_BASEMAP, RAIL_MIN_ZOOM, STATION_MIN_ZOOM, NAME_MIN_ZOOM} from '../js/rail.js';
+import {decodeRail, railTipHTML, installRailLayers, RAIL_LAYERS, HIDDEN_BASEMAP, RAIL_MIN_ZOOM, STATION_MIN_ZOOM, NAME_MIN_ZOOM, RAIL_WIDTH} from '../js/rail.js';
 import {OUTLINE_MIN_ZOOM} from '../js/layers.js';
 
 const rail = readJSON('data/rail.json');
@@ -153,6 +153,25 @@ test('drawn quiet: one neutral ink, no identity or series colour, no opacity; li
   handle.dispose();
   for (const id of Object.values(RAIL_LAYERS)) assert.equal(map.getLayer(id), undefined, id);
   for (const id of HIDDEN_BASEMAP) assert.equal(map.getLayoutProperty(id, 'visibility'), 'visible', id);
+});
+
+test('0.2.4 legible (owner 17:05 “ระบบรางเงียบไปนิดครับ แทบมองไม่เห็น ปรับหน่อย”): the darker neutral ink, wider lines and dots, still under the outlines', () => {
+  const map = fakeMap();
+  installRailLayers(map, decodeRail(rail), {beforeGround: 'massing-city', beforeLabels: 'water-name'});
+  const paint = id => map.getLayer(id).paint;
+  // node has no stylesheet: cssVar falls back to the light theme's value of each token
+  for (const id of [RAIL_LAYERS.line, RAIL_LAYERS.build, RAIL_LAYERS.osm]) assert.equal(paint(id)['line-color'], '#5F635A', `${id}: --text-secondary`);
+  assert.equal(paint(RAIL_LAYERS.name)['text-color'], '#5F635A');
+  const at = (expr, z) => { const stops = expr.slice(3); for (let i = 0; i < stops.length; i += 2) if (stops[i] === z) return stops[i + 1]; return NaN; };
+  assert.ok(at(paint(RAIL_LAYERS.line)['line-width'], 12) >= 2.2, 'a line in service at zoom 12');
+  assert.ok(at(paint(RAIL_LAYERS.casing)['line-width'], 12) - at(paint(RAIL_LAYERS.line)['line-width'], 12) >= 2, 'its casing reads apart from the roads');
+  assert.ok(RAIL_WIDTH[18] < 5, 'thinner than the outlines\' coloured edge at zoom 17 (5 px)');
+  assert.ok(at(paint(RAIL_LAYERS.osm)['line-width'], 12) >= 1.3, 'the national railway');
+  assert.ok(at(paint(RAIL_LAYERS.station)['circle-radius'], 13) >= 3.4, 'stations');
+  const src = readFileSync(join(ROOT, 'js/rail.js'), 'utf8');
+  assert.doesNotMatch(src, /cssVar\('--text-muted'/, 'the 0.2.3 ink was lost among the roads');
+  const css = readFileSync(join(ROOT, 'styles.css'), 'utf8');
+  assert.match(css, /\.legend-rail::before \{[^}]*height: 3px;[^}]*var\(--text-secondary\)/, 'the legend swatch matches');
 });
 
 test('the legend item, the method and the attribution carry the rail provenance from the data, not from constants', () => {

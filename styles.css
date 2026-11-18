@@ -1154,11 +1154,11 @@ td.num, th.num { text-align: right; }
 .legend-lodging { box-sizing: border-box; width: 16px; height: 10px; border: 2px dotted var(--text-secondary); border-radius: 2px; }
 /* Rail context (0.2.3, js/rail.js): one neutral ink, a line and a station dot; shown where the lines are drawn (zoom ≥ 10.5). */
 .legend-rail { position: relative; width: 16px; height: 10px; flex: 0 0 16px; }
-.legend-rail::before { content: ''; position: absolute; left: 0; right: 0; top: 4px; height: 2px; border-radius: 1px; background: var(--text-muted); }
-.legend-rail::after { content: ''; position: absolute; left: 5px; top: 2px; width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); box-shadow: 0 0 0 1px var(--basemap-ground); }
+.legend-rail::before { content: ''; position: absolute; left: 0; right: 0; top: 3.5px; height: 3px; border-radius: 1.5px; background: var(--text-secondary); }
+.legend-rail::after { content: ''; position: absolute; left: 4.5px; top: 1.5px; width: 7px; height: 7px; border-radius: 50%; background: var(--text-secondary); box-shadow: 0 0 0 1.2px var(--basemap-ground); }
 .map-panel:not(.is-detail-zoom) .legend-rail-item { display: none; }
-.rail-tip-mark { flex: 0 0 8px; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: var(--text-muted); }
-.rail-tip-mark.is-hollow { box-sizing: border-box; background: transparent; border: 1.5px solid var(--text-muted); }
+.rail-tip-mark { flex: 0 0 8px; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: var(--text-secondary); }
+.rail-tip-mark.is-hollow { box-sizing: border-box; background: transparent; border: 1.5px solid var(--text-secondary); }
 .rail-tip-mark.is-stop { border-radius: 1px; }
 .lodging-status { margin: 2px 0 8px; font-weight: 600; }
 .lodging-status.is-held { font-weight: 400; color: var(--text-secondary); }

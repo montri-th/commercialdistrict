@@ -10,7 +10,8 @@ makes).
 
 - **ย่าน** = ย่านกลางที่มีขอบปิดในทะเบียนย่านกลาง CityMETER (ฉบับร่าง ยังไม่ตรวจภาคสนาม) รหัสกลาง `CMN-TH-…`
 - **จำนวนในย่าน** = จำนวนรายการของชุดข้อมูลนั้นที่มีพิกัดและพิกัดอยู่ในขอบย่าน แต่ละชุดใช้หน่วยของตัวเอง (แห่ง สาขา ร้าน จุดขาย ทะเบียน รายการ สถานี–สาย) และ **ไม่บวกข้ามชุด**
-- **ต่อ ตร.กม.** = จำนวนในย่าน ÷ พื้นที่ย่านตามทะเบียน (`area_m2` ของทะเบียน ไม่คำนวณใหม่)
+- **ต่อ ตร.กม.** = จำนวนในย่าน ÷ พื้นที่ย่านตามทะเบียน (`area_m2` ของทะเบียน ไม่คำนวณใหม่) · ย่านนิมมาน–เมญ่าที่ขอบปรับเพิ่ม
+  18 พ.ย. 2569 (§2b) ใช้พื้นที่ของขอบที่ปรับ วัดใน UTM 47N แบบที่ทะเบียนวัดของตัวเอง
 - **ไม่มีข้อมูลในจังหวัดนี้ (—)** = ชุดข้อมูลไม่มีรายการที่มีพิกัดเลยในจังหวัดของย่าน จึงไม่รู้ ไม่ใช่ 0 · **0** = ชุดข้อมูลมีรายการในจังหวัด แต่ไม่มีรายการใดอยู่ในขอบย่าน
 - **สัดส่วน** = จำนวนในย่าน ÷ รายการที่มีพิกัดของชุดนั้น (ทั้งประเทศ หรือในจังหวัด) ตัวตั้งและตัวหารอยู่ข้างตัวเลขหรือในคำอธิบายของมัน
 - **จุดเด่น** = ย่านติดกลุ่มบนของกลุ่มเทียบ ทุกข้อบอกกลุ่มเทียบและจำนวน (§5)
@@ -32,8 +33,9 @@ in §9 are published.
 
 ## 2. Neighbourhoods
 
-**Observed fact.** 395 outlines in 77 provinces, 94.99 km²: the registry's 358 closed outlines (80.81 km², registry
-`area_m2` in its metric CRS, 0.05 ha to 217 ha) and, since 0.2.0, 37 lodging areas of its lodging screen (14.18 km², §2a).
+**Observed fact.** 395 outlines in 77 provinces, 95.03 km²: the registry's 358 closed outlines (80.86 km², registry
+`area_m2` in its metric CRS, 0.05 ha to 217 ha; since 0.2.4 one of them extended on the owner's word, §2b) and, since
+0.2.0, 37 lodging areas of its lodging screen (14.18 km², §2a).
 The registry's partition has no overlap of positive area (`meta.bundle.revision.positive_area_overlap_pairs` = 0) and
 the 37 lodging areas overlap none of its outlines (measured: 0), so a point belongs to at most one neighbourhood; a
 point on a shared edge goes to the first outline in order — the registry's in canonical order, then the lodging areas
@@ -87,6 +89,52 @@ The display outlines (`data/boundaries.geojson`) are the delivered outlines simp
 (`-simplify interval=1.5 keep-shapes`, shared edges kept, 6 decimals). Every count uses the delivered outline, never the
 display copy. The outlines are drafts pending local confirmation — not an administrative boundary, a legal line or a
 title — and the page says “ขอบย่านฉบับร่าง” in its provenance line.
+
+## 2b. An outline extended on the owner's word (0.2.4)
+
+Owner 2026-11-18 17:05, VERBATIM: “ขอปรับย่าน นิมมาน-เมญ่า เชียงใหม่ ควรรวม ศูนย์การค้า Maya, กาดรินคำ,
+วิทยาลัยสารพัดช่างเชียงใหม่เข้าเป็นส่วนหนึ่งของย่านนี้ด้วย”.
+
+**Observed fact.** The registry's outline of `CMN-TH-FB55C19EF1` นิมมาน–เมญ่า (265,550.82 m²) stops at the south side
+of Huay Kaew Road; Maya, Kad Rin Kham and Chiang Mai Polytechnic College stand across it. `amendments/outline-amendments.geojson`
+holds the extended outline (308,121.72 m², +42,570.90 m², one polygon, no hole), drawn by
+`scripts/draw-outline-amendment.py` from the registry outline and four OpenStreetMap ways kept in
+`amendments/osm-rincome-2026-11-18.json` (Overpass, osm_base 2026-11-18T10:08:51Z, © OpenStreetMap contributors, ODbL 1.0):
+way/249154472 เมญ่า (Maya Lifestyle Shopping Center, a mall building), way/470067655 กาดรินคำ (retail ground),
+way/580288757 วิทยาลัยสารพัดช่างเชียงใหม่ (the college campus) and way/580288714 The Wall (retail ground between the campus
+and the market).
+
+**Inference** — how the registry's outline rules (หลักเกณฑ์ขอบย่าน, policy 2026-11-17-commercial-recovery-9) read here;
+the registry itself has not ruled on it:
+- CONTEXT: membership follows the name people use, and the neighbourhood's own name says Maya.
+- WHOLE: the sites whole; a campus is not left out for being a school. The Wall is taken in so the block reads as one:
+  without it the campus would join only along the road.
+- CROSSING: the road between the outline and the sites is joined where crossings are mapped on Huay Kaew (OSM
+  node/11786310252 in front of Kad Rin Kham, node/11786310251 and node/11786310253 in front of Maya, the signals of the
+  Rin Kham junction node/6464982677, node/6465042941 and node/6465042942): a closing of 25 m of the outline and the
+  sites, kept within 45 m of both.
+- BAY: the lane between Kad Rin Kham and Maya (narrower than 20 m) is closed along its length.
+- OVERLAP: no other registry outline within 1.2 km (the nearest, ท่าแพ–เมืองเก่าเชียงใหม่, is 1,272 m away); the lodging
+  screen's draft ช้างเผือก–เสริมสุข (`CMN-TH-5CAEA7F9C8`) lies 13 m to the east, as it did from the registry's outline,
+  and the extension overlaps it nowhere.
+
+The registry's own outline stays whole inside the extended one, and its reference point (Google Maps, Street View) is
+unchanged. The build (`--outline-amendments`) refuses an amendment drawn from an outline the registry has since changed
+(the SHA-256 of its geometry), one that would take area from it, and one that overlaps another outline or a lodging
+draft. In the data: the row's `amended` (the date) and `areaM2` measured in UTM 47N as the registry measures its own
+(the registry's figure stays in `meta.amendments.items[].registryAreaM2`); `meta.amendments` (the file and its SHA-256,
+the places taken in with their OpenStreetMap ids, the rules, the crossings, the OpenStreetMap release);
+`data/boundaries.geojson` `metadata.amended`. The panel says “ปรับเพิ่ม 18 พ.ย. 2569 … รอทะเบียนรับในรุ่นถัดไป” where the
+outline is described and “ขอบย่านฉบับร่าง ปรับเพิ่ม … จาก OpenStreetMap” in the provenance line; the map's credit line
+already names OpenStreetMap for the outlines (ODbL). When the registry's next release carries an outline for this code, the amendment is dropped.
+
+**What changed (Observed fact, against 0.2.3).** Six records came inside, all at Maya or Kad Rin Kham: Rincome night
+market (SC-015705) and NightOut Market (SC-015704) of ศูนย์การค้าและตลาด, BIG CAMERA at Maya (ร้านกล้อง), Rimping Maya
+(ร้านค้าปลีกของใช้), GENTLEWOMAN at Maya (แบรนด์หรู) and Watsons at Maya (ร้านยา). The neighbourhood's first highlight is
+now ศูนย์การค้าและตลาด (4 records, 23rd of 395 by count); before it was ที่พัก. Every other neighbourhood keeps its
+counts; ranks, highlight strengths and the pairs of §6 move where this one passes others, as peers do (§5). Maya itself
+is not a record of the shopping-centre dataset. The college's point in the School demo (its ONESQA registration point)
+lies 184 m west of the extended outline and stays outside: that point is the School demo's, not moved here.
 
 ## 3. Datasets and their default scope
 
@@ -195,7 +243,8 @@ claim that two places perform alike.
   the outline, so the 173 outlines under 640 m across read small. Measured on the real map with the basemap stubbed
   (`handoff/VERIFICATION.md`): every outline inside the free map; an outline over 200 m across takes 73–78 % of it,
   on a desktop and at 393 px, in 3D and in plan (before: 4–42 % in 3D on a desktop).
-- Rail runs under the neighbourhoods as context (0.2.3, §9b): lines and stations in one neutral ink.
+- Rail runs under the neighbourhoods as context (0.2.3, §9b): lines and stations in one neutral ink, darker and wider
+  since 0.2.4.
 
 ## 9a. Records of the open neighbourhood (0.1.3)
 
@@ -252,7 +301,7 @@ Owner 2026-11-18 15:32: “ในแผนที่อยากให้แส�
 - **The same stations as the dataset สถานีราง.** That dataset counts Transit's station–line records per neighbourhood
   like every dataset (§3; 301 — the 305 less the 4 not confirmed); `data/rail.json` is built from the same file, byte
   for byte (`tests/rail.test.js`). The rail context itself counts nothing: no share, rank, role or density reads it.
-- **Quiet by role, never by opacity.** One neutral ink (`--text-muted`) for every line and station, never a line's
+- **Quiet by role, never by opacity.** One neutral ink (`--text-secondary` since 0.2.4) for every line and station, never a line's
   identity colour or a categorical series (those mark the pillars here); the neighbourhoods' fills sit under it, their
   outlines, pins and records above it. Line and shape tell the kinds apart: in service = solid line on a ground-coloured
   casing and a filled dot · under construction = dashed line (the Transit demo's dash) and a hollow dot (also the
@@ -260,6 +309,12 @@ Owner 2026-11-18 15:32: “ในแผนที่อยากให้แส�
   basemap's own rail and transit lines are hidden on this map: they drew the same lines a second time. Lines from zoom 9
   (the outlines' zoom), stations from 11, names from 14 (national stops from 12); lines and dots under the 3D buildings,
   squares and names above them under the basemap's labels.
+- **Legible (0.2.4).** Owner 2026-11-18 17:05, VERBATIM: “ระบบรางเงียบไปนิดครับ แทบมองไม่เห็น ปรับหน่อย”. 0.2.3 drew it in
+  `--text-muted` at 1–3.2 px, lost among the basemap's roads. Now `--text-secondary` (the ink of the outlines' own line;
+  light #5F635A, dark #C4CECA): a line in service 1.4 px at zoom 9, 2.2 at 12, 3.2 at 15 and 4.6 at 18 on a casing
+  about 2–3 px wider (`js/rail.js` `RAIL_WIDTH`), under construction 0.85 of it, the railway 0.9–2.8 px, stations
+  2.6–6 px in radius, squares and names a step larger. It stays neutral and under the outlines: their data colours lead,
+  and their coloured edge (3–5 px from zoom 14) stays wider than a line in service.
 - **Reading it.** A pointer resting on a station shows its name, its lines as published, a status other than in
   service and, at an interchange, the stations it connects with; a national stop shows its province. The legend's
   ระบบราง and the map's credits carry the dataset, sources, date and boundary from `data/rail.json`
@@ -267,7 +322,8 @@ Owner 2026-11-18 15:32: “ในแผนที่อยากให้แส�
 
 ## 10. Published fields
 
-Per neighbourhood: code, name, other names, province, registry area, reference point, box, name status, whether the
+Per neighbourhood: code, name, other names, province, registry area (for an outline extended on the owner's word, its
+own area and the date, `amended`, §2b), reference point, box, name status, whether the
 outline was walked, the proposed roles, the kind (registry or lodging: the outline's origin) and whether it is first
 drawn in this release, its lodging screen when it has one (§2a), and the counts, measures, subgroup counts, ranks,
 highlights and pairs. Per held or collection name: code, name, province, status, the related codes, its lodging screen
@@ -281,7 +337,10 @@ registry's internal working fields — field questions and the segments still to
 notes, outline policy versions and the bundle's review counts — nor the registry's address, its export, its evidence
 rows' text, reviewer notes or any person's name. Rail context (0.2.3, `data/rail.json`): per line its id, names and status;
 the merged alignments; per station point, names, lines and status; Transit's interchange groups by name; per national
-stop point, name and province — no ridership, operator records or source addresses.
+stop point, name and province — no ridership, operator records or source addresses. Outline amendments (0.2.4,
+`meta.amendments`): per amended code its date, both areas, the places taken in with their OpenStreetMap ids and
+names, the rules, the crossings and the OpenStreetMap release; `amendments/` holds the outline and the OpenStreetMap
+ways it was drawn from (public data, ODbL).
 
 ## 11. Rebuild
 
@@ -298,9 +357,12 @@ cp <bundle dir>/gis/revision-summary.json <outlines dir>/national-gis/revision-s
 python3 -I scripts/build-data.py --bundle <outlines dir> --bundle-zip <bundle.zip> --registry <export.xlsx> \
   --repos <clones at main> --commits commits.json --mapshaper <mapshaper> --condo <condominium export.xlsx> --condo-read-on 2026-11-16 \
   --lodging <bundle dir>/lodging-held78-recovery-2026-11-18 --prev-canonical <the previous release's canonical-boundaries.geojson> \
-  --admitted <read-back.json> --admitted-on 2026-11-18 --out data
+  --admitted <read-back.json> --admitted-on 2026-11-18 --outline-amendments amendments/outline-amendments.geojson --out data
 # 6. (0.2.3) the rail context, from the Transit clone (clean in data/; its commit and file hashes go into meta)
 python3 -I scripts/build-rail.py --transit <clone of montri-th/transit> --out data/rail.json
+# 7. (0.2.4) an outline extended on the owner's word (§2b) is drawn once, from the registry outline and the OpenStreetMap
+#    ways kept in amendments/, before step 5; redraw it only if the registry changes that outline (the build says so)
+python3 -I scripts/draw-outline-amendment.py <outlines dir> amendments/osm-rincome-2026-11-18.json amendments/outline-amendments.geojson
 npm test
 node scripts/check-lds-parity.mjs --lds <Landometer-Design-System-v0.9.7.md>
 ```

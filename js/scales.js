@@ -5,7 +5,7 @@
  * nothing is interpolated here.
  *
  * Families used by this product (selected from metric + unit + denominator):
- *   `density.area` — records of one dataset per km² of the neighbourhood (denominator = the registry's area_m2): the
+ *   `density.area` — records of one dataset per km² of the neighbourhood (denominator = the registry's area_m2, or an owner-amended outline's own area — meta.amendments): the
  *                    map when a dataset is chosen, its legend and the ranking bars. Warm by denominator (owner
  *                    2026-09-29: area orange). Values of the same family as CityMETER · Restaurants
  *                    (montri-th/restaurant js/scales.js, parity-checked there against the same file).
