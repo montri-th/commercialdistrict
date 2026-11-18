@@ -1,6 +1,6 @@
 # CityMETER · Commercial District
 
-> The central neighbourhood registry of CityMETER (343 closed draft outlines in 77 provinces, 80.2 km²) against the located records of 16 CityMETER demo datasets — Land (hotels, industrial estates, offices, shopping centers), Location (camera shops, factories, fitness, grocery, luxury brands, pharmacies, restaurants), Living (government offices, hospitals, schools, rail stations, universities): what each neighbourhood stands out for against named peers, which datasets rise together across neighbourhoods, which neighbourhoods have a similar mix, and up to four side by side. A Landometer CityMETER demo, release 0.1.0 (2026-11-16), Thai with an English reading (?lang=en). Registry read 2026-11-16; each dataset's date is its own.
+> The central neighbourhood registry of CityMETER (release 2026-11-17: 358 closed draft outlines, plus 37 lodging areas of its lodging screen counted as neighbourhoods here by the owner's decision of 2026-11-18; 395 outlines in 77 provinces, 95.0 km²) against the located records of 16 CityMETER demo datasets — Land (hotels, industrial estates, offices, shopping centers), Location (camera shops, factories, fitness, grocery, luxury brands, pharmacies, restaurants), Living (government offices, hospitals, schools, rail stations, universities): what each neighbourhood stands out for against named peers, which datasets rise together across neighbourhoods, which neighbourhoods have a similar mix, and up to four side by side. A Landometer CityMETER demo, release 0.2.0 (2026-11-18), Thai with an English reading (?lang=en). Registry read 2026-11-18; each dataset's date is its own.
 
 What one figure means:
 - neighbourhood = a closed draft outline of the central registry (code CMN-TH-…). Drafts pending local confirmation: not an administrative boundary, a legal line or a title. 27 more registry codes have no closed outline yet; they are searchable, never counted.
@@ -13,7 +13,8 @@ What one figure means:
 - similar mix = correlation of centred log density across the datasets two neighbourhoods share (an inference, a starting point for a comparison).
 
 Snapshot (release 0.1.0; fixtures, recompute from data):
-- 343 neighbourhoods = 0.016% of the area of the 77 provinces, but 69% of the located luxury points of sale (237 of 345), 42% of the offices (178 of 427), 40% of the camera shops (94 of 236), 38% of the fitness branches (56 of 149), 29% of the rail station-line records (88 of 301); 0 of 46 industrial estates.
+- 395 neighbourhoods = 0.018% of the area of the 77 provinces, but 69% of the located luxury points of sale (237 of 345), 42% of the offices (179 of 427), 40% of the camera shops (94 of 236), 38% of the fitness branches (56 of 149), 29% of the rail station-line records (88 of 301); 0 of 69 industrial estates.
+- Lodging screen of the registry (0.2.0): 268 proposals from 30,730 lodging records, walking 400/800 m; 193 supported, 75 held; shown per neighbourhood as a walking model, not a survey.
 - Bangkok: 75 neighbourhoods = 1.3% of the province; 82% of its luxury points of sale (232 of 284).
 - Strongest pairs: camera shops + luxury brands ρ 0.67 (136 neighbourhoods), fitness + luxury brands 0.56, camera shops + fitness 0.54, offices + fitness 0.52, grocery + restaurants 0.40.
 
@@ -21,6 +22,7 @@ Deep links (https://montri-th.github.io/commercialdistrict/):
 - ?at={province code} — e.g. BKK, CMI, PKT (production codes)
 - ?f.neighborhood={CMN-TH code} — a neighbourhood (with its province in at)
 - ?m={dataset} — colour by one dataset's density: hotel, industrialestate, office, shoppingcenter, camera, factory, fitness, grocery, luxurybrands, pharmacy, restaurant, governmentoffice, hospital, school, transit, university
+- ?f.kind={registry, lodging or added} — the kind of neighbourhood shown (0.2.0): the registry's outlines, the lodging areas, or those first drawn in this release
 - ?f.show={dataset, condo or all} — with a neighbourhood open, one set at a time: its records larger with names, the others small dots (0.1.3); without it a neighbourhood opens on its first highlight with records, or on the ?m dataset when it has records there (0.1.4); all = every set alike
 - ?cmp={code},{code}… — compare up to four · ?f.search={text} · ?v3d=0 — plan view · ?lang=en — English
 

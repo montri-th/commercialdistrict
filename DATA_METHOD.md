@@ -21,8 +21,8 @@ makes).
 
 | Source | What is read | Identity |
 |---|---|---|
-| ทะเบียนย่านกลาง CityMETER (Google Sheet, internal; owner's export) | names and other names (ชื่อกลาง), the roles the registry proposes from its evidence rows (หลักฐานบทบาท) | read 2026-11-16 · export SHA-256 `meta.registry.exportSha256` |
-| Owner bundle «CityMETER • ทะเบียนย่าน ขอบเขต และหลักฐานล่าสุด.zip» | `national-gis/canonical-boundaries.geojson` (370 canonical codes: 343 closed draft outlines, 17 held, 10 collections) and its revision summary | zip SHA-256 `meta.bundle.sha256` · outlines SHA-256 `meta.bundle.boundariesSha256` |
+| ทะเบียนย่านกลาง CityMETER (Google Sheet, internal; owner's export) | names and other names (ชื่อกลาง), the roles the registry proposes from its evidence rows (หลักฐานบทบาท), (0.2.0) the outline review of its lodging screen (ย่านที่พัก 268, column ผลทบทวนขอบ) | read 2026-11-18 (release 2026-11-17-commercial-recovery-9) · export SHA-256 `meta.registry.exportSha256` |
+| Owner bundle «CityMETER • ทะเบียนย่าน ขอบเขต และหลักฐานล่าสุด.zip» (read 2026-11-18) | `national-gis/canonical-boundaries.geojson` (release 2026-11-17-commercial-recovery-9: 370 canonical codes, 358 closed draft outlines, 2 held, 10 collections; since 2026-11-18 stored as a lossless byte alias, restored with `scripts/restore-bundle-member.py`, every SHA-256 checked) and its revision summary (`gis/revision-summary.json`) · (0.2.0) the current lodging review `lodging-held78-recovery-2026-11-18`: `decision-ledger.json` (268 proposals) and `boundaries/current-all268-review-drafts.geojson` (130 review drafts) | zip SHA-256 `meta.bundle.sha256` · outlines SHA-256 `meta.bundle.boundariesSha256` · lodging revision `meta.lodging.revision` |
 | 16 CityMETER demo datasets | each demo's own data file, read with the demo's own default scope (§3) | repository, file, commit and SHA-256 per dataset in `datasets[].source` |
 | Province outlines | `data/provinces.geojson` (77 CityMETER production provinces) | copied unchanged from `montri-th/university@ed2f350` (SHA-256 `9f5b57ef…a8ce62`) |
 | Building units | `data/building-units/` (where the 3D focus draws CityMETER Building V4 instead of OpenStreetMap) | copied unchanged from `montri-th/university@ed2f350` (index SHA-256 `b565ee80…01f75`) |
@@ -32,11 +32,41 @@ in §9 are published.
 
 ## 2. Neighbourhoods
 
-**Observed fact.** 343 closed outlines in 77 provinces, 80.22 km² (registry `area_m2`, metric CRS of the registry),
-from 0.05 ha to 217 ha. The partition has no overlap of positive area (`meta.bundle.revision.positive_area_overlap_pairs`
-= 0), so a point belongs to at most one neighbourhood; a point on a shared edge goes to the first outline in canonical
-order (shapely `covers`). 27 codes have no closed outline (17 held, 10 collection names); they are searchable and listed
-with the neighbourhoods they relate to, never counted or drawn.
+**Observed fact.** 395 outlines in 77 provinces, 94.99 km²: the registry's 358 closed outlines (80.81 km², registry
+`area_m2` in its metric CRS, 0.05 ha to 217 ha) and, since 0.2.0, 37 lodging areas of its lodging screen (14.18 km², §2a).
+The registry's partition has no overlap of positive area (`meta.bundle.revision.positive_area_overlap_pairs` = 0) and
+the 37 lodging areas overlap none of its outlines (measured: 0), so a point belongs to at most one neighbourhood; a
+point on a shared edge goes to the first outline in order — the registry's in canonical order, then the lodging areas
+(shapely `covers`). 12 codes have no closed outline (2 held, 10 collection names) and 42 lodging areas have no draft;
+they are searchable and listed, never counted or drawn.
+
+**What changed with the registry of 2026-11-17 (Observed fact).** Against the data of 16 Nov 2026 (343 closed
+outlines): 15 codes that were held now have a closed draft outline, most under a new name (`rows[].added`); the 343
+outlines drawn before are the same shapes (131 were written out again with their vertices in another order: area and
+shape unchanged, intersection over union 1.0); no code was added or removed.
+
+## 2a. Lodging areas (0.2.0)
+
+The registry's lodging screen (`ย่านที่พัก 268`, revision `lodging-held78-recovery-2026-11-18-r1`) proposes 268 lodging
+cores from a lodging register of 30,730 records by walking 400 and 800 m on the path network from an assessment start
+point, with services reached on foot; 193 are supported by the model, 75 held. 189 proposals sit on existing codes; 79
+are new areas (`LP-NEW-…`). The registry has admitted none as a central code (`canonical_codes_admitted` 0; its rule:
+a walking context or a draft outline does not assign a neighbourhood). Owner 2026-11-18, VERBATIM: “2 และ update เป็นย่านในทะเบียน”
+— the 79 new areas are neighbourhoods of this demo: the 37 with a review draft are drawn (dotted outline) and counted,
+ranked and compared like the registry's outlines; the 42 without one are searchable only. Their area is the draft's
+`draft_area_m2`; 11 drafts carry none and are measured the same way (UTM 47N/48N; on the 106 drafts that carry it, the
+largest difference is 1.4 × 10⁻⁶ of the area). A start point at the shore that falls outside the simplified province
+outlines takes the screen's display province.
+
+Every proposal publishes, on its neighbourhood (`rows[].lodging`) or its searchable name (`pending[].lodging`): the
+status (`st`, labels of the registry's ledger in `meta.lodging.statuses`), lodging places reached within 400 and 800 m
+counted when the walk plus a 50 m allowance stays within the distance (`h4`, `h8`), the rooms/units the sources report
+within 800 m and the places with no room figure (`ru`, `rx`), the service categories reached within 400 and 800 m
+(`sv4`, `sv8`), the state of its outline review (`bd`, the registry's own label) and whether a draft is drawn (`draft`).
+A blank figure is unknown, never 0. These are a walking model: not a survey of what is open, not available rooms,
+guests or revenue, and their boundary is the walk from the start point, not the neighbourhood's outline — the Hotel
+count inside the outline is the separate figure of §3. Not published: the start points, the evidence and its names and
+links, reviewers, dates of review, field questions and notes.
 
 The display outlines (`data/boundaries.geojson`) are the delivered outlines simplified with mapshaper
 (`-simplify interval=1.5 keep-shapes`, shared edges kept, 6 decimals). Every count uses the delivered outline, never the
@@ -47,22 +77,25 @@ title — and the page says “ขอบย่านฉบับร่าง” 
 
 | Pillar | Dataset | Unit | What is counted (the demo's default scope) | Records / located | Provinces reached | As of | Source |
 |---|---|---|---|---:|---:|---|---|
-| Land | ที่พัก (Hotel) | แห่ง | ทุกรายการที่พักในชุดข้อมูล | 30,729 / 29,149 | 77 | 2026-11-08 | `montri-th/hotel` `data/hotels.json` @`eae71fb` |
-| Land | นิคมอุตสาหกรรม (Industrial Estate) | แห่ง | นิคม สวน และเขตอุตสาหกรรมที่มีขอบในเดโม ใช้จุดภายในขอบ | 106 / 46 | 16 | 2026-10-26 | `montri-th/factory` (industrialestate) @`d37f4ac` |
-| Land | สำนักงาน (Office) | รายการ | ทุกรายการสำนักงาน หนึ่งรายการอาจเป็นบางชั้นของอาคาร | 608 / 427 | 19 | 2026-11-02 | `montri-th/office` @`c874f66` |
-| Land | ศูนย์การค้าและตลาด (Shopping Center) | แห่ง | สถานที่ค้าปลีกที่นับได้และแหล่งยังระบุว่าเปิด | 6,153 / 6,141 | 77 | 2026-11-07 | `montri-th/shoppingcenter` @`a65bd04` |
-| Location | ร้านกล้อง (Camera Shops) | สาขา | สาขาขายปลีกตามค่าเริ่มต้นของเดโม | 252 / 236 | 63 | 2026-10-23 | `montri-th/camera` @`5caee6e` |
-| Location | โรงงาน (Factory) | ทะเบียน | ทะเบียนโรงงานทุกขนาด วางได้เฉพาะทะเบียนที่มีพิกัด | 74,047 / 15,654 | 70 | 2026-11-04 | `montri-th/factory` @`d37f4ac` |
-| Location | ฟิตเนส (Fitness) | สาขา | สาขาที่แหล่งยังระบุ ณ วันตรวจ | 358 / 149 | 21 | 2026-10-26 | `montri-th/fitness` @`a6511b3` |
-| Location | ร้านค้าปลีกของใช้ (Grocery) | ร้าน | จุดร้านของ 17 แบรนด์ ตำแหน่งจาก vector tile | 27,607 / 27,607 | 77 | 2026-10-22 | `montri-th/grocery` @`5905ade` |
-| Location | แบรนด์หรู (Luxury Brands) | จุดขาย | จุดขายจากรอบ refresh ที่แหล่งยังระบุ | 345 / 345 | 9 | 2026-10-21 | `montri-th/luxurybrands` @`ddbbfcc` |
-| Location | ร้านยา (Pharmacy) | ร้าน | ร้านที่มีใบอนุญาต ขย1 วางได้เฉพาะร้านที่มีจุด | 18,136 / 2,573 | 77 | 2026-10-22 | `montri-th/pharmacy` @`81e75aa` |
-| Location | ร้านอาหาร (Restaurants) | ร้าน | ทุกร้านในชุดข้อมูล ตำแหน่งแสดงผลจาก tile | 70,214 / 70,214 | 7 | 2026-10-22 | `montri-th/restaurant` @`142a989` |
-| Living | หน่วยงานรัฐ (Government Office) | แห่ง | ทุกจุดของชุดข้อมูลหน่วยงานรัฐ ทุกหมวด | 20,568 / 20,568 | 77 | 2026-11-06 | `montri-th/governmentoffice` @`7cadf90` |
-| Living | สถานพยาบาล (Hospital) | แห่ง | สถานพยาบาลทุกประเภท วางได้เฉพาะที่มีจุด | 41,828 / 12,516 | 77 | 2026-11-01 | `montri-th/hospital` @`80d6e60` |
-| Living | สถานศึกษา (School) | แห่ง | สถานศึกษาทุกสังกัดในฐานปี 2569 วางได้เฉพาะที่มีจุด | 40,827 / 33,077 | 77 | 2026-10-31 | `montri-th/school` @`80f13e8` |
-| Living | สถานีราง (Transit) | สถานี–สาย | หนึ่งรายการต่อหนึ่งสาย ไม่รวมสถานีที่ยังยืนยันไม่ได้ | 301 / 301 | 17 | 2026-10-31 | `montri-th/transit` @`a305eee` |
-| Living | มหาวิทยาลัย (University) | แห่ง | วิทยาเขตและพื้นที่ที่ทีมวิจัยตรวจ ไม่แบ่งนักศึกษาตามจุด | 190 / 188 | 59 | 2026-11-10 | `montri-th/university` @`ed2f350` |
+| Land | ที่พัก (Hotel) | แห่ง | ทุกรายการที่พักในชุดข้อมูล | 30,729 / 29,149 | 77 | 2026-11-08 | `montri-th/hotel` `data/hotels.json` @`7fde352` |
+| Land | นิคมอุตสาหกรรม (Industrial Estate) | แห่ง | นิคม สวน และเขตอุตสาหกรรมที่มีขอบในเดโม ใช้จุดภายในขอบ | 106 / 69 | 18 | 2026-10-26 | `montri-th/factory` (industrialestate) @`2c206d1` |
+| Land | สำนักงาน (Office) | รายการ | ทุกรายการสำนักงาน หนึ่งรายการอาจเป็นบางชั้นของอาคาร | 608 / 427 | 19 | 2026-11-02 | `montri-th/office` @`d3bcf6b` |
+| Land | ศูนย์การค้าและตลาด (Shopping Center) | แห่ง | สถานที่ค้าปลีกที่นับได้และแหล่งยังระบุว่าเปิด | 6,153 / 6,141 | 77 | 2026-11-07 | `montri-th/shoppingcenter` @`3711e6e` |
+| Location | ร้านกล้อง (Camera Shops) | สาขา | สาขาขายปลีกตามค่าเริ่มต้นของเดโม | 252 / 236 | 63 | 2026-10-23 | `montri-th/camera` @`a7d211f` |
+| Location | โรงงาน (Factory) | ทะเบียน | ทะเบียนโรงงานทุกขนาด วางได้เฉพาะทะเบียนที่มีพิกัด | 74,047 / 15,654 | 70 | 2026-11-16 | `montri-th/factory` @`2c206d1` |
+| Location | ฟิตเนส (Fitness) | สาขา | สาขาที่แหล่งยังระบุ ณ วันตรวจ | 358 / 149 | 21 | 2026-10-26 | `montri-th/fitness` @`8e74768` |
+| Location | ร้านค้าปลีกของใช้ (Grocery) | ร้าน | จุดร้านของ 17 แบรนด์ ตำแหน่งจาก vector tile | 27,607 / 27,607 | 77 | 2026-10-22 | `montri-th/grocery` @`14294f3` |
+| Location | แบรนด์หรู (Luxury Brands) | จุดขาย | จุดขายจากรอบ refresh ที่แหล่งยังระบุ | 345 / 345 | 9 | 2026-10-21 | `montri-th/luxurybrands` @`378e58a` |
+| Location | ร้านยา (Pharmacy) | ร้าน | ร้านที่มีใบอนุญาต ขย1 วางได้เฉพาะร้านที่มีจุด | 18,136 / 2,573 | 77 | 2026-10-22 | `montri-th/pharmacy` @`44da829` |
+| Location | ร้านอาหาร (Restaurants) | ร้าน | ทุกร้านในชุดข้อมูล ตำแหน่งแสดงผลจาก tile | 70,214 / 70,214 | 7 | 2026-10-22 | `montri-th/restaurant` @`ca24f2f` |
+| Living | หน่วยงานรัฐ (Government Office) | แห่ง | ทุกจุดของชุดข้อมูลหน่วยงานรัฐ ทุกหมวด | 20,568 / 20,568 | 77 | 2026-11-06 | `montri-th/governmentoffice` @`102839b` |
+| Living | สถานพยาบาล (Hospital) | แห่ง | สถานพยาบาลทุกประเภท วางได้เฉพาะที่มีจุด | 41,828 / 12,516 | 77 | 2026-11-01 | `montri-th/hospital` @`c6ff706` |
+| Living | สถานศึกษา (School) | แห่ง | สถานศึกษาทุกสังกัดในฐานปี 2569 วางได้เฉพาะที่มีจุด | 40,827 / 33,077 | 77 | 2026-10-31 | `montri-th/school` @`f253f56` |
+| Living | สถานีราง (Transit) | สถานี–สาย | หนึ่งรายการต่อหนึ่งสาย ไม่รวมสถานีที่ยังยืนยันไม่ได้ | 301 / 301 | 17 | 2026-10-31 | `montri-th/transit` @`25711bc` |
+| Living | มหาวิทยาลัย (University) | แห่ง | วิทยาเขตและพื้นที่ที่ทีมวิจัยตรวจ ไม่แบ่งนักศึกษาตามจุด | 190 / 188 | 59 | 2026-11-10 | `montri-th/university` @`f610edb` |
+
+The 16 demo repositories are read at their `main` of 2026-11-18 (0.2.0); two data files changed since 0.1.x: Factory
+(`data/factories.json`, checked 2026-11-16) and Industrial Estate (`industrialestate/data/estates.json`, built 2026-11-17).
 
 The pillar of each dataset is the dataset registry's `R01_DATASETS.dataset_group` as the shell's demo list carries it
 (`js/shell/datasets.js`, read 2026-11-12). The exact scope text of every dataset, Thai and English, is
@@ -132,6 +165,9 @@ claim that two places perform alike.
 - A data colour is never made paler: no opacity on a fill; neighbourhoods outside the province or the search go quiet as
   an outline and a small hollow pin. Up close (from zoom 14) the fill gives way to the same colour on the outline so the
   streets and buildings stay readable.
+- A lodging area of the screen (§2a) is drawn with a dotted outline, apart from the registry's solid outlines and the
+  compared ones' long dashes; the panel names it “ย่านที่พัก · ขอบร่างจากผลคัด”, and a neighbourhood first drawn in this
+  release “ใหม่ในรุ่นนี้”. The filter ประเภทย่าน (`f.kind`: registry · lodging · added) narrows every view to one kind.
 - The open neighbourhood shows its located records and its own buildings in 3D — inside its outline only (0.1.4; owner
   2026-11-16 23:28: “กับอาคาร 3d ที่ขึ้นรอบๆผมว่ามันแปลกๆ”), CityMETER Building V4 where `data/building-units/` says so, else OpenStreetMap; round it
   the basemap's buildings stay quiet and fade with distance, as in the Hotel demo. Records (0.1.3, §9a): one pin per
@@ -177,8 +213,9 @@ then the choice **“เลือกดูทีละชุด”**.
 ## 10. Published fields
 
 Per neighbourhood: code, name, other names, province, registry area, reference point, box, name status, whether the
-outline was walked, the proposed roles, and the counts, measures, subgroup counts, ranks, highlights and pairs. Per held
-or collection code: code, name, province, status and the related codes. Per record (0.1.3, `data/records/`): dataset,
+outline was walked, the proposed roles, the kind (registry or lodging) and whether it is first drawn in this release, its
+lodging screen when it has one (§2a), and the counts, measures, subgroup counts, ranks, highlights and pairs. Per held,
+collection or undrawn lodging name: code, name, province, status, the related codes and its lodging screen. Per record (0.1.3, `data/records/`): dataset,
 point, subgroup, the key and names its own public demo already publishes, its figure and a station's line. Per
 condominium point (`data/condo/`): point, project name, buildings, floors, appraisal P25 / P50 / P75 and the source's
 search area and province — not its production ids, observation ids, API addresses, pin roles or review notes, and not
@@ -193,8 +230,13 @@ rows' text, reviewer notes or any person's name.
 # 1. the owner's .xlsx export of the registry (internal, never committed) and the bundle, unzipped into its own folder
 # 2. the 16 demo repositories cloned side by side, their commits in commits.json ({repo: {commit, committed}})
 # 3. (0.1.3) the condominium research master's .xlsx export (internal, never committed)
-python3 -I scripts/build-data.py --bundle <bundle dir> --bundle-zip <bundle.zip> --registry <export.xlsx> \
-  --repos <clones> --commits commits.json --mapshaper <mapshaper> --condo <condominium export.xlsx> --out data
+# 4. (0.2.0) restore the outlines the bundle stores as a byte alias, beside its revision summary
+python3 -I scripts/restore-bundle-member.py <bundle dir> lodging-review-2026-11-17/inputs/canonical-boundaries-existing358.geojson \
+  <outlines dir>/national-gis/canonical-boundaries.geojson
+cp <bundle dir>/gis/revision-summary.json <outlines dir>/national-gis/revision-summary.json
+python3 -I scripts/build-data.py --bundle <outlines dir> --bundle-zip <bundle.zip> --registry <export.xlsx> \
+  --repos <clones at main> --commits commits.json --mapshaper <mapshaper> --condo <condominium export.xlsx> --condo-read-on 2026-11-16 \
+  --lodging <bundle dir>/lodging-held78-recovery-2026-11-18 --prev-canonical <the previous release's canonical-boundaries.geojson> --out data
 npm test
 node scripts/check-lds-parity.mjs --lds <Landometer-Design-System-v0.9.7.md>
 ```

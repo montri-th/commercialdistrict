@@ -26,7 +26,7 @@ import {cueImage} from './cues.js';
 
 export const LAYERS = Object.freeze({
   provinceLine: 'nb-province-line', provinceSelected: 'nb-province-selected',
-  fill: 'nb-fill', edge: 'nb-edge', zero: 'nb-zero', line: 'nb-line', compare: 'nb-compare', hover: 'nb-hover', selected: 'nb-selected',
+  fill: 'nb-fill', edge: 'nb-edge', zero: 'nb-zero', line: 'nb-line', lodging: 'nb-line-lodging', compare: 'nb-compare', hover: 'nb-hover', selected: 'nb-selected',
   pins: 'nb-pins', pinSelected: 'nb-pin-selected', condo: 'nb-condo', poi: 'nb-poi', poiSelected: 'nb-poi-selected',
 });
 const SRC = {provinces: 'nb-provinces', outlines: 'nb-outlines', pins: 'nb-pin-points', poi: 'nb-poi-points', condo: 'nb-condo-points', poiSelected: 'nb-poi-selected-point'};
@@ -139,9 +139,14 @@ export function installNeighborhoodLayers(map, {provinces, outlines, rows, iconO
     paint: {'line-color': ['coalesce', ['feature-state', 'fill'], '#000000'], 'line-width': ['interpolate', ['linear'], ['zoom'], EDGE_MIN_ZOOM, 3, 17, 5], 'line-opacity': fs('filled', 1)}});
   map.addLayer({id: LAYERS.zero, type: 'line', source: SRC.outlines, minzoom: OUTLINE_MIN_ZOOM,
     paint: {'line-color': cssVar('--data-zero-outline', '#7D877F'), 'line-width': 2, 'line-opacity': fs('zero', 1)}}, before);
-  map.addLayer({id: LAYERS.line, type: 'line', source: SRC.outlines, minzoom: OUTLINE_MIN_ZOOM,
-    paint: {'line-color': ['case', ['boolean', ['feature-state', 'quiet'], false], cssVar('--border-default', '#C9D0CB'), cssVar('--text-secondary', '#4E5B52')],
-      'line-width': ['interpolate', ['linear'], ['zoom'], 9, 0.6, 13, 1.1, 16, 1.6]}});
+  // The outline of a lodging area of the registry's lodging screen is a draft the registry has not admitted (0.2.0):
+  // dotted, so it reads apart from the registry's closed outlines (solid) and from the compared ones (long dashes).
+  const lineColor = ['case', ['boolean', ['feature-state', 'quiet'], false], cssVar('--border-default', '#C9D0CB'), cssVar('--text-secondary', '#4E5B52')];
+  map.addLayer({id: LAYERS.line, type: 'line', source: SRC.outlines, minzoom: OUTLINE_MIN_ZOOM, filter: ['!=', ['get', 'kind'], 'lodging'],
+    paint: {'line-color': lineColor, 'line-width': ['interpolate', ['linear'], ['zoom'], 9, 0.6, 13, 1.1, 16, 1.6]}});
+  map.addLayer({id: LAYERS.lodging, type: 'line', source: SRC.outlines, minzoom: OUTLINE_MIN_ZOOM, filter: ['==', ['get', 'kind'], 'lodging'],
+    layout: {'line-cap': 'round'},
+    paint: {'line-color': lineColor, 'line-width': ['interpolate', ['linear'], ['zoom'], 9, 1, 13, 1.6, 16, 2.2], 'line-dasharray': [0.1, 2]}});
   map.addLayer({id: LAYERS.compare, type: 'line', source: SRC.outlines,
     paint: {'line-color': cssVar('--map-focus-stroke', '#176B82'), 'line-width': 2.2, 'line-dasharray': [2, 1.4], 'line-opacity': fs('compare', 1)}});
   map.addLayer({id: LAYERS.hover, type: 'line', source: SRC.outlines, minzoom: OUTLINE_MIN_ZOOM,

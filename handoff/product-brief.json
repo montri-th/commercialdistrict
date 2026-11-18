@@ -3,7 +3,7 @@
   "schemaVersion": "1.5.0",
   "documentType": "product-brief",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.1.4",
+  "productVersion": "0.2.0",
   "updatedOn": "2026-11-16",
   "datasetCheckedOn": "2026-11-16",
   "language": "th",
@@ -17,7 +17,7 @@
   "basedOn": "CityMETER · University 0.1.4 (montri-th/university @ed2f350, citymeter-shell 0.6.1): every engine contract (camera, basemap, massing, building units, MapLibre guards, launch card, partial-result notice, phone sheet, English layer)",
   "rowScopes": {
     "scopeRows": "model.rows filtered by the province (at) and the search: the panel, the table, the lens ramp",
-    "baseRows": "model.rows (343): every outline stays on the map; outside the scope as a quiet outline and hollow pin",
+    "baseRows": "model.rows (395 = the registry's 358 closed outlines + 37 lodging areas with a review draft, 0.2.0): every outline stays on the map; outside the scope as a quiet outline and hollow pin; f.kind (registry · lodging · added) narrows every view",
     "rows": "one row per closed outline of the registry; 27 pending codes are searchable, never counted"
   },
   "firstAha": {
@@ -28,7 +28,7 @@
     "action": "เทียบ 3 ย่านที่เด่นหลายด้าน · รายชื่อย่าน",
     "model": "js/profile.js#buildOverview",
     "filter": "province (at), search (f.search); under a dataset (m) the Aha becomes that dataset's share and its densest neighbourhood",
-    "defaultSnapshot": "69% of the luxury points of sale with a location (237 of 345) lie in 343 neighbourhoods covering 0.016% of the country; then offices 42%, camera shops 40%, fitness 38% (release 0.1.0 fixture)",
+    "defaultSnapshot": "69% of the luxury points of sale with a location (237 of 345) lie in 395 neighbourhoods covering 0.018% of the country; then offices 42%, camera shops 40%, fitness 38% (release 0.2.0 fixture)",
     "fallbacks": "no row: “ไม่พบย่านตามคำค้นนี้” with clear actions; no dataset inside: the neighbourhood count alone; a dataset with nothing inside: “ยังไม่มี…ในขอบย่าน” with its located count"
   },
   "countingUnitContract": {
@@ -139,7 +139,7 @@
     {"viewKey": "compare", "title": "เปรียบเทียบย่าน", "question": "ย่านเหล่านี้ต่างกันตรงไหน", "encoding": "matrix datasets × neighbourhoods: count, density, bar against the densest of the row, densest ringed", "metric": "count and records per km²", "scope": "up to four neighbourhoods"}
   ],
   "delivery": {
-    "cacheTag": "?v=20261116-r5",
+    "cacheTag": "?v=20261118-r1",
     "shell": "citymeter-shell 0.6.2 (0.6.1 + this demo in the picker, shipped by release 0.1.0 to all 17 demos)"
   }
 }

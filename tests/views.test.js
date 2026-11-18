@@ -17,7 +17,7 @@ test('the overview of Thailand: the first finding is the most concentrated datas
   const o = buildOverview(model, {rows: model.rows});
   assert.equal(o.lead.ds.id, 'luxurybrands');
   assert.equal(sharePct(o.lead.share), '69%');
-  assert.equal(sharePct(o.areaShare), '0.016%');
+  assert.equal(sharePct(o.areaShare), '0.018%');
   const html = renderOverview(o, model, {ctx: ctx()});
   assert.ok(!holes.test(html));
   assert.match(html, /237 จาก 345 จุดขาย/);
