@@ -11,6 +11,11 @@ Owner 2026-11-18 15:32 ICT, VERBATIM: “ในแผนที่อยากใ
   - Rail: layer order lines and dots between the basemap's roads and the 3D buildings, squares and names above the buildings under the basemap's labels, the neighbourhood outlines on top; the basemap's `rail` and `transit` hidden; light and dark, desktop and 393 px; the tip at Sukhumvit (MRT) reads “สุขุมวิท · MRT สายสีน้ำเงิน · เชื่อมกับ อโศก (BTS สายสุขุมวิท) ตามผังเครือข่าย” and in English “Sukhumvit · MRT Blue Line · Connects with Asok (BTS Sukhumvit Line) on the network map”; the map credits carry the rail line.
   - English harvest (national, Bangkok, Siam, Siam under สถานีราง, lodging, a comparison): nothing left in Thai, no page error.
 
+### Preview (UTC, 2026-11-18)
+
+- preview.citymeter.pages.dev, the family's publisher in preview mode (never production) with the override `commercialdistrict` → the pull request's head: run 44274008705 (09:14:07–09:14:56, `7bf7965`) and run 44274480583 (`f4203b2`): 18 sources, 114 / 114 live checks, the demo family check passed on the built site and live (shell 0.6.3).
+- On the real basemap, the owner's Chrome (1,720 × 819, dark): cache tag `20261118-r4`; Bangkok at zoom 12.4 draws the OpenStreetMap railway (12 pieces in view), 16 urban line pieces, 92 stations and 17 national stops, the basemap's `rail` and `transit` hidden, the legend's ระบบราง shown; Siam opens framed in 3D at zoom 15.71 with the station names สนามกีฬาแห่งชาติ and สยาม drawn; the tip at Asok reads “อโศก · BTS สายสุขุมวิท · เชื่อมกับ สุขุมวิท (MRT สายสีน้ำเงิน) ตามผังเครือข่าย” — “ตามผังเครือข่าย” wrapped at `7bf7965` and stays on one line at `f4203b2`.
+
 ## Release 0.2.1 — 18 พ.ย. 2569
 
 Owner 2026-11-18 14:08 ICT, VERBATIM, answering three questions of the 0.2.0 report: “1 publish / 2 update เป็นย่านในทะเบียน / 3 อัปโหลดไฟล์ใหม่ชื่อเดิมแล้วทิ้งไฟล์เก่า”; then, asked how many of the lodging screen's 79 new areas the registry should admit and how the demo should follow: “ทั้ง 79” and “ปรับและ publish เลย (แนะนำ)”.
