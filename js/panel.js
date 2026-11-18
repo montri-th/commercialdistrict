@@ -373,9 +373,9 @@ function lodgingSection(r, model) {
   return section('rank', L('ผลคัดย่านที่พักของทะเบียน', 'The registry\'s lodging screen'), esc(L('แบบจำลองเดินเท้า', 'walking model')),
     `<p class="lodging-status${st.held ? ' is-held' : ''}">${esc(st.label)}</p>
     <dl class="lodging-figures">
-      <div><dt>${esc(L(`ที่พักที่เดินถึงใน ${num(w4)} ม.`, `Lodging places reached within ${num(w4)} m`))}</dt><dd>${fig(x.h4)} <small>${L('แห่ง', 'places')}</small></dd></div>
-      <div><dt>${esc(L(`ที่พักที่เดินถึงใน ${num(w8)} ม.`, `Lodging places reached within ${num(w8)} m`))}</dt><dd>${fig(x.h8)} <small>${L('แห่ง', 'places')}</small></dd></div>
-      <div><dt>${esc(L(`ห้อง/ยูนิตที่แหล่งรายงาน ใน ${num(w8)} ม.`, `Rooms/units the sources report within ${num(w8)} m`))}</dt><dd>${fig(x.ru)}${x.rx ? ` <small>${esc(L(`+ ไม่ทราบจำนวนห้อง ${num(x.rx)} แห่ง`, `+ ${num(x.rx)} places with no room figure`))}</small>` : ''}</dd></div>
+      <div><dt>${L('ที่พักที่เดินถึงใน', 'Lodging places reached within')} ${nw(esc(L(`${num(w4)} ม.`, `${num(w4)} m`)))}</dt><dd>${fig(x.h4)} <small>${L('แห่ง', 'places')}</small></dd></div>
+      <div><dt>${L('ที่พักที่เดินถึงใน', 'Lodging places reached within')} ${nw(esc(L(`${num(w8)} ม.`, `${num(w8)} m`)))}</dt><dd>${fig(x.h8)} <small>${L('แห่ง', 'places')}</small></dd></div>
+      <div><dt>${L('ห้อง/ยูนิตที่แหล่งรายงาน ใน', 'Rooms/units the sources report within')} ${nw(esc(L(`${num(w8)} ม.`, `${num(w8)} m`)))}</dt><dd>${fig(x.ru)}${x.rx ? ` <small>${esc(L(`+ ไม่ทราบจำนวนห้อง ${num(x.rx)} แห่ง`, `+ ${num(x.rx)} places with no room figure`))}</small>` : ''}</dd></div>
     </dl>
     <p class="lodging-services"><span class="hint">${esc(L(`บริการที่เดินถึงใน ${num(w4)} ม.`, `Services reached within ${num(w4)} m`))}</span> ${svc(x.sv4)}</p>
     ${bd ? `<p class="lodging-services"><span class="hint">${esc(L('ขอบของข้อเสนอ', 'Outline of the proposal'))}</span> ${esc(bd)}</p>` : ''}

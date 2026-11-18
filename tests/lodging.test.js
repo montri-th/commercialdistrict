@@ -76,7 +76,7 @@ test('a lodging area and a registry neighbourhood with a screen render whole, wi
     const html = renderNeighborhood(buildNeighborhood(model, r), model, {ctx: ctx(model)});
     assert.ok(!holes.test(html), r.id);
     assert.match(html, /ผลคัดย่านที่พักของทะเบียน/);
-    assert.match(html, /ที่พักที่เดินถึงใน 400 ม\./);
+    assert.match(html, /ที่พักที่เดินถึงใน <span class="nowrap">400 ม\.<\/span>/);
     assert.match(html, /ทะเบียนที่พัก 30,730 รายการ/);
     assert.match(html, /data-prov="boundary">[^]*ระยะเดิน/);
   }
