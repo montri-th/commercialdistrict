@@ -6,7 +6,7 @@ Owner 2026-11-24 08:15 ICT, VERBATIM: “ผมอยากให้ดูเร
 
 ### Drawing (2026-11-24)
 
-- Where: the live demo (release 0.2.6) in the owner's Chrome, 1,710 × 819, through Claude in Chrome; `scripts/draw-extents.browser.js` pasted in the page. The SHA-256 of its functions in the page (run, walk, beach, sweep, within, grid, morph, rings) equals the repository script's: `be943ad73b941f9d…`.
+- Where: the live demo at citymeter.pages.dev in the owner's Chrome, 1,710 × 819, through Claude in Chrome (its outlines byte-identical to this release's, below; its release number was not read); `scripts/draw-extents.browser.js` pasted in the page. The SHA-256 of its functions in the page (run, walk, beach, sweep, within, grid, morph, rings) equals the repository script's: `be943ad73b941f9d…`.
 - Inputs read in the page, each checked by SHA-256: `/commercialdistrict/data/boundaries.geojson` = this release's `data/boundaries.geojson` (`106ab3bf…efb3`); `/hotel/data/hotels.json` = montri-th/hotel@7fde352 `data/hotels.json` (`0d63ba36…c107`); `/pharmacy/data/frames/{PKT,KBI,SNI,CBI,PKN,BKK}.json` = montri-th/pharmacy@44da829 (retrieved 2026-10-23 by that demo).
 - Basemap OpenFreeMap planet build `20261122_124456_pt`, 235 tiles at zoom 14; the ten places in 66 s, no error. The export (18,782 characters) carried out of the page with the same SHA-256 there and on disk (`3ea0890c…40c0`, `metadata.exportSha256`).
 - Rules used: beach for ป่าตอง, กะรน–กะตะ, กมลา, อ่าวนาง; walk for ราไวย์ and หัวหิน (the beach area reached 5 km from the core), จอมเทียน (it took in three Pattaya outlines), เฉวง (smaller than the walk area); walk as asked for เมืองเก่าภูเก็ต and สยาม. Each area looked at on the live basemap before it was kept.

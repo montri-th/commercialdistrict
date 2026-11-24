@@ -193,7 +193,7 @@ boundaries, retrieved 2026-10-23; the commit and each file's SHA-256 in `meta.su
 this release. Grid 0.0001° (about 11 m); edges simplified by Douglas–Peucker at 1.2 cells. The drawn areas are kept in
 `amendments/extents-pilot-2026-11-24.geojson` with each place's check figures (hotels and OpenStreetMap buildings in the
 core, the wider area and, for a beach town, its subdistrict; other cores inside; cells on the drawing's edge). Drawn on
-2026-11-24 in the live demo (release 0.2.6) in Chrome, the script pasted in its console: its functions and every input
+2026-11-24 in the live demo in Chrome (its outlines byte-identical to this release's), the script pasted in its console: its functions and every input
 file were checked by SHA-256 against this repository's script and the pinned files, and the export was carried out byte
 for byte (`metadata.ranIn`, `metadata.checkedWith`, `metadata.exportSha256`). `scripts/draw-extents.py` runs the same
 script headless where the network reaches the tiles.
