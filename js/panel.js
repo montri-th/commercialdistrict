@@ -397,8 +397,10 @@ export function placeList(names) {
 function amendedOutlineWords(am) {
   // (0.3.0) redrawn by the owner's rule from the basemap (DATA_METHOD.md §2c): no named places, the rule in its words
   if (am.rule) {
-    return L(`ฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} ให้คลุมกลุ่มอาคารที่ต่อจากขอบเดิม ภายในพื้นที่ที่แผนที่ฐานไม่ได้ระบุเป็นป่า ทุ่ง หรือน้ำ${am.rule.shared ? ' แบ่งกับย่านข้างเคียงที่ครึ่งทาง' : ''} รอทะเบียนรับในรุ่นถัดไป ยังไม่ตรวจภาคสนาม`,
-      `draft, extended on ${thaiDate(am.on)} to the buildings that run on from the old outline, within ground the basemap does not mark as forest, field or water${am.rule.shared ? ', shared halfway with the neighbouring neighbourhoods' : ''}; awaiting the registry's next release; not yet walked`);
+    // industrial land is light ground for every place, and some places keep within limits the owner set (§2c, 18:1x)
+    const ind = (am.rule.lightLanduse || []).includes('industrial'), lim = (am.rule.limits || []).length > 0;
+    return L(`ฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} ให้คลุมกลุ่มอาคารที่ต่อจากขอบเดิม ภายในพื้นที่ที่แผนที่ฐานไม่ได้ระบุเป็น${ind ? 'ป่า ทุ่ง น้ำ หรือพื้นที่อุตสาหกรรม' : 'ป่า ทุ่ง หรือน้ำ'}${lim ? ' และตามขอบที่เจ้าของกำหนด' : ''}${am.rule.shared ? ' แบ่งกับย่านข้างเคียงที่ครึ่งทาง' : ''} รอทะเบียนรับในรุ่นถัดไป ยังไม่ตรวจภาคสนาม`,
+      `draft, extended on ${thaiDate(am.on)} to the buildings that run on from the old outline, within ground the basemap does not mark as ${ind ? 'forest, field, water or industrial land' : 'forest, field or water'}${lim ? ' and within limits the owner set' : ''}${am.rule.shared ? ', shared halfway with the neighbouring neighbourhoods' : ''}; awaiting the registry's next release; not yet walked`);
   }
   return L(`ฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} ให้รวม${placeList(am.includes.map(x => x.th))} ตามหลักเกณฑ์ขอบย่าน รอทะเบียนรับในรุ่นถัดไป ยังไม่ตรวจภาคสนาม`,
     `draft, extended on ${thaiDate(am.on)} to take in ${placeList(am.includes.map(x => x.en || x.th))} under the registry's outline rules; awaiting the registry's next release; not yet walked`);

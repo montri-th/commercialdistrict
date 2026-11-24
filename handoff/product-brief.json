@@ -28,7 +28,7 @@
     "action": "เทียบ 3 ย่านที่เด่นหลายด้าน · รายชื่อย่าน",
     "model": "js/profile.js#buildOverview",
     "filter": "province (at), search (f.search); under a dataset (m) the Aha becomes that dataset's share and its densest neighbourhood",
-    "defaultSnapshot": "69% of the luxury points of sale with a location (237 of 345) lie in 395 neighbourhoods covering 0.018% of the country; then offices 42%, camera shops 40%, fitness 38% (release 0.2.0 fixture)",
+    "defaultSnapshot": "69% of the luxury points of sale with a location (239 of 345) lie in 395 neighbourhoods covering 0.04% of the country; then camera shops 46%, fitness 46%, offices 44% (release 0.3.0 fixture)",
     "fallbacks": "no row: “ไม่พบย่านตามคำค้นนี้” with clear actions; no dataset inside: the neighbourhood count alone; a dataset with nothing inside: “ยังไม่มี…ในขอบย่าน” with its located count"
   },
   "countingUnitContract": {
@@ -140,7 +140,7 @@
     {"viewKey": "compare", "title": "เปรียบเทียบย่าน", "question": "ย่านเหล่านี้ต่างกันตรงไหน", "encoding": "matrix datasets × neighbourhoods: count, density, bar against the densest of the row, densest ringed", "metric": "count and records per km²", "scope": "up to four neighbourhoods"}
   ],
   "delivery": {
-    "cacheTag": "?v=20261124-r2",
+    "cacheTag": "?v=20261124-r3",
     "shell": "citymeter-shell 0.6.2 (0.6.1 + this demo in the picker, shipped by release 0.1.0 to all 17 demos)"
   }
 }

@@ -129,6 +129,18 @@ RULE = {
     'en': 'tight to the buildings (line B), within ground the basemap does not mark as forest, field or water (line A), '
           'shared halfway with the neighbouring neighbourhoods',
 }
+LIGHT_WORDS = {'industrial': ('พื้นที่อุตสาหกรรม', 'industrial land')}  # land use the owner made light ground (18:1x)
+
+
+def rule_words(light):
+    """The rule in words for one drawing: line A leaves out forest, field and water, and the land uses made light ground."""
+    th, en = [LIGHT_WORDS[x][0] for x in light if x in LIGHT_WORDS], [LIGHT_WORDS[x][1] for x in light if x in LIGHT_WORDS]
+    if not th:
+        return RULE['th'], RULE['en']
+    return (RULE['th'].replace('ป่า ทุ่ง หรือน้ำ', 'ป่า ทุ่ง น้ำ หรือ' + ' '.join(th)),
+            RULE['en'].replace('forest, field or water', 'forest, field, water or ' + ' or '.join(en)))
+
+
 SMOOTH_M, REACH_M, SIMPLIFY_M, CRUMB_M2 = 12, 6, 2, 500  # display: round the cells' steps, never past half a cell
 
 
@@ -210,13 +222,24 @@ def cmd_amend(a):
     for f in kept:
         cur[f['properties']['canonical_id']] = poly(f['geometry'])
     only = set(a.only.split(',')) if a.only else None
-    trim = set()
+    trim, group_of, note_of, drawn_from = set(), {}, {}, None
     if a.choices:  # the owner's picks (amendments/outline-rule-choices-*.json): apply, applyTicked, and the ones to take without narrow arms
         ch = json.load(open(a.choices, encoding='utf-8'))
         if (ch.get('redraw') or {}).get('status') == 'pending':
             sys.exit('amend: the owner\'s picks wait for a drawing not exported yet (choices.redraw): ' + ch['redraw']['why'])
         only = set(ch['apply']) | set(ch.get('applyTicked', [])) | set(ch.get('applyNoted', [])) | set(ch.get('trimArms', []))
         trim = set(ch.get('trimArms', []))
+        for g in ('apply', 'applyTicked', 'applyNoted', 'trimArms'):  # which of his picks each outline answers to
+            for k in ch.get(g, []):
+                group_of.setdefault(k, g)
+        if ch.get('drawing'):  # the drawing his picks were made on, by SHA-256 (the reviewed one, or a redraw of it)
+            got = [hashlib.sha256(open(p_, 'rb').read()).hexdigest() for p_ in a.exports]
+            if got != [ch['drawing']['sha256']]:
+                sys.exit(f"amend: the owner's picks name the drawing {ch['drawing']['file']} ({ch['drawing']['sha256'][:8]}…), not {', '.join(a.exports)}")
+            drawn_from = {'file': ch['drawing']['file'], 'sha256': ch['drawing']['sha256']}
+        if (ch.get('redraw') or {}).get('limits'):  # his own words per place where he set limits or asked again
+            lim = json.load(open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ch['redraw']['limits']), encoding='utf-8'))
+            note_of = {k: p_['owner'] for k, p_ in lim['places'].items()}
     skip = set(a.skip.split(',')) if a.skip else set()
     # one drawing per area: the first neighbourhood of the area in the registry's order gives every share of it
     assigned, report = {}, defaultdict(list)
@@ -255,8 +278,12 @@ def cmd_amend(a):
             assert both.is_empty or utm_area(both) - (0 if had.is_empty else utm_area(had)) < 0.1, f'{pid} overlaps a neighbour'
         cur[pid] = new
         c = places[by]['check'] if by == pid else places[pid]['check'] if pid in places else {}
+        opts = places[by].get('opts') or {}  # what the drawing was made with: light land uses, the owner's limits by name
+        words = rule_words(opts.get('lightLanduse') or [])
         feats_out.append({'type': 'Feature', 'geometry': mapping(new), 'properties': {
             'canonical_id': pid, 'name_th': rows[pid]['name'], 'amended_on': a.on, 'by': 'owner', 'owner_words_th': OWNER_TH,
+            **({'owner_note_th': note_of[pid]} if pid in note_of else {}), **({'choice': group_of[pid]} if pid in group_of else {}),
+            **({'drawing': drawn_from} if drawn_from else {}),
             'registry_geometry_sha256': gsha(base[pid]), 'registry_area_m2': round(reg_a, 2), 'area_m2': round(new_a, 2),
             'added_m2': round(new_a - reg_a, 2), 'reach_m': reach_m(new, core), 'metric_crs': 'EPSG:32647' if new.centroid.x < 102 else 'EPSG:32648',
             'rules': ['BUILDINGS', 'DARK-GROUND'] + (['HALFWAY'] if by != pid or places[pid]['check']['sharers'] else []),
@@ -265,8 +292,10 @@ def cmd_amend(a):
             'method': f"scripts/draw-outline-rule.browser.js in the live demo on {meta['drawnOn']} (drawn with {by}), "
                       f"scripts/rule-outlines.py amend: steps rounded (closing {SMOOTH_M} m within {REACH_M} m), simplified {SIMPLIFY_M} m, "
                       'the registry outline kept whole, every other outline left out',
-            'rule': {'name': RULE['name'], 'th': RULE['th'], 'en': RULE['en'], 'drawnWith': by, 'armsTrimmed': pid in trim,
-                     'shared': bool(by != pid or places[pid]['check']['sharers'])},
+            'rule': {'name': RULE['name'], 'th': words[0], 'en': words[1], 'drawnWith': by, 'armsTrimmed': pid in trim,
+                     'shared': bool(by != pid or places[pid]['check']['sharers']),
+                     **({'lightLanduse': opts['lightLanduse']} if opts.get('lightLanduse') else {}),
+                     **({'limits': opts['limits']} if opts.get('limits') else {})},
             'status_th': 'ขอบปรับตามหลักที่เจ้าของกำหนด รอทะเบียนรับในรุ่นถัดไป',
             'status_en': "redrawn by the owner's rule, awaiting the registry's next release"}})
         report['amended'].append(pid)

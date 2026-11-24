@@ -55,8 +55,28 @@ test('the shipped data use the redrawn outlines, and the screen says how they we
     assert.ok(outlines.metadata.amended.ids.includes(id));
   }
   const panel = readFileSync(join(ROOT, 'js/panel.js'), 'utf8');
-  assert.match(panel, /ให้คลุมกลุ่มอาคารที่ต่อจากขอบเดิม ภายในพื้นที่ที่แผนที่ฐานไม่ได้ระบุเป็นป่า ทุ่ง หรือน้ำ/);
-  assert.match(panel, /to the buildings that run on from the old outline, within ground the basemap does not mark as forest, field or water/);
+  assert.match(panel, /ให้คลุมกลุ่มอาคารที่ต่อจากขอบเดิม ภายในพื้นที่ที่แผนที่ฐานไม่ได้ระบุเป็น/);
+  assert.match(panel, /ป่า ทุ่ง น้ำ หรือพื้นที่อุตสาหกรรม/);
+  assert.match(panel, /และตามขอบที่เจ้าของกำหนด/);
+  assert.match(panel, /to the buildings that run on from the old outline, within ground the basemap does not mark as /);
+  assert.match(panel, /forest, field, water or industrial land/);
+  // (18:1x) industrial land is light ground for every redrawn outline; the owner's limits are named in the amendment
+  for (const f of rule) assert.deepEqual(f.properties.rule.lightLanduse, ['industrial'], `${f.properties.canonical_id}: industrial land left out`);
+  const lim = JSON.parse(readFileSync(join(ROOT, 'amendments/outline-rule-limits-2026-11-24.json'), 'utf8'));
+  for (const [id, p] of Object.entries(lim.places)) if (p.limits.length) {
+    const f = rule.find(x => x.properties.canonical_id === id);
+    assert.deepEqual(f.properties.rule.limits, p.limits.map(l => l.label), `${id}: drawn within the owner's limits`);
+  }
+  // each outline names the pick it answers to, the drawing it was read from (the one his picks name) and, where he wrote one, his note
+  const ch = JSON.parse(readFileSync(join(ROOT, 'amendments/outline-rule-choices-2026-11-24.json'), 'utf8'));
+  assert.equal(sha256(readBytes(ch.drawing.file)), ch.drawing.sha256, 'the drawing the picks name');
+  for (const f of rule) {
+    const {canonical_id: id, choice, drawing} = f.properties;
+    assert.ok(['apply', 'applyTicked', 'applyNoted', 'trimArms'].includes(choice) && ch[choice].includes(id), `${id}: a pick of the owner's`);
+    assert.deepEqual(drawing, ch.drawing, `${id}: read from the drawing his picks name`);
+    assert.equal(f.properties.owner_note_th, lim.places[id]?.owner, `${id}: his note`);
+  }
+  for (const id of ch.keep) assert.ok(!rule.some(f => f.properties.canonical_id === id), `${id}: keeps the registry's outline`);
 });
 
 test('ป่าตอง keeps its name for the whole town; กะรน and กะตะ stay two neighbourhoods', {skip: !rule.some(f => f.properties.canonical_id === 'CMN-TH-AC4758F0BC') && 'Patong not redrawn yet'}, () => {
