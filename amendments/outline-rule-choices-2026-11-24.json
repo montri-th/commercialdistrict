@@ -1,5 +1,5 @@
 {
- "about": "The owner's picks of which neighbourhoods take the outline rule of 2026-11-24 (DATA_METHOD.md §2c). scripts/rule-outlines.py amend --choices reads apply and trimArms; every other code keeps the registry's outline.",
+ "about": "The owner's picks of which neighbourhoods take the outline rule of 2026-11-24 (DATA_METHOD.md §2c). scripts/rule-outlines.py amend --choices reads apply, applyTicked and trimArms; every other code keeps the registry's outline.",
  "drawing": {
   "file": "amendments/outline-rule-2026-11-24.json",
   "sha256": "f8cf48d96aff7a6ea444de50cbc10deecc340dc21eba59bde86d4a7db4dd10a8"
@@ -20,6 +20,25 @@
     "the 57 of a city’s continuous fabric": "คงขอบทะเบียนเดิม (แนะนำ)",
     "arms along roads and valleys": "คงแขนไว้ตามหลัก (แนะนำ)"
    }
+  },
+  {
+   "when": "2026-11-24 17:00 ICT",
+   "verbatim": [
+    "ผม update ใน google sheet ให้แล้วพร้อม หมายเหตุ พี่ช่วยศึกษาแล้วมาบอกหน่อยว่าจะปรับยังไงดี"
+   ],
+   "sheet": "column พี่ตัดสิน: ใช้หลักใหม่ 386 rows, คงขอบเดิม 2, ดูอีกที 7; column หมายเหตุ on the 7 to look at again",
+   "notes": {
+    "CMN-TH-09D690F14D": "ขอบเขตใหม่ที่ได้ ได้มาแต่ขอบเขตนิคมอุตสาหกรรม ไม่ใช่ย่านการค้า อยากให้ทบทวนดีๆอีกครั้ง",
+    "CMN-TH-EB2C8E2A3B": "ขอบเขตใหม่ที่ได้ ได้มาแต่ขอบเขตนิคมอุตสาหกรรม ไม่ใช่ย่านการค้า อยากให้ทบทวนดีๆอีกครั้ง",
+    "CMN-TH-6BC59AC5DC": "ควร focus กับ ซอยแบริ่ง จนถึงสถานี BTS แบริ่ง ไม่ข้ามไปลาซาล ไม่ข้ามถนนสุขุมวิทไปทางตะวันออก ไม่ข้ามถนนศรีนครินทร์ไปทางตะวันตก",
+    "CMN-TH-90577B97B3": "ทิศตะวันตกไม่เกินถนนพิทักษ์สันติราษฎร์",
+    "CMN-TH-D9F7AE6095": "ทิศเหนือไม่ควรเหนือกว่าถนนที่ผ่านเส้นหอนาฬิกาเก่า ตะวันออกไม่เกินถนนพหลโยธิน ตะวันตกไม่เกินถนนสนามบิน ใต้ไม่เกินถนนสถานพยาบาล ถนนสันคอกช้าง",
+    "CMN-TH-C5F715F44C": "ตะวันตกไม่เกินโรงพยาบาลปาย ทิศใต้ไม่เกินตลาดสดปาย",
+    "CMN-TH-DA16B18689": "ขยาย strip ตามแนวหาดบ่อผุดตลอดแนว ด้านทิศใต้ไม่เกินบ่อผุด food market"
+   },
+   "conflict": {
+    "CMN-TH-A80D6353DE": "the sheet says ใช้หลักใหม่ (taking a share of ห้าแยกลาดพร้าว–พหลโยธิน's drawing, 185 → 272 rai); at 15:00 he kept the registry outline for the 57 whose drawing runs on. Asked at 17:30; it keeps the registry outline until he answers."
+   }
   }
  ],
  "reachLimitM": 1000,
@@ -27,6 +46,13 @@
  "review": {
   "sheet": "Google Sheet 02-CityMETER__outline-rule-nationwide-check__v1__2026-11-24 (owner’s Drive), column พี่ตัดสิน",
   "picture": "02-CityMETER__outline-rule-45-far-places__v1__2026-11-24.jpg"
+ },
+ "groups": {
+  "apply": "reaches within 1 km; each ticked ใช้หลักใหม่ in the sheet at 17:00",
+  "applyTicked": "ticked ใช้หลักใหม่ row by row in the sheet at 17:00: 36 that reach beyond 1 km, and ลาดพร้าว 83, which takes its share of ลาดพร้าว 71's drawing",
+  "pending": "ticked ดูอีกที with a note (7), and ลาดพร้าว, where the sheet and his 15:00 answer differ",
+  "keep": "the registry outline: 56 whose drawing runs on (15:00), and 2 he ticked คงขอบเดิม at 17:00",
+  "unchanged": "the drawing adds nothing"
  },
  "apply": [
   "CMN-TH-D02BB074A0",
@@ -222,17 +248,11 @@
   "CMN-TH-AB3C14C5A0",
   "CMN-TH-13BAD5D7AD"
  ],
- "trimArms": [],
- "pending": [
+ "applyTicked": [
   "CMN-TH-4F07B6DDD5",
   "CMN-TH-3AAE32B967",
   "CMN-TH-C781039A3D",
   "CMN-TH-9B74F01125",
-  "CMN-TH-09D690F14D",
-  "CMN-TH-EB2C8E2A3B",
-  "CMN-TH-6BC59AC5DC",
-  "CMN-TH-90577B97B3",
-  "CMN-TH-D9F7AE6095",
   "CMN-TH-AC4758F0BC",
   "CMN-TH-66B6B6DBE3",
   "CMN-TH-94F11619C5",
@@ -246,11 +266,9 @@
   "CMN-TH-998EB8889B",
   "CMN-TH-0896C12D86",
   "CMN-TH-BA39C402CC",
-  "CMN-TH-E3533C8236",
   "CMN-TH-4DB4194511",
   "CMN-TH-X182DA97D1E",
   "CMN-TH-69A8261752",
-  "CMN-TH-0FE7CF185C",
   "CMN-TH-X4FA7643B37",
   "CMN-TH-6E540B7FA3",
   "CMN-TH-D60E1B7241",
@@ -261,14 +279,24 @@
   "CMN-TH-BCF21147F8",
   "CMN-TH-F8387EC485",
   "CMN-TH-6CBC55F608",
-  "CMN-TH-C5F715F44C",
   "CMN-TH-F1004C2F56",
-  "CMN-TH-DA16B18689",
   "CMN-TH-249DFEA924",
   "CMN-TH-50C251DFD1",
   "CMN-TH-B481C8B92C",
   "CMN-TH-CBBF1241BC",
-  "CMN-TH-35D32181FD"
+  "CMN-TH-35D32181FD",
+  "CMN-TH-43DD441D85"
+ ],
+ "trimArms": [],
+ "pending": [
+  "CMN-TH-09D690F14D",
+  "CMN-TH-EB2C8E2A3B",
+  "CMN-TH-6BC59AC5DC",
+  "CMN-TH-90577B97B3",
+  "CMN-TH-D9F7AE6095",
+  "CMN-TH-C5F715F44C",
+  "CMN-TH-DA16B18689",
+  "CMN-TH-A80D6353DE"
  ],
  "keep": [
   "CMN-TH-4FC0B8E374",
@@ -297,7 +325,6 @@
   "CMN-TH-38224BAB24",
   "CMN-TH-0001",
   "CMN-TH-FB55C19EF1",
-  "CMN-TH-A80D6353DE",
   "CMN-TH-137B582CAD",
   "CMN-TH-0003",
   "CMN-TH-7797A8CFCD",
@@ -327,7 +354,9 @@
   "CMN-TH-0B2413F281",
   "CMN-TH-34DD4CEE70",
   "CMN-TH-38B4A49D02",
-  "CMN-TH-0004"
+  "CMN-TH-0004",
+  "CMN-TH-E3533C8236",
+  "CMN-TH-0FE7CF185C"
  ],
  "unchanged": [
   "CMN-TH-XE4EE678023",
@@ -340,7 +369,6 @@
   "CMN-TH-5318368445",
   "CMN-TH-73CA599E4F",
   "CMN-TH-0577D0E25C",
-  "CMN-TH-43DD441D85",
   "CMN-TH-E81F8FE8E0",
   "CMN-TH-E5A11B7A86",
   "CMN-TH-012F7EE0B6",

@@ -6,6 +6,11 @@
  * Run in the live demo (https://citymeter.pages.dev/commercialdistrict/), whose page serves the outlines and the hotels
  * on its own origin: paste this file, then  await window.__rule.run(ids)  and read  window.__rule.exportText(from, to).
  * Read only: it moves the map and reads the vector tiles the page loads (OpenFreeMap, OpenMapTiles schema, zoom 14).
+ * Options of run(ids, options): lightLanduse — land-use classes taken as light ground too (e.g. ['industrial']: an
+ * industrial estate is not a commercial district); limits — {id: [limit]} the owner's limits for a place: a road
+ * ('lines') the outline does not cross, an area ('poly') it does not take, a corridor ('near', d metres) it stays in,
+ * and 'passWater' (metres): within the owner's limits a canal narrower than that no longer stops the outline.
+ * redo — draw again places already drawn in this page (otherwise a place drawn once is kept).
  *
  * Grid 0.0001° (about 11 m). For a neighbourhood and every outline within reach (registry outlines and lodging drafts):
  *   A — the dark ground: what the basemap leaves free of forest, grassland, farmland, rock, wetland, sand, an urban park,
@@ -58,15 +63,30 @@ window.__rule = (() => {
   const fillG = (G, ctx, g) => { ctx.beginPath(); pathG(G, ctx, g); ctx.fill('evenodd'); };
   const maskOf = (G, ctx) => { const d = ctx.getImageData(0, 0, G.W, G.H).data; const N = G.W * G.H; const o = new Uint8Array(N); for (let i = 0; i < N; i++) o[i] = d[i * 4 + 3] >= 128 ? 1 : 0; return o; };
   const tilesIn = bbox => Object.values(S.tiles).filter(T => { const b = tb(T.x, T.y, 14); return b[2] > bbox[0] && b[0] < bbox[2] && b[3] > bbox[1] && b[1] < bbox[3]; });
-  function base(G, bbox) { const lc = cv(G), wa = cv(G), bd = cv(G);
+  /** The owner's limits for one place, as light ground: 'poly' (a ring of [lon, lat]) fills an area the outline may not take,
+   * 'lines' (parts of a road, w metres wide) cut the dark ground along it, 'near' keeps only the ground within d metres of
+   * the given lines (a corridor). Each limit names what it stands for in 'label'. */
+  const strokeG = (G, ctx, parts, wCells) => { ctx.lineWidth = Math.max(1, wCells); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    for (const part of parts) { ctx.beginPath(); part.forEach(([lo, la], i) => { const x = (lo - G.lon0) / G.res, y = (G.lat1 - la) / G.res; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); } };
+  function limitsInto(G, lc, limits) { const cellM = G.res * 110574;
+    for (const L of limits) {
+      if (L.poly) fillG(G, lc, {type: 'Polygon', coordinates: [L.poly]});
+      else if (L.lines) strokeG(G, lc, L.lines, (L.w || 22) / cellM);
+      else if (L.near) { const c = new OffscreenCanvas(G.W, G.H), x = c.getContext('2d'); x.fillStyle = '#000'; x.fillRect(0, 0, G.W, G.H);
+        x.globalCompositeOperation = 'destination-out'; x.strokeStyle = '#000'; strokeG(G, x, L.near, 2 * L.d / cellM); lc.drawImage(c, 0, 0); } } }
+  /** 'hard' ground is kept out after every hole is filled: the land uses of the option lightLanduse (an industrial estate
+   * inside a town would otherwise come back as a hole) and the owner's limits. */
+  function base(G, bbox, X = {}) { const lc = cv(G), wa = cv(G), bd = cv(G), hd = cv(G), light = X.light || new Set();
     for (const T of tilesIn(bbox)) {
       for (const f of T.landcover) if (LC.has(f.c)) fillG(G, lc, f.g);
       for (const f of T.park) if (PARK.has(f.c)) fillG(G, lc, f.g);
-      for (const f of T.landuse) if (GREEN.has(f.c)) fillG(G, lc, f.g);
+      for (const f of T.landuse) { if (GREEN.has(f.c)) fillG(G, lc, f.g); if (light.has(f.c)) fillG(G, hd, f.g); }
       for (const f of T.water) if (WAT.has(f.c) && f.br !== 'tunnel') fillG(G, wa, f.g);
       for (const f of T.building) fillG(G, bd, f.g);
     }
-    return {lc: maskOf(G, lc), water: maskOf(G, wa), bld: maskOf(G, bd)}; }
+    limitsInto(G, hd, X.limits || []);
+    const pass = Math.max(0, ...(X.limits || []).map(L => L.passWater || 0));  // metres of water a place within the owner's limits may cross
+    return {lc: maskOf(G, lc), water: maskOf(G, wa), bld: maskOf(G, bd), hard: maskOf(G, hd), passCells: Math.round(pass / 2 / (G.res * 110574))}; }
   function morph(G) { const {W, H} = G, N = W * H;
     const dil = (a, r) => { const t = new Uint8Array(N), o = new Uint8Array(N), ps = new Int32Array(Math.max(W, H) + 1);
       for (let y = 0; y < H; y++) { const row = y * W; ps[0] = 0; for (let x = 0; x < W; x++) ps[x + 1] = ps[x] + a[row + x]; for (let x = 0; x < W; x++) t[row + x] = ps[Math.min(W, x + r + 1)] - ps[Math.max(0, x - r)] > 0 ? 1 : 0; }
@@ -121,10 +141,13 @@ window.__rule = (() => {
   // ----- the rule
   function draw(P) { const G = P.G, M = morph(G), B0 = P.base, N = G.W * G.H;
     let all = new Uint8Array(N); for (const c of P.coreMasks) all = M.or(all, c.mask);
-    const dark = M.and(M.not(B0.lc), M.not(B0.water));
-    const A = M.fill(M.and(M.dil(M.or(M.comp(M.dil(M.ero(dark, 2), 2), all), all), 2), M.not(B0.water)));
-    const B = M.fill(M.and(M.ero(M.comp(M.dil(B0.bld, 4), all), 3), M.not(B0.water)));
-    const E0 = M.fill(M.or(M.and(A, B), all));
+    const hard = B0.hard || new Uint8Array(N);
+    // where the owner set the limits, a canal narrower than 'passWater' no longer stops the outline: only wider water does
+    const wat = B0.passCells ? M.dil(M.ero(B0.water, B0.passCells), B0.passCells) : B0.water;
+    const dark = M.and(M.and(M.not(B0.lc), M.not(wat)), M.not(hard));
+    const A = M.minus(M.fill(M.and(M.dil(M.or(M.comp(M.dil(M.ero(dark, 2), 2), all), all), 2), M.not(wat))), hard);
+    const B = M.fill(M.and(M.ero(M.comp(M.dil(B0.bld, 4), all), 3), M.not(wat)));
+    const E0 = M.or(M.minus(M.fill(M.or(M.and(A, B), all)), hard), all);
     const part = M.comp(E0, P.seed);
     const sh = P.coreMasks.map((c, j) => j).filter(j => M.sum(M.and(P.coreMasks[j].mask, part)) > 0);
     const me = P.coreMasks.findIndex(c => c.own), shares = {};
@@ -150,7 +173,7 @@ window.__rule = (() => {
     if (Object.keys(S.tiles).length > O.keepTiles) { for (const k of Object.keys(S.tiles)) { const T = S.tiles[k], b = tb(T.x, T.y, 14); if (!(b[2] > bbox[0] && b[0] < bbox[2] && b[3] > bbox[1] && b[1] < bbox[3])) { delete S.tiles[k]; S.done.delete(k); } } }
     const need = tileRange(bbox), positions = need.every(k => S.done.has(k)) ? 0 : await sweep(bbox);
     const P = {bbox, G: grid(bbox)}; const G = P.G, M = morph(G);
-    P.base = base(G, bbox);
+    P.base = base(G, bbox, {light: new Set(O.lightLanduse || []), limits: (O.limits || {})[F.properties.id] || []});
     const ras = gg => { const ctx = cv(G); fillG(G, ctx, gg); return maskOf(G, ctx); };
     P.seed = ras(g);
     P.coreMasks = []; for (const C of S.cores) { const b = C.bbox; if (b[2] < bbox[0] || b[0] > bbox[2] || b[3] < bbox[1] || b[1] > bbox[3]) continue; P.coreMasks.push({id: C.id, kind: C.kind, own: C.id === F.properties.id, mask: C.id === F.properties.id ? P.seed : ras(C.g)}); }
@@ -166,13 +189,16 @@ window.__rule = (() => {
     if (!S.hot) { const hj = await getJSON(O.hotelsUrl); const c = hj.cols; S.hot = []; for (let i = 0; i < c.key.length; i++) if (c.lat[i] != null && c.lon[i] != null) S.hot.push([c.lon[i], c.lat[i]]); }
     if (!S.tilesBuild) { try { const tj = await getJSON(O.tileJsonUrl); S.tilesBuild = ((tj.tiles || [''])[0].split('/').find(x => /^\d{8}_/.test(x))) || ''; } catch { S.tilesBuild = ''; } }
     const byId = new Map(S.cores.map(C => [C.id, C.f]));
-    for (const id of ids) { if (S.out[id]) continue; try { S.status = 'place ' + id + ' (' + Object.keys(S.out).length + '/' + ids.length + ')';
+    for (const id of ids) { if (S.out[id] && !O.redo) continue; try { S.status = 'place ' + id + ' (' + Object.keys(S.out).length + '/' + ids.length + ')';
       const F = byId.get(id); if (!F) throw new Error('no outline');
       let res = await one(F, O, O.reachM[0]);
       if (res.stats.edgeCells && res.stats.fill <= O.denseFill) res = await one(F, O, O.reachM[1]);
       const st = res.stats, grows = st.areaM2 > st.coreM2 * 1.02 + 200, apply = grows && !st.edgeCells;
       const shares = {}; if (apply && st.sharers.length) for (const [k, mk] of Object.entries(res.r.shares)) shares[k] = enc(rings(res.P.G, mk));
-      S.out[id] = {id, kind: F.properties.kind, grid: [+res.P.G.lon0.toFixed(4), +res.P.G.lat1.toFixed(4), res.P.G.res], check: st, rings: apply ? enc(rings(res.P.G, res.r.E)) : '', shares};
+      const lim = (O.limits || {})[id] || [], opts = {};
+      if ((O.lightLanduse || []).length) opts.lightLanduse = O.lightLanduse;
+      if (lim.length) opts.limits = lim.map(L => L.label || (L.poly ? 'area' : L.near ? 'corridor' : 'line'));
+      S.out[id] = {id, kind: F.properties.kind, grid: [+res.P.G.lon0.toFixed(4), +res.P.G.lat1.toFixed(4), res.P.G.res], check: st, rings: apply ? enc(rings(res.P.G, res.r.E)) : '', shares, ...(Object.keys(opts).length ? {opts} : {})};
     } catch (e) { S.err.push(id + ': ' + (e && e.stack ? e.stack.slice(0, 300) : e)); } }
     S.status = 'done'; }
   /** The export, in parts: places [from, to) of the order run went through. */

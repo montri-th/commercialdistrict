@@ -184,8 +184,12 @@ reaches more than 1 km from the registry's (the discrete Hausdorff distance in U
 ทะเบียนเดิม” for the 57 of a city's fabric, “คงแขนไว้ตามหลัก” for arms along roads and valleys. So the 192 that reach no
 more than 1 km take the rule; each of the 45 takes it when the owner picks “ใช้หลักใหม่” in the review sheet (or “ตัดแขนแคบ”:
 the same outline less its arms narrower than 150 m, an opening of 75 m that keeps the parts still meeting the registry's
-outline), and keeps the registry's outline until then; a share that a neighbour's drawing gives to a code that does not take
-the rule itself is not used. The picks: `amendments/outline-rule-choices-2026-11-24.json`.
+outline), and keeps the registry's outline until then; a share that a neighbour's drawing gives to a code whose own drawing
+does not apply is used only where the owner ticks that code too. At 17:00 he ticked the sheet row by row: “ใช้หลักใหม่” for
+the 192, for 36 of the 45 and for ลาดพร้าว 83 (its share of ลาดพร้าว 71's drawing); “คงขอบเดิม” for พหลโยธิน 24 and วัดเกต–
+เจริญเมือง; “ดูอีกที” with a note for 7, which keep the registry's outline until the limits in his notes are drawn and he has
+seen them. The 57 of a city's fabric have no redrawn outline to take, whatever the tick; ลาดพร้าว, ticked to take a
+neighbour's share against his 15:00 answer, waits for his word. The picks: `amendments/outline-rule-choices-2026-11-24.json`.
 
 The drawn cells are traced (Douglas–Peucker at 1.2 cells) and, for the map, their steps rounded off
 (`scripts/rule-outlines.py amend`: a closing of 12 m kept within 6 m of the cells, simplified at 2 m). The amendment is

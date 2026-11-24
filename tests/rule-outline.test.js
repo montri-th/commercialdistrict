@@ -73,12 +73,14 @@ test('the owner\'s picks: the drawing they read, one group per code, and only th
   assert.equal(sha256(readBytes(ch.drawing.file)), ch.drawing.sha256, 'the stored drawing is the one the picks were made on');
   const drawing = readJSON(ch.drawing.file);
   assert.equal(drawing.places.length, 395);
-  const groups = ['apply', 'trimArms', 'pending', 'keep', 'unchanged'];
+  const groups = ['apply', 'applyTicked', 'trimArms', 'pending', 'keep', 'unchanged'];
   const all = groups.flatMap(g => ch[g]);
   assert.equal(new Set(all).size, all.length, 'a code in one group only');
   assert.deepEqual(new Set(all), new Set(drawing.places.map(p => p.id)), 'every drawn code has a group');
   for (const id of ch.apply) assert.ok(ch.reachM[id] <= ch.reachLimitM, `${id} reaches within ${ch.reachLimitM} m`);
   assert.ok(ch.owner.some(o => /ให้ผมติ๊กรายย่าน/.test(o.chose?.['the 45 that reach beyond 1 km'] ?? '')));
-  const picked = new Set([...ch.apply, ...ch.trimArms]);
+  for (const id of ch.applyTicked) assert.ok(!ch.apply.includes(id), `${id} ticked row by row, outside the automatic group`);
+  assert.ok(ch.owner.some(o => o.when === '2026-11-24 17:00 ICT' && /google sheet/.test(o.verbatim.join(' '))), 'the row-by-row ticks are his');
+  const picked = new Set([...ch.apply, ...ch.applyTicked, ...ch.trimArms]);
   for (const f of rule) assert.ok(picked.has(f.properties.canonical_id), `${f.properties.canonical_id} redrawn only on the owner's pick`);
 });

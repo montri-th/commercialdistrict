@@ -14,9 +14,10 @@ Owner 2026-11-24 08:15 ICT, VERBATIM: “ผมอยากให้ดูเร
 - Preview of the amendments with the display copy standing in for the bundle (`amend --display`): 239 outlines, every one only adding area; no overlap with another outline beyond the display copy's own (10 pairs of at least 0.1 m² there, from its simplification); 192 reach at most 1 km from their registry outline (25,204 → about 40,259 ไร่), 45 further (11,017 → about 83,855 ไร่). Nothing from the preview is in the release.
 - Review for the owner, in his Drive (03_OUTPUTS_AND_EXAMPLES): the sheet 02-CityMETER__outline-rule-nationwide-check__v1__2026-11-24 (395 rows, a column for his pick) and two pictures from the live demo (four examples; the 45 that reach beyond 1 km, numbered as in the sheet).
 
-### Owner's picks (2026-11-24, 14:47–15:11)
+### Owner's picks (2026-11-24, 14:47–15:11 and 17:00)
 
 - On options written after the drawing: the 45 → “ให้ผมติ๊กรายย่าน (แนะนำ)”; the 57 of a city's fabric → “คงขอบทะเบียนเดิม (แนะนำ)”; arms along roads and valleys → “คงแขนไว้ตามหลัก (แนะนำ)”. Written into `amendments/outline-rule-choices-2026-11-24.json` (apply 192, pending 45, keep 57), read by `amend --choices`.
+- 17:00 ICT, VERBATIM: “ผม update ใน google sheet ให้แล้วพร้อม หมายเหตุ พี่ช่วยศึกษาแล้วมาบอกหน่อยว่าจะปรับยังไงดี”. Read from the sheet (export of 17:2x): ใช้หลักใหม่ 386 rows, คงขอบเดิม 2 (พหลโยธิน 24, วัดเกต–เจริญเมือง), ดูอีกที 7 with notes (หน้านิคมลำพูน–บิ๊กซี, คานหาม–แยกทางเข้าโรจนะ, แบริ่ง–สุขุมวิท 107, ตลาดอินโดจีน–สำราญชายโขง, หอนาฬิกา–ไนท์บาซาร์เชียงราย, ปาย–ถนนคนเดิน, บ่อผุด–ฟิชเชอร์แมนวิลเลจ). Choices file: apply 192, applyTicked 37, pending 8, keep 58, unchanged 100. The 7 were redrawn in the page with his limits (industrial land use as light ground for the two by industrial estates; roads, a corridor and points for four) and shown to him as `02-CityMETER__outline-rule-owner-notes-adjusted__v1__2026-11-24.png`; four questions and the ลาดพร้าว conflict asked at 17:30.
 - On the registry bundle on his Mac he answered “Try again”: the request for his Downloads folder was refused by the session's automatic check, as before, and was not worked around; he was asked to add the folder in the Claude app (+ › Add folder) or attach the files.
 
 ### Local
