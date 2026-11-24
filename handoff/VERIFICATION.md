@@ -38,9 +38,11 @@ Owner 2026-11-24 08:15 ICT, VERBATIM: “ผมอยากให้ดูเร
 - Chromium through Playwright, this session (basemap tiles blocked here, so the page shows its incomplete-data notice): Thai and English at 1440 × 900 and 393 × 852 for จอมเทียน, บ่อผุด–ฟิชเชอร์แมนวิลเลจ, ตลาดอินโดจีน–สำราญชายโขง, หน้านิคมลำพูน–บิ๊กซี, แบริ่ง–สุขุมวิท 107 and ป่าตอง: the record's outline line reads “… ป่า ทุ่ง น้ำ หรือพื้นที่อุตสาหกรรม …” / “… forest, field, water or industrial land …”, with “และตามขอบที่เจ้าของกำหนด” / “and within limits the owner set” only where he set limits; no page error; no sideways scroll at 393 px, the phone sheet expanded and read in both languages.
 - Not yet: the basemap under the redrawn outlines, on the preview.
 
-### Preview — pending
+### Preview (UTC, 2026-11-24)
 
-The owner runs the publisher in preview mode (montri-th/citymeter-pages-deploy) with the override `commercialdistrict` → the head of the pull request from branch `extent-pilot-0.3.0`; nothing goes to production before he has seen it.
+- At 13:55 the owner found ป่าตอง, จอมเทียน and บ่อผุด still on their old outlines (142, 905, 96 ไร่): the preview had last been assembled on 2026-11-20 17:41 with Commercial District `f730ccc` (0.2.6), as its `release.json` said; nothing had run it with the pull request's head. On his word (“ให้ผมรันเอง (แนะนำ)”) the publisher was attached to the session and run in preview mode (never production) with the override `{"commercialdistrict": "75da6cf005e0927dc115dec1ed2de3cef7942058"}`.
+- Run 45409052859 stopped at fetching the sources: HTTP 503 from montri-th.github.io/factory, not this release. Run 45409189636 (13:59:44–14:01): 18 sources, 17 from their latest GitHub Pages deployment and Commercial District `75da6cf` by override; release SHA-256 `27c8eb53…445e`; the demo family check passed on the built site and live (hub = 18, shell 0.6.4); 187 files uploaded, 11,371 already there; 114 / 114 live checks.
+- Chrome on preview.citymeter.pages.dev: cache tag `20261124-r3`; ป่าตอง 3,097 ไร่ (ที่พัก 653 แห่ง, the most of the 395), จอมเทียน 2,473 ไร่, บ่อผุด–ฟิชเชอร์แมนวิลเลจ 513 ไร่, each over the basemap with the record's outline line as written (with “และตามขอบที่เจ้าของกำหนด” for จอมเทียน and บ่อผุด).
 
 ## Release 0.2.5 — 18 พ.ย. 2569
 
