@@ -201,7 +201,10 @@ is never a commercial district: it trims 12 redrawn outlines by at most 2 %, ต
 on the map). จอมเทียน ends 100 m north of ถนนเทพประสิทธิ์ on his word. Drawn again, 388 of the 389 places without limits match
 the reviewed drawing cell for cell once industrial land is set aside; จอมเทียน's reviewed drawing had stopped at 2 km on tiles
 not fully loaded (on complete tiles its built-up ground runs on into Pattaya). `amend --choices` reads the drawing made with
-these limits (`redraw` in the choices) and refuses to run before it is exported.
+these limits, `amendments/outline-rule-2026-11-24-r2.json`: the reviewed drawing with the 24 places whose drawing or shares
+changed replaced from the page's export (SHA-256 in the file), every place marked with the options it was drawn with; it
+would refuse to run while `redraw.status` in the choices is `pending`. By the review step the redrawn drawing holds 196
+places that grow and stop by themselves, 40 split, 49 city, 8 that run on and 102 unchanged.
 
 The drawn cells are traced (Douglas–Peucker at 1.2 cells) and, for the map, their steps rounded off
 (`scripts/rule-outlines.py amend`: a closing of 12 m kept within 6 m of the cells, simplified at 2 m). The amendment is

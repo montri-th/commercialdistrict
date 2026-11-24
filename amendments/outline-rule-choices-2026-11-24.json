@@ -1,11 +1,15 @@
 {
  "about": "The owner's picks of which neighbourhoods take the outline rule of 2026-11-24 (DATA_METHOD.md §2c). scripts/rule-outlines.py amend --choices reads apply, applyTicked and trimArms; every other code keeps the registry's outline.",
  "drawing": {
+  "file": "amendments/outline-rule-2026-11-24-r2.json",
+  "sha256": "9d131d49475bfa67fce50fa3916ee9b775ef1a83054c43674187aa6b3077272c"
+ },
+ "reviewed": {
   "file": "amendments/outline-rule-2026-11-24.json",
   "sha256": "f8cf48d96aff7a6ea444de50cbc10deecc340dc21eba59bde86d4a7db4dd10a8"
  },
  "redraw": {
-  "status": "pending",
+  "status": "exported",
   "why": "the owner's limits and industrial land as light ground for every place (18:1x) change the drawing he reviewed: amend must read the drawing of 2026-11-24 r2, not the reviewed one",
   "options": {
    "lightLanduse": [
@@ -14,7 +18,7 @@
   },
   "limits": "amendments/outline-rule-limits-2026-11-24.json",
   "drawnInPage": "2026-11-24 17:20–18:20 ICT in the live demo: all 395 with industrial land as light ground; the 8 with limits drawn again with them. 388 of the 389 places drawn without limits match the reviewed drawing cell for cell once industrial land is set aside; จอมเทียน does not (the reviewed drawing stopped at 2 km on incompletely loaded tiles; on complete tiles its built-up ground runs on into Pattaya).",
-  "export": "not yet: the browser extension disconnected at 18:20 before the export"
+  "export": "exported 18:3x ICT (SHA-256 3121632c…db6e, the 24 places whose drawing or shares changed and every limit), carried through the owner's Drive sheet 02-CityMETER__outline-rule-redraw-export__v1__2026-11-24; amendments/outline-rule-2026-11-24-r2.json is the reviewed drawing with those 24 replaced"
  },
  "owner": [
   {
