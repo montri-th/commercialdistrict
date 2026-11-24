@@ -1,6 +1,6 @@
 """Step 6: the new centres (farther than 1 km from every outline) with score >= 6, ranked by score then distinct positions;
 their components, roles (registry codes; ties in the order of «8 บทบาทย่าน»; T1 rail is context, not a role), anchor names within
-400 m (shopping centres and markets, rail stations, universities, else hotels and guesthouses), a registry screening name within
+400 m (shopping centres and markets, rail stations, universities, else the lodging that counts as evidence), a registry screening name within
 800 m, and the per-component shares in cores and background."""
 import collections, json, os, pathlib, pickle, numpy as np
 from scipy.spatial import cKDTree
@@ -8,6 +8,7 @@ from pyproj import Transformer
 from sklearn.metrics import roc_auc_score
 REPO = pathlib.Path(__file__).resolve().parents[2]
 WORK = pathlib.Path(os.environ.get('SCREEN_WORK', '/tmp/citymeter-screening'))
+LODGING_TYPES = tuple(os.environ.get('SCREEN_LODGING', 'hotel,guesthouse,resort').split(','))
 Z = dict(np.load(WORK / 'seeds.npz')); S, dist, prov, posN, layN = Z['S'], Z['dist'], Z['prov'], Z['posN'], Z['layN']
 SC_ = np.load(WORK / 'score.npz'); score, best = SC_['score'], SC_['best']
 C = pickle.load(open(WORK / 'components.pkl', 'rb')); data = pickle.load(open(WORK / 'points.pkl', 'rb'))
@@ -33,7 +34,7 @@ SCg, HSG = data['shoppingcenter']['subgroups'], data['hotel']['subgroups']
 named = {}
 for ds, keep in (('shoppingcenter', lambda sg: isinstance(sg, int) and 0 <= sg < len(SCg) and SCg[sg] in ('mall', 'community', 'outlet', 'market', 'hoststore')),
                  ('transit', lambda sg: True), ('university', lambda sg: True),
-                 ('hotel', lambda sg: isinstance(sg, int) and HSG[sg] in ('hotel', 'guesthouse'))):
+                 ('hotel', lambda sg: isinstance(sg, int) and HSG[sg] in LODGING_TYPES)):
     P = [p for p in data[ds]['P'] if keep(p[2]) and p[5]]
     x, y = utm.transform([p[0] for p in P], [p[1] for p in P])
     named[ds] = (cKDTree(np.c_[x, y]), [p[5] for p in P])

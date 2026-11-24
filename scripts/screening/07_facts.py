@@ -13,7 +13,8 @@ CAND = json.load(open(WORK / 'candidates.json', encoding='utf-8'))
 nb = json.load(open(REPO / 'data' / 'neighborhoods.json', encoding='utf-8'))
 codes = [f['properties']['id'] for f in json.load(open(REPO / 'data' / 'provinces.geojson', encoding='utf-8'))['features']]
 pos = best[best >= 0]; neg = np.where(dist > 1000)[0]
-F = {'method': 'lodging evidence = hotel + guesthouse; seeds from the nine national commerce layers and rail stations; province percentile with ties ranked lowest; cores by the nine layers, nearest outline only; role ties in registry order',
+LODGING = os.environ.get('SCREEN_LODGING', 'hotel,guesthouse,resort').split(',')
+F = {'method': 'lodging evidence = ' + ' + '.join(LODGING) + '; seeds from the nine national commerce layers and rail stations; province percentile with ties ranked lowest; cores by the nine layers, nearest outline only; role ties in registry order',
      'inputs': {'data/neighborhoods.json': sha(REPO / 'data' / 'neighborhoods.json'), 'data/boundaries.geojson': sha(REPO / 'data' / 'boundaries.geojson'),
                 'registryExport': sha(os.environ['SCREEN_REGISTRY_XLSX']) if os.environ.get('SCREEN_REGISTRY_XLSX') else None},
      'seeds': int(len(S)), 'seedsWithin150': int((dist <= 150).sum()), 'background': int(len(neg)), 'positives': int(len(pos)), 'dataSees': int((best >= 0).sum()),

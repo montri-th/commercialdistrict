@@ -9,6 +9,8 @@ REPO = pathlib.Path(__file__).resolve().parents[2]
 WORK = pathlib.Path(os.environ.get('SCREEN_WORK', '/tmp/citymeter-screening'))
 QUEUE, SAMPLE, SEED = int(os.environ.get('SCREEN_QUEUE', '10')), int(os.environ.get('SCREEN_SAMPLE', '40')), int(os.environ.get('SCREEN_SEED', '20261125'))
 DATE = os.environ.get('SCREEN_DATE', '2026-11-25')
+LODGING = os.environ.get('SCREEN_LODGING', 'hotel,guesthouse,resort').split(',')
+LODGING_TH = {('hotel', 'guesthouse'): 'โรงแรมและเกสต์เฮาส์', ('hotel', 'guesthouse', 'resort'): 'โรงแรม เกสต์เฮาส์ และรีสอร์ท'}[tuple(LODGING)]
 Z = dict(np.load(WORK / 'seeds.npz')); S = Z['S']
 LY = pickle.load(open(WORK / 'layers.pkl', 'rb')); polys, ids = LY['polys_utm'], LY['ids']
 rows = {r['id']: r for r in json.load(open(REPO / 'data' / 'neighborhoods.json', encoding='utf-8'))['rows']}
@@ -21,7 +23,7 @@ for n, c in enumerate(C, 1):
     i = c['seed']; p = Point(*S[i]); j = int(tree.nearest(p)); cx, cy = np.floor(S[i] / 200.0).astype(int)
     out.append({'rank': n, 'id': f'SC-{cx}-{cy}', 'province': c['province'], 'provinceTh': c['provinceTh'], 'metro': c['province'] in METRO, 'score': c['score'],
                 'components': ' '.join(c['components']), 'anchors': ' · '.join(c['anchors'][:3]), 'role': ROLE_TH.get(c['roles'][0], c['roles'][0]) if c['roles'] else '',
-                'positions400': c['positions400'], 'layers400': c['layers400'], 'hotelGuesthouse400': c['lodging400'], 'oldRule': c['oldRule'],
+                'positions400': c['positions400'], 'layers400': c['layers400'], 'lodging400': c['lodging400'], 'oldRule': c['oldRule'],
                 'nearestId': ids[j], 'nearestName': rows[ids[j]]['name'], 'nearestM': int(round(polys[j].distance(p))),
                 'registryNameWithin800m': c['registryNameWithin800m'] or '', 'lat': c['lat'], 'lon': c['lon']})
 rng = np.random.default_rng(SEED)
@@ -37,13 +39,13 @@ for region in (True, False):
         sample.update(v[k]['id'] for k in rng.choice(len(v), size=take[b], replace=False))
 for r in out: r['sample'] = r['id'] in sample
 HDR = ['ลำดับ', 'รหัสผู้สมัคร', 'ตัวอย่างรอบแรก', 'จังหวัด', 'คะแนน', 'ข้อที่ผ่าน', 'ชื่อสถานที่ใน 400 ม.', 'บทบาทแรก', 'ตำแหน่งการค้าใน 400 ม.',
-       'ชั้นการค้าใน 400 ม.', 'โรงแรมและเกสต์เฮาส์ใน 400 ม.', 'ผ่านเกณฑ์เดิมด้วย', 'ย่านเดิมที่ใกล้ที่สุด', 'ห่างย่านเดิม (ม.)', 'ชื่อในทะเบียนใน 800 ม.',
+       'ชั้นการค้าใน 400 ม.', f'{LODGING_TH}ใน 400 ม.', 'ผ่านเกณฑ์เดิมด้วย', 'ย่านเดิมที่ใกล้ที่สุด', 'ห่างย่านเดิม (ม.)', 'ชื่อในทะเบียนใน 800 ม.',
        'ละติจูด', 'ลองจิจูด', 'Google Maps', 'Street View', 'OpenStreetMap',
        'ผลตรวจ ChatGPT', 'ชื่อย่านที่เสนอ', 'หลักฐาน', 'เหตุผล', 'ผู้ตรวจ', 'วันที่ตรวจ', 'พี่ตัดสิน', 'หมายเหตุ']
 def line(r):
     la, lo = f"{r['lat']:.5f}", f"{r['lon']:.5f}"
     return [r['rank'], r['id'], 'ใช่' if r['sample'] else '', r['provinceTh'], r['score'], r['components'], r['anchors'], r['role'], r['positions400'],
-            r['layers400'], r['hotelGuesthouse400'], 'ใช่' if r['oldRule'] else 'ไม่', f"{r['nearestName']} ({r['nearestId']})", r['nearestM'], r['registryNameWithin800m'],
+            r['layers400'], r['lodging400'], 'ใช่' if r['oldRule'] else 'ไม่', f"{r['nearestName']} ({r['nearestId']})", r['nearestM'], r['registryNameWithin800m'],
             la, lo, f'https://www.google.com/maps/search/?api=1&query={la},{lo}', f'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint={la},{lo}',
             f'https://www.openstreetmap.org/?mlat={la}&mlon={lo}#map=17/{la}/{lo}', '', '', '', '', '', '', '', '']
 NAME = f'02-CityMETER__neighbourhood-candidate-review-rows__v1__{DATE}'

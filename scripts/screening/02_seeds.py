@@ -2,7 +2,8 @@
 Seed = a 200 m cell (UTM 47N, EPSG:32647) holding a point of the nine national commerce layers or a rail station.
 Commerce layers: shopping centres (mall, community, outlet) · markets and retail venues (market, hoststore, other) · lodging ·
 grocery · pharmacy · office · luxury brands · camera · fitness. Restaurants are left out: the dataset reaches 7 provinces only.
-Lodging counts as evidence for types 'hotel' and 'guesthouse' only (owner 2026-11-25: “โรงแรม + เกสต์เฮาส์”).
+Lodging counts as evidence for types 'hotel', 'guesthouse' and 'resort' (owner 2026-11-25: “โรงแรม + เกสต์เฮาส์”, then
+“นับรีสอร์ทด้วย”); SCREEN_LODGING=hotel,guesthouse repeats the first round.
 Also here: counts of every layer within 400 / 800 m, distinct positions (~11 m) and layers within 400 m, the nearest outline
 within 1 km, the province, and the registry's old queue rule (“เข้าคิวก่อน”, 800 m) at each seed."""
 import json, os, pathlib, pickle, numpy as np
@@ -12,7 +13,7 @@ from shapely.geometry import shape, Point
 from shapely import STRtree, transform as shp_transform
 REPO = pathlib.Path(__file__).resolve().parents[2]
 WORK = pathlib.Path(os.environ.get('SCREEN_WORK', '/tmp/citymeter-screening'))
-LODGING_TYPES = ('hotel', 'guesthouse')
+LODGING_TYPES = tuple(os.environ.get('SCREEN_LODGING', 'hotel,guesthouse,resort').split(','))
 data = pickle.load(open(WORK / 'points.pkl', 'rb'))
 utm = Transformer.from_crs('EPSG:4326', 'EPSG:32647', always_xy=True)
 XY, META = {}, {}
