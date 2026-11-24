@@ -20,11 +20,14 @@ Nothing here reaches a network; the drawing's inputs are named in the export and
 """
 import argparse
 import base64
+import warnings
 import gzip
 import hashlib
 import json
 import sys
 from collections import defaultdict
+
+warnings.filterwarnings('ignore', category=DeprecationWarning)  # shapely.ops.transform, kept for shapely 2.0
 
 OWNER_TH = ('แทนขอบเดิมไปเลย เรียบง่ายกว่า / ใช้ชื่อป่าตอง / แบ่งเป็น 2 ย่าน / เลือกใช้แบบ B โดยมี A เป็นขอบนอกสุดอีกชั้นนึง'
             'กั้นไว้ไม่ให้เกิน ยกเว้นถ้ามีกรณีพิเศษให้มาถาม / ดูย่านอื่นๆทั่วประเทศด้วย ว่าสามารถ apply หลักเดียวกันได้มั้ย ติดตรงไหนให้มาถาม')
@@ -76,6 +79,8 @@ def classify(pl):
         return 'unchanged'
     if c['edgeCells']:
         return 'city' if c['reachM'] == 2000 else 'runs-on'
+    if not (pl.get('rings') or pl.get('shares')):  # no rings: the gain was smaller than the tracing keeps
+        return 'unchanged'
     return 'split' if c['sharers'] else 'clean'
 
 
@@ -150,7 +155,7 @@ def smooth(ext):
 def cmd_amend(a):
     import os
     from shapely.geometry import shape, mapping, MultiPolygon, Polygon
-    from shapely.strtree import STRtree
+    from shapely.ops import unary_union
     from shapely.validation import make_valid
     places, meta = load_places(a.exports)
     rows = {r['id']: r for r in json.load(open(a.rows, encoding='utf-8'))['rows']}
@@ -176,9 +181,13 @@ def cmd_amend(a):
     old = json.load(open(a.amendments, encoding='utf-8')) if os.path.exists(a.amendments) else {'type': 'FeatureCollection', 'features': []}
     kept = [f for f in old['features'] if not f['properties'].get('rule')]  # the owner's own amendments stay as drawn
     fixed = {f['properties']['canonical_id'] for f in kept}
-    cur = {k: shape(g) for k, g in base.items()}
+    def poly(g):  # the polygonal part of a valid copy: a few display outlines cross themselves
+        v = make_valid(shape(g))
+        ps = [p for p in getattr(v, 'geoms', [v]) if isinstance(p, (Polygon, MultiPolygon))]
+        return v if isinstance(v, (Polygon, MultiPolygon)) else unary_union(ps)
+    cur = {k: poly(g) for k, g in base.items()}
     for f in kept:
-        cur[f['properties']['canonical_id']] = shape(f['geometry'])
+        cur[f['properties']['canonical_id']] = poly(f['geometry'])
     only = set(a.only.split(',')) if a.only else None
     skip = set(a.skip.split(',')) if a.skip else set()
     # one drawing per area: the first neighbourhood of the area in the registry's order gives every share of it
@@ -198,10 +207,10 @@ def cmd_amend(a):
         if why:
             report[why].append(pid)
             continue
-        core = shape(base[pid])
+        core = poly(base[pid])
         drawn = smooth(decode_rings(rings, grid))
         near = [cur[k] for k in cur if k != pid and cur[k].intersects(drawn.buffer(0.001))]
-        new = drawn.difference(make_valid(MultiPolygon([p for g in near for p in getattr(g, 'geoms', [g]) if isinstance(p, Polygon)]))) if near else drawn
+        new = drawn.difference(unary_union(near)) if near else drawn  # a union: outlines that overlap each other stay subtracted
         new = make_valid(new.union(core))
         parts = [p for p in getattr(new, 'geoms', [new]) if isinstance(p, Polygon) and (p.intersects(core) or utm_area(p) >= CRUMB_M2)]
         new = parts[0] if len(parts) == 1 else MultiPolygon(parts)
@@ -211,9 +220,9 @@ def cmd_amend(a):
             continue
         lost = core.difference(new)
         assert lost.is_empty or utm_area(lost) < 0.01, f'{pid} loses area'
-        for g in near:
-            both = g.intersection(new)
-            assert both.is_empty or utm_area(both) < 0.1, f'{pid} overlaps a neighbour'
+        for g in near:  # what the build checks; an overlap the outlines already had (none in the registry's) is not new
+            both, had = g.intersection(new), g.intersection(core)
+            assert both.is_empty or utm_area(both) - (0 if had.is_empty else utm_area(had)) < 0.1, f'{pid} overlaps a neighbour'
         cur[pid] = new
         c = places[by]['check'] if by == pid else places[pid]['check'] if pid in places else {}
         feats_out.append({'type': 'Feature', 'geometry': mapping(new), 'properties': {
