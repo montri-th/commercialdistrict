@@ -45,9 +45,3 @@ export function registerDataNames(model) {
   for (const p of model?.pending || []) thai.push(p.name);
   keepThai(thai.filter(v => v && THAI.test(v)));
 }
-
-/** The trial wider areas' names stay Thai on an English page, as the neighbourhoods' names do (0.3.0). */
-export function registerExtentNames(ext) {
-  if (LANG !== 'en') return;
-  keepThai((ext?.items || []).map(it => it.name).filter(v => v && THAI.test(v)));
-}

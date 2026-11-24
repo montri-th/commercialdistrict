@@ -50,7 +50,6 @@ export default {
     'อาคาร 3 มิติ: เข้ม = ในย่านที่เปิดและรอบ ๆ · จาง = ทั่วเมือง': '3D buildings: strong = in and round the open neighbourhood · faint = elsewhere in the city',
     'อาคาร': 'Buildings',
     'ระบบราง': 'Rail',
-    'พื้นที่ย่าน (ทดลอง)': 'Wider area (trial)',
     'ปรับแผนที่ให้เห็นย่านที่เลือก หรือย่านในจังหวัดที่เลือก': 'Fit the map to the open neighbourhood, or to the province’s neighbourhoods',
     'ดูทั้งประเทศ ล้างจังหวัด ย่าน และคำค้น': 'Whole country: clear the province, the neighbourhood and the search',
     'สลับ 3 มิติ / 2 มิติ': 'Switch between 3D and 2D',

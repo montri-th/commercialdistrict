@@ -18,7 +18,7 @@
  * shared grammar at · f.search · f.neighborhood · f.show · m · cmp · v3d by citymeter-shell (js/shell/url.js); opening a
  * province or a neighbourhood adds a browser history entry.
  */
-import {registerDataNames, registerExtentNames} from './lang.js';
+import {registerDataNames} from './lang.js';
 import {provinces as provinceList, provinceByCode, provinceCodeFrom, provinceName, setProvinces, decodeData, scopeRows, scopePending, KINDS, kindMatch, cell, rowsBounds, dsName, dsUnit, dsUnitN, num, PILLARS, PILLAR_SERIES} from './model.js';
 import {buildOverview, buildNeighborhood, buildCompare} from './profile.js';
 import {renderOverview, renderNeighborhood, renderCompare, renderFilterChips, tableHeadHTML, tableRowHTML, esc, L, dens, sharePct, thaiDate} from './panel.js';
@@ -30,7 +30,6 @@ import {provinceLocator} from './provinces.js';
 import {buildMapStyle, basemapPalette, TILEJSON_URL, MASSING_BEFORE} from './shell/map-style.js';
 import {installMassing, outerRings, FOCUS_MIN_ZOOM} from './massing.js';
 import {decodeRail, installRailLayers, railTipHTML} from './rail.js';
-import {decodeExtents, installExtentLayers, extentOf, extentFeature} from './extents.js';
 import {ringsBox, cameraSquare} from './regions.js';
 import {createBuildingUnitStore, cmTileUrl, CM_ATTRIBUTION} from './shell/building-units.js';
 import {presetFor, applyPreset, fitPitched, fitBuilding, CAMERA} from './shell/camera.js';
@@ -332,7 +331,6 @@ function onPanelAction(event) {
   else if (action === 'cmp-top') compareTop(value);
   else if (action === 'cmp-similar') { const r = rowById(id); if (r) compareSet([r.id, ...buildNeighborhood(state.model, r).similar.map(x => x.row.id)]); }
   else if (action === 'open-table') openTable();
-  else if (action === 'fit-extent') fitExtent(id);
   else if (action === 'open-record') openRecordFromList(+value);
   else if (action === 'open-compare') openInsights(true);
   else if (action === 'open-sheet') openMobilePanel();
@@ -358,12 +356,6 @@ function renderLegend() {
     : L('สีและรูปทรง = หมวดของจุดเด่นแรกของย่าน (Land · Location · Living)', 'Colour and shape = pillar of the neighbourhood’s first highlight (Land · Location · Living)');
   const poiItem = $('legend-poi');
   if (poiItem) poiItem.hidden = !state.nb;
-  const extItem = $('legend-extent'), ext = state.extents;
-  if (extItem) {
-    extItem.hidden = !ext?.items?.length;
-    if (ext?.items?.length) extItem.title = L(`พื้นที่ย่าน (ทดลอง) ${num(ext.items.length)} พื้นที่: ทั้งพื้นที่ที่ชื่อย่านหมายถึง วาดด้วยกฎจากแผนที่ฐาน OpenStreetMap ${thaiDate(ext.meta.drawnOn)} · ตัวเลขของย่านยังนับในขอบทะเบียน (แกนย่าน)`,
-      `Wider areas (trial), ${num(ext.items.length)} places: the whole place a neighbourhood's name refers to, drawn by rule from the OpenStreetMap basemap on ${thaiDate(ext.meta.drawnOn)} · the neighbourhood figures still count inside the registry's outline (the core)`);
-  }
   const railItem = $('legend-rail'), rail = state.railData?.meta;
   if (railItem) {
     railItem.hidden = !rail;
@@ -640,7 +632,6 @@ function updateSpatialLayers() {
   L_.paint(state.fills);
   L_.setPins(pinCollection(state.model.rows, r => state.fills.get(r.id)?.icon || 'pin:none', r => state.fills.get(r.id)?.sort || 0));
   L_.select(state.nb);
-  state.extentLayer?.setOpen(extentOf(state.extents, state.nb)?.id || '');
   L_.setCompare(state.compare);
   L_.setProvince(state.province);
   const r = openRow();
@@ -924,8 +915,6 @@ function installSpatialLayers() {
   });
   state.rail = null;
   installRail();
-  state.extentLayer = null;
-  installExtents();
   updateSpatialLayers();
   if (!state.initialCameraDone) {
     state.initialCameraDone = true;
@@ -970,35 +959,6 @@ function showRailTip(items) {
 function hideRailTip() {
   state.railTip?.remove();
   state.railTip = null; state.railTipKey = '';
-}
-
-/* ---------- map: trial wider areas (0.3.0, js/extents.js, DATA_METHOD.md §2c) ---------- */
-/** data/extents.json once, after the page reads; the panel shows a core's wider area once it is here. */
-function loadExtents() {
-  fetchJSON(`data/extents.json${V()}`)
-    .then(json => { state.extents = decodeExtents(json); state.model.extents = state.extents; registerExtentNames(state.extents); installExtents(); renderLegend(); update(); })
-    .catch(e => { partial('extents'); console.warn('Wider areas unavailable', e); });
-}
-function installExtents() {
-  const map = state.map;
-  if (!map || !state.loaded || !state.extents || state.extentLayer) return;
-  try {
-    // No credit of its own: drawn from the basemap's OpenStreetMap data, already credited on the map (ODbL).
-    state.extentLayer = installExtentLayers(map, state.extents, {before: 'nb-line'});
-    state.extentLayer.setOpen(extentOf(state.extents, state.nb)?.id || '');
-  } catch (e) { state.extentLayer = null; console.warn('Wider-area layers unavailable', e); }
-}
-/** The whole wider area in the free map, as a neighbourhood is framed (fitNb). */
-function fitExtent(id) {
-  const f = extentFeature(state.extents, id);
-  if (!f || !state.map) return;
-  const points = framePoints(f.geometry);
-  if (!points.length) return;
-  const map = state.map, pad = cameraPadding(), c = map.getContainer();
-  const side = mobilePortrait() ? 12 : null;
-  const box = {left: side ?? pad.left, top: pad.top, right: c.clientWidth - (side ?? pad.right), bottom: c.clientHeight - pad.bottom};
-  const preset = state.view3d ? 'model' : 'plan';
-  fitBuilding(map, points, {box, preset, bearing: CAMERA[preset].bearing, minZoom: 9, maxZoom: FIT_MAX_ZOOM, fill: FIT_FILL, animate: animate()});
 }
 
 /** The attribution must stay readable: its live height becomes --attrib-height (the phone dock stays above it). */
@@ -1317,7 +1277,6 @@ const PARTIAL = {
   'units': ['รูปอาคารของ CityMETER', 'อาคารบางจังหวัดแสดงจากแผนที่ฐานแทนชุดอาคารของ CityMETER', 'CityMETER building shapes', 'Buildings in some provinces come from the basemap instead of the CityMETER set'],
   'basemap': ['แผนที่ฐาน', 'ถนน แหล่งน้ำ และอาคารพื้นหลังอาจไม่แสดง ข้อมูลในแผงและตารางยังใช้ได้', 'Basemap', 'Roads, water and background buildings may be missing; the panel and the table still work'],
   'rail': ['ระบบราง', 'แผนที่ไม่แสดงแนวรถไฟฟ้าและสถานี ตัวเลขในแผงยังครบ', 'Rail', 'The map shows no rail lines or stations; the panel figures are complete'],
-  'extents': ['พื้นที่ย่าน (ทดลอง)', 'ไม่แสดงพื้นที่ย่านทดลอง ตัวเลขของย่านยังครบ', 'Wider areas (trial)', 'The trial wider areas are not shown; the neighbourhood figures are complete'],
 };
 function partial(key) {
   const words = PARTIAL[key];
@@ -1358,7 +1317,6 @@ async function init() {
     window.dispatchEvent(new CustomEvent('citymeter:ready'));
     startMap();
     loadRail();
-    loadExtents();
   } catch (e) {
     window.dispatchEvent(new CustomEvent('citymeter:load-error', {detail: {message: L('โหลดข้อมูลย่านไม่สำเร็จ กรุณาลองอีกครั้ง', 'The neighbourhood data did not load; please try again'), resource: e.resource, status: e.status, phase: e.phase || 'startup', diagnostic: e.message}}));
     console.error(e);

@@ -140,7 +140,7 @@
     {"viewKey": "compare", "title": "เปรียบเทียบย่าน", "question": "ย่านเหล่านี้ต่างกันตรงไหน", "encoding": "matrix datasets × neighbourhoods: count, density, bar against the densest of the row, densest ringed", "metric": "count and records per km²", "scope": "up to four neighbourhoods"}
   ],
   "delivery": {
-    "cacheTag": "?v=20261124-r1",
+    "cacheTag": "?v=20261124-r2",
     "shell": "citymeter-shell 0.6.2 (0.6.1 + this demo in the picker, shipped by release 0.1.0 to all 17 demos)"
   }
 }

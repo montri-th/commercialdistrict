@@ -461,34 +461,43 @@ def main():
     # ----- owner amendments (0.2.4): a registry outline the owner asked to change, drawn by the registry's own rules
     # (scripts/draw-outline-amendment.py, DATA_METHOD.md §2b). Applied only to the outline it was drawn from (its SHA-256),
     # only adding area and overlapping no other outline; the area is measured in UTM as the registry measures its own.
-    amendments = []
+    # (0.3.0) Or redrawn by the owner's rule from the basemap (scripts/draw-outline-rule.browser.js, scripts/rule-outlines.py,
+    # DATA_METHOD.md §2c): the same checks, and a lodging area's draft outline too, once the drafts have joined.
+    amendments, deferred = [], []
+    geometry_sha = lambda g: hashlib.sha256(json.dumps(g, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+    def amend(am, f, others):
+        ap_ = am['properties']
+        if f is None or geometry_sha(f['geometry']) != ap_['registry_geometry_sha256']:
+            sys.exit(f"{ap_['canonical_id']}: the registry outline is not the one the amendment was drawn from; redraw it")
+        new, old = shape(am['geometry']), shape(f['geometry'])
+        lost = old.difference(new)
+        if not lost.is_empty and utm_area(lost) >= 0.01:
+            sys.exit(f"{ap_['canonical_id']}: the amendment would take area from the registry outline")
+        for g in others:
+            both = shape(g['geometry']).intersection(new) if g is not f else None
+            if both is not None and not both.is_empty and utm_area(both) >= 0.1:
+                sys.exit(f"{ap_['canonical_id']}: the amendment overlaps {g['properties']['canonical_id']}")
+        f['geometry'] = am['geometry']
+        f['properties']['area_m2'] = utm_area(new)
+        f['properties']['_amended'] = ap_['amended_on']
+        amendments.append({
+            'id': ap_['canonical_id'], 'name': ap_['name_th'], 'on': ap_['amended_on'], 'by': 'owner',
+            'registryAreaM2': ap_['registry_area_m2'], 'areaM2': round(f['properties']['area_m2'], 2),
+            'includes': [{'th': x['name_th'], 'en': x['name_en'], 'osm': x['source_id']} for x in ap_['includes']],
+            'rules': ap_['rules'], 'crossings': ap_['crossings'], 'osm': ap_['osm'],
+            'statusTh': ap_['status_th'], 'statusEn': ap_['status_en'],
+            **({'rule': ap_['rule']} if ap_.get('rule') else {}),
+        })
+        print(f"amended           {ap_['canonical_id']} {ap_['registry_area_m2']:.0f} → {f['properties']['area_m2']:.0f} m2", file=sys.stderr)
+
     if a.outline_amendments:
-        geometry_sha = lambda g: hashlib.sha256(json.dumps(g, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
         by_code = {f['properties']['canonical_id']: f for f in closed}
         for am in json.load(open(a.outline_amendments, encoding='utf-8'))['features']:
-            ap_ = am['properties']
-            f = by_code.get(ap_['canonical_id'])
-            if f is None or geometry_sha(f['geometry']) != ap_['registry_geometry_sha256']:
-                sys.exit(f"{ap_['canonical_id']}: the registry outline is not the one the amendment was drawn from; redraw it")
-            new, old = shape(am['geometry']), shape(f['geometry'])
-            lost = old.difference(new)
-            if not lost.is_empty and utm_area(lost) >= 0.01:
-                sys.exit(f"{ap_['canonical_id']}: the amendment would take area from the registry outline")
-            for g in closed:
-                both = shape(g['geometry']).intersection(new) if g is not f else None
-                if both is not None and not both.is_empty and utm_area(both) >= 0.1:
-                    sys.exit(f"{ap_['canonical_id']}: the amendment overlaps {g['properties']['canonical_id']}")
-            f['geometry'] = am['geometry']
-            f['properties']['area_m2'] = utm_area(new)
-            f['properties']['_amended'] = ap_['amended_on']
-            amendments.append({
-                'id': ap_['canonical_id'], 'name': ap_['name_th'], 'on': ap_['amended_on'], 'by': 'owner',
-                'registryAreaM2': ap_['registry_area_m2'], 'areaM2': round(f['properties']['area_m2'], 2),
-                'includes': [{'th': x['name_th'], 'en': x['name_en'], 'osm': x['source_id']} for x in ap_['includes']],
-                'rules': ap_['rules'], 'crossings': ap_['crossings'], 'osm': ap_['osm'],
-                'statusTh': ap_['status_th'], 'statusEn': ap_['status_en'],
-            })
-            print(f"amended           {ap_['canonical_id']} {ap_['registry_area_m2']:.0f} → {f['properties']['area_m2']:.0f} m2", file=sys.stderr)
+            if am['properties']['canonical_id'] not in by_code and am['properties'].get('rule'):
+                deferred.append(am)  # a lodging area's draft outline: amended once the drafts have joined
+                continue
+            amend(am, by_code.get(am['properties']['canonical_id']), closed)
     prev_closed = set()
     if a.prev_canonical:
         prev_closed = {f['properties']['canonical_id'] for f in json.load(open(a.prev_canonical, encoding='utf-8'))['features'] if f['geometry']}
@@ -551,9 +560,16 @@ def main():
                     'name_status': 'draft_pending_local_name_validation', 'field_verified': False, '_kind': 'lodging'}})
             else:
                 lod_pending.append((code_of(gid), g['name_th'], (g.get('origin') or {}).get('xy'), g.get('province', '')))
+        # (0.3.0) a lodging area's draft outline redrawn by the owner's rule, checked against every outline
+        by_lodging = {f['properties']['canonical_id']: f for f in closed[n_registry:]}
+        for am in deferred:
+            amend(am, by_lodging.get(am['properties']['canonical_id']), closed)
+        deferred = []
         # (0.2.4) an amended outline overlaps no lodging draft either
         for f in closed[n_registry:]:
             for am in amendments:
+                if am['id'] not in by_code:
+                    continue  # a lodging draft's own amendment, checked against every outline above
                 both = shape(f['geometry']).intersection(shape(next(g for g in closed[:n_registry] if g['properties']['canonical_id'] == am['id'])['geometry']))
                 if not both.is_empty and utm_area(both) >= 0.1:
                     sys.exit(f"{am['id']}: the amendment overlaps the lodging draft {f['properties']['canonical_id']}")
@@ -572,6 +588,8 @@ def main():
             'boundaryTh': 'ระยะเดินตามข่ายทางเดินจากจุดเริ่มประเมินของทะเบียน นับเมื่อระยะเดินบวกเผื่อ 50 ม. ยังไม่เกิน 400 หรือ 800 ม.',
             'boundaryEn': 'walking distance on the path network from the registry\'s assessment start; counted when the walk plus a 50 m allowance stays within 400 or 800 m',
         }
+    if deferred:
+        sys.exit(f"{deferred[0]['properties']['canonical_id']}: no outline of that code to amend (a lodging draft's needs --lodging)")
     polys = [shape(f['geometry']) for f in closed]
     prepared = [prep(p) for p in polys]
     tree = STRtree(polys)
@@ -776,7 +794,7 @@ def main():
     display['metadata'] = {
         'source': 'CityMETER central neighbourhood registry — national-gis/canonical-boundaries.geojson of the owner bundle; kind=lodging: review drafts of its lodging screen (boundaries/current-all268-review-drafts.geojson); the registry admitted these areas as central codes on ' + a.admitted_on + ' (tab ชื่อกลาง), the outlines stay drafts' if admit else 'CityMETER central neighbourhood registry — national-gis/canonical-boundaries.geojson of the owner bundle; kind=lodging: review drafts of its lodging screen (boundaries/current-all268-review-drafts.geojson), not admitted by the registry',
         'features': len(display['features']),
-        **({'amended': {'ids': [x['id'] for x in amendments], 'note': "owner's amendment of a registry outline drawn by the registry's rules (amendments/outline-amendments.geojson); every count uses it"}} if amendments else {}),
+        **({'amended': {'ids': [x['id'] for x in amendments], 'note': "owner's amendments of outlines (amendments/outline-amendments.geojson): drawn by the registry's rules (0.2.4) or redrawn by the owner's rule from the basemap (0.3.0, `rule`); every count uses them"}} if amendments else {}),
         'simplification': 'mapshaper -simplify interval=1.5 keep-shapes (display only; shared edges kept); every count uses the delivered outline',
         'status': 'draft outlines pending local confirmation; not an administrative boundary or a title',
         'license': '© OpenStreetMap contributors, ODbL 1.0 (roads, waterways and footprints used to draw the outlines)',

@@ -1173,12 +1173,3 @@ td.num, th.num { text-align: right; }
 @media (max-width: 720px) {
   .lodging-figures { grid-template-columns: 1fr; }
 }
-/* Trial wider areas (0.3.0, js/extents.js): a dash-dot neutral line on the map — the swatch draws the same pattern. */
-.legend-extent { width: 16px; height: 10px; flex: 0 0 16px; background: linear-gradient(90deg, var(--text-muted) 0 7px, transparent 7px 9px, var(--text-muted) 9px 10.5px, transparent 10.5px 12.5px, var(--text-muted) 12.5px 16px) center / 16px 2px no-repeat; }
-.ext-list { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 6px; }
-.ext-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name figure" ". core" "measure measure"; column-gap: 10px; align-items: baseline; }
-.ext-list .ds-name { grid-area: name; }
-.ext-list .ext-figure { grid-area: figure; text-align: right; font-size: 15px; }
-.ext-list .ext-figure small { margin-left: 3px; color: var(--text-metadata); font-size: 12px; }
-.ext-list .ext-core { grid-area: core; text-align: right; font-size: 12px; }
-.ext-list li > .hint:not(.ext-core) { grid-area: measure; font-size: 12px; }

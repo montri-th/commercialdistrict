@@ -23,14 +23,14 @@ const SITES = {
 };
 
 const amendments = readJSON('amendments/outline-amendments.geojson');
-const am = amendments.features[0];
+const am = amendments.features.find(f => f.properties.canonical_id === ID);
 const inside = (pt, geometry) => {
   const polys = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
   return polys.some(([outer, ...holes]) => pointInRing(pt, outer) && !holes.some(h => pointInRing(pt, h)));
 };
 
 test('the amendment file: one outline, the owner\'s words, the places he named, drawn from the registry outline it replaces', () => {
-  assert.equal(amendments.features.length, 1);
+  assert.equal(amendments.features.filter(f => !f.properties.rule).length, 1, 'one amendment by named places; the rule\'s are tests/rule-outline.test.js');
   const p = am.properties;
   assert.equal(p.canonical_id, ID);
   assert.equal(p.by, 'owner');
@@ -63,7 +63,7 @@ test('the shipped data use the amended outline: the row, its area, the display o
   assert.ok(model.rows.find(r => r.id === ID), 'decoded as any other row');
   const shown = outlines.features.find(f => f.properties.id === ID);
   for (const [way, pt] of Object.entries(SITES)) assert.ok(inside(pt, shown.geometry), `${way} inside the outline on the map`);
-  assert.deepEqual(outlines.metadata.amended.ids, [ID]);
+  assert.ok(outlines.metadata.amended.ids.includes(ID));
   const shard = shards[ID], F = Object.fromEntries(shard.fields.map((f, k) => [f, k]));
   const keys = new Set(shard.rows.map(x => x[F.key]));
   for (const key of ['SC-015705', 'CAM-O-0e17daca5f3e17', 'f22dde57', 'POS-a75590100646', 'PHO-48d82bc21b7dc7d2']) assert.ok(keys.has(key), `${key} (at Maya or Kad Rin Kham) is counted inside`);
