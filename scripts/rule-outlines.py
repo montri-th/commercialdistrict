@@ -213,7 +213,9 @@ def cmd_amend(a):
     trim = set()
     if a.choices:  # the owner's picks (amendments/outline-rule-choices-*.json): apply, applyTicked, and the ones to take without narrow arms
         ch = json.load(open(a.choices, encoding='utf-8'))
-        only = set(ch['apply']) | set(ch.get('applyTicked', [])) | set(ch.get('trimArms', []))
+        if (ch.get('redraw') or {}).get('status') == 'pending':
+            sys.exit('amend: the owner\'s picks wait for a drawing not exported yet (choices.redraw): ' + ch['redraw']['why'])
+        only = set(ch['apply']) | set(ch.get('applyTicked', [])) | set(ch.get('applyNoted', [])) | set(ch.get('trimArms', []))
         trim = set(ch.get('trimArms', []))
     skip = set(a.skip.split(',')) if a.skip else set()
     # one drawing per area: the first neighbourhood of the area in the registry's order gives every share of it
@@ -298,7 +300,7 @@ def main():
     m.add_argument('--on', required=True)
     m.add_argument('--only', default='', help='comma-separated codes to amend (default: every clean or split one)')
     m.add_argument('--skip', default='', help='comma-separated codes to leave as drawn by the registry')
-    m.add_argument('--choices', default='', help="the owner's picks: amendments/outline-rule-choices-<date>.json (apply, applyTicked, trimArms)")
+    m.add_argument('--choices', default='', help="the owner's picks: amendments/outline-rule-choices-<date>.json (apply, applyTicked, applyNoted, trimArms)")
     a = ap.parse_args()
     if a.cmd == 'amend' and not a.display and not (a.bundle and a.lodging):
         sys.exit('amend needs --bundle and --lodging (or --display for a preview)')

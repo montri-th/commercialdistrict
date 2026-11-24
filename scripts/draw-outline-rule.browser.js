@@ -10,6 +10,8 @@
  * industrial estate is not a commercial district); limits — {id: [limit]} the owner's limits for a place: a road
  * ('lines') the outline does not cross, an area ('poly') it does not take, a corridor ('near', d metres) it stays in,
  * and 'passWater' (metres): within the owner's limits a canal narrower than that no longer stops the outline.
+ * 'take' (a ring): an area the owner names as part of the place, e.g. the strip between a beach and the road behind it —
+ * its land joins the area whatever the buildings, still inside his other limits.
  * redo — draw again places already drawn in this page (otherwise a place drawn once is kept).
  *
  * Grid 0.0001° (about 11 m). For a neighbourhood and every outline within reach (registry outlines and lodging drafts):
@@ -76,7 +78,7 @@ window.__rule = (() => {
         x.globalCompositeOperation = 'destination-out'; x.strokeStyle = '#000'; strokeG(G, x, L.near, 2 * L.d / cellM); lc.drawImage(c, 0, 0); } } }
   /** 'hard' ground is kept out after every hole is filled: the land uses of the option lightLanduse (an industrial estate
    * inside a town would otherwise come back as a hole) and the owner's limits. */
-  function base(G, bbox, X = {}) { const lc = cv(G), wa = cv(G), bd = cv(G), hd = cv(G), light = X.light || new Set();
+  function base(G, bbox, X = {}) { const lc = cv(G), wa = cv(G), bd = cv(G), hd = cv(G), tk = cv(G), light = X.light || new Set();
     for (const T of tilesIn(bbox)) {
       for (const f of T.landcover) if (LC.has(f.c)) fillG(G, lc, f.g);
       for (const f of T.park) if (PARK.has(f.c)) fillG(G, lc, f.g);
@@ -85,8 +87,9 @@ window.__rule = (() => {
       for (const f of T.building) fillG(G, bd, f.g);
     }
     limitsInto(G, hd, X.limits || []);
+    for (const L of X.limits || []) if (L.take) fillG(G, tk, {type: 'Polygon', coordinates: [L.take]});  // the owner's own area for the place
     const pass = Math.max(0, ...(X.limits || []).map(L => L.passWater || 0));  // metres of water a place within the owner's limits may cross
-    return {lc: maskOf(G, lc), water: maskOf(G, wa), bld: maskOf(G, bd), hard: maskOf(G, hd), passCells: Math.round(pass / 2 / (G.res * 110574))}; }
+    return {lc: maskOf(G, lc), water: maskOf(G, wa), bld: maskOf(G, bd), hard: maskOf(G, hd), take: maskOf(G, tk), passCells: Math.round(pass / 2 / (G.res * 110574))}; }
   function morph(G) { const {W, H} = G, N = W * H;
     const dil = (a, r) => { const t = new Uint8Array(N), o = new Uint8Array(N), ps = new Int32Array(Math.max(W, H) + 1);
       for (let y = 0; y < H; y++) { const row = y * W; ps[0] = 0; for (let x = 0; x < W; x++) ps[x + 1] = ps[x] + a[row + x]; for (let x = 0; x < W; x++) t[row + x] = ps[Math.min(W, x + r + 1)] - ps[Math.max(0, x - r)] > 0 ? 1 : 0; }
@@ -147,7 +150,8 @@ window.__rule = (() => {
     const dark = M.and(M.and(M.not(B0.lc), M.not(wat)), M.not(hard));
     const A = M.minus(M.fill(M.and(M.dil(M.or(M.comp(M.dil(M.ero(dark, 2), 2), all), all), 2), M.not(wat))), hard);
     const B = M.fill(M.and(M.ero(M.comp(M.dil(B0.bld, 4), all), 3), M.not(wat)));
-    const E0 = M.or(M.minus(M.fill(M.or(M.and(A, B), all)), hard), all);
+    const take = B0.take ? M.and(B0.take, M.not(wat)) : new Uint8Array(N);  // the owner's own area, land only
+    const E0 = M.or(M.minus(M.fill(M.or(M.or(M.and(A, B), take), all)), hard), all);
     const part = M.comp(E0, P.seed);
     const sh = P.coreMasks.map((c, j) => j).filter(j => M.sum(M.and(P.coreMasks[j].mask, part)) > 0);
     const me = P.coreMasks.findIndex(c => c.own), shares = {};
@@ -197,7 +201,7 @@ window.__rule = (() => {
       const shares = {}; if (apply && st.sharers.length) for (const [k, mk] of Object.entries(res.r.shares)) shares[k] = enc(rings(res.P.G, mk));
       const lim = (O.limits || {})[id] || [], opts = {};
       if ((O.lightLanduse || []).length) opts.lightLanduse = O.lightLanduse;
-      if (lim.length) opts.limits = lim.map(L => L.label || (L.poly ? 'area' : L.near ? 'corridor' : 'line'));
+      if (lim.length) opts.limits = lim.map(L => L.label || (L.take ? 'own area' : L.poly ? 'area' : L.near ? 'corridor' : L.passWater ? 'water to cross' : 'line'));
       S.out[id] = {id, kind: F.properties.kind, grid: [+res.P.G.lon0.toFixed(4), +res.P.G.lat1.toFixed(4), res.P.G.res], check: st, rings: apply ? enc(rings(res.P.G, res.r.E)) : '', shares, ...(Object.keys(opts).length ? {opts} : {})};
     } catch (e) { S.err.push(id + ': ' + (e && e.stack ? e.stack.slice(0, 300) : e)); } }
     S.status = 'done'; }

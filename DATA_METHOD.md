@@ -191,6 +191,18 @@ the 192, for 36 of the 45 and for ลาดพร้าว 83 (its share of ล�
 seen them. The 57 of a city's fabric have no redrawn outline to take, whatever the tick; ลาดพร้าว, ticked to take a
 neighbour's share against his 15:00 answer, waits for his word. The picks: `amendments/outline-rule-choices-2026-11-24.json`.
 
+**The owner's limits and industrial land (2026-11-24, 17:43 and 18:1x).** The seven he noted are drawn again within the
+limits he set (`amendments/outline-rule-limits-2026-11-24.json`): an area or a road the outline does not take, a corridor it
+stays in (แบริ่ง: within 300 m of ถนนแบริ่ง), water it may cross (a canal up to 44 m), or his own area (บ่อผุด: the strip from
+end to end of the OpenStreetMap beach หาดบ่อผุด to the road behind it, land only). A limit is light ground taken out after every
+fill. Since 18:1x industrial land (OpenMapTiles landuse `industrial`) is light ground for every place, so an industrial estate
+is never a commercial district: it trims 12 redrawn outlines by at most 2 %, ตลาดยิ่งรวย–สิรัชชา ดอนหัวฬ่อ gains nothing, and
+ฉลองกรุง–ตลาดนครฉลองกรุง keeps the registry's outline on his word (what remains beyond the industrial land reads as factories
+on the map). จอมเทียน ends 100 m north of ถนนเทพประสิทธิ์ on his word. Drawn again, 388 of the 389 places without limits match
+the reviewed drawing cell for cell once industrial land is set aside; จอมเทียน's reviewed drawing had stopped at 2 km on tiles
+not fully loaded (on complete tiles its built-up ground runs on into Pattaya). `amend --choices` reads the drawing made with
+these limits (`redraw` in the choices) and refuses to run before it is exported.
+
 The drawn cells are traced (Douglas–Peucker at 1.2 cells) and, for the map, their steps rounded off
 (`scripts/rule-outlines.py amend`: a closing of 12 m kept within 6 m of the cells, simplified at 2 m). The amendment is
 the registry's own outline (its geometry from the bundle, by SHA-256) with the drawn share added, less every other

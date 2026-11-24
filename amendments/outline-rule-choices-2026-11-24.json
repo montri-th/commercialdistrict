@@ -4,6 +4,18 @@
   "file": "amendments/outline-rule-2026-11-24.json",
   "sha256": "f8cf48d96aff7a6ea444de50cbc10deecc340dc21eba59bde86d4a7db4dd10a8"
  },
+ "redraw": {
+  "status": "pending",
+  "why": "the owner's limits and industrial land as light ground for every place (18:1x) change the drawing he reviewed: amend must read the drawing of 2026-11-24 r2, not the reviewed one",
+  "options": {
+   "lightLanduse": [
+    "industrial"
+   ]
+  },
+  "limits": "amendments/outline-rule-limits-2026-11-24.json",
+  "drawnInPage": "2026-11-24 17:20–18:20 ICT in the live demo: all 395 with industrial land as light ground; the 8 with limits drawn again with them. 388 of the 389 places drawn without limits match the reviewed drawing cell for cell once industrial land is set aside; จอมเทียน does not (the reviewed drawing stopped at 2 km on incompletely loaded tiles; on complete tiles its built-up ground runs on into Pattaya).",
+  "export": "not yet: the browser extension disconnected at 18:20 before the export"
+ },
  "owner": [
   {
    "when": "2026-11-24 13:00 ICT",
@@ -39,6 +51,22 @@
    "conflict": {
     "CMN-TH-A80D6353DE": "the sheet says ใช้หลักใหม่ (taking a share of ห้าแยกลาดพร้าว–พหลโยธิน's drawing, 185 → 272 rai); at 15:00 he kept the registry outline for the 57 whose drawing runs on. Asked at 17:30; it keeps the registry outline until he answers."
    }
+  },
+  {
+   "when": "2026-11-24 17:43 ICT",
+   "verbatim": [
+    "มุกดาหาร ทิศตะวันตกใช้ ไม่เกินโรงเรียนมุกดาลัยแทน",
+    "ย่านที่เหลือตามที่พี่เสนอได้เลย"
+   ],
+   "read": "the 7 noted places as drawn again with his limits (pictures outline-rule-owner-notes-adjusted and -round2), Bo Phut with the strip along the whole beach that was proposed, ลาดพร้าว taking its share (272 rai) as ticked in the sheet"
+  },
+  {
+   "when": "2026-11-24 18:1x ICT",
+   "note": "two questions written by Claude after the round-two picture, answered by the owner",
+   "chose": {
+    "the industrial land use rule (light ground: OSM landuse=industrial) for every place": "ใช้ทั้งประเทศ ฉลองกรุงคงขอบเดิม (แนะนำ)",
+    "จอมเทียน, whose first drawing came from incompletely loaded tiles": "100 เมตรเหนือถนนเทพประสิทธิ์"
+   }
   }
  ],
  "reachLimitM": 1000,
@@ -48,16 +76,16 @@
   "picture": "02-CityMETER__outline-rule-45-far-places__v1__2026-11-24.jpg"
  },
  "groups": {
-  "apply": "reaches within 1 km; each ticked ใช้หลักใหม่ in the sheet at 17:00",
-  "applyTicked": "ticked ใช้หลักใหม่ row by row in the sheet at 17:00: 36 that reach beyond 1 km, and ลาดพร้าว 83, which takes its share of ลาดพร้าว 71's drawing",
-  "pending": "ticked ดูอีกที with a note (7), and ลาดพร้าว, where the sheet and his 15:00 answer differ",
-  "keep": "the registry outline: 56 whose drawing runs on (15:00), and 2 he ticked คงขอบเดิม at 17:00",
+  "apply": "reaches within 1 km; each ticked ใช้หลักใหม่ in the sheet at 17:00. ตลาดยิ่งรวย–สิรัชชา ดอนหัวฬ่อ gains nothing once industrial land is light ground, so it keeps the registry's outline",
+  "applyTicked": "ticked ใช้หลักใหม่ row by row in the sheet at 17:00: 36 that reach beyond 1 km (จอมเทียน drawn again within his limit of 18:1x), ลาดพร้าว 83 and ลาดพร้าว taking their shares",
+  "applyNoted": "ticked ดูอีกที with a note at 17:00; drawn again with his limits or with industrial land as light ground, accepted at 17:43",
+  "pending": "none",
+  "keep": "the registry outline: 56 whose drawing runs on (15:00), 2 he ticked คงขอบเดิม at 17:00, ฉลองกรุง–ตลาดนครฉลองกรุง (18:1x: what remains beyond the industrial land is still factories)",
   "unchanged": "the drawing adds nothing"
  },
  "apply": [
   "CMN-TH-D02BB074A0",
   "CMN-TH-D96BEC663E",
-  "CMN-TH-1BB5EBF03A",
   "CMN-TH-D44B9CBAD4",
   "CMN-TH-345791112B",
   "CMN-TH-4AE35A19D6",
@@ -285,19 +313,20 @@
   "CMN-TH-B481C8B92C",
   "CMN-TH-CBBF1241BC",
   "CMN-TH-35D32181FD",
-  "CMN-TH-43DD441D85"
+  "CMN-TH-43DD441D85",
+  "CMN-TH-A80D6353DE"
  ],
- "trimArms": [],
- "pending": [
+ "applyNoted": [
   "CMN-TH-09D690F14D",
   "CMN-TH-EB2C8E2A3B",
   "CMN-TH-6BC59AC5DC",
   "CMN-TH-90577B97B3",
   "CMN-TH-D9F7AE6095",
   "CMN-TH-C5F715F44C",
-  "CMN-TH-DA16B18689",
-  "CMN-TH-A80D6353DE"
+  "CMN-TH-DA16B18689"
  ],
+ "trimArms": [],
+ "pending": [],
  "keep": [
   "CMN-TH-4FC0B8E374",
   "CMN-TH-8595659CB9",
@@ -356,7 +385,8 @@
   "CMN-TH-38B4A49D02",
   "CMN-TH-0004",
   "CMN-TH-E3533C8236",
-  "CMN-TH-0FE7CF185C"
+  "CMN-TH-0FE7CF185C",
+  "CMN-TH-1BB5EBF03A"
  ],
  "unchanged": [
   "CMN-TH-XE4EE678023",
