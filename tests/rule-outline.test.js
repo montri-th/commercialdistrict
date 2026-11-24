@@ -67,3 +67,18 @@ test('ป่าตอง keeps its name for the whole town; กะรน and ก
   assert.equal(row('CMN-TH-EC14CFAC8E').name, 'กะรน');
   assert.equal(row('CMN-TH-B481C8B92C').name, 'กะตะ');
 });
+
+test('the owner\'s picks: the drawing they read, one group per code, and only the picked codes redrawn', () => {
+  const ch = readJSON('amendments/outline-rule-choices-2026-11-24.json');
+  assert.equal(sha256(readBytes(ch.drawing.file)), ch.drawing.sha256, 'the stored drawing is the one the picks were made on');
+  const drawing = readJSON(ch.drawing.file);
+  assert.equal(drawing.places.length, 395);
+  const groups = ['apply', 'trimArms', 'pending', 'keep', 'unchanged'];
+  const all = groups.flatMap(g => ch[g]);
+  assert.equal(new Set(all).size, all.length, 'a code in one group only');
+  assert.deepEqual(new Set(all), new Set(drawing.places.map(p => p.id)), 'every drawn code has a group');
+  for (const id of ch.apply) assert.ok(ch.reachM[id] <= ch.reachLimitM, `${id} reaches within ${ch.reachLimitM} m`);
+  assert.ok(ch.owner.some(o => /ให้ผมติ๊กรายย่าน/.test(o.chose?.['the 45 that reach beyond 1 km'] ?? '')));
+  const picked = new Set([...ch.apply, ...ch.trimArms]);
+  for (const f of rule) assert.ok(picked.has(f.properties.canonical_id), `${f.properties.canonical_id} redrawn only on the owner's pick`);
+});

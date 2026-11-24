@@ -143,6 +143,27 @@ def utm_area(geom):
     return transform(utm(geom)[0], geom).area
 
 
+TRIM_M = 75  # the owner's "ตัดแขนแคบ": an opening of 75 m takes off arms narrower than 150 m
+
+
+def trim_arms(drawn, core):
+    """The drawing less its arms narrower than 150 m: an opening of 75 m, the parts that still meet the outline it grew from."""
+    from shapely.geometry import Polygon
+    from shapely.ops import transform, unary_union
+    fwd, back = utm(drawn)
+    m, c = transform(fwd, drawn), transform(fwd, core)
+    kept = unary_union([m.buffer(-TRIM_M, join_style=1).buffer(TRIM_M, join_style=1).intersection(m), c.intersection(m)])
+    parts = [g for g in getattr(kept, 'geoms', [kept]) if isinstance(g, Polygon) and g.area > 0 and g.buffer(1).intersects(c)]
+    return transform(back, unary_union(parts)) if parts else core
+
+
+def reach_m(new, core):
+    """How far the new outline reaches from the registry's: the discrete Hausdorff distance in UTM, metres."""
+    from shapely.ops import transform
+    fwd = utm(new)[0]
+    return round(transform(fwd, new).hausdorff_distance(transform(fwd, core)))
+
+
 def smooth(ext):
     """The drawing's cells, their steps rounded off: a closing of 12 m kept within 6 m of the cells, simplified at 2 m."""
     from shapely.ops import transform
@@ -189,6 +210,11 @@ def cmd_amend(a):
     for f in kept:
         cur[f['properties']['canonical_id']] = poly(f['geometry'])
     only = set(a.only.split(',')) if a.only else None
+    trim = set()
+    if a.choices:  # the owner's picks (amendments/outline-rule-choices-*.json): apply, and the ones to take without narrow arms
+        ch = json.load(open(a.choices, encoding='utf-8'))
+        only = set(ch['apply']) | set(ch.get('trimArms', []))
+        trim = set(ch.get('trimArms', []))
     skip = set(a.skip.split(',')) if a.skip else set()
     # one drawing per area: the first neighbourhood of the area in the registry's order gives every share of it
     assigned, report = {}, defaultdict(list)
@@ -209,6 +235,8 @@ def cmd_amend(a):
             continue
         core = poly(base[pid])
         drawn = smooth(decode_rings(rings, grid))
+        if pid in trim:
+            drawn = trim_arms(drawn, core)
         near = [cur[k] for k in cur if k != pid and cur[k].intersects(drawn.buffer(0.001))]
         new = drawn.difference(unary_union(near)) if near else drawn  # a union: outlines that overlap each other stay subtracted
         new = make_valid(new.union(core))
@@ -228,14 +256,14 @@ def cmd_amend(a):
         feats_out.append({'type': 'Feature', 'geometry': mapping(new), 'properties': {
             'canonical_id': pid, 'name_th': rows[pid]['name'], 'amended_on': a.on, 'by': 'owner', 'owner_words_th': OWNER_TH,
             'registry_geometry_sha256': gsha(base[pid]), 'registry_area_m2': round(reg_a, 2), 'area_m2': round(new_a, 2),
-            'added_m2': round(new_a - reg_a, 2), 'metric_crs': 'EPSG:32647' if new.centroid.x < 102 else 'EPSG:32648',
+            'added_m2': round(new_a - reg_a, 2), 'reach_m': reach_m(new, core), 'metric_crs': 'EPSG:32647' if new.centroid.x < 102 else 'EPSG:32648',
             'rules': ['BUILDINGS', 'DARK-GROUND'] + (['HALFWAY'] if by != pid or places[pid]['check']['sharers'] else []),
             'includes': [], 'crossings': [],
             'osm': f"OpenFreeMap planet {meta['tilesBuild']} (OpenMapTiles schema, zoom 14) as the demo's basemap draws it, © OpenStreetMap contributors, ODbL 1.0",
             'method': f"scripts/draw-outline-rule.browser.js in the live demo on {meta['drawnOn']} (drawn with {by}), "
                       f"scripts/rule-outlines.py amend: steps rounded (closing {SMOOTH_M} m within {REACH_M} m), simplified {SIMPLIFY_M} m, "
                       'the registry outline kept whole, every other outline left out',
-            'rule': {'name': RULE['name'], 'th': RULE['th'], 'en': RULE['en'], 'drawnWith': by,
+            'rule': {'name': RULE['name'], 'th': RULE['th'], 'en': RULE['en'], 'drawnWith': by, 'armsTrimmed': pid in trim,
                      'shared': bool(by != pid or places[pid]['check']['sharers'])},
             'status_th': 'ขอบปรับตามหลักที่เจ้าของกำหนด รอทะเบียนรับในรุ่นถัดไป',
             'status_en': "redrawn by the owner's rule, awaiting the registry's next release"}})
@@ -270,6 +298,7 @@ def main():
     m.add_argument('--on', required=True)
     m.add_argument('--only', default='', help='comma-separated codes to amend (default: every clean or split one)')
     m.add_argument('--skip', default='', help='comma-separated codes to leave as drawn by the registry')
+    m.add_argument('--choices', default='', help="the owner's picks: amendments/outline-rule-choices-<date>.json (apply, trimArms)")
     a = ap.parse_args()
     if a.cmd == 'amend' and not a.display and not (a.bundle and a.lodging):
         sys.exit('amend needs --bundle and --lodging (or --display for a preview)')

@@ -2,23 +2,27 @@
 
 ## Release 0.3.0 — 24 พ.ย. 2569
 
-Owner 2026-11-24 08:15 ICT, VERBATIM: “ผมอยากให้ดูเรื่องขอบเขตย่าน โดยเฉพาะย่าน ท่องเที่ยวชายหาดเป็นตัวอย่าง ว่า ย่าน ป่าตอง กะตะ กะรน น่าจะคลุมพื้นที่อาคารมากกว่านี้มั้ย อย่างป่าตอง ทำไมไม่นับรวมทุกอาคารในป่าตองเลย อย่างกมลา เราจะเห็นบน basemap เป็นขอบเขตสีดำๆ เราใช้ขอบเขตนั้นมาช่วยกำหนดขอบเขตย่านด้วยได้มั้ย … อยาก apply กับที่อื่นๆ และย่านรูปแบบอื่นๆ ที่ relevant กันด้วยทั้ง dataset นี้”; 08:19 “อย่างป่าตองก็น่าได้ประมาณนี้มั้ย”; 10:12 “ลุยเลย” on two layers of outline piloted on ten places, shown on a preview first (`DATA_METHOD.md` §2c). Built on main after 0.2.6 (`f730ccc`).
+Owner 2026-11-24 08:15 ICT, VERBATIM: “ผมอยากให้ดูเรื่องขอบเขตย่าน โดยเฉพาะย่าน ท่องเที่ยวชายหาดเป็นตัวอย่าง ว่า ย่าน ป่าตอง กะตะ กะรน น่าจะคลุมพื้นที่อาคารมากกว่านี้มั้ย อย่างป่าตอง ทำไมไม่นับรวมทุกอาคารในป่าตองเลย อย่างกมลา เราจะเห็นบน basemap เป็นขอบเขตสีดำๆ เราใช้ขอบเขตนั้นมาช่วยกำหนดขอบเขตย่านด้วยได้มั้ย … อยาก apply กับที่อื่นๆ และย่านรูปแบบอื่นๆ ที่ relevant กันด้วยทั้ง dataset นี้”; 08:19 “อย่างป่าตองก็น่าได้ประมาณนี้มั้ย”; 10:12 “ลุยเลย” on a two-layer trial; 13:00, VERBATIM: “แทนขอบเดิมไปเลย เรียบง่ายกว่า” · “ใช้ชื่อป่าตอง” · “แบ่งเป็น 2 ย่าน” · “เลือกใช้แบบ B โดยมี A เป็นขอบนอกสุดอีกชั้นนึงกั้นไว้ไม่ให้เกิน ยกเว้นถ้ามีกรณีพิเศษให้มาถาม” · “ดูย่านอื่นๆทั่วประเทศด้วย ว่าสามารถ apply หลักเดียวกันได้มั้ย ติดตรงไหนให้มาถาม”. The two-layer trial was taken out unreleased (`ce7b1f7`). Built on main after 0.2.6 (`f730ccc`).
 
 ### Drawing (2026-11-24)
 
-- Where: the live demo at citymeter.pages.dev in the owner's Chrome, 1,710 × 819, through Claude in Chrome (its outlines byte-identical to this release's, below; its release number was not read); `scripts/draw-extents.browser.js` pasted in the page. The SHA-256 of its functions in the page (run, walk, beach, sweep, within, grid, morph, rings) equals the repository script's: `be943ad73b941f9d…`.
-- Inputs read in the page, each checked by SHA-256: `/commercialdistrict/data/boundaries.geojson` = this release's `data/boundaries.geojson` (`106ab3bf…efb3`); `/hotel/data/hotels.json` = montri-th/hotel@7fde352 `data/hotels.json` (`0d63ba36…c107`); `/pharmacy/data/frames/{PKT,KBI,SNI,CBI,PKN,BKK}.json` = montri-th/pharmacy@44da829 (retrieved 2026-10-23 by that demo).
-- Basemap OpenFreeMap planet build `20261122_124456_pt`, 235 tiles at zoom 14; the ten places in 66 s, no error. The export (18,782 characters) carried out of the page with the same SHA-256 there and on disk (`3ea0890c…40c0`, `metadata.exportSha256`).
-- Rules used: beach for ป่าตอง, กะรน–กะตะ, กมลา, อ่าวนาง; walk for ราไวย์ and หัวหิน (the beach area reached 5 km from the core), จอมเทียน (it took in three Pattaya outlines), เฉวง (smaller than the walk area); walk as asked for เมืองเก่าภูเก็ต and สยาม. Each area looked at on the live basemap before it was kept.
-- Smoke test of the headless runner (`scripts/draw-extents.py` draw and review) on synthetic tiles in this container: the same script ran, exported, built and rendered; nothing from it is in the release.
+- Where: the live demo at citymeter.pages.dev in the owner's Chrome through Claude in Chrome, `scripts/draw-outline-rule.browser.js` pasted in the page (SHA-256 `0aad564a…e140`; the fingerprint of its functions in the page, `941f36ae8ef31377`, equals the repository script's).
+- Inputs read in the page, each checked by SHA-256: `/commercialdistrict/data/boundaries.geojson` = release 0.2.6's `data/boundaries.geojson` (`106ab3bf…befb3`); `/hotel/data/hotels.json` = montri-th/hotel@7fde352 `data/hotels.json` (`0d63ba36…c107`, check figures only). Basemap OpenFreeMap planet build `20261122_124456_pt`, zoom 14.
+- Beach pilot (ป่าตอง, กะรน, กะตะ, กมลา, อ่าวนาง with นพรัตน์ธารา) looked at on the live basemap and sent to the owner as a picture.
+- Every neighbourhood with an outline: 395 in 18.9 minutes, none failed. The export (346,432 bytes, SHA-256 `f8cf48d9…10a8`) carried out of the page in eight gzip + base64 parts, each part's SHA-256 checked against the page's, joined and decoded to the same SHA-256: `amendments/outline-rule-2026-11-24.json`.
+- Classes (`scripts/rule-outlines.py review`): 197 grew and stopped, 40 split halfway in 19 shared areas, 49 ran to the 2 km box in a city's fabric, 8 ran on at 5 km, 101 unchanged (one of them a gain too small for the trace to keep: อ่าวใหญ่–เกาะพยาม).
+- Preview of the amendments with the display copy standing in for the bundle (`amend --display`): 239 outlines, every one only adding area; no overlap with another outline beyond the display copy's own (10 pairs of at least 0.1 m² there, from its simplification); 192 reach at most 1 km from their registry outline (25,204 → about 40,259 ไร่), 45 further (11,017 → about 83,855 ไร่). Nothing from the preview is in the release.
+- Review for the owner, in his Drive (03_OUTPUTS_AND_EXAMPLES): the sheet 02-CityMETER__outline-rule-nationwide-check__v1__2026-11-24 (395 rows, a column for his pick) and two pictures from the live demo (four examples; the 45 that reach beyond 1 km, numbered as in the sheet).
+
+### Owner's picks (2026-11-24, 14:47–15:11)
+
+- On options written after the drawing: the 45 → “ให้ผมติ๊กรายย่าน (แนะนำ)”; the 57 of a city's fabric → “คงขอบทะเบียนเดิม (แนะนำ)”; arms along roads and valleys → “คงแขนไว้ตามหลัก (แนะนำ)”. Written into `amendments/outline-rule-choices-2026-11-24.json` (apply 192, pending 45, keep 57), read by `amend --choices`.
+- On the registry bundle on his Mac he answered “Try again”: the request for his Downloads folder was refused by the session's automatic check, as before, and was not worked around; he was asked to add the folder in the Claude app (+ › Add folder) or attach the files.
 
 ### Local
 
-- `python3 -I scripts/extents-from-export.py` → `amendments/extents-pilot-2026-11-24.geojson`; `python3 -I scripts/build-extents.py` → `data/extents.json`: the 16 dataset files fetched at the commits `data/neighborhoods.json` names, each SHA-256 and located count equal to the build's; no two areas overlap; no area holds fewer records of a dataset than one of its cores.
-- `npm test` 172 / 172 (`tests/extent.test.js` new: hashes against this release's data, every core in one area, area ≥ core with the same scope keys, the section with one provenance line and the method link, the core's own figures unchanged, the overview list, the import map and the legend word).
-- LDS parity 130 ok, 0 failed against `Landometer-Design-System-v0.9.7.md` (SHA-256 `d3085cbc…2d96`); the line and legend use the Foundation UI inks `--text-muted` and `--text-secondary`, no data colour.
-- Local render, the basemap stubbed (MapLibre 5.6.2 from npm, Subresource Integrity checked): every pilot core in Thai and English — the section reads its area in ไร่ beside the core's, per dataset the area's count with “ในแกนย่าน N” / “N in the core”, the measures, “ดูทั้งพื้นที่บนแผนที่”, one provenance line with its four parts and the link to §2c; the national view lists the ten; the English harvest (`__citymeterI18n.missing`) empty; 393 px, Thai light and English dark: no overflow.
-- Not verified here: the wider areas drawn on the page's own basemap at 0.3.0 (the basemap is stubbed in this container), a real phone.
+- `npm test` 169: 166 pass, 0 fail, 3 skipped (`tests/rule-outline.test.js` waits for rule amendments).
+- Not yet: `amend` with the registry's bundle, the rebuild, LDS parity, Thai and English at desktop and 393 px.
 
 ### Preview — pending
 

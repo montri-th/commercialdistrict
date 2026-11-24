@@ -175,6 +175,18 @@ outlines and lodging drafts):
   ground already fills more than 35 % of the box (a city's continuous fabric). An area that still touches the box runs
   on beyond a town and is not redrawn: the registry's outline stays.
 
+**Which neighbourhoods take it.** Drawn for all 395 neighbourhoods with an outline on 2026-11-24 (18.9 minutes, none
+failed): 197 grew and stopped by themselves, 40 grew into a neighbour's built-up ground and were split, 49 ran to the 2 km
+box with the ground more than 35 % built (a city's continuous fabric), 8 still ran on at 5 km, 101 did not grow (an
+area no more than 2 % plus 200 m² over the registry's, or a gain too small for the trace to keep). Owner 2026-11-24,
+14:47–15:11, choosing among options written after this drawing: “ให้ผมติ๊กรายย่าน” for the 45 whose redrawn outline
+reaches more than 1 km from the registry's (the discrete Hausdorff distance in UTM, measured on the display copy), “คงขอบ
+ทะเบียนเดิม” for the 57 of a city's fabric, “คงแขนไว้ตามหลัก” for arms along roads and valleys. So the 192 that reach no
+more than 1 km take the rule; each of the 45 takes it when the owner picks “ใช้หลักใหม่” in the review sheet (or “ตัดแขนแคบ”:
+the same outline less its arms narrower than 150 m, an opening of 75 m that keeps the parts still meeting the registry's
+outline), and keeps the registry's outline until then; a share that a neighbour's drawing gives to a code that does not take
+the rule itself is not used. The picks: `amendments/outline-rule-choices-2026-11-24.json`.
+
 The drawn cells are traced (Douglas–Peucker at 1.2 cells) and, for the map, their steps rounded off
 (`scripts/rule-outlines.py amend`: a closing of 12 m kept within 6 m of the cells, simplified at 2 m). The amendment is
 the registry's own outline (its geometry from the bundle, by SHA-256) with the drawn share added, less every other
@@ -421,7 +433,8 @@ python3 -I scripts/draw-outline-amendment.py <outlines dir> amendments/osm-rinco
 #    step 5; redraw only to change the rule or the places (the build refuses an outline the registry has changed)
 python3 -I scripts/draw-outline-rule.py draw --out <export.json>   # or the browser script in the live demo (§2c)
 python3 -I scripts/rule-outlines.py review <export.json> --out <review.json>
-python3 -I scripts/rule-outlines.py amend <export.json> --bundle <bundle> --lodging <lodging folder> --on 2026-11-24 [--only|--skip]
+python3 -I scripts/rule-outlines.py amend amendments/outline-rule-2026-11-24.json --bundle <bundle> --lodging <lodging folder> \
+  --on 2026-11-24 --choices amendments/outline-rule-choices-2026-11-24.json   # the owner's picks (§2c)
 npm test
 node scripts/check-lds-parity.mjs --lds <Landometer-Design-System-v0.9.7.md>
 ```
