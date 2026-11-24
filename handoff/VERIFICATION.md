@@ -44,6 +44,20 @@ Owner 2026-11-24 08:15 ICT, VERBATIM: “ผมอยากให้ดูเร
 - Run 45409052859 stopped at fetching the sources: HTTP 503 from montri-th.github.io/factory, not this release. Run 45409189636 (13:59:44–14:01): 18 sources, 17 from their latest GitHub Pages deployment and Commercial District `75da6cf` by override; release SHA-256 `27c8eb53…445e`; the demo family check passed on the built site and live (hub = 18, shell 0.6.4); 187 files uploaded, 11,371 already there; 114 / 114 live checks.
 - Chrome on preview.citymeter.pages.dev: cache tag `20261124-r3`; ป่าตอง 3,097 ไร่ (ที่พัก 653 แห่ง, the most of the 395), จอมเทียน 2,473 ไร่, บ่อผุด–ฟิชเชอร์แมนวิลเลจ 513 ไร่, each over the basemap with the record's outline line as written (with “และตามขอบที่เจ้าของกำหนด” for จอมเทียน and บ่อผุด).
 
+### Live (UTC, 2026-11-24)
+
+- The owner at 21:49 ICT, VERBATIM: “merge and publish”. Pull request #23 merged as `8ab0a71` (main `f730ccc` was already inside the branch, so main is exactly what the preview showed, plus the record of the preview); GitHub Pages deployment of `8ab0a71` 14:50:14; `npm run verify:live` 803 ok, 0 failed (a first pass had two record shards at HTTP 503, both 200 and equal on the second).
+- citymeter.pages.dev: run 45419112203 (14:53:18–14:54:35, publish on): 18 sources from their latest GitHub Pages deployments (Commercial District `8ab0a71`, shell 0.6.4); release SHA-256 `1ef2acc3…b5f2`; the demo family check passed on the built site and live (hub = 18); 2 files uploaded, 11,556 already there (the preview had sent the rest); 114 / 114 live checks.
+- Chrome on citymeter.pages.dev: `release.json` assembled 14:53:42 names `8ab0a71`, cache tag `20261124-r3`, data built 2026-11-24; ป่าตอง 3,097 ไร่, “ที่พัก 653 แห่ง — มากที่สุด จาก 395 ย่าน…”, the record's outline line as written. In two same-origin frames 393 px wide in one tab (389 px inside their border): จอมเทียน in English (“2,473 rai”, “… forest, field, water or industrial land and within limits the owner set …”) and บ่อผุด in Thai (“… และตามขอบที่เจ้าของกำหนด …”); no sideways scroll, no unfilled text. The frames fell back to the light map (two maps in one tab), which is the harness, not the release.
+- Not done: not walked on a phone.
+
+### Registry sheet (2026-11-24, 21:57–22:03 ICT)
+
+- The owner at 21:57 ICT, VERBATIM: “เขียนบันทึกเลยครับ” (asked whether to note the 235 redrawn outlines in their registry rows as was done for นิมมาน–เมญ่า in 0.2.4).
+- Tab «ชื่อกลาง», column G (สถานะขอบกลาง), the 235 rows whose code has a rule amendment: the note is inserted before the row's release tag, as in G109: “เจ้าของให้ปรับเพิ่ม 24 พ.ย. 2569 ตามหลักคลุมกลุ่มอาคาร: คลุมกลุ่มอาคารที่ต่อจากขอบเดิม ภายในพื้นที่ที่แผนที่ฐานไม่ได้ระบุเป็นป่า ทุ่ง น้ำ หรือพื้นที่อุตสาหกรรม[ แบ่งครึ่งทางกับย่านข้างเคียง][ ตามขอบที่เจ้าของกำหนด (…)] — <ไร่ของทะเบียน> → <ไร่ที่วาดใหม่> ไร่ (ขอบปรับใน montri-th/commercialdistrict amendments/outline-amendments.geojson) รอรับในรุ่นถัดไป”; the limits named for the 6 places that have them.
+- How: read A1:L511 through the sheet's own CSV query in the owner's Chrome; codes and column G equal this morning's export (SHA-256); the column built in the page from the amendments and checked against the block computed here (SHA-256 equal); one paste into G2:G511 through the Name Box (checked at G2 of «ชื่อกลาง» before pasting). Read back: G2:G511 equal to the expected block, 235 cells changed, no other cell of A1:L511 changed, nothing below row 511; G109 (นิมมาน–เมญ่า) as it was. Drive: modified 2026-11-24 15:02:56 UTC by the owner's account.
+- Not written: the bundle ZIP, other tabs, the registry's own outlines.
+
 ## Release 0.2.5 — 18 พ.ย. 2569
 
 Owner 2026-11-18 17:44 ICT, VERBATIM: “หน่วย เฮกตาร์ ไม่มีคนเข้าใจ ควรใช้เป็นไร่ หรือ ตารางกิโลเมตร จะเข้ากับบริบทไทยมากกว่า”; at 17:57 he chose “1” — release it as 0.2.5 through preview and live as before. Built on main after the 0.2.4 live record (`b4b579e`).
