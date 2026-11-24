@@ -40,7 +40,9 @@ in §9 are published.
 
 **Observed fact.** 395 outlines in 77 provinces, 95.03 km²: the registry's 358 closed outlines (80.86 km², registry
 `area_m2` in its metric CRS, 473 m² to 2.17 km² — 0.3 to 1,358 ไร่ as the page writes it since 0.2.5; since 0.2.4 one of them extended on the owner's word, §2b) and, since
-0.2.0, 37 lodging areas of its lodging screen (14.18 km², §2a).
+0.2.0, 37 lodging areas of its lodging screen (14.18 km², §2a). Since 0.3.0, 235 of the 395 (220 of the registry's, 15 lodging
+areas) are redrawn by the owner's rule (§2c): as drawn, 206.63 km² (the registry's 182.83, the lodging areas 23.80), 1,592 m² to
+10.61 km² (1.0 to 6,633 ไร่).
 The registry's partition has no overlap of positive area (`meta.bundle.revision.positive_area_overlap_pairs` = 0) and
 the 37 lodging areas overlap none of its outlines (measured: 0), so a point belongs to at most one neighbourhood; a
 point on a shared edge goes to the first outline in order — the registry's in canonical order, then the lodging areas
@@ -435,11 +437,12 @@ ways it was drawn from (public data, ODbL). Since 0.3.0 the same holds for an ou
 # 4. (0.2.0) restore the outlines the bundle stores as a byte alias, beside its revision summary
 # 5. (0.2.1) the rows the registry admitted after that export, read back from the sheet: {spec: [[hex, name, province,
 #    status, outline review]], blockSha} (internal, never committed); the build checks they are the screen's 79 new areas
+#    and that the outline review is negative exactly where the registry drew a review draft (the 37)
 python3 -I scripts/restore-bundle-member.py <bundle dir> lodging-review-2026-11-17/inputs/canonical-boundaries-existing358.geojson \
   <outlines dir>/national-gis/canonical-boundaries.geojson
 cp <bundle dir>/gis/revision-summary.json <outlines dir>/national-gis/revision-summary.json
-python3 -I scripts/build-data.py --bundle <outlines dir> --bundle-zip <bundle.zip> --registry <export.xlsx> \
-  --repos <clones at main> --commits commits.json --mapshaper <mapshaper> --condo <condominium export.xlsx> --condo-read-on 2026-11-16 \
+python3 -I scripts/build-data.py --bundle <outlines dir> --bundle-zip <bundle.zip> --registry <export.xlsx> --read-on <its export date> \
+  --repos <clones at main> --commits commits.json --mapshaper <mapshaper> --condo <condominium export.xlsx> --condo-read-on <its export date> \
   --lodging <bundle dir>/lodging-held78-recovery-2026-11-18 --prev-canonical <the previous release's canonical-boundaries.geojson> \
   --admitted <read-back.json> --admitted-on 2026-11-18 --outline-amendments amendments/outline-amendments.geojson --out data
 # 6. (0.2.3) the rail context, from the Transit clone (clean in data/; its commit and file hashes go into meta)
@@ -452,8 +455,9 @@ python3 -I scripts/draw-outline-amendment.py <outlines dir> amendments/osm-rinco
 #    step 5; redraw only to change the rule or the places (the build refuses an outline the registry has changed)
 python3 -I scripts/draw-outline-rule.py draw --out <export.json>   # or the browser script in the live demo (§2c)
 python3 -I scripts/rule-outlines.py review <export.json> --out <review.json>
-python3 -I scripts/rule-outlines.py amend amendments/outline-rule-2026-11-24.json --bundle <bundle> --lodging <lodging folder> \
-  --on 2026-11-24 --choices amendments/outline-rule-choices-2026-11-24.json   # the owner's picks (§2c)
+python3 -I scripts/rule-outlines.py amend amendments/outline-rule-2026-11-24-r2.json --bundle <bundle> --lodging <lodging folder> \
+  --on 2026-11-24 --choices amendments/outline-rule-choices-2026-11-24.json   # the owner's picks (§2c); the drawing is the
+#    one the choices name as `drawing` (r2: his limits and industrial land), and amend refuses while a redraw is pending
 npm test
 node scripts/check-lds-parity.mjs --lds <Landometer-Design-System-v0.9.7.md>
 ```
