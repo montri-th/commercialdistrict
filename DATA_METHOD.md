@@ -10,14 +10,16 @@ makes).
 
 - **ย่าน** = ย่านกลางที่มีขอบปิดในทะเบียนย่านกลาง CityMETER (ฉบับร่าง ยังไม่ตรวจภาคสนาม) รหัสกลาง `CMN-TH-…`
 - **จำนวนในย่าน** = จำนวนรายการของชุดข้อมูลนั้นที่มีพิกัดและพิกัดอยู่ในขอบย่าน แต่ละชุดใช้หน่วยของตัวเอง (แห่ง สาขา ร้าน จุดขาย ทะเบียน รายการ สถานี–สาย) และ **ไม่บวกข้ามชุด**
-- **ต่อ ตร.กม.** = จำนวนในย่าน ÷ พื้นที่ย่านตามทะเบียน (`area_m2` ของทะเบียน ไม่คำนวณใหม่) · ย่านนิมมาน–เมญ่าที่ขอบปรับเพิ่ม
-  18 พ.ย. 2569 (§2b) ใช้พื้นที่ของขอบที่ปรับ วัดใน UTM 47N แบบที่ทะเบียนวัดของตัวเอง
+- **ต่อ ตร.กม.** = จำนวนในย่าน ÷ พื้นที่ย่านตามทะเบียน (`area_m2` ของทะเบียน ไม่คำนวณใหม่) · ย่านที่ขอบปรับเพิ่ม (นิมมาน–เมญ่า
+  18 พ.ย. 2569 §2b และย่านที่ขอบปรับตามหลักที่เจ้าของกำหนด §2c) ใช้พื้นที่ของขอบที่ปรับ วัดใน UTM แบบที่ทะเบียนวัดของตัวเอง
 - **พื้นที่ย่าน** = บอกเป็นไร่ (1 ไร่ = 1,600 ตร.ม.; หน้า English เขียน rai) ตั้งแต่ 0.2.5 ตามคำเจ้าของ 18 พ.ย. 2569 ไม่ใช้เฮกตาร์ ·
   ชี้ที่ตัวเลขพื้นที่ในการ์ดจะเห็น ตร.กม. (และโปรแกรมอ่านหน้าจออ่าน) เพราะความหนาแน่นทั้งหน้าคิดต่อ ตร.กม. · พื้นที่รวมของประเทศหรือจังหวัดบอกเป็น ตร.กม.
 - **ไม่มีข้อมูลในจังหวัดนี้ (—)** = ชุดข้อมูลไม่มีรายการที่มีพิกัดเลยในจังหวัดของย่าน จึงไม่รู้ ไม่ใช่ 0 · **0** = ชุดข้อมูลมีรายการในจังหวัด แต่ไม่มีรายการใดอยู่ในขอบย่าน
 - **สัดส่วน** = จำนวนในย่าน ÷ รายการที่มีพิกัดของชุดนั้น (ทั้งประเทศ หรือในจังหวัด) ตัวตั้งและตัวหารอยู่ข้างตัวเลขหรือในคำอธิบายของมัน
 - **จุดเด่น** = ย่านติดกลุ่มบนของกลุ่มเทียบ ทุกข้อบอกกลุ่มเทียบและจำนวน (§5)
 - **มาด้วยกัน** = คู่ชุดข้อมูลที่ความหนาแน่นขึ้นลงด้วยกันในย่านทั่วประเทศ (สหสัมพันธ์อันดับ ρ, §6) — ความสัมพันธ์ ไม่ใช่เหตุและผล
+- **ขอบที่ปรับตามหลักที่เจ้าของกำหนด** (0.3.0) = ขอบย่านที่วาดใหม่จากแผนที่ฐาน: กลุ่มอาคารที่ต่อจากขอบเดิม ภายในพื้นที่ที่แผนที่ฐานไม่ได้ระบุเป็นป่า ทุ่ง
+  หรือน้ำ แบ่งครึ่งทางกับย่านข้างเคียงเมื่อพื้นที่ต่อกัน (§2c) แทนขอบเดิมทั้งชั้น ตัวเลขทุกตัวของย่านนั้นนับในขอบใหม่
 - จำนวนรายการไม่ใช่ยอดขาย คนเดิน รายได้ หรือความต้องการ
 
 ## 1. Sources
@@ -29,6 +31,7 @@ makes).
 | 16 CityMETER demo datasets | each demo's own data file, read with the demo's own default scope (§3) | repository, file, commit and SHA-256 per dataset in `datasets[].source` |
 | Province outlines | `data/provinces.geojson` (77 CityMETER production provinces) | copied unchanged from `montri-th/university@ed2f350` (SHA-256 `9f5b57ef…a8ce62`) |
 | Building units | `data/building-units/` (where the 3D focus draws CityMETER Building V4 instead of OpenStreetMap) | copied unchanged from `montri-th/university@ed2f350` (index SHA-256 `b565ee80…01f75`) |
+| Basemap tiles (0.3.0, §2c) | OpenFreeMap planet vector tiles at zoom 14 (building, landcover, park, landuse, water of OpenStreetMap), read in the page to redraw outlines by the owner's rule | build 20261122_124456_pt, recorded in each amendment (`amendments/outline-amendments.geojson`, `osm`) |
 
 Neither the registry's address, its export nor its cells are in this repository; only the counts and the fields listed
 in §9 are published.
@@ -37,7 +40,9 @@ in §9 are published.
 
 **Observed fact.** 395 outlines in 77 provinces, 95.03 km²: the registry's 358 closed outlines (80.86 km², registry
 `area_m2` in its metric CRS, 473 m² to 2.17 km² — 0.3 to 1,358 ไร่ as the page writes it since 0.2.5; since 0.2.4 one of them extended on the owner's word, §2b) and, since
-0.2.0, 37 lodging areas of its lodging screen (14.18 km², §2a).
+0.2.0, 37 lodging areas of its lodging screen (14.18 km², §2a). Since 0.3.0, 235 of the 395 (220 of the registry's, 15 lodging
+areas) are redrawn by the owner's rule (§2c): as drawn, 206.63 km² (the registry's 182.83, the lodging areas 23.80), 1,592 m² to
+10.61 km² (1.0 to 6,633 ไร่).
 The registry's partition has no overlap of positive area (`meta.bundle.revision.positive_area_overlap_pairs` = 0) and
 the 37 lodging areas overlap none of its outlines (measured: 0), so a point belongs to at most one neighbourhood; a
 point on a shared edge goes to the first outline in order — the registry's in canonical order, then the lodging areas
@@ -137,6 +142,85 @@ now ศูนย์การค้าและตลาด (4 records, 23rd of 3
 counts; ranks, highlight strengths and the pairs of §6 move where this one passes others, as peers do (§5). Maya itself
 is not a record of the shopping-centre dataset. The college's point in the School demo (its ONESQA registration point)
 lies 184 m west of the extended outline and stays outside: that point is the School demo's, not moved here.
+
+## 2c. Outlines redrawn by the owner's rule (0.3.0)
+
+Owner 2026-11-24 08:15, VERBATIM: “ผมอยากให้ดูเรื่องขอบเขตย่าน โดยเฉพาะย่าน ท่องเที่ยวชายหาดเป็นตัวอย่าง ว่า ย่าน ป่าตอง กะตะ กะรน
+น่าจะคลุมพื้นที่อาคารมากกว่านี้มั้ย อย่างป่าตอง ทำไมไม่นับรวมทุกอาคารในป่าตองเลย อย่างกมลา เราจะเห็นบน basemap เป็นขอบเขตสีดำๆ
+เราใช้ขอบเขตนั้นมาช่วยกำหนดขอบเขตย่านด้วยได้มั้ย … อยาก apply กับที่อื่นๆ และย่านรูปแบบอื่นๆ ที่ relevant กันด้วยทั้ง dataset นี้”;
+08:19, with a sketch round the whole of the town: “อย่างป่าตองก็น่าได้ประมาณนี้มั้ย”. A two-layer trial followed (10:12
+“ลุยเลย”); at 13:00, on four questions, VERBATIM: “แทนขอบเดิมไปเลย เรียบง่ายกว่า” · “ใช้ชื่อป่าตอง” · “แบ่งเป็น 2 ย่าน” ·
+“เลือกใช้แบบ B โดยมี A เป็นขอบนอกสุดอีกชั้นนึงกั้นไว้ไม่ให้เกิน ยกเว้นถ้ามีกรณีพิเศษให้มาถาม” · “ดูย่านอื่นๆทั่วประเทศด้วย
+ว่าสามารถ apply หลักเดียวกันได้มั้ย ติดตรงไหนให้มาถาม”.
+
+**What changes.** One layer. Where the rule applies, the neighbourhood's outline is replaced by the redrawn one — an owner
+amendment as in §2b (`rule` set), checked and applied by the build the same way — so every count, density, share, rank,
+highlight, pair and similar mix of the page uses it. The name stays the registry's: ป่าตอง names the whole town;
+กะรน and กะตะ stay two neighbourhoods. The two-layer trial (พื้นที่ย่าน (ทดลอง), `data/extents.json`) never shipped.
+
+**The rule** (Inference: a reading of the basemap the page already shows, not the registry's outline rules, which have
+not ruled on it). On a grid of 0.0001° (about 11 m), for a neighbourhood and every outline within reach (registry
+outlines and lodging drafts):
+- **line A, the dark ground**: the ground the basemap leaves free of forest, grassland, farmland, rock, wetland, sand,
+  an urban park, sports and green land use, and water (ocean, lake, river, pond); a national park or protected area is
+  not used (its forest is land cover already, and its legal edge can take in a town). Opened by 2 cells, so a road's
+  thin verge does not join two places; the part continuous with an outline, widened back by 2 cells, water removed,
+  holes filled.
+- **line B, the buildings**: the basemap's buildings that reach an outline, joined across gaps up to about 90 m (a
+  dilation of 4 cells), trimmed back 3 cells (about 11 m round the outermost buildings), water removed, holes filled.
+- **the outline**: B within A, with the outlines themselves, holes filled; the part continuous with this
+  neighbourhood's outline. Where that part reaches other outlines, it is split between them halfway along the ground
+  (each cell goes to the outline it is the shorter way from, inside the area; at an equal distance, to the outline
+  earlier in the registry's order). Every share of a split area comes from one drawing (the first of its
+  neighbourhoods in the registry's order), so the outlines of one area meet without a gap or an overlap of their own.
+- **reach**: the drawing box is the outline ± 2 km; an area touching it is drawn again within 5 km, unless the built-up
+  ground already fills more than 35 % of the box (a city's continuous fabric). An area that still touches the box runs
+  on beyond a town and is not redrawn: the registry's outline stays.
+
+**Which neighbourhoods take it.** Drawn for all 395 neighbourhoods with an outline on 2026-11-24 (18.9 minutes, none
+failed): 197 grew and stopped by themselves, 40 grew into a neighbour's built-up ground and were split, 49 ran to the 2 km
+box with the ground more than 35 % built (a city's continuous fabric), 8 still ran on at 5 km, 101 did not grow (an
+area no more than 2 % plus 200 m² over the registry's, or a gain too small for the trace to keep). Owner 2026-11-24,
+14:47–15:11, choosing among options written after this drawing: “ให้ผมติ๊กรายย่าน” for the 45 whose redrawn outline
+reaches more than 1 km from the registry's (the discrete Hausdorff distance in UTM, measured on the display copy), “คงขอบ
+ทะเบียนเดิม” for the 57 of a city's fabric, “คงแขนไว้ตามหลัก” for arms along roads and valleys. So the 192 that reach no
+more than 1 km take the rule; each of the 45 takes it when the owner picks “ใช้หลักใหม่” in the review sheet (or “ตัดแขนแคบ”:
+the same outline less its arms narrower than 150 m, an opening of 75 m that keeps the parts still meeting the registry's
+outline), and keeps the registry's outline until then; a share that a neighbour's drawing gives to a code whose own drawing
+does not apply is used only where the owner ticks that code too. At 17:00 he ticked the sheet row by row: “ใช้หลักใหม่” for
+the 192, for 36 of the 45 and for ลาดพร้าว 83 (its share of ลาดพร้าว 71's drawing); “คงขอบเดิม” for พหลโยธิน 24 and วัดเกต–
+เจริญเมือง; “ดูอีกที” with a note for 7, which keep the registry's outline until the limits in his notes are drawn and he has
+seen them. The 57 of a city's fabric have no redrawn outline to take, whatever the tick; ลาดพร้าว, ticked to take a
+neighbour's share against his 15:00 answer, waits for his word. The picks: `amendments/outline-rule-choices-2026-11-24.json`.
+
+**The owner's limits and industrial land (2026-11-24, 17:43 and 18:1x).** The seven he noted are drawn again within the
+limits he set (`amendments/outline-rule-limits-2026-11-24.json`): an area or a road the outline does not take, a corridor it
+stays in (แบริ่ง: within 300 m of ถนนแบริ่ง), water it may cross (a canal up to 44 m), or his own area (บ่อผุด: the strip from
+end to end of the OpenStreetMap beach หาดบ่อผุด to the road behind it, land only). A limit is light ground taken out after every
+fill. Since 18:1x industrial land (OpenMapTiles landuse `industrial`) is light ground for every place, so an industrial estate
+is never a commercial district: it trims 12 redrawn outlines by at most 2 %, ตลาดยิ่งรวย–สิรัชชา ดอนหัวฬ่อ gains nothing, and
+ฉลองกรุง–ตลาดนครฉลองกรุง keeps the registry's outline on his word (what remains beyond the industrial land reads as factories
+on the map). จอมเทียน ends 100 m north of ถนนเทพประสิทธิ์ on his word. Drawn again, 388 of the 389 places without limits match
+the reviewed drawing cell for cell once industrial land is set aside; จอมเทียน's reviewed drawing had stopped at 2 km on tiles
+not fully loaded (on complete tiles its built-up ground runs on into Pattaya). `amend --choices` reads the drawing made with
+these limits, `amendments/outline-rule-2026-11-24-r2.json`: the reviewed drawing with the 24 places whose drawing or shares
+changed replaced from the page's export (SHA-256 in the file), every place marked with the options it was drawn with; it
+would refuse to run while `redraw.status` in the choices is `pending`. By the review step the redrawn drawing holds 196
+places that grow and stop by themselves, 40 split, 49 city, 8 that run on and 102 unchanged.
+
+The drawn cells are traced (Douglas–Peucker at 1.2 cells) and, for the map, their steps rounded off
+(`scripts/rule-outlines.py amend`: a closing of 12 m kept within 6 m of the cells, simplified at 2 m). The amendment is
+the registry's own outline (its geometry from the bundle, by SHA-256) with the drawn share added, less every other
+outline: it only adds area and overlaps nothing, which the build checks again.
+
+**Sources.** The basemap's vector tiles as the page loads them: OpenFreeMap planet build 20261122_124456_pt (OpenMapTiles
+schema, zoom 14: building, landcover, park, landuse, water; © OpenMapTiles © OpenStreetMap contributors, ODbL 1.0).
+The outlines of release 0.2.6 (`data/boundaries.geojson`, SHA-256 `106ab3bf…befb3`). For the check figures only, the
+Hotel demo's `data/hotels.json` at `montri-th/hotel@7fde352` (SHA-256 `0d63ba36…fec107`). Drawn on 2026-11-24 in the live
+demo in Chrome (`scripts/draw-outline-rule.browser.js`, SHA-256 `0aad564a…e140`, pasted in its console: the script and
+both input files were checked by SHA-256 in the page, the export carried out byte for byte, its SHA-256 in
+`amendments/outline-rule-2026-11-24.json`); `scripts/draw-outline-rule.py` repeats it headless where the network reaches
+the tiles. The distance to the sea (for the review only) is measured in the page from the basemap's ocean at zoom 10.
 
 ## 3. Datasets and their default scope
 
@@ -342,7 +426,7 @@ the merged alignments; per station point, names, lines and status; Transit's int
 stop point, name and province — no ridership, operator records or source addresses. Outline amendments (0.2.4,
 `meta.amendments`): per amended code its date, both areas, the places taken in with their OpenStreetMap ids and
 names, the rules, the crossings and the OpenStreetMap release; `amendments/` holds the outline and the OpenStreetMap
-ways it was drawn from (public data, ODbL).
+ways it was drawn from (public data, ODbL). Since 0.3.0 the same holds for an outline redrawn by the owner's rule (§2c): its date, both areas, the rule in words, whether it was shared halfway, the basemap release; `amendments/` holds the outline (derived from OpenStreetMap, ODbL) and the drawing's export (`amendments/outline-rule-2026-11-24.json`: per outline its check figures, not published on the page).
 
 ## 11. Rebuild
 
@@ -353,11 +437,12 @@ ways it was drawn from (public data, ODbL).
 # 4. (0.2.0) restore the outlines the bundle stores as a byte alias, beside its revision summary
 # 5. (0.2.1) the rows the registry admitted after that export, read back from the sheet: {spec: [[hex, name, province,
 #    status, outline review]], blockSha} (internal, never committed); the build checks they are the screen's 79 new areas
+#    and that the outline review is negative exactly where the registry drew a review draft (the 37)
 python3 -I scripts/restore-bundle-member.py <bundle dir> lodging-review-2026-11-17/inputs/canonical-boundaries-existing358.geojson \
   <outlines dir>/national-gis/canonical-boundaries.geojson
 cp <bundle dir>/gis/revision-summary.json <outlines dir>/national-gis/revision-summary.json
-python3 -I scripts/build-data.py --bundle <outlines dir> --bundle-zip <bundle.zip> --registry <export.xlsx> \
-  --repos <clones at main> --commits commits.json --mapshaper <mapshaper> --condo <condominium export.xlsx> --condo-read-on 2026-11-16 \
+python3 -I scripts/build-data.py --bundle <outlines dir> --bundle-zip <bundle.zip> --registry <export.xlsx> --read-on <its export date> \
+  --repos <clones at main> --commits commits.json --mapshaper <mapshaper> --condo <condominium export.xlsx> --condo-read-on <its export date> \
   --lodging <bundle dir>/lodging-held78-recovery-2026-11-18 --prev-canonical <the previous release's canonical-boundaries.geojson> \
   --admitted <read-back.json> --admitted-on 2026-11-18 --outline-amendments amendments/outline-amendments.geojson --out data
 # 6. (0.2.3) the rail context, from the Transit clone (clean in data/; its commit and file hashes go into meta)
@@ -365,6 +450,14 @@ python3 -I scripts/build-rail.py --transit <clone of montri-th/transit> --out da
 # 7. (0.2.4) an outline extended on the owner's word (§2b) is drawn once, from the registry outline and the OpenStreetMap
 #    ways kept in amendments/, before step 5; redraw it only if the registry changes that outline (the build says so)
 python3 -I scripts/draw-outline-amendment.py <outlines dir> amendments/osm-rincome-2026-11-18.json amendments/outline-amendments.geojson
+# 8. (0.3.0) outlines redrawn by the owner's rule (§2c): drawn once from the basemap tiles (headless, or in the live
+#    demo's console) from release 0.2.6's outlines, written into amendments/ with the bundle's own geometry, before
+#    step 5; redraw only to change the rule or the places (the build refuses an outline the registry has changed)
+python3 -I scripts/draw-outline-rule.py draw --out <export.json>   # or the browser script in the live demo (§2c)
+python3 -I scripts/rule-outlines.py review <export.json> --out <review.json>
+python3 -I scripts/rule-outlines.py amend amendments/outline-rule-2026-11-24-r2.json --bundle <bundle> --lodging <lodging folder> \
+  --on 2026-11-24 --choices amendments/outline-rule-choices-2026-11-24.json   # the owner's picks (§2c); the drawing is the
+#    one the choices name as `drawing` (r2: his limits and industrial land), and amend refuses while a redraw is pending
 npm test
 node scripts/check-lds-parity.mjs --lds <Landometer-Design-System-v0.9.7.md>
 ```

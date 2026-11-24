@@ -395,6 +395,13 @@ export function placeList(names) {
   return EN ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : `${names.slice(0, -1).join(' ')} และ${names.at(-1)}`;
 }
 function amendedOutlineWords(am) {
+  // (0.3.0) redrawn by the owner's rule from the basemap (DATA_METHOD.md §2c): no named places, the rule in its words
+  if (am.rule) {
+    // industrial land is light ground for every place, and some places keep within limits the owner set (§2c, 18:1x)
+    const ind = (am.rule.lightLanduse || []).includes('industrial'), lim = (am.rule.limits || []).length > 0;
+    return L(`ฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} ให้คลุมกลุ่มอาคารที่ต่อจากขอบเดิม ภายในพื้นที่ที่แผนที่ฐานไม่ได้ระบุเป็น${ind ? 'ป่า ทุ่ง น้ำ หรือพื้นที่อุตสาหกรรม' : 'ป่า ทุ่ง หรือน้ำ'}${lim ? ' และตามขอบที่เจ้าของกำหนด' : ''}${am.rule.shared ? ' แบ่งกับย่านข้างเคียงที่ครึ่งทาง' : ''} รอทะเบียนรับในรุ่นถัดไป ยังไม่ตรวจภาคสนาม`,
+      `draft, extended on ${thaiDate(am.on)} to the buildings that run on from the old outline, within ground the basemap does not mark as ${ind ? 'forest, field, water or industrial land' : 'forest, field or water'}${lim ? ' and within limits the owner set' : ''}${am.rule.shared ? ', shared halfway with the neighbouring neighbourhoods' : ''}; awaiting the registry's next release; not yet walked`);
+  }
   return L(`ฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} ให้รวม${placeList(am.includes.map(x => x.th))} ตามหลักเกณฑ์ขอบย่าน รอทะเบียนรับในรุ่นถัดไป ยังไม่ตรวจภาคสนาม`,
     `draft, extended on ${thaiDate(am.on)} to take in ${placeList(am.includes.map(x => x.en || x.th))} under the registry's outline rules; awaiting the registry's next release; not yet walked`);
 }
@@ -412,10 +419,9 @@ function registryDetails(d, model) {
     <dl class="registry-list">
       <dt>${L('รหัสกลาง', 'Code')}</dt><dd class="data-number">${esc(r.id)}</dd>
       <dt>${L('สถานะชื่อ', 'Name')}</dt><dd>${esc(status)}</dd>
-      <dt>${L('ขอบ', 'Outline')}</dt><dd>${esc(r.kind === 'lodging' ? (model.meta.lodging?.admitted
+      <dt>${L('ขอบ', 'Outline')}</dt><dd>${esc(am ? amendedOutlineWords(am) : r.kind === 'lodging' ? (model.meta.lodging?.admitted
     ? L(`ขอบร่างจากผลคัดย่านที่พัก รับเป็นรหัสกลาง ${thaiDate(model.meta.lodging.admittedOn)} รอตรวจตามหลักเกณฑ์ขอบย่าน ยังไม่ตรวจภาคสนาม`, `draft outline of the lodging screen; a central code since ${thaiDate(model.meta.lodging.admittedOn)}; awaiting the registry's outline rules; not yet walked`)
     : L('ขอบร่างจากผลคัดย่านที่พัก ทะเบียนยังไม่ออกรหัสกลาง ยังไม่ตรวจภาคสนาม', 'draft outline of the lodging screen; the registry has issued no central code; not yet walked'))
-    : am ? amendedOutlineWords(am)
     : r.fieldVerified ? L('ตรวจภาคสนามแล้ว', 'field-checked') : L('ฉบับร่าง ยังไม่ตรวจภาคสนาม', 'draft, not yet walked'))}</dd>
       ${r.aliases?.length ? `<dt>${L('ชื่ออื่น', 'Also called')}</dt><dd>${esc(r.aliases.join(' · '))}</dd>` : ''}
       ${r.roles?.length ? `<dt>${L('บทบาทที่ทะเบียนเสนอ', 'Proposed roles')}</dt><dd>${esc(r.roles.map(id => { const x = model.roles.find(y => y.id === id); return x ? (EN ? x.en : x.th) : id; }).join(' · '))}</dd>` : ''}
@@ -438,7 +444,7 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
     : `<p class="aha-copy">${esc(L('ยังไม่มีชุดข้อมูลไหนเด่นเกินเกณฑ์ ดูตัวเลขทุกชุดข้างล่าง', 'No dataset stands out above the threshold; every figure is below'))}</p>`}
     <div class="aha-actions">${cmp}</div></section>`;
   const metrics = `<section class="metrics compact" aria-label="${L('ตัวเลขของย่าน', 'Neighbourhood figures')}">
-    ${metricTile(rai(r.areaM2), L('ไร่', 'rai'), 'area', r.kind === 'lodging' ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบร่างของผลคัดย่านที่พัก`, `${km2Text(r.km2)} km² per the lodging screen's draft outline`) : am ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบที่ปรับเพิ่ม ${thaiDate(am.on)}`, `${km2Text(r.km2)} km² per the outline extended on ${thaiDate(am.on)}`) : L(`${km2Text(r.km2)} ตร.กม. ตามทะเบียน`, `${km2Text(r.km2)} km² per the registry`))}
+    ${metricTile(rai(r.areaM2), L('ไร่', 'rai'), 'area', r.kind === 'lodging' && !am ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบร่างของผลคัดย่านที่พัก`, `${km2Text(r.km2)} km² per the lodging screen's draft outline`) : am ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบที่ปรับเพิ่ม ${thaiDate(am.on)}`, `${km2Text(r.km2)} km² per the outline extended on ${thaiDate(am.on)}`) : L(`${km2Text(r.km2)} ตร.กม. ตามทะเบียน`, `${km2Text(r.km2)} km² per the registry`))}
     ${metricTile(d.highlights.length, L('จุดเด่น', 'highlights'), 'rank')}
     ${metricTile(Object.values(r.c || {}).filter(n => n > 0).length, L('ชุดที่มีในย่าน', 'datasets present'), 'dataset', L(`จาก ${num(Object.keys(r.c || {}).length)} ชุดที่มีข้อมูลในจังหวัด`, `of ${num(Object.keys(r.c || {}).length)} with data in the province`))}
     ${metricTile(d.inProvince, L(`ย่านใน${province}`, `in ${province}`), 'province')}
@@ -447,7 +453,7 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
   return `${aha}${metrics}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${datasetsSection(d, fillOf)}${recordsHTML}${similarSection(d)}
     ${actionBar({kind: 'neighborhood', name: r.name, province, point: {lat: r.ref[1], lon: r.ref[0]}})}
     ${registryDetails(d, model)}
-    ${provenance(ctx, {boundary: r.kind === 'lodging' ? L(`${r.name} · ขอบร่างของผลคัดย่านที่พัก ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline of the lodging screen ${rai(r.areaM2)} rai`) : am ? L(`${r.name} · ขอบย่านฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline extended on ${thaiDate(am.on)} from OpenStreetMap ${rai(r.areaM2)} rai`) : L(`${r.name} · ขอบย่านฉบับร่าง ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline ${rai(r.areaM2)} rai`)})}`;
+    ${provenance(ctx, {boundary: r.kind === 'lodging' && !am ? L(`${r.name} · ขอบร่างของผลคัดย่านที่พัก ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline of the lodging screen ${rai(r.areaM2)} rai`) : am ? L(`${r.name} · ขอบย่านฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline extended on ${thaiDate(am.on)} from OpenStreetMap ${rai(r.areaM2)} rai`) : L(`${r.name} · ขอบย่านฉบับร่าง ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline ${rai(r.areaM2)} rai`)})}`;
 }
 
 /* ---------- compare ---------- */

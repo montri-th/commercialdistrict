@@ -17,10 +17,10 @@ test('the overview of Thailand: the first finding is the most concentrated datas
   const o = buildOverview(model, {rows: model.rows});
   assert.equal(o.lead.ds.id, 'luxurybrands');
   assert.equal(sharePct(o.lead.share), '69%');
-  assert.equal(sharePct(o.areaShare), '0.018%');
+  assert.equal(sharePct(o.areaShare), '0.04%'); // 0.3.0: 235 outlines redrawn by the owner's rule (0.018% before)
   const html = renderOverview(o, model, {ctx: ctx()});
   assert.ok(!holes.test(html));
-  assert.match(html, /238 จาก 345 จุดขาย/); // 0.2.4: GENTLEWOMAN at Maya inside the extended นิมมาน–เมญ่า (237 before)
+  assert.match(html, /239 จาก 345 จุดขาย/); // 0.2.4: GENTLEWOMAN at Maya inside the extended นิมมาน–เมญ่า (237 before); 0.3.0: one more inside a redrawn outline
   for (const part of ['dataset', 'source', 'date', 'boundary']) assert.match(html, new RegExp(`data-prov="${part}"`));
 });
 

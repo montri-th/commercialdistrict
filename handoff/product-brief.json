@@ -3,8 +3,8 @@
   "schemaVersion": "1.5.0",
   "documentType": "product-brief",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.2.6",
-  "updatedOn": "2026-11-16",
+  "productVersion": "0.3.0",
+  "updatedOn": "2026-11-24",
   "datasetCheckedOn": "2026-11-16",
   "language": "th",
   "productName": "CityMETER · Commercial District",
@@ -28,7 +28,7 @@
     "action": "เทียบ 3 ย่านที่เด่นหลายด้าน · รายชื่อย่าน",
     "model": "js/profile.js#buildOverview",
     "filter": "province (at), search (f.search); under a dataset (m) the Aha becomes that dataset's share and its densest neighbourhood",
-    "defaultSnapshot": "69% of the luxury points of sale with a location (237 of 345) lie in 395 neighbourhoods covering 0.018% of the country; then offices 42%, camera shops 40%, fitness 38% (release 0.2.0 fixture)",
+    "defaultSnapshot": "69% of the luxury points of sale with a location (239 of 345) lie in 395 neighbourhoods covering 0.04% of the country; then camera shops 46%, fitness 46%, offices 44% (release 0.3.0 fixture)",
     "fallbacks": "no row: “ไม่พบย่านตามคำค้นนี้” with clear actions; no dataset inside: the neighbourhood count alone; a dataset with nothing inside: “ยังไม่มี…ในขอบย่าน” with its located count"
   },
   "countingUnitContract": {
@@ -130,7 +130,8 @@
     {"id": "INV-09", "rule": "Every panel view ends with one provenance line: dataset · source · date · boundary · วิธีนับ."},
     {"id": "INV-10", "rule": "No caveat line on screen; method and limits live in DATA_METHOD.md."},
     {"id": "INV-11", "rule": "The registry's address, export and cells never enter the repository."},
-    {"id": "INV-12", "rule": "Neighbourhood names stay Thai in English; no view is left untranslated otherwise."}
+    {"id": "INV-12", "rule": "Neighbourhood names stay Thai in English; no view is left untranslated otherwise."},
+    {"id": "INV-13", "rule": "An outline redrawn by the owner's rule (0.3.0) replaces the registry outline as an owner amendment: it only adds area, overlaps no other outline, keeps the registry's name, and is described as extended by the rule and awaiting the registry; never called the registry's outline or an administrative boundary"}
   ],
   "chartContracts": [
     {"viewKey": "shares", "title": "สิ่งที่อยู่ในย่าน", "question": "ชุดไหนกระจุกในย่าน", "encoding": "bar per dataset on 0–100 %, pillar series + shape, grouped Land · Location · Living", "metric": "share of located records inside the neighbourhoods", "scope": "the overview's scope"},
@@ -139,7 +140,7 @@
     {"viewKey": "compare", "title": "เปรียบเทียบย่าน", "question": "ย่านเหล่านี้ต่างกันตรงไหน", "encoding": "matrix datasets × neighbourhoods: count, density, bar against the densest of the row, densest ringed", "metric": "count and records per km²", "scope": "up to four neighbourhoods"}
   ],
   "delivery": {
-    "cacheTag": "?v=20261118-r7",
+    "cacheTag": "?v=20261124-r3",
     "shell": "citymeter-shell 0.6.2 (0.6.1 + this demo in the picker, shipped by release 0.1.0 to all 17 demos)"
   }
 }

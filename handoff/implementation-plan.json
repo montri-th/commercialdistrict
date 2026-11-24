@@ -3,8 +3,8 @@
   "schemaVersion": "1.5.0",
   "documentType": "implementation-plan",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.2.6",
-  "updatedOn": "2026-11-16",
+  "productVersion": "0.3.0",
+  "updatedOn": "2026-11-24",
   "language": "en",
   "architecture": {
     "runtime": "static site, ES modules with one cache tag through the import map; MapLibre GL 5.6.2 from unpkg (SRI); OpenFreeMap tiles",
@@ -20,7 +20,8 @@
       "js/cues.js": "pillar series and shape cues",
       "js/massing.js, js/regions.js, js/map-layers.js, js/provinces.js": "3D buildings, focus regions, area chips, province locator",
       "js/lang.js, js/lang-en.js, js/ask.js, js/breadcrumb.js, js/navigation.js": "English layer, outbound actions, breadcrumb, controls",
-      "js/shell/": "citymeter-shell 0.6.1 (never edited alone)"
+      "scripts/draw-outline-rule.browser.js, scripts/draw-outline-rule.py, scripts/rule-outlines.py": "outlines redrawn by the owner's rule (0.3.0, DATA_METHOD.md §2c): line B, the buildings, within line A, the dark ground (industrial land left out since the owner's answer of 2026-11-24 18:1x); split halfway where areas join; within the owner's limits for 6 places (amendments/outline-rule-limits-2026-11-24.json); written as owner amendments the build checks and uses in place of the registry outline",
+      "js/shell/": "citymeter-shell 0.6.4 (never edited alone)"
     }
   },
   "selection": {
@@ -55,7 +56,8 @@
     {"id": "AC13", "scenario": "?lang=en on every view", "expected": "no Thai left except neighbourhood names and registry notes", "verificationType": "browser"},
     {"id": "AC14", "scenario": "the table", "expected": "every neighbourhood with the 16 datasets, sorted by the lens or by highlights", "verificationType": "browser"},
     {"id": "AC15", "scenario": "live GitHub Pages", "expected": "files equal the repository (verify-live)", "verificationType": "live"},
-    {"id": "AC16", "scenario": "citymeter.pages.dev menus", "expected": "every page's dataset picker equals the hub's list, this demo under Location", "verificationType": "live"}
+    {"id": "AC16", "scenario": "citymeter.pages.dev menus", "expected": "every page's dataset picker equals the hub's list, this demo under Location", "verificationType": "live"},
+    {"id": "AC17", "scenario": "a neighbourhood whose outline the owner's rule redrew (0.3.0)", "expected": "one outline on the map, every count, density, rank, highlight and pair counted in it; the registry record says it was extended on that date by the rule and awaits the registry; no second layer", "verificationType": "automated"}
   ],
   "developerWorkflow": "edit → npm test → check:lds → local walk TH/EN desktop and 393 px → bump the cache tag and versions → publish → verify-live and walk the live site",
   "backlog": [
