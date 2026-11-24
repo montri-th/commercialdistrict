@@ -20,7 +20,7 @@ Static site, ES modules ผ่าน import map ที่มี cache tag เด
 | `js/rail.js` · `scripts/build-rail.py` (0.2.3) | ระบบรางเป็นบริบทบนแผนที่: แนวราง สถานี ที่หยุดรถไฟทางไกล ป้ายเมื่อชี้ (สายและสถานีที่เชื่อมกัน) สีกลางสีเดียว ไม่นับรวม |
 | `js/layers.js#framePoints` · `js/app.js#fitNb` (0.2.3) | เลือกย่านแล้วจัดกรอบพอดีขอบย่านในแผนที่ที่ว่าง ด้วย `fitBuilding` ของ shell |
 | `scripts/draw-outline-amendment.py` · `amendments/` · `build-data.py --outline-amendments` (0.2.4) | ขอบย่านที่เจ้าของสั่งปรับ (นิมมาน–เมญ่า) วาดตามหลักเกณฑ์ขอบย่านจากขอบของทะเบียนกับรูปแปลง OpenStreetMap ใช้กับขอบเดิมที่ตรง SHA-256 เท่านั้น ห้ามลดพื้นที่หรือทับขอบอื่น (`DATA_METHOD.md` §2b) |
-| `js/extents.js` · `scripts/draw-extents.py` · `scripts/draw-extents.browser.js` · `scripts/extents-from-export.py` · `scripts/build-extents.py` (0.3.0) | พื้นที่ย่าน (ทดลอง) 10 แห่ง: วาดด้วยกฎจากแผนที่ฐาน (ชายหาด · ระยะเดิน) เก็บใน `amendments/` นับแต่ละชุดในพื้นที่เทียบกับแกนย่าน เส้นประจางใต้ขอบย่าน ส่วนของตัวเองในแผงย่าน ไม่เข้าอันดับหรือการเทียบใด (`DATA_METHOD.md` §2c) |
+| `scripts/draw-outline-rule.browser.js` · `scripts/draw-outline-rule.py` · `scripts/rule-outlines.py` · `build-data.py --outline-amendments` (0.3.0) | ขอบย่านที่วาดใหม่ตามหลักที่เจ้าของกำหนด: เส้น B แนบอาคาร ไม่เกินเส้น A พื้นที่ที่แผนที่ฐานไม่ได้ระบุเป็นป่า ทุ่ง หรือน้ำ แบ่งครึ่งทางเมื่อพื้นที่ต่อกัน วาดในเดโมจริงแล้วเขียนเป็น amendment ที่ build ตรวจและใช้แทนขอบเดิม (DATA_METHOD.md §2c) |
 | `js/scales.js` · `js/cues.js` | สเกล LDS และรูปทรงของหมวด |
 | `js/shell/` | citymeter-shell (ห้ามแก้ที่นี่ที่เดียว) |
 

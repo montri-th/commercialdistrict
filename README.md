@@ -47,7 +47,7 @@ npm test    # unit tests บนข้อมูลจริง (node --test)
 - `data/condo/` — จุดคอนโดมิเนียมจากแผนที่ราคาประเมินของ CityMETER (ชุดข้อมูลใน registry หมวด Land) 7,887 จุด แบ่งเป็นช่อง 0.1° ใช้แสดงรอบย่านเท่านั้น ไม่นับในตัวเลขของย่าน
 - `data/provinces.geojson`, `data/building-units/` — คัดลอกจาก montri-th/university @ed2f350 โดยไม่แก้ไบต์
 - `data/rail.json` (0.2.3) — แนวราง สถานี จุดเปลี่ยนสาย และที่หยุดรถไฟทางไกล จาก montri-th/transit (ไฟล์สถานีเดียวกับชุดข้อมูล สถานีราง ไบต์ต่อไบต์) สร้างด้วย `scripts/build-rail.py` · ใช้เป็นบริบทบนแผนที่เท่านั้น
-- `data/extents.json` (0.3.0) — พื้นที่ย่าน (ทดลอง) 10 แห่ง: ขอบ จำนวนรายการแต่ละชุดในพื้นที่ แหล่ง กฎ และ hash ที่นับเทียบ สร้างด้วย `scripts/build-extents.py` จากพื้นที่ที่วาดไว้ใน `amendments/extents-pilot-2026-11-24.geojson` · ใช้ในส่วนพื้นที่ย่านของหน้าย่านเท่านั้น
+- `amendments/outline-amendments.geojson` — ขอบย่านที่เจ้าของสั่งปรับ: นิมมาน–เมญ่า (0.2.4) และ (0.3.0) ขอบที่วาดใหม่ตามหลักที่เจ้าของกำหนด (แนบตามอาคาร ไม่เกินพื้นที่ที่แผนที่ฐานไม่ได้ระบุเป็นป่า ทุ่ง หรือน้ำ) วาดด้วย `scripts/draw-outline-rule.browser.js` และ `scripts/rule-outlines.py` · build ใช้แทนขอบเดิม
 - วิธีทั้งหมดและข้อจำกัด: `DATA_METHOD.md` · กลยุทธ์ผลิตภัณฑ์: `PRODUCT_STATEMENT.md` · สำหรับนักพัฒนา: `handoff/START_HERE.md` · สำหรับ agent: `AGENTS.md`, `llms.txt`
 
 ## ตรวจ

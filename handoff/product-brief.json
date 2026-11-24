@@ -108,7 +108,7 @@
   "contextActionsContract": "js/ask.js: ถาม Google AI with a question for the view, Google Maps, Street View at the reference point",
   "englishContract": "?lang=en: fixed words in js/lang-en.js, data sentences built in English (L(th, en)), neighbourhood names stay Thai (keepThai)",
   "data": {
-    "files": ["data/neighborhoods.json", "data/boundaries.geojson", "data/records/", "data/condo/", "data/provinces.geojson", "data/building-units/", "data/extents.json"],
+    "files": ["data/neighborhoods.json", "data/boundaries.geojson", "data/records/", "data/condo/", "data/provinces.geojson", "data/building-units/"],
     "build": "scripts/build-data.py",
     "method": "DATA_METHOD.md"
   },
@@ -131,7 +131,7 @@
     {"id": "INV-10", "rule": "No caveat line on screen; method and limits live in DATA_METHOD.md."},
     {"id": "INV-11", "rule": "The registry's address, export and cells never enter the repository."},
     {"id": "INV-12", "rule": "Neighbourhood names stay Thai in English; no view is left untranslated otherwise."},
-    {"id": "INV-13", "rule": "A trial wider area (0.3.0) never changes its core's figures: every count, rank, share, highlight, pair and similar mix stays the registry outline's; the area's counts sit only in its own section, beside the core's, never added across datasets."}
+    {"id": "INV-13", "rule": "An outline redrawn by the owner's rule (0.3.0) replaces the registry outline as an owner amendment: it only adds area, overlaps no other outline, keeps the registry's name, and is described as extended by the rule and awaiting the registry; never called the registry's outline or an administrative boundary"}
   ],
   "chartContracts": [
     {"viewKey": "shares", "title": "สิ่งที่อยู่ในย่าน", "question": "ชุดไหนกระจุกในย่าน", "encoding": "bar per dataset on 0–100 %, pillar series + shape, grouped Land · Location · Living", "metric": "share of located records inside the neighbourhoods", "scope": "the overview's scope"},
