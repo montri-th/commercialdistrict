@@ -31,7 +31,8 @@ q = [c for c in CAND['candidates'] if c['score'] >= QUEUE]
 F['queue'] = {'threshold': QUEUE, 'candidates': len(q), 'byProvince': dict(collections.Counter(c['province'] for c in q).most_common()),
               'roleFirst': dict(collections.Counter(c['roles'][0] if c['roles'] else '-' for c in q).most_common()),
               'singleSiteRisk': sum(c['singleSiteRisk'] for c in q), 'registryNameNear': sum(1 for c in q if c['registryNameWithin800m']),
-              'oldRuleToo': sum(c['oldRule'] for c in q)}
+              'oldRuleToo': sum(c['oldRule'] for c in q), 'groups': dict(sorted(collections.Counter(c['group'] for c in q).items()))}
+F['groupsByBand'] = {b: dict(sorted(collections.Counter(c['group'] for c in CAND['candidates'] if lo <= c['score'] <= hi).items())) for b, lo, hi in (('10+', 10, 99), ('8-9', 8, 9), ('6-7', 6, 7))}
 cov = set(next(d for d in nb['datasets'] if d['id'] == 'restaurant')['byProvince'])
 inc = np.array([codes[p] in cov for p in prov]); f1 = Z['restaurant@400'] >= 10; pc, nc = pos[inc[pos]], neg[inc[neg]]
 F['restaurantCheck'] = {'provinces': sorted(cov), 'cores': int(len(pc)), 'coresWith': int(f1[pc].sum()), 'background': int(len(nc)), 'backgroundWith': int(f1[nc].sum()),

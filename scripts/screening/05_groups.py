@@ -1,5 +1,5 @@
 """Step 5: which of the 395 neighbourhoods each threshold finds, by group; and the names in the registry's screening tabs
-(«คัดย่านการค้า», «ย่านที่พัก 268») when a private export of the registry is given in SCREEN_REGISTRY_XLSX (never committed).
+(«คัดย่านการค้า», «ย่านที่พัก 268») and the points tied to a central code («ชื่อกลาง») when a private export of the registry is given in SCREEN_REGISTRY_XLSX (never committed).
 Found = a passing seed that counts for the neighbourhood (its nearest outline) inside it or within 150 m."""
 import collections, json, os, pathlib, pickle, numpy as np
 REPO = pathlib.Path(__file__).resolve().parents[2]
@@ -22,7 +22,7 @@ out = {g: {'n': len(ix), 'dataSees': sum(i in seen for i in ix), 'v1': sum(i in 
            's8': sum(i in f8 for i in ix), 's10': sum(i in f10 for i in ix)} for g, ix in sorted(grp.items(), key=lambda kv: -len(kv[1]))}
 json.dump(out, open(WORK / 'groups.json', 'w', encoding='utf-8'), ensure_ascii=False)
 print('all', out['all'])
-reg = []
+reg, tied = [], []
 x = os.environ.get('SCREEN_REGISTRY_XLSX')
 if x:
     import openpyxl
@@ -33,8 +33,15 @@ if x:
     for r in rows_of('คัดย่านการค้า'):
         try: reg.append(('คัดย่านการค้า', r['พื้นที่ที่ตรวจ'], r.get('ลำดับสำรวจ'), float(r['ลองจิจูด']), float(r['ละติจูด'])))
         except (TypeError, ValueError, KeyError): pass
+    central = {r['รหัสกลาง']: r for r in rows_of('ชื่อกลาง')}
     for r in rows_of('ย่านที่พัก 268'):
         try: reg.append(('ย่านที่พัก 268', r['ย่าน / บริเวณ'], r.get('ผลคัดแบบจำลอง'), float(r['จุดเริ่ม ลองจิจูด']), float(r['จุดเริ่ม ละติจูด'])))
-        except (TypeError, ValueError, KeyError): pass
-print('registry screening names with coordinates:', len(reg), '' if x else '(SCREEN_REGISTRY_XLSX not set)')
+        except (TypeError, ValueError, KeyError): continue
+        # a start point the registry ties to a central code: the proposal's own code (LP-NEW-<hex> → CMN-TH-<hex>) or the existing code it names
+        pid, old = str(r.get('รหัสข้อเสนอ') or ''), str(r.get('รหัสย่านเดิม') or '')
+        cm = 'CMN-TH-' + pid.split('LP-NEW-')[1] if pid.startswith('LP-NEW-') else (pid if pid.startswith('CMN-') else (old if old.startswith('CMN-') else None))
+        if cm in central:
+            tied.append((cm, central[cm]['ชื่อย่านกลาง'], str(central[cm]['สถานะขอบกลาง']).split(' — ')[0], reg[-1][3], reg[-1][4]))
+print('registry screening names with coordinates:', len(reg), '· points tied to a central code:', len(tied), '' if x else '(SCREEN_REGISTRY_XLSX not set)')
 pickle.dump(reg, open(WORK / 'regscreen.pkl', 'wb'))
+pickle.dump(tied, open(WORK / 'regtied.pkl', 'wb'))

@@ -61,6 +61,7 @@ Python 3.13 with numpy 2.5, scipy 1.18, shapely 2.2, pyproj 3.8, scikit-learn 1.
 6. **Old rule, beside the score (owner 2026-11-25: “คู่กัน”).** The registry's “เข้าคิวก่อน” within 800 m: a centre or venue; 3 or more distinct positions among centres, venues, offices and hotels of type `hotel`; and 2 or more of those 4 groups or 3 or more venues. Same-name de-duplication within 100 m is not applied.
 7. **Candidates.** Roles are the registry's codes (`retail_trade` A1 A2 A3 P1 · `office_business` O1 O2 · `housing_daily_life` D1 D2 · `hospitality_tourism_culture` H1 H2 · `education` U1 · `government_public_services` G1), ordered by points, ties in the registry's order; rail (T1) is context, not a role. Names within 400 m come from shopping centres and markets, rail stations and universities, else the lodging that counts.
 8. **Review rows.** The queue (score ≥ `SCREEN_QUEUE`) with a sample of `SCREEN_SAMPLE`: half from Bangkok and NBI SPK PTE SKN NPT, half from the rest; within each, proportional to score bands 10–11, 12–13 and 14+ (largest remainder), drawn with `SCREEN_SEED`. A row's code is `SC-<cell x>-<cell y>` of its 200 m cell.
+9. **Three groups (owner 2026-11-25 01:04: “ใช้ 3 กองเลย”).** Every candidate: A when it lies within 1 km of a point the registry ties to a central code (a start point of «ย่านที่พัก 268» whose proposal or existing code is in «ชื่อกลาง»; needs `SCREEN_REGISTRY_XLSX`), else B within 2 km of an outline, else C. A takes no new code; B needs the edge checked (extension or separate neighbourhood); C is the queue of new neighbourhoods. A B or C candidate the review confirms as new takes the code `CMN-TH-` + the first 10 hexadecimal digits, upper case, of SHA-256 of `commercial-screen-2026-11-25:<candidate code>` (`candidates.json` `code`).
 
 ## Figures
 
@@ -75,6 +76,7 @@ Observed on 2026-11-25 on the dataset files of `data/neighborhoods.json` and the
 | Neighbourhoods found at score ≥ 6 · 8 · 10 · by the old rule | 272 · 232 · 186 · 278 |
 | Centres at score ≥ 10: existing · extension or merge · new | 242 · 117 · 91 (450) |
 | New candidates at score ≥ 10 | 91 in 42 provinces; first role `retail_trade` 87, `hospitality_tourism_culture` 4; 86 pass the old rule too |
+| Groups A · B · C at score ≥ 10 · 8–9 · 6–7 | 8 · 34 · 49 · 5 · 44 · 118 · 11 · 92 · 263 |
 | Centres of the old rule: existing · extension or merge · new | 540 · 711 · 1,587 (2,838) |
 | Restaurants ≥ 10 within 400 m, 7 provinces: cores · background | 89 of 101 · 4,217 of 6,633 (lift 1.39; not in the score) |
 
@@ -85,4 +87,4 @@ The review ran in two rounds the same night. Round 1 (`SCREEN_LODGING=hotel,gues
 - The score reads located records of the demo datasets. A neighbourhood the data does not reach scores low; a high score is not a neighbourhood until someone checks the place.
 - Counts are records within a straight-line radius, not walking distance, footfall or sales.
 - The percentile ranks a seed against its own province, so a busy street in a small province can rank as high as a centre of Bangkok. It also moves with what counts as lodging, which changes both the positions at a seed and the pool it is ranked against: of the 13 candidates added when resorts were counted, 11 were already seeds and 8 of those gained K1 or K2.
-- “New” means farther than 1 km from every drawn outline. The registry also ties some located points to codes without an outline or with an outline farther away; 8 of the 93 rows of the review tab lie within 1 km of such a point (first review, 2026-11-25).
+- “New” alone means farther than 1 km from every drawn outline. The registry also ties located points to codes without an outline or with an outline farther away, which is why group A exists: in the first two review rounds none of its 5 checked places was a new neighbourhood. The groups' shares come from 53 desk-checked places (40 sampled, 13 not), not from field visits.

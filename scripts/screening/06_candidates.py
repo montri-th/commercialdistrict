@@ -1,8 +1,11 @@
 """Step 6: the new centres (farther than 1 km from every outline) with score >= 6, ranked by score then distinct positions;
 their components, roles (registry codes; ties in the order of «8 บทบาทย่าน»; T1 rail is context, not a role), anchor names within
 400 m (shopping centres and markets, rail stations, universities, else the lodging that counts as evidence), a registry screening name within
-800 m, and the per-component shares in cores and background."""
-import collections, json, os, pathlib, pickle, numpy as np
+800 m, the three groups (A near a point the registry ties to a code, B within 2 km of an outline, C farther; owner 2026-11-25 01:04
+“ใช้ 3 กองเลย”) with the code a confirmed new neighbourhood takes, and the per-component shares in cores and background."""
+import collections, hashlib, json, os, pathlib, pickle, numpy as np
+from shapely import STRtree
+from shapely.geometry import Point
 from scipy.spatial import cKDTree
 from pyproj import Transformer
 from sklearn.metrics import roc_auc_score
@@ -50,6 +53,21 @@ reg = pickle.load(open(WORK / 'regscreen.pkl', 'rb'))
 RT = None
 if reg:
     x, y = utm.transform([r[3] for r in reg], [r[4] for r in reg]); RT = cKDTree(np.c_[x, y])
+tied = pickle.load(open(WORK / 'regtied.pkl', 'rb'))
+TT = cKDTree(np.c_[utm.transform([t[3] for t in tied], [t[4] for t in tied])]) if tied else None
+POLY = pickle.load(open(WORK / 'layers.pkl', 'rb'))['polys_utm']; PT = STRtree(POLY)
+def grouping(i):
+    # three groups (owner 2026-11-25 01:04 “ใช้ 3 กองเลย”): A within 1 km of a point the registry ties to a central code (needs the
+    # registry export), B within 2 km of an outline, C farther; B and C take a code when the review confirms a new neighbourhood
+    p = Point(*S[i]); m = float(POLY[int(PT.nearest(p))].distance(p))
+    t = None
+    if TT is not None:
+        d, k = TT.query(S[i])
+        if d <= 1000: t = {'code': tied[k][0], 'name': tied[k][1], 'outline': tied[k][2], 'm': int(round(d))}
+    cx, cy = np.floor(S[i] / 200.0).astype(int); cid = f'SC-{cx}-{cy}'
+    g = 'A' if t else ('B' if m < 2000 else 'C')
+    return {'id': cid, 'nearestOutlineM': int(round(m)), 'group': g, 'tiedTo': t,
+            'code': None if g == 'A' else 'CMN-TH-' + hashlib.sha256(('commercial-screen-2026-11-25:' + cid).encode()).hexdigest()[:10].upper()}
 res = pickle.load(open(WORK / 'centres.pkl', 'rb'))
 cands = []
 for i in sorted(res[6]['new'], key=lambda i: (-score[i], -posN[i])):
@@ -60,10 +78,11 @@ for i in sorted(res[6]['new'], key=lambda i: (-score[i], -posN[i])):
     cands.append({'seed': int(i), 'score': int(score[i]), 'province': codes[prov[i]], 'provinceTh': pth[codes[prov[i]]],
                   'lat': round(float(Z['lat'][i]), 5), 'lon': round(float(Z['lon'][i]), 5), 'positions400': int(posN[i]), 'layers400': int(layN[i]),
                   'lodging400': int(Z['lodging@400'][i]), 'components': [c for c in pts if fired[c][i]], 'roles': roles_at(i), 'anchors': anchors(i),
-                  'registryNameWithin800m': near_name, 'singleSiteRisk': bool(posN[i] < 5), 'oldRule': bool(Z['v1'][i])})
+                  'registryNameWithin800m': near_name, 'singleSiteRisk': bool(posN[i] < 5), 'oldRule': bool(Z['v1'][i]), **grouping(i)})
 for n, c in enumerate(cands, 1): c['rank'] = n
 json.dump({'auc': round(float(auc), 4), 'positives': int(len(pos)), 'background': int(len(neg)), 'seeds': int(len(S)), 'components': comp, 'candidates': cands},
           open(WORK / 'candidates.json', 'w', encoding='utf-8'), ensure_ascii=False)
 for th in (6, 8, 10):
     cc = [c for c in cands if c['score'] >= th]
     print(f'>= {th}: {len(cc)} new candidates in {len({c["province"] for c in cc})} provinces · first roles', dict(collections.Counter(c['roles'][0] if c['roles'] else '-' for c in cc)))
+print('groups by score band:', dict(sorted(collections.Counter(('10+' if c['score'] >= 10 else '8-9' if c['score'] >= 8 else '6-7', c['group']) for c in cands).items())))
