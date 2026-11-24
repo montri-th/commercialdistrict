@@ -44,6 +44,13 @@ Owner 2026-11-24 08:15 ICT, VERBATIM: “ผมอยากให้ดูเร
 - Run 45409052859 stopped at fetching the sources: HTTP 503 from montri-th.github.io/factory, not this release. Run 45409189636 (13:59:44–14:01): 18 sources, 17 from their latest GitHub Pages deployment and Commercial District `75da6cf` by override; release SHA-256 `27c8eb53…445e`; the demo family check passed on the built site and live (hub = 18, shell 0.6.4); 187 files uploaded, 11,371 already there; 114 / 114 live checks.
 - Chrome on preview.citymeter.pages.dev: cache tag `20261124-r3`; ป่าตอง 3,097 ไร่ (ที่พัก 653 แห่ง, the most of the 395), จอมเทียน 2,473 ไร่, บ่อผุด–ฟิชเชอร์แมนวิลเลจ 513 ไร่, each over the basemap with the record's outline line as written (with “และตามขอบที่เจ้าของกำหนด” for จอมเทียน and บ่อผุด).
 
+### Live (UTC, 2026-11-24)
+
+- The owner at 21:49 ICT, VERBATIM: “merge and publish”. Pull request #23 merged as `8ab0a71` (main `f730ccc` was already inside the branch, so main is exactly what the preview showed, plus the record of the preview); GitHub Pages deployment of `8ab0a71` 14:50:14; `npm run verify:live` 803 ok, 0 failed (a first pass had two record shards at HTTP 503, both 200 and equal on the second).
+- citymeter.pages.dev: run 45419112203 (14:53:18–14:54:35, publish on): 18 sources from their latest GitHub Pages deployments (Commercial District `8ab0a71`, shell 0.6.4); release SHA-256 `1ef2acc3…b5f2`; the demo family check passed on the built site and live (hub = 18); 2 files uploaded, 11,556 already there (the preview had sent the rest); 114 / 114 live checks.
+- Chrome on citymeter.pages.dev: `release.json` assembled 14:53:42 names `8ab0a71`, cache tag `20261124-r3`, data built 2026-11-24; ป่าตอง 3,097 ไร่, “ที่พัก 653 แห่ง — มากที่สุด จาก 395 ย่าน…”, the record's outline line as written. In two same-origin frames 393 px wide in one tab (389 px inside their border): จอมเทียน in English (“2,473 rai”, “… forest, field, water or industrial land and within limits the owner set …”) and บ่อผุด in Thai (“… และตามขอบที่เจ้าของกำหนด …”); no sideways scroll, no unfilled text. The frames fell back to the light map (two maps in one tab), which is the harness, not the release.
+- Not done: the registry has not received the 235 outlines (its sheet is written only on the owner's word); not walked on a phone.
+
 ## Release 0.2.5 — 18 พ.ย. 2569
 
 Owner 2026-11-18 17:44 ICT, VERBATIM: “หน่วย เฮกตาร์ ไม่มีคนเข้าใจ ควรใช้เป็นไร่ หรือ ตารางกิโลเมตร จะเข้ากับบริบทไทยมากกว่า”; at 17:57 he chose “1” — release it as 0.2.5 through preview and live as before. Built on main after the 0.2.4 live record (`b4b579e`).
