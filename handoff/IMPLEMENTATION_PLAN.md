@@ -1,6 +1,6 @@
 # CityMETER Commercial District — Implementation Plan
 
-รุ่น 0.2.5 · 18 พ.ย. 2569 · คู่กับ `implementation-plan.json` (schema 1.5.0)
+รุ่น 0.3.0 · 24 พ.ย. 2569 · คู่กับ `implementation-plan.json` (schema 1.5.0)
 
 ## สถาปัตยกรรม
 
@@ -20,6 +20,7 @@ Static site, ES modules ผ่าน import map ที่มี cache tag เด
 | `js/rail.js` · `scripts/build-rail.py` (0.2.3) | ระบบรางเป็นบริบทบนแผนที่: แนวราง สถานี ที่หยุดรถไฟทางไกล ป้ายเมื่อชี้ (สายและสถานีที่เชื่อมกัน) สีกลางสีเดียว ไม่นับรวม |
 | `js/layers.js#framePoints` · `js/app.js#fitNb` (0.2.3) | เลือกย่านแล้วจัดกรอบพอดีขอบย่านในแผนที่ที่ว่าง ด้วย `fitBuilding` ของ shell |
 | `scripts/draw-outline-amendment.py` · `amendments/` · `build-data.py --outline-amendments` (0.2.4) | ขอบย่านที่เจ้าของสั่งปรับ (นิมมาน–เมญ่า) วาดตามหลักเกณฑ์ขอบย่านจากขอบของทะเบียนกับรูปแปลง OpenStreetMap ใช้กับขอบเดิมที่ตรง SHA-256 เท่านั้น ห้ามลดพื้นที่หรือทับขอบอื่น (`DATA_METHOD.md` §2b) |
+| `js/extents.js` · `scripts/draw-extents.py` · `scripts/draw-extents.browser.js` · `scripts/extents-from-export.py` · `scripts/build-extents.py` (0.3.0) | พื้นที่ย่าน (ทดลอง) 10 แห่ง: วาดด้วยกฎจากแผนที่ฐาน (ชายหาด · ระยะเดิน) เก็บใน `amendments/` นับแต่ละชุดในพื้นที่เทียบกับแกนย่าน เส้นประจางใต้ขอบย่าน ส่วนของตัวเองในแผงย่าน ไม่เข้าอันดับหรือการเทียบใด (`DATA_METHOD.md` §2c) |
 | `js/scales.js` · `js/cues.js` | สเกล LDS และรูปทรงของหมวด |
 | `js/shell/` | citymeter-shell (ห้ามแก้ที่นี่ที่เดียว) |
 
@@ -29,7 +30,7 @@ T01 ข้อมูล → T02 model → T03 view models → T04 แผง → T
 
 ## Acceptance criteria
 
-AC01–AC16 ใน `implementation-plan.json`: tests ผ่านบนข้อมูลจริง · ไม่มีข้อมูลไม่เป็น 0 · จำนวนรวมตรงกับจุดที่วาด · ข้อค้นพบมีตัวตั้งและตัวหาร · บรรทัดที่มาทุกมุมมอง · LDS parity 0 mismatch · back ของเบราว์เซอร์ · มือถือ 393 px · English ครบ · ตาราง · live bytes · เมนูทุกหน้าบน citymeter.pages.dev ตรงกับ hub
+AC01–AC17 ใน `implementation-plan.json`: tests ผ่านบนข้อมูลจริง · ไม่มีข้อมูลไม่เป็น 0 · จำนวนรวมตรงกับจุดที่วาด · ข้อค้นพบมีตัวตั้งและตัวหาร · บรรทัดที่มาทุกมุมมอง · LDS parity 0 mismatch · back ของเบราว์เซอร์ · มือถือ 393 px · English ครบ · ตาราง · live bytes · เมนูทุกหน้าบน citymeter.pages.dev ตรงกับ hub · (0.3.0) พื้นที่ย่านไม่เปลี่ยนตัวเลขของแกนย่าน และไม่เคยนับน้อยกว่าแกนย่าน
 
 ## Backlog
 

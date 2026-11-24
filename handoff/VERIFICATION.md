@@ -1,5 +1,29 @@
 # CityMETER Commercial District — verification
 
+## Release 0.3.0 — 24 พ.ย. 2569
+
+Owner 2026-11-24 08:15 ICT, VERBATIM: “ผมอยากให้ดูเรื่องขอบเขตย่าน โดยเฉพาะย่าน ท่องเที่ยวชายหาดเป็นตัวอย่าง ว่า ย่าน ป่าตอง กะตะ กะรน น่าจะคลุมพื้นที่อาคารมากกว่านี้มั้ย อย่างป่าตอง ทำไมไม่นับรวมทุกอาคารในป่าตองเลย อย่างกมลา เราจะเห็นบน basemap เป็นขอบเขตสีดำๆ เราใช้ขอบเขตนั้นมาช่วยกำหนดขอบเขตย่านด้วยได้มั้ย … อยาก apply กับที่อื่นๆ และย่านรูปแบบอื่นๆ ที่ relevant กันด้วยทั้ง dataset นี้”; 08:19 “อย่างป่าตองก็น่าได้ประมาณนี้มั้ย”; 10:12 “ลุยเลย” on two layers of outline piloted on ten places, shown on a preview first (`DATA_METHOD.md` §2c). Built on main after 0.2.6 (`f730ccc`).
+
+### Drawing (2026-11-24)
+
+- Where: the live demo (release 0.2.6) in the owner's Chrome, 1,710 × 819, through Claude in Chrome; `scripts/draw-extents.browser.js` pasted in the page. The SHA-256 of its functions in the page (run, walk, beach, sweep, within, grid, morph, rings) equals the repository script's: `be943ad73b941f9d…`.
+- Inputs read in the page, each checked by SHA-256: `/commercialdistrict/data/boundaries.geojson` = this release's `data/boundaries.geojson` (`106ab3bf…efb3`); `/hotel/data/hotels.json` = montri-th/hotel@7fde352 `data/hotels.json` (`0d63ba36…c107`); `/pharmacy/data/frames/{PKT,KBI,SNI,CBI,PKN,BKK}.json` = montri-th/pharmacy@44da829 (retrieved 2026-10-23 by that demo).
+- Basemap OpenFreeMap planet build `20261122_124456_pt`, 235 tiles at zoom 14; the ten places in 66 s, no error. The export (18,782 characters) carried out of the page with the same SHA-256 there and on disk (`3ea0890c…40c0`, `metadata.exportSha256`).
+- Rules used: beach for ป่าตอง, กะรน–กะตะ, กมลา, อ่าวนาง; walk for ราไวย์ and หัวหิน (the beach area reached 5 km from the core), จอมเทียน (it took in three Pattaya outlines), เฉวง (smaller than the walk area); walk as asked for เมืองเก่าภูเก็ต and สยาม. Each area looked at on the live basemap before it was kept.
+- Smoke test of the headless runner (`scripts/draw-extents.py` draw and review) on synthetic tiles in this container: the same script ran, exported, built and rendered; nothing from it is in the release.
+
+### Local
+
+- `python3 -I scripts/extents-from-export.py` → `amendments/extents-pilot-2026-11-24.geojson`; `python3 -I scripts/build-extents.py` → `data/extents.json`: the 16 dataset files fetched at the commits `data/neighborhoods.json` names, each SHA-256 and located count equal to the build's; no two areas overlap; no area holds fewer records of a dataset than one of its cores.
+- `npm test` 172 / 172 (`tests/extent.test.js` new: hashes against this release's data, every core in one area, area ≥ core with the same scope keys, the section with one provenance line and the method link, the core's own figures unchanged, the overview list, the import map and the legend word).
+- LDS parity 130 ok, 0 failed against `Landometer-Design-System-v0.9.7.md` (SHA-256 `d3085cbc…2d96`); the line and legend use the Foundation UI inks `--text-muted` and `--text-secondary`, no data colour.
+- Local render, the basemap stubbed (MapLibre 5.6.2 from npm, Subresource Integrity checked): every pilot core in Thai and English — the section reads its area in ไร่ beside the core's, per dataset the area's count with “ในแกนย่าน N” / “N in the core”, the measures, “ดูทั้งพื้นที่บนแผนที่”, one provenance line with its four parts and the link to §2c; the national view lists the ten; the English harvest (`__citymeterI18n.missing`) empty; 393 px, Thai light and English dark: no overflow.
+- Not verified here: the wider areas drawn on the page's own basemap at 0.3.0 (the basemap is stubbed in this container), a real phone.
+
+### Preview — pending
+
+The owner runs the publisher in preview mode (montri-th/citymeter-pages-deploy) with the override `commercialdistrict` → the head of the pull request from branch `extent-pilot-0.3.0`; nothing goes to production before he has seen it.
+
 ## Release 0.2.5 — 18 พ.ย. 2569
 
 Owner 2026-11-18 17:44 ICT, VERBATIM: “หน่วย เฮกตาร์ ไม่มีคนเข้าใจ ควรใช้เป็นไร่ หรือ ตารางกิโลเมตร จะเข้ากับบริบทไทยมากกว่า”; at 17:57 he chose “1” — release it as 0.2.5 through preview and live as before. Built on main after the 0.2.4 live record (`b4b579e`).

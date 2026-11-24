@@ -90,6 +90,50 @@ export function provenance(ctx = {}, {datasets = [], boundary = ''} = {}) {
   return `<p class="hint panel-foot provenance"><span class="prov-part" data-prov="dataset">${pic('dataset')}<span class="sr-only">${L('ชุดข้อมูล ', 'Dataset ')}</span>CityMETER Commercial District</span> <span class="prov-part" data-prov="source"><span class="sr-only">${L('แหล่ง', 'Source')}</span>${L('จาก ', 'from ')}${esc(source)}</span><span class="prov-part" data-prov="date">${pic('date')}<span class="sr-only">${L('อ่าน ', 'Read ')}</span>${esc(date)}</span><span class="prov-part" data-prov="boundary">${pic('area')}<span class="sr-only">${L('ขอบเขต ', 'Boundary ')}</span>${esc(boundary || L('ขอบย่านฉบับร่าง', 'Draft neighbourhood outlines'))}</span><span class="prov-part prov-method"><a href="${METHOD_URL}" target="_blank" rel="noopener">${L('วิธีนับ', 'Method')}</a></span></p>`;
 }
 
+/* ---------- 0.3.0: the trial wider area (js/extents.js, DATA_METHOD.md §2c) ---------- */
+
+/** A Thai name inside a sentence: its own element, so an English page keeps it Thai and marks it lang="th". */
+const nameIn = s => `<span class="nm">${esc(s)}</span>`;
+
+/** The provenance line of the wider-area figures: dataset · source · date · boundary, then the method. A provenance
+ * line lets its spans wrap (styles.css), so the area keeps its unit with a no-break space. */
+function extentProvenance(it, meta) {
+  const rule = meta.rules?.[it.rule] || {};
+  const tiles = meta.basemap?.builtOn ? ` ${thaiDate(meta.basemap.builtOn)}` : '';
+  return `<p class="hint panel-foot provenance"><span class="prov-part" data-prov="dataset">${pic('dataset')}<span class="sr-only">${L('ชุดข้อมูล ', 'Dataset ')}</span>${esc(L(`${meta.title} ${num(meta.count)} พื้นที่`, `${meta.titleEn}, ${num(meta.count)} areas`))}</span> <span class="prov-part" data-prov="source"><span class="sr-only">${L('แหล่ง', 'Source')}</span>${esc(L(`จาก 16 ชุดข้อมูล CityMETER · แผนที่ฐาน OpenStreetMap (OpenFreeMap${tiles}) · ขอบตำบล CityMETER`, `from the 16 CityMETER datasets · OpenStreetMap basemap (OpenFreeMap${tiles}) · CityMETER subdistricts`))}</span><span class="prov-part" data-prov="date">${pic('date')}<span class="sr-only">${L('วาด ', 'Drawn ')}</span>${esc(thaiDate(meta.drawnOn))}</span><span class="prov-part" data-prov="boundary">${pic('area')}<span class="sr-only">${L('ขอบเขต ', 'Boundary ')}</span>${nameIn(it.name)} ${esc(L(`${rai(it.areaM2)}\u00a0ไร่`, `${rai(it.areaM2)}\u00a0rai`))} · ${esc(L(`${rule.short?.th || ''} · ${meta.status?.th || ''}`, `${rule.short?.en || ''} · ${meta.status?.en || ''}`))}</span><span class="prov-part prov-method"><a href="${METHOD_URL}#2c" target="_blank" rel="noopener">${L('วิธีนับ', 'Method')}</a></span></p>`;
+}
+
+/**
+ * The whole place the neighbourhood's name refers to, beside its core (0.3.0): the area in ไร่, then per dataset the
+ * records inside the wider area with the core's own count beside them. Out-of-scope datasets have no line; a dataset
+ * with none in either is left out. Counts of two datasets are never added.
+ */
+function extentSection(r, model) {
+  const ext = model.extents, it = ext?.byCore?.get(r.id);
+  if (!it) return '';
+  const others = (it.cores || []).filter(c => c !== r.id).map(id => model.byId.get(id)).filter(Boolean);
+  const lines = model.datasets.filter(ds => it.c && ds.id in it.c && (it.c[ds.id] > 0 || (r.c?.[ds.id] || 0) > 0)).map(ds => {
+    const all = it.c[ds.id], core = r.c?.[ds.id] ?? 0, mm = it.m?.[ds.id];
+    const measure = ds.measure && mm ? ` <span class="hint">${esc(L(`${ds.measure.th} ${num(mm[0])} จาก ${num(mm[1])} รายการที่มีตัวเลข`, `${ds.measure.en} ${num(mm[0])} from ${num(mm[1])} ${mm[1] === 1 ? 'record' : 'records'} with a figure`))}</span>` : ''; // the wording of the card's measures (below)
+    return `<li><span class="ds-name">${dsLabel(ds)}</span><span class="ext-figure data-number">${nw(`${num(all)}<small>${esc(dsUnitN(ds, all))}</small>`)}</span><span class="ext-core hint">${esc(L(`ในแกนย่าน ${num(core)}`, `${num(core)} in the core`))}</span>${measure}</li>`;
+  }).join('');
+  const shared = others.length ? `<p class="hint">${esc(L('พื้นที่เดียวกับแกนย่าน', 'The same area as the core of'))} ${others.map(o => nbButton(o)).join(' · ')}</p>` : '';
+  return section('area', L('พื้นที่ย่าน (ทดลอง)', 'Wider area (trial)'), L(`${nameIn(it.name)} ทั้งพื้นที่`, `the whole of ${nameIn(it.name)}`),
+    `<p class="section-lead">${nw(`<strong class="data-number">${esc(rai(it.areaM2))}</strong> ${esc(L('ไร่', 'rai'))}`)} ${L(`ทั้งพื้นที่ · แกนย่าน${nameIn(r.name)} ${nw(`${esc(rai(r.areaM2))} ไร่`)}`, `in all · the core ${nameIn(r.name)} ${nw(`${esc(rai(r.areaM2))} rai`)}`)}</p>
+    ${shared}<ul class="ext-list">${lines}</ul>
+    <div class="aha-actions"><button type="button" class="btn quiet" data-action="fit-extent" data-id="${esc(it.id)}">${L('ดูทั้งพื้นที่บนแผนที่', 'Show the whole area on the map')}</button></div>
+    ${extentProvenance(it, ext.meta)}`, 'extent');
+}
+
+/** The national view names the pilot places (0.3.0), each opening its first core. */
+function extentOverviewSection(o, model) {
+  const ext = model.extents;
+  if (!ext?.items?.length || o.province || o.searching || o.lens) return '';
+  const names = ext.items.map(it => { const r = model.byId.get(it.cores[0]); return r ? `<button type="button" class="link-button" data-action="select-nb" data-id="${esc(r.id)}">${esc(it.name)}</button>` : ''; }).filter(Boolean).join(' · ');
+  return section('area', L(`พื้นที่ย่าน (ทดลอง) ${num(ext.items.length)} พื้นที่`, `Wider areas (trial): ${num(ext.items.length)} places`), '',
+    `<p class="section-lead">${esc(L('ขอบทะเบียนเป็นแกนย่าน พื้นที่ย่านคือทั้งพื้นที่ที่ชื่อนั้นหมายถึง วาดด้วยกฎจากแผนที่ฐาน', 'The registry\'s outline is the core; the wider area is the whole place the name refers to, drawn by rule from the basemap'))}</p><p>${names}</p>`, 'extent-overview');
+}
+
 /* ---------- overview ---------- */
 
 function ahaOverview(o) {
@@ -244,7 +288,7 @@ export function renderOverview(o, model, {fillOf = () => '', ctx = {}} = {}) {
   </section>` : '';
   const lensFirst = o.lens ? lensSection(o, fillOf) : '';
   const place = o.province ? provinceName(o.province) : L('ประเทศไทย', 'Thailand');
-  return `${ahaOverview(o)}${metrics}${lensFirst}${o.lens ? '' : addedSection(o, model)}${o.count ? `${o.lens ? '' : multiSection(o, model)}${sharesSection(o)}${outOfScopeLine(model, o)}${pairsSection(o)}${listSection(o, model)}${provincesSection(o)}` : ''}${pendingSection(o, model)}
+  return `${ahaOverview(o)}${metrics}${lensFirst}${o.lens ? '' : addedSection(o, model)}${extentOverviewSection(o, model)}${o.count ? `${o.lens ? '' : multiSection(o, model)}${sharesSection(o)}${outOfScopeLine(model, o)}${pairsSection(o)}${listSection(o, model)}${provincesSection(o)}` : ''}${pendingSection(o, model)}
     ${actionBar({kind: 'overview', province: o.province ? provinceName(o.province) : ''})}
     ${scopeDetails(model)}
     ${provenance(ctx, {datasets: o.lens ? [o.lens.ds] : [], boundary: L(`${place} · ขอบย่านฉบับร่าง`, `${place} · draft neighbourhood outlines`)})}`;
@@ -444,7 +488,7 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
     ${metricTile(d.inProvince, L(`ย่านใน${province}`, `in ${province}`), 'province')}
   </section>`;
   const lodging = lodgingSection(r, model);
-  return `${aha}${metrics}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${datasetsSection(d, fillOf)}${recordsHTML}${similarSection(d)}
+  return `${aha}${metrics}${extentSection(r, model)}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${datasetsSection(d, fillOf)}${recordsHTML}${similarSection(d)}
     ${actionBar({kind: 'neighborhood', name: r.name, province, point: {lat: r.ref[1], lon: r.ref[0]}})}
     ${registryDetails(d, model)}
     ${provenance(ctx, {boundary: r.kind === 'lodging' ? L(`${r.name} · ขอบร่างของผลคัดย่านที่พัก ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline of the lodging screen ${rai(r.areaM2)} rai`) : am ? L(`${r.name} · ขอบย่านฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline extended on ${thaiDate(am.on)} from OpenStreetMap ${rai(r.areaM2)} rai`) : L(`${r.name} · ขอบย่านฉบับร่าง ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline ${rai(r.areaM2)} rai`)})}`;

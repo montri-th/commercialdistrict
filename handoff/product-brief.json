@@ -3,8 +3,8 @@
   "schemaVersion": "1.5.0",
   "documentType": "product-brief",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.2.6",
-  "updatedOn": "2026-11-16",
+  "productVersion": "0.3.0",
+  "updatedOn": "2026-11-24",
   "datasetCheckedOn": "2026-11-16",
   "language": "th",
   "productName": "CityMETER · Commercial District",
@@ -108,7 +108,7 @@
   "contextActionsContract": "js/ask.js: ถาม Google AI with a question for the view, Google Maps, Street View at the reference point",
   "englishContract": "?lang=en: fixed words in js/lang-en.js, data sentences built in English (L(th, en)), neighbourhood names stay Thai (keepThai)",
   "data": {
-    "files": ["data/neighborhoods.json", "data/boundaries.geojson", "data/records/", "data/condo/", "data/provinces.geojson", "data/building-units/"],
+    "files": ["data/neighborhoods.json", "data/boundaries.geojson", "data/records/", "data/condo/", "data/provinces.geojson", "data/building-units/", "data/extents.json"],
     "build": "scripts/build-data.py",
     "method": "DATA_METHOD.md"
   },
@@ -130,7 +130,8 @@
     {"id": "INV-09", "rule": "Every panel view ends with one provenance line: dataset · source · date · boundary · วิธีนับ."},
     {"id": "INV-10", "rule": "No caveat line on screen; method and limits live in DATA_METHOD.md."},
     {"id": "INV-11", "rule": "The registry's address, export and cells never enter the repository."},
-    {"id": "INV-12", "rule": "Neighbourhood names stay Thai in English; no view is left untranslated otherwise."}
+    {"id": "INV-12", "rule": "Neighbourhood names stay Thai in English; no view is left untranslated otherwise."},
+    {"id": "INV-13", "rule": "A trial wider area (0.3.0) never changes its core's figures: every count, rank, share, highlight, pair and similar mix stays the registry outline's; the area's counts sit only in its own section, beside the core's, never added across datasets."}
   ],
   "chartContracts": [
     {"viewKey": "shares", "title": "สิ่งที่อยู่ในย่าน", "question": "ชุดไหนกระจุกในย่าน", "encoding": "bar per dataset on 0–100 %, pillar series + shape, grouped Land · Location · Living", "metric": "share of located records inside the neighbourhoods", "scope": "the overview's scope"},
@@ -139,7 +140,7 @@
     {"viewKey": "compare", "title": "เปรียบเทียบย่าน", "question": "ย่านเหล่านี้ต่างกันตรงไหน", "encoding": "matrix datasets × neighbourhoods: count, density, bar against the densest of the row, densest ringed", "metric": "count and records per km²", "scope": "up to four neighbourhoods"}
   ],
   "delivery": {
-    "cacheTag": "?v=20261118-r7",
+    "cacheTag": "?v=20261124-r1",
     "shell": "citymeter-shell 0.6.2 (0.6.1 + this demo in the picker, shipped by release 0.1.0 to all 17 demos)"
   }
 }

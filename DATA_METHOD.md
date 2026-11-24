@@ -18,6 +18,9 @@ makes).
 - **สัดส่วน** = จำนวนในย่าน ÷ รายการที่มีพิกัดของชุดนั้น (ทั้งประเทศ หรือในจังหวัด) ตัวตั้งและตัวหารอยู่ข้างตัวเลขหรือในคำอธิบายของมัน
 - **จุดเด่น** = ย่านติดกลุ่มบนของกลุ่มเทียบ ทุกข้อบอกกลุ่มเทียบและจำนวน (§5)
 - **มาด้วยกัน** = คู่ชุดข้อมูลที่ความหนาแน่นขึ้นลงด้วยกันในย่านทั่วประเทศ (สหสัมพันธ์อันดับ ρ, §6) — ความสัมพันธ์ ไม่ใช่เหตุและผล
+- **พื้นที่ย่าน (ทดลอง)** (0.3.0) = ทั้งพื้นที่ที่ชื่อย่านหมายถึง วาดด้วยกฎจากแผนที่ฐานรอบแกนย่าน 10 แห่ง (§2c) ขอบของทะเบียนยังเป็นแกนย่าน
+  และตัวเลข อันดับ จุดเด่น สัดส่วน ความหนาแน่นทุกตัวในหน้ายังเป็นของแกนย่าน · ส่วนพื้นที่ย่านบอกจำนวนรายการในพื้นที่นั้นแยกชุด
+  มีจำนวนในแกนย่านกำกับข้าง ๆ และไม่ใช้ในการจัดอันดับหรือเทียบใด
 - จำนวนรายการไม่ใช่ยอดขาย คนเดิน รายได้ หรือความต้องการ
 
 ## 1. Sources
@@ -29,6 +32,8 @@ makes).
 | 16 CityMETER demo datasets | each demo's own data file, read with the demo's own default scope (§3) | repository, file, commit and SHA-256 per dataset in `datasets[].source` |
 | Province outlines | `data/provinces.geojson` (77 CityMETER production provinces) | copied unchanged from `montri-th/university@ed2f350` (SHA-256 `9f5b57ef…a8ce62`) |
 | Building units | `data/building-units/` (where the 3D focus draws CityMETER Building V4 instead of OpenStreetMap) | copied unchanged from `montri-th/university@ed2f350` (index SHA-256 `b565ee80…01f75`) |
+| Basemap tiles (0.3.0, §2c) | OpenFreeMap planet vector tiles at zoom 14 (building, landcover, park, landuse, water, transportation of OpenStreetMap), read in the page to draw the trial wider areas | build `meta.basemap.build` in `data/extents.json` |
+| Subdistrict outlines (0.3.0, §2c) | CityMETER production SUBDISTRICT outlines of the ten places' provinces, as the demos publish them | `montri-th/pharmacy` `data/frames/<province>.json`, commit and SHA-256 in `meta.subdistricts` of `data/extents.json` |
 
 Neither the registry's address, its export nor its cells are in this repository; only the counts and the fields listed
 in §9 are published.
@@ -137,6 +142,99 @@ now ศูนย์การค้าและตลาด (4 records, 23rd of 3
 counts; ranks, highlight strengths and the pairs of §6 move where this one passes others, as peers do (§5). Maya itself
 is not a record of the shopping-centre dataset. The college's point in the School demo (its ONESQA registration point)
 lies 184 m west of the extended outline and stays outside: that point is the School demo's, not moved here.
+
+## 2c. Wider areas, a trial (0.3.0)
+
+Owner 2026-11-24 08:15, VERBATIM: “ผมอยากให้ดูเรื่องขอบเขตย่าน โดยเฉพาะย่าน ท่องเที่ยวชายหาดเป็นตัวอย่าง ว่า ย่าน ป่าตอง กะตะ กะรน
+น่าจะคลุมพื้นที่อาคารมากกว่านี้มั้ย อย่างป่าตอง ทำไมไม่นับรวมทุกอาคารในป่าตองเลย อย่างกมลา เราจะเห็นบน basemap เป็นขอบเขตสีดำๆ
+เราใช้ขอบเขตนั้นมาช่วยกำหนดขอบเขตย่านด้วยได้มั้ย … อยาก apply กับที่อื่นๆ และย่านรูปแบบอื่นๆ ที่ relevant กันด้วยทั้ง dataset นี้”;
+08:19, with a sketch round the whole of the town: “อย่างป่าตองก็น่าได้ประมาณนี้มั้ย”; 10:12, on the proposal below: “ลุยเลย”.
+
+**What changes and what does not.** Two layers of outline. The registry's outline stays the neighbourhood — its core
+(แกนย่าน): every count, density, share, rank, highlight, pair and similar mix on the page is still the core's
+(`tests/extent.test.js` renders the card with and without the wider areas). Beside ten cores a wider area
+(พื้นที่ย่าน (ทดลอง)) is drawn: the whole place the name refers to, by a rule read from the basemap the page already shows.
+It has one panel section of its own — its area in ไร่ beside the core's, then per dataset the records inside it with the
+core's count beside them, and its own provenance line — and a quiet dash-dot line on the map (`--text-muted`, the open
+one `--text-secondary` and wider, under the outlines, from zoom 8); nothing else on the page uses it. The proposal the
+owner answered with “ลุยเลย” (the four choices as recommended): two layers rather than redrawn outlines; names unchanged
+(the core keeps the registry's name, the wider area takes the place's); กะรน and กะตะ as one area with two cores; the
+edge of the dark ground held to the buildings.
+
+**Places and rules** (Inference: rules chosen to read the basemap, not the registry's outline rules, which have not ruled
+on them). Eight beach towns by the beach rule — ป่าตอง, กะรน–กะตะ, กมลา and ราไวย์ (Phuket), อ่าวนาง (Krabi), เฉวง (Samui),
+จอมเทียน (Chonburi), หัวหิน (Prachuap Khiri Khan) — and two town centres by the walk rule — เมืองเก่าภูเก็ต and สยาม.
+A beach town is drawn by both rules and keeps the beach rule unless one of three checks fails, when the walk rule is
+used instead: the beach area takes in another registry outline (the built-up ground runs into another neighbourhood),
+reaches 5 km from the core (it runs on beyond a town), or comes out smaller than the walk area (the map's buildings are
+too sparse to hold the dark ground). On 2026-11-24 four of the eight took the walk rule: จอมเทียน (its beach area took in
+พัทยากลาง–ชายหาด, พัทยาใต้–วอล์กกิ้งสตรีท and พระตำหนัก–พีช), ราไวย์ and หัวหิน (5 km), เฉวง (smaller: the buildings of Samui
+are sparsely mapped in OpenStreetMap). Each area keeps the rule it was asked for (`asked`), the one used (`rule`) and the
+figures of the choice (`drawn.choice`).
+- **beach** — the dark ground of the basemap: what it leaves free of forest, grassland, farmland, rock, wetland, sand,
+  urban parks, sports and green land use, and water (a national park or protected area is not used: its forest is land
+  cover already, and its legal edge can take in a town). Kept: the dark ground continuous with the core (after an
+  opening of 2 cells, so a road's thin verge does not join two places), within 130 m (measured in metres on the grid) of
+  the cluster of buildings that reaches the core (buildings no more than about 90 m apart: a dilation of 4 cells, trimmed back 3),
+  stopped by the sea and water and cut at the core's subdistrict (the CityMETER production SUBDISTRICT outline that
+  holds the core), the part continuous with the core, holes filled.
+- **walk** — the basemap's streets and paths (expressways, railways and transit lines left out) drawn 2 cells wide on the
+  grid; from every registry outline in reach at once, an 800 m walk along them, each street cell going to the core it is
+  the shorter walk from (two walks meet halfway); 40 m either side of this core's streets, a cell going to the core of
+  the street nearest to it; other cores and water taken out, the part continuous with the core, holes filled. The walk
+  is measured cell to cell along the streets as drawn, so pieces of one street cut at a tile's edge join, and a street
+  crossing another on a bridge joins it where they cross.
+
+**Sources.** The basemap's own vector tiles: OpenFreeMap planet build `meta.basemap.build` (OpenMapTiles schema, zoom 14:
+building, landcover, park, landuse, water and transportation of OpenStreetMap; © OpenMapTiles © OpenStreetMap
+contributors, ODbL 1.0), read in the page as the map loads them (`scripts/draw-extents.browser.js`). The subdistrict
+outlines as the demos publish them: `montri-th/pharmacy` `data/frames/<province>.json` (CityMETER production
+boundaries, retrieved 2026-10-23; the commit and each file's SHA-256 in `meta.subdistricts`). The registry outlines of
+this release. Grid 0.0001° (about 11 m); edges simplified by Douglas–Peucker at 1.2 cells. The drawn areas are kept in
+`amendments/extents-pilot-2026-11-24.geojson` with each place's check figures (hotels and OpenStreetMap buildings in the
+core, the wider area and, for a beach town, its subdistrict; other cores inside; cells on the drawing's edge). Drawn on
+2026-11-24 in the live demo (release 0.2.6) in Chrome, the script pasted in its console: its functions and every input
+file were checked by SHA-256 against this repository's script and the pinned files, and the export was carried out byte
+for byte (`metadata.ranIn`, `metadata.checkedWith`, `metadata.exportSha256`). `scripts/draw-extents.py` runs the same
+script headless where the network reaches the tiles.
+
+**Counting** (Observed fact). `scripts/build-extents.py` reads each of the 16 dataset files at the commit
+`data/neighborhoods.json` names (its SHA-256 and its located count must match, or it stops), with the main build's own
+reading (`scripts/build-data.py#extract`). A record counts in a wider area when its point lies inside it. The area is
+the union of the drawn area and its cores, so a core is never cut; it is measured in UTM as the registry measures its
+own. The build refuses two wider areas that overlap and an area that holds fewer records of a dataset than one of its
+cores. A dataset with no located record in the area's province is out of scope there (no key, never 0); counts of two
+datasets are never added. Output `data/extents.json`: `meta` (sources, rules, hashes, the owner's words), `items` (per
+area: id, name, cores, province, rule, `areaM2`, box, subdistricts, check figures, `c` counts and `m` measures per
+dataset) and `geometry` (the display copy).
+
+**Figures** (Observed fact, drawn 2026-11-24). Hotels of the core and of the area are this release's counts of the Hotel
+dataset; the columns marked * are the drawing's check figures, counted on its 11 m grid (`drawn` in `data/extents.json`).
+
+| Area | Rule | ไร่ (core) | Hotel: core → area | Hotels in the core's subdistrict* | OpenStreetMap buildings: core → area* |
+|---|---|---|---|---|---|
+| ป่าตอง | beach | 3,674 (142) | 42 → 660 | 692 | 162 → 4,318 |
+| กะรน–กะตะ | beach | 3,710 (981) | 142 → 338 | 353 | 1,012 → 3,706 |
+| กมลา | beach | 2,525 (88) | 30 → 81 | 107 | 250 → 2,113 |
+| ราไวย์ | walk | 1,840 (411) | 22 → 41 | 178 | 570 → 2,099 |
+| อ่าวนาง | beach | 2,055 (78) | 27 → 170 | 282 | 191 → 2,294 |
+| เฉวง | walk | 995 (200) | 27 → 83 | 319 | 123 → 341 |
+| จอมเทียน | walk | 2,620 (905) | 41 → 60 | 455 | 516 → 1,032 |
+| หัวหิน | walk | 2,095 (667) | 74 → 127 | 198 | 2,279 → 5,991 |
+| เมืองเก่าภูเก็ต | walk | 1,832 (83) | 27 → 139 | — | 213 → 1,709 |
+| สยาม | walk | 634 (194) | 7 → 16 | — | 86 → 380 |
+
+Where the beach rule held, the wider area holds most of the hotels of the core's subdistrict: ป่าตอง 660 of 692 (the core
+42), กะรน–กะตะ 338 of 353 (the cores 142), กมลา 81 of 107 (30) and อ่าวนาง 170 of 282 (27; its subdistrict runs inland to
+villages of its own). A walk area is the core's 800 m reach, not the whole town: the subdistrict figures are not its
+measure. The Hotel, Shopping Center, Grocery and other counts per area are in `data/extents.json` and on the page.
+
+**Limits.** The rules read OpenStreetMap as mapped: where buildings or land cover are not mapped, the dark ground runs on
+or stops short; farmland and forest drawn coarsely move the edge with them. A beach town stops at its core's
+subdistrict even where the built-up ground carries on into the next one. The walk follows mapped streets on an 11 m
+grid, not a walk measured on the ground: a footbridge or a gate the map does not have is not there. None of these areas
+has been walked; none is a registry outline or an administrative boundary. The registry's outline rules decide whether
+any of them becomes one.
 
 ## 3. Datasets and their default scope
 
@@ -342,7 +440,10 @@ the merged alignments; per station point, names, lines and status; Transit's int
 stop point, name and province — no ridership, operator records or source addresses. Outline amendments (0.2.4,
 `meta.amendments`): per amended code its date, both areas, the places taken in with their OpenStreetMap ids and
 names, the rules, the crossings and the OpenStreetMap release; `amendments/` holds the outline and the OpenStreetMap
-ways it was drawn from (public data, ODbL).
+ways it was drawn from (public data, ODbL). Wider areas (0.3.0, `data/extents.json`, §2c): per area its id, name,
+cores, province, rule, area, box, the subdistricts it was cut to, the check figures, and per dataset its count and
+measure; `meta` the sources, rules, hashes and the owner's words; `amendments/extents-pilot-2026-11-24.geojson` the
+drawn areas (derived from OpenStreetMap, ODbL).
 
 ## 11. Rebuild
 
@@ -365,6 +466,12 @@ python3 -I scripts/build-rail.py --transit <clone of montri-th/transit> --out da
 # 7. (0.2.4) an outline extended on the owner's word (§2b) is drawn once, from the registry outline and the OpenStreetMap
 #    ways kept in amendments/, before step 5; redraw it only if the registry changes that outline (the build says so)
 python3 -I scripts/draw-outline-amendment.py <outlines dir> amendments/osm-rincome-2026-11-18.json amendments/outline-amendments.geojson
+# 8. (0.3.0) the wider areas (§2c): drawn once from the basemap tiles (headless, or in the live demo's console), kept in
+#    amendments/, then counted against this release's data; redraw only to change a rule or a place (the build checks
+#    the neighbourhood data and outlines it was counted against)
+python3 -I scripts/draw-extents.py draw --out <export.json>
+python3 -I scripts/extents-from-export.py <export.json> amendments/extents-pilot-2026-11-24.geojson
+python3 -I scripts/build-extents.py --extents amendments/extents-pilot-2026-11-24.geojson --out data
 npm test
 node scripts/check-lds-parity.mjs --lds <Landometer-Design-System-v0.9.7.md>
 ```
