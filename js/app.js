@@ -307,13 +307,8 @@ function setDistance(value) {
   update();
   // the switch was redrawn with the panel: the focus goes back to the button just pressed
   document.querySelector(`#panel-view [data-action="set-around"][data-value="${next}"]`)?.focus({preventScroll: true});
-  // one camera move: with the line already known (or inside) frame now, else frame once it arrives (ensureRing)
-  if (state.nb) {
-    const r = openRow();
-    const waits = next !== 'in' && !state.rings.has(r.id);
-    ensureRing(r);
-    if (state.loaded && !waits) fitNb(r);
-  }
+  // one camera move: fitNb frames now when the line is known (or inside), else once it arrives (ensureRing)
+  if (state.nb) { const r = openRow(); ensureRing(r); if (state.loaded) fitNb(r); }
   announce(next === 'in' ? L('ในย่าน', 'Inside') : L(`รอบย่าน ${num(+next)} ม. · เส้นตรงจากขอบ`, `Within ${num(+next)} m around · straight line from the edge`));
 }
 
@@ -589,6 +584,9 @@ function fitRows(rows, {maxZoom = 13.5, instant = false} = {}) {
 const FIT_FILL = 0.94;
 function fitNb(r, {instant = false} = {}) {
   if (!r || !state.map) return;
+  // (0.4.0) a distance chosen and its line not here yet: frame once, when the line arrives (ensureRing), never the
+  // outline first and the line after — opening a neighbourhood, the switch and back/forward all come this way
+  if (r.id === state.nb && state.distance !== 'in' && !state.rings.has(r.id)) { state.frameOnRing = r.id; ensureRing(r); return; }
   const [w, s, e, n] = r.bbox;
   // (0.4.0) with a distance of «รอบย่านนี้» chosen, the line at that distance is framed whole (NL-05)
   const ring = r.id === state.nb ? ringGeometry() : null;

@@ -383,7 +383,7 @@ function glanceSection(r, model, around) {
   const levelled = tiles.filter(t => t.ds && t.level != null), unis = [...new Set(levelled.map(t => uni(t.id)))];
   // each peer group and the direction kept whole on a line (a number and its unit never split)
   const among = (unis.length === 1 ? [nw(esc(L(`ระดับเทียบ ${num(unis[0])} ย่าน`, `Level among ${num(unis[0])} neighbourhoods`)))]
-    : [esc(L('ระดับเทียบย่านที่มีค่า:', 'Level among the neighbourhoods with a value:')), ...levelled.map(t => nw(esc(L(`${GLANCE_LABEL[t.id][0]} ${num(uni(t.id))} ย่าน`, `${GLANCE_LABEL[t.id][1].toLowerCase()} ${num(uni(t.id))}`))))])
+    : [esc(L('ระดับเทียบย่านที่มีค่า:', 'Level among the neighbourhoods with a value:')), ...levelled.map(t => nw(esc(L(`${GLANCE_LABEL[t.id][0]} ${num(uni(t.id))} ย่าน`, `${GLANCE_LABEL[t.id][1].toLowerCase()} ${num(uni(t.id))} neighbourhoods`))))])
     .concat(nw(esc(L('น้อย → มาก', 'low → high')))).join(' · ').replace(': · ', ': ');
   const key = n && (levelled.length || starred) ? `<p class="hint glance-key">${levelled.length ? `${levelMeter(3)}<span>${among}</span>` : ''}${starred ? `<span>${esc(STAR_KEY('level'))}</span>` : ''}</p>` : '';
   const source = `<p class="hint glance-source">${esc(L(`ชุดข้อมูล CityMETER ${dates.length ? daySpan(dates[0], dates.at(-1)) : ''} · ในขอบร่างของย่าน`, `CityMETER datasets, ${dates.length ? daySpan(dates[0], dates.at(-1)) : ''} · inside the draft outline`))}</p>`;
