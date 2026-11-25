@@ -379,23 +379,37 @@ REGISTRY_TABS_RENAMED_ON = '2026-11-25'
 REGISTRY_TAB_READ = {}  # old name -> the tab name this export has (recorded in the data's provenance)
 
 
+# The columns the build reads by position, checked against their header (the registry's own column names, read from
+# the sheet on 2026-11-25): a moved or renamed column stops the build instead of being read as another field.
+REGISTRY_COLUMNS = {
+    'ชื่อกลาง': {1: 'ชื่อย่านกลาง', 9: 'รหัสย่านใช้งานปัจจุบัน', 10: 'ชื่อย่านใช้งานปัจจุบัน', 11: 'สถานะรหัสเดิม'},
+    'หลักฐานบทบาท': {0: 'รหัสย่านกลาง', 3: 'บทบาทย่าน', 4: 'สถานะ'},
+}
+
+
 def registry_tab_on(old, on):
-    """The registry tab's name on a date (YYYY-MM-DD): the old name before the rename, the new one from that day."""
-    return REGISTRY_TABS[old] if on >= REGISTRY_TABS_RENAMED_ON else old
+    """The registry tab's name on a date (ISO YYYY-MM-DD, checked): the old name before the rename, the new one from
+    that day."""
+    return REGISTRY_TABS[old] if date.fromisoformat(on) >= date.fromisoformat(REGISTRY_TABS_RENAMED_ON) else old
 
 
 def registry_tables(xlsx):
     wb = openpyxl.load_workbook(xlsx, read_only=True, data_only=True)
     def rows(name):
-        found = [n for n in (REGISTRY_TABS.get(name), name) if n and n in wb.sheetnames]
+        new = REGISTRY_TABS.get(name)
+        found = [n for n in (new, name) if n and n in wb.sheetnames]
         if len(found) != 1:
-            sys.exit(f'registry export: tab {name!r} (renamed {REGISTRY_TABS.get(name)!r} on 2026-11-25): '
-                     f'found {found or "neither"}')
+            renamed = f' (renamed {new!r} on {REGISTRY_TABS_RENAMED_ON})' if new else ''
+            sys.exit(f'registry export: tab {name!r}{renamed}: found {found or "neither"}')
         REGISTRY_TAB_READ[name] = found[0]
         ws = wb[found[0]]
         out = [['' if v is None else v for v in r] for r in ws.iter_rows(values_only=True)]
         width = max(len(r) for r in out)
         out = [r + [''] * (width - len(r)) for r in out]
+        for i, want in REGISTRY_COLUMNS.get(name, {}).items():
+            got = str(out[0][i]).strip() if i < len(out[0]) else ''
+            if got != want:
+                sys.exit(f'registry export: tab {found[0]!r} column {i + 1} is headed {got!r}; the build reads it as {want!r}')
         return out[0], out[1:]
     return rows
 

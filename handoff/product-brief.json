@@ -150,7 +150,8 @@
     "glance": "คนอยู่ (modelled, round 2: not yet) · นักเรียน (school dataset, starred) · ห้องพัก (lodging dataset) · ศูนย์และตลาด (Shopping Center dataset); level = levelOf of «รอบศูนย์นี้» from the mid-rank percentile among the frozen reference set (meta.referenceSet, 395)",
     "lowLocated": "factory, fitness, hospital, industrialestate, office, pharmacy, school: starred, count and density, never a rank or a level in the new layer (D-4)",
     "address": "f.around = in · 400 · 800 (inside is never written); the map draws the line of the chosen distance and frames it",
-    "notYet": ["NL-03 Shopping Center reading the links", "NL-S1 the sheet ledger (ChatGPT, D-6)", "round 2: residents, office workers, administrative areas", "round 3: reader test, roles from evidence, Yolk import"]
+    "doneAfter040": ["NL-S1 the sheet ledger (ChatGPT, D-6): 12_LAYER_RELEASES NLR-001 … NLR-004, 2026-11-25"],
+    "notYet": ["NL-03 Shopping Center reading the links", "round 2: residents, office workers, administrative areas", "round 3: reader test, roles from evidence, Yolk import"]
   },
   "delivery": {
     "cacheTag": "?v=20261125-r1",

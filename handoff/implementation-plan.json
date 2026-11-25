@@ -65,7 +65,8 @@
   "around": {
     "plan": "handoff/around/plan.json (proposal v1, byte for byte)",
     "done040": ["NL-00", "NL-01", "NL-02", "NL-04", "NL-05", "NL-06", "NL-07"],
-    "next": ["NL-03", "NL-S1", "NL-08", "NL-09", "NL-10", "NL-11", "NL-12", "NL-13", "NL-14"]
+    "doneAfter040": ["NL-S1 (2026-11-25: the registry sheet's 12_LAYER_RELEASES rows NLR-001 … NLR-004, handoff/VERIFICATION.md)"],
+    "next": ["NL-03", "NL-08", "NL-09", "NL-10", "NL-11", "NL-12", "NL-13", "NL-14"]
   },
   "backlog": [
     "English names for neighbourhoods when the registry carries them",
