@@ -27,8 +27,13 @@ x = os.environ.get('SCREEN_REGISTRY_XLSX')
 if x:
     import openpyxl
     wb = openpyxl.load_workbook(x, read_only=True, data_only=True)
+    # The registry's tabs were renamed on 2026-11-25 (gids unchanged; its 00_README lists old beside new), as
+    # scripts/build-data.py reads them: a tab by its new name or its old one, never both.
+    TABS = {'คัดย่านการค้า': '13_SCREEN_COMMERCIAL_AREAS', 'ชื่อกลาง': '01_NEIGHBOURHOODS', 'ย่านที่พัก 268': '19_LODGING_SCREEN'}
     def rows_of(name):
-        ws = wb[name]; ws.reset_dimensions(); rs = [r for r in ws.iter_rows(values_only=True) if any(v not in (None, '') for v in r)]
+        have = [n for n in (TABS[name], name) if n in wb.sheetnames]
+        if len(have) != 1: raise SystemExit(f'registry export: tab {name} / {TABS[name]} found {len(have)} times')
+        ws = wb[have[0]]; ws.reset_dimensions(); rs = [r for r in ws.iter_rows(values_only=True) if any(v not in (None, '') for v in r)]
         h = [str(c) if c is not None else '' for c in rs[0]]; return [dict(zip(h, r)) for r in rs[1:]]
     for r in rows_of('คัดย่านการค้า'):
         try: reg.append(('คัดย่านการค้า', r['พื้นที่ที่ตรวจ'], r.get('ลำดับสำรวจ'), float(r['ลองจิจูด']), float(r['ละติจูด'])))

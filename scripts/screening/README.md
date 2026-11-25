@@ -13,7 +13,7 @@ SCREEN_SRC=/path/to/dataset-clones SCREEN_REGISTRY_XLSX=/private/registry-export
 | `SCREEN_SRC` | `../src` beside this repository | Clones of the 16 dataset repositories at the commits named in `data/neighborhoods.json` `datasets[].source`. Step 1 stops when a file's SHA-256 differs. |
 | `SCREEN_ALLOW_NEWER` | unset | `1` screens newer dataset files on purpose. |
 | `SCREEN_WORK` | `/tmp/citymeter-screening` | Every output. Never a folder of this repository. |
-| `SCREEN_REGISTRY_XLSX` | unset | A private export of the central neighbourhood registry. Only step 5 reads it, for the names in tabs «คัดย่านการค้า» and «ย่านที่พัก 268»; without it the candidates carry no registry name. Never commit it. |
+| `SCREEN_REGISTRY_XLSX` | unset | A private export of the central neighbourhood registry. Only step 5 reads it, for the names in tabs `13_SCREEN_COMMERCIAL_AREAS` and `19_LODGING_SCREEN` and the codes of `01_NEIGHBOURHOODS` (named «คัดย่านการค้า», «ย่านที่พัก 268» and «ชื่อกลาง» before the registry renamed its tabs on 2026-11-25; either name is read, never both); without it the candidates carry no registry name. Never commit it. |
 | `SCREEN_LODGING` | `hotel,guesthouse,resort` | Hotel dataset types that count as lodging evidence (owner 2026-11-25 00:31: “นับรีสอร์ทด้วย”). `hotel,guesthouse` repeats the first review round of the same night. |
 | `SCREEN_QUEUE` | `10` | Score of the review queue (owner 2026-11-25: “10”). |
 | `SCREEN_SAMPLE` · `SCREEN_SEED` | `40` · `20261125` | Size and random seed of a first-round sample. |
