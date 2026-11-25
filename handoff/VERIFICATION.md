@@ -1,5 +1,30 @@
 # CityMETER Commercial District — verification
 
+## Release 0.4.1 — 25 พ.ย. 2569
+
+Owner 2026-11-25 23:01 ICT, VERBATIM: “ทำตามที่พี่เสนอเลยครับ” — Claude's table of 22:21: centre pins on top (D-11), «ขอบเดินถึง» and the service area for round 2 (D-10), pull request #27 first. Pull request #28, head `4088074`, stacked on pull request #27.
+
+### Local
+
+- `npm test` 184: 184 pass, 0 fail (182 + 2 in `tests/venue-pins.test.js`). Mutation checks: with `VENUE_LIFT` 0 the new test fails; with the 0.4.0 naming rule of `labelItems` it fails.
+- `node scripts/check-lds-parity.mjs --lds Landometer-Design-System-v0.9.7.md` (SHA-256 `d3085cbc…2d96`): 130 ok, 0 failed.
+- No local render: this container cannot reach unpkg.com or tiles.openfreemap.org.
+
+### Preview (UTC, 2026-11-25)
+
+- preview.citymeter.pages.dev, preview mode (never production), override `commercialdistrict` → `4088074`: run 188 (45652099503), run in the owner's Chrome, publish off; assembled 16:15:34, 1 min 0 s, success. Commercial District 0.4.1, cache tag `20261125-r2`, shell 0.6.4; 114 / 114 live checks; the demo family check passed on the built site and live (hub 18, shell 0.6.4).
+- The owner's Chrome, desktop, dark theme. ปุณณวิถี (`?at=BKK&f.neighborhood=CMN-TH-FC9F0B73B3`), all view: True Digital Park's pin on top of the pile at its point and named «ทรู ดิจิทัล พาร์ค» beside it. In the page: the centre's pin `sort` 2.5, icon `poi:s4:stack`, three other pins within 15 m, none at or above it. With only the centre's icon swapped for the quiet dot (then restored), the dot showed on top of the pile. The pointer on it lists สำนักงาน (อาคารทรู ดิจิทัล พาร์ค), ศูนย์การค้าและตลาด (ทรู ดิจิทัล พาร์ค), ฟิตเนส (True Digital Park) and ร้านอาหาร (Nittaya Grilled Chicken), then «ตรงนี้มีหลายชุดซ้อนกัน · กดเพื่อดูรายชื่อ», no count.
+- Words, Thai: no «รอบย่าน» on the page; the lead «ขอบเดินถึง 800 ม. พบรายการ 10 จาก 16 ชุด»; the section «ขอบเดินถึง» with «ในย่าน · ขอบเดินถึง 400 ม. · ขอบเดินถึง 800 ม.» and the columns «ขอบ 400 ม. · ขอบ 800 ม.»; with 800 m chosen, the dashed line round the outline and the legend «แนวขอบเดินถึง 800 ม.».
+- English: «Walkable edge 800 m» in the legend and the buttons, the section «The walkable edge», the lead «walkable edge 800 m: records of 10 of the 16 datasets»; the tip «Several datasets here · Click for the list»; the pin named «True Digital Park»; `window.__citymeterI18n.missing` 0.
+- คลองสาน–ไอคอนสยาม (`CMN-TH-97C4FC0AAD`): it opens with its first highlight, แบรนด์หรู, chosen, whose pins stay above the centres (D-11). In the all view its six centres have `sort` 2.5 and are named on the map: ไอคอนสยาม, ไอซีเอส, เดอะ ล้ง 1919 ริเวอร์ไซด์, ตลาดท่าดินแดง, Phaya Mai Market, เดอะไลฟ์เฮ้าส์ เจริญนคร.
+- 393 px: two same-origin frames 393 × 740 in one tab, ปุณณวิถี in Thai and English: the centre named beside its pin in both; the page does not scroll sideways (scroll width 393); the sheet's «ขอบเดินถึง» buttons on one row in Thai, two rows in English, nothing cut. The shell fell back to its light map in the frames (three maps in one tab), which is the harness, not the release.
+
+### Not done
+
+- Production: waits for the owner's word on pull requests #27 and #28 and the publish; `npm run verify:live` and the live walk follow.
+- Light theme not walked on the preview; not walked on a phone itself.
+- This section is the only change after `4088074`; the preview ran at `4088074`.
+
 ## Release 0.4.0 — 25 พ.ย. 2569
 
 Owner 2026-11-25 08:15 ICT, VERBATIM: “พี่ช่วยปรับ web demo ตามที่แนะนำเลยครับ / และพี่ช่วยสั่ง ChatGPT ปรับปรุง Google sheet [ทะเบียนย่านกลาง CityMETER] / ตอนนี้ชีทนี้ จัด tab ได้สับสนมาก อยากให้จัดใหม่ให้สะอาดเรียบร้อย ในรูปแบบที่เทียบเคียงเข้ากันได้กับ dataset อื่นๆที่เชื่อมโยงกันใน registry ด้วย / ให้รองรับการปรับปรุงนี้”. The web: the recommended option of each of D-1 … D-9 of the proposal (`handoff/around/decisions.json`). The sheet: below. Built on main after 0.3.0 (`24a3017`).
