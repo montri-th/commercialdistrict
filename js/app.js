@@ -21,6 +21,7 @@
 import {registerDataNames} from './lang.js';
 import {provinces as provinceList, provinceByCode, provinceCodeFrom, provinceName, setProvinces, decodeData, scopeRows, scopePending, KINDS, kindMatch, cell, rowsBounds, dsName, dsUnit, dsUnitN, num, PILLARS, PILLAR_SERIES} from './model.js';
 import {buildOverview, buildNeighborhood, buildCompare} from './profile.js';
+import {decodeAround, aroundDistance, aroundMatches} from './around.js';
 import {renderOverview, renderNeighborhood, renderCompare, renderFilterChips, tableHeadHTML, tableRowHTML, esc, L, dens, sharePct, thaiDate} from './panel.js';
 import {loadMapLibrary} from './shell/vendors.js';
 import {installAreaLabels, installRecordLabels} from './map-layers.js';
@@ -66,6 +67,9 @@ const state = {
   rows: [], pending: [], overview: null, ramp: null, fills: new Map(),
   // kind of neighbourhood shown (0.2.0, `f.kind`): '' every one · registry · lodging · added (js/model.js KINDS)
   kind: '',
+  // «รอบย่านนี้» (0.4.0, `f.around`): data/around.json decoded (null until it arrives or if it did not), the reading
+  // (in · 400 · 800: the column the table stresses and the line the map draws) and the lines, one file per neighbourhood
+  around: null, distance: 'in', rings: new Map(), ringsLoading: new Set(), frameOnRing: '',
   map: null, loaded: false, mapTheme: '', initialCameraDone: false, tileTemplate: '', budget: null,
   layers: null, provinceLabels: null, nbLabels: null, massing: null, buildingUnits: null,
   readerPitch: false, readerMovedAt: 0,
@@ -73,7 +77,7 @@ const state = {
 
 /* ---------- address (citymeter-shell, js/shell/url.js) ---------- */
 const nav = createNavigator(createCodec({
-  dataset: DATASET, levels: ['P'], place: {}, items: {}, filters: ['search', 'neighborhood', 'show', 'kind'], levelFilters: ['neighborhood'],
+  dataset: DATASET, levels: ['P'], place: {}, items: {}, filters: ['search', 'neighborhood', 'show', 'kind', 'around'], levelFilters: ['neighborhood'],
   rename: {metric: 'm', compare: 'cmp', view3d: 'v3d'},
 }), {onPop: restoreFromHistory});
 
@@ -84,6 +88,8 @@ function saveURL() {
   if (state.kind) p.set('kind', state.kind);
   if (state.nb) p.set('neighborhood', state.nb);
   if (state.focus) p.set('show', state.focus);
+  // the reading of «รอบย่านนี้» belongs to an open neighbourhood; inside (the default) is never written
+  if (state.nb && state.distance !== 'in') p.set('around', state.distance);
   if (state.lens) p.set('metric', state.lens);
   if (state.compare.length) p.set('compare', state.compare.join(','));
   if (!state.view3d) p.set('view3d', '0');
@@ -167,6 +173,7 @@ function update({fit = false} = {}) {
   refreshScope();
   if (state.nb && !openRow()) state.nb = '';
   state.compare = state.compare.filter(id => rowById(id)).slice(0, COMPARE_MAX);
+  if (!state.around && state.distance !== 'in') state.distance = 'in';
   computeFills();
   $('search').value = state.search;
   $('province').value = state.province;
@@ -204,7 +211,8 @@ function renderPanel() {
   let html;
   if (r) {
     html = renderNeighborhood(buildNeighborhood(state.model, r), state.model, {inCompare: state.compare.includes(r.id), compareFull: state.compare.length >= COMPARE_MAX,
-      fillOf: ds => (state.lens === ds.id ? fillOfRow(r) : ''), ctx: panelCtx(), recordsHTML: panelListHTML(state.records.get(r.id) ?? null, {open: state.recordsOpen})});
+      fillOf: ds => (state.lens === ds.id ? fillOfRow(r) : ''), ctx: panelCtx(), recordsHTML: panelListHTML(state.records.get(r.id) ?? null, {open: state.recordsOpen}),
+      around: state.around, distance: state.distance});
     $('map-aha').hidden = true;
   } else {
     state.overview = buildOverview(state.model, {rows: state.rows, province: state.province, ds: lensDs(), pending: state.pending});
@@ -217,6 +225,9 @@ function renderPanel() {
   view.dataset.mode = mode;
   $('panel').dataset.mode = mode;
   $('sheet-back').hidden = !r && !state.province;
+  // (0.4.0, D-5) a neighbourhood: the dataset heading, the search and the filters step aside (kept for screen
+  // readers, styles.css) and the back button sits in the breadcrumb's row, as Shopping Center's venue panel
+  $('panel-back').hidden = !r;
   const key = `${mode}:${state.nb}:${state.province}:${state.lens}`;
   if (key !== renderPanel.lastKey) { $('panel').scrollTop = 0; setSheet(restSheet()); state.readerPitch = false; state.readerMovedAt = 0; }
   renderPanel.lastKey = key;
@@ -285,6 +296,53 @@ function goBack() {
   if (state.province) leaveProvince();
 }
 
+/**
+ * The reading of «รอบย่านนี้» (0.4.0, NL-05): inside, or within 400 m or 800 m around. The table stresses that column,
+ * the map draws the line at that distance and frames it whole; inside draws no line and frames the outline.
+ */
+function setDistance(value) {
+  const next = aroundDistance(value);
+  if (next === state.distance) return;
+  state.distance = next;
+  update();
+  // the switch was redrawn with the panel: the focus goes back to the button just pressed
+  document.querySelector(`#panel-view [data-action="set-around"][data-value="${next}"]`)?.focus({preventScroll: true});
+  // one camera move: fitNb frames now when the line is known (or inside), else once it arrives (ensureRing)
+  if (state.nb) { const r = openRow(); ensureRing(r); if (state.loaded) fitNb(r); }
+  announce(next === 'in' ? L('ในย่าน', 'Inside') : L(`รอบย่าน ${num(+next)} ม. · เส้นตรงจากขอบ`, `Within ${num(+next)} m around · straight line from the edge`));
+}
+
+/** A glance tile goes to its dataset's row of the table and moves the focus there (the row's own button). */
+function jumpToAround(dsId) {
+  const el = document.getElementById(`around-${dsId}`);
+  if (!el) return;
+  el.scrollIntoView({block: 'center', behavior: reduced() ? 'auto' : 'smooth'});
+  el.focus({preventScroll: true});
+}
+
+/** The line of the open neighbourhood at the chosen distance (data/rings/<id>.json, once per neighbourhood). */
+function ensureRing(r) {
+  if (!r || state.distance === 'in' || state.rings.has(r.id) || state.ringsLoading.has(r.id)) return;
+  state.ringsLoading.add(r.id);
+  // the open neighbourhood's line is framed when it arrives, unless the reader moves the map meanwhile (movestart)
+  if (r.id === state.nb) state.frameOnRing = r.id;
+  fetchJSON(`data/rings/${encodeURIComponent(r.id)}.json${V()}`)
+    .then(json => { if (json?.id === r.id && json.rings) state.rings.set(r.id, json.rings); else throw new Error('Invalid ring file'); })
+    .catch(e => { partial('rings'); console.warn('Surroundings line unavailable', r.id, e); state.rings.set(r.id, null); })
+    .finally(() => {
+      state.ringsLoading.delete(r.id);
+      if (state.nb !== r.id) return;
+      if (state.loaded) {
+        updateSpatialLayers();
+        if (state.frameOnRing === r.id) fitNb(r);
+      }
+      if (state.frameOnRing === r.id) state.frameOnRing = '';
+      renderLegend();
+    });
+}
+/** The ring geometry the map draws now (none inside, without a neighbourhood, or before its file arrives). */
+const ringGeometry = () => (state.nb && state.distance !== 'in' ? state.rings.get(state.nb)?.[state.distance] || null : null);
+
 function setLens(id) {
   state.lens = state.model.dsById.has(id) ? id : '';
   // With a neighbourhood open, the set being read is also the set its records show (resolveChosen; the bar follows).
@@ -321,6 +379,8 @@ function onPanelAction(event) {
   else if (action === 'crumb-country' || action === 'leave-province') leaveProvince();
   else if (action === 'crumb-zone') { if (state.nb) fitMap(); }
   else if (action === 'set-lens') { setLens(state.lens === value && el.closest('.share-list') ? '' : value); }
+  else if (action === 'set-around') setDistance(value);
+  else if (action === 'around-jump') jumpToAround(value);
   else if (action === 'clear-lens') setLens('');
   else if (action === 'clear-search') { state.search = ''; update({fit: true}); }
   else if (action === 'clear-kind') { state.kind = ''; update({fit: true}); }
@@ -356,6 +416,16 @@ function renderLegend() {
     : L('สีและรูปทรง = หมวดของจุดเด่นแรกของย่าน (Land · Location · Living)', 'Colour and shape = pillar of the neighbourhood’s first highlight (Land · Location · Living)');
   const poiItem = $('legend-poi');
   if (poiItem) poiItem.hidden = !state.nb;
+  // (0.4.0) the line of «รอบย่านนี้», named by its distance, drawn in the key as on the map
+  const aroundItem = $('legend-around');
+  if (aroundItem) {
+    const on = Boolean(ringGeometry());
+    aroundItem.hidden = !on;
+    if (on) {
+      $('legend-around-label').textContent = L(`แนวรอบย่าน ${num(+state.distance)} ม.`, `${num(+state.distance)} m around the outline`);
+      aroundItem.title = L(`เส้นตรงจากขอบย่าน ${num(+state.distance)} ม. · ตัวเลขรอบย่านอยู่ในตาราง «รอบย่านนี้» ของแผงข้อมูล`, `Straight line ${num(+state.distance)} m from the outline's edge · the figures around are in the panel's table “Around this neighbourhood”`);
+    }
+  }
   const railItem = $('legend-rail'), rail = state.railData?.meta;
   if (railItem) {
     railItem.hidden = !rail;
@@ -514,9 +584,14 @@ function fitRows(rows, {maxZoom = 13.5, instant = false} = {}) {
 const FIT_FILL = 0.94;
 function fitNb(r, {instant = false} = {}) {
   if (!r || !state.map) return;
+  // (0.4.0) a distance chosen and its line not here yet: frame once, when the line arrives (ensureRing), never the
+  // outline first and the line after — opening a neighbourhood, the switch and back/forward all come this way
+  if (r.id === state.nb && state.distance !== 'in' && !state.rings.has(r.id)) { state.frameOnRing = r.id; ensureRing(r); return; }
   const [w, s, e, n] = r.bbox;
-  const geometry = state.outlineById?.get(r.id)?.geometry || {type: 'Polygon', coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]]};
-  const points = framePoints(geometry);
+  // (0.4.0) with a distance of «รอบย่านนี้» chosen, the line at that distance is framed whole (NL-05)
+  const ring = r.id === state.nb ? ringGeometry() : null;
+  const geometry = ring || state.outlineById?.get(r.id)?.geometry || {type: 'Polygon', coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]]};
+  const points = framePoints(geometry, ring ? {margin: 0.04} : {});
   if (!points.length) return;
   const map = state.map, pad = cameraPadding(), c = map.getContainer();
   const side = mobilePortrait() ? 12 : null;
@@ -635,7 +710,8 @@ function updateSpatialLayers() {
   L_.setCompare(state.compare);
   L_.setProvince(state.province);
   const r = openRow();
-  if (r) ensureRecords(r);
+  if (r) { ensureRecords(r); ensureRing(r); }
+  L_.setAround(ringGeometry());
   if (state.poiCard && state.poiCard.row?.id !== state.nb) closePoiCard();
   const recs = r ? state.records.get(r.id) : null, chosen = chosenSet();
   state.spots = recs ? spotsOf(recs) : [];
@@ -1018,6 +1094,8 @@ function initMap() {
     state.map.on('click', onMapClick);
     state.map.on('mousemove', onMapMove);
     state.map.on('pitchstart', e => { if (e.originalEvent) state.readerPitch = true; });
+    // (0.4.0) a reader who moves the map while a line around loads keeps the view: no framing when it arrives
+    state.map.on('movestart', e => { if (e.originalEvent) state.frameOnRing = ''; });
     for (const type of ['wheel', 'touchend', 'pointerup', 'dblclick']) state.map.getCanvasContainer().addEventListener(type, () => { state.readerMovedAt = Date.now(); }, {passive: true});
     state.map.on('error', e => { watchBasemap.error(e); console.warn('Map resource', e.error?.message || e); });
     state.map.on('sourcedata', watchBasemap.data);
@@ -1219,6 +1297,7 @@ function restoreFromURL() {
   const show = p.get('show') || '';
   state.focus = show === CONDO || show === ALL || state.model.dsById.has(show) ? show : '';
   state.lens = state.model.dsById.has(p.get('metric')) ? p.get('metric') : '';
+  state.distance = state.nb && state.around ? aroundDistance(p.get('around')) : 'in';
   state.compare = (p.get('compare') || '').split(',').map(id => state.model.canonicalId(id)).filter(id => rowById(id)).slice(0, COMPARE_MAX);
   state.view3d = p.get('view3d') !== '0';
   const r = openRow();
@@ -1252,8 +1331,11 @@ function wireEvents() {
   $('mobile-panel').onclick = () => { $('panel').classList.contains('is-open') ? closeMobilePanel() : openMobilePanel(); };
   $('close-mobile-panel').onclick = closeMobilePanel;
   $('sheet-back').onclick = goBack;
+  $('panel-back').onclick = goBack;
   installSheetSwipe();
-  document.querySelector('.skip').onclick = () => { openMobilePanel(); $('dataset-title').focus(); };
+  // the skip link lands on the view's own heading: the neighbourhood's name when one is open (the dataset heading is
+  // kept for screen readers only in that view, 0.4.0 D-5)
+  document.querySelector('.skip').onclick = e => { e.preventDefault(); openMobilePanel(); (state.nb && document.querySelector('#panel-view .nb-title') || $('dataset-title')).focus(); };
   $('toggle-insights').onclick = () => openInsights($('insight-content').hidden);
   $('compare-clear').onclick = () => compareSet([], {open: false});
   if (typeof ResizeObserver === 'function') new ResizeObserver(syncBottomPanel).observe($('insights')); else window.addEventListener('resize', syncBottomPanel);
@@ -1277,6 +1359,8 @@ const PARTIAL = {
   'units': ['รูปอาคารของ CityMETER', 'อาคารบางจังหวัดแสดงจากแผนที่ฐานแทนชุดอาคารของ CityMETER', 'CityMETER building shapes', 'Buildings in some provinces come from the basemap instead of the CityMETER set'],
   'basemap': ['แผนที่ฐาน', 'ถนน แหล่งน้ำ และอาคารพื้นหลังอาจไม่แสดง ข้อมูลในแผงและตารางยังใช้ได้', 'Basemap', 'Roads, water and background buildings may be missing; the panel and the table still work'],
   'rail': ['ระบบราง', 'แผนที่ไม่แสดงแนวรถไฟฟ้าและสถานี ตัวเลขในแผงยังครบ', 'Rail', 'The map shows no rail lines or stations; the panel figures are complete'],
+  'around': ['ตัวเลขรอบย่าน', 'แผงแสดงเฉพาะตัวเลขในย่าน ยังไม่มีตัวเลขรอบย่านและระดับเทียบ', 'Figures around the neighbourhood', 'The panel shows the figures inside only, without those around or the levels'],
+  'rings': ['แนวรอบย่าน', 'แผนที่ไม่แสดงเส้นรอบย่าน ตัวเลขในแผงยังครบ', 'The line around the neighbourhood', 'The map does not draw the line around; the panel figures are complete'],
 };
 function partial(key) {
   const words = PARTIAL[key];
@@ -1287,15 +1371,20 @@ function partial(key) {
 async function init() {
   try {
     const v = RELEASE ? `?v=${RELEASE}` : '';
-    const [dataJSON, provincesJSON, outlinesJSON] = await Promise.all([
+    const [dataJSON, provincesJSON, outlinesJSON, aroundJSON] = await Promise.all([
       fetchJSON(`data/neighborhoods.json${v}`, {timeout: 30000}),
       fetchJSON(`data/provinces.geojson${v}`, {timeout: 30000}).catch(e => { partial('data/provinces.geojson'); console.warn('Province frames unavailable', e); return null; }),
       fetchJSON(`data/boundaries.geojson${v}`, {timeout: 30000}).catch(e => { partial('data/boundaries.geojson'); console.warn('Outlines unavailable', e); return null; }),
+      // (0.4.0) «รอบย่านนี้»: without it the panel keeps the figures inside and says the rest did not load
+      fetchJSON(`data/around.json${v}`, {timeout: 30000}).catch(e => { partial('around'); console.warn('Surroundings unavailable', e); return null; }),
     ]);
+    try { state.around = aroundJSON ? decodeAround(aroundJSON) : null; } catch (e) { partial('around'); console.warn('Surroundings invalid', e); state.around = null; }
     state.provincesGeo = validFeatureCollection(provincesJSON) ? provincesJSON : {type: 'FeatureCollection', features: []};
     setProvinces(state.provincesGeo);
     state.locate = state.provincesGeo.features.length ? provinceLocator(state.provincesGeo) : null;
     state.model = decodeData(dataJSON);
+    // the surroundings of another data release would put figures on the wrong neighbourhoods: drop them, say so
+    if (state.around && !aroundMatches(state.around, state.model)) { partial('around'); console.warn('Surroundings belong to another data release'); state.around = null; }
     state.outlines = validFeatureCollection(outlinesJSON) ? outlinesJSON : {type: 'FeatureCollection', features: []};
     state.outlineById = new Map(state.outlines.features.map(f => [String(f.properties.id), f]));
     state.condoDs = condoDataset(state.model.meta.condo);
@@ -1324,6 +1413,6 @@ async function init() {
 }
 
 // Developer hook for live tuning in a browser console (not an API; may change without notice).
-window.__citymeter = {state, get map() { return state.map; }, update, fitMap, updateSpatialLayers, selectNb, selectProvince, setLens, compareSet, applyPreset: (name, opts) => state.map && applyPreset(state.map, name, opts), fitPitched: (b, opts) => state.map && fitPitched(state.map, b, opts), cameraPadding};
+window.__citymeter = {state, get map() { return state.map; }, update, fitMap, updateSpatialLayers, selectNb, selectProvince, setLens, setDistance, compareSet, applyPreset: (name, opts) => state.map && applyPreset(state.map, name, opts), fitPitched: (b, opts) => state.map && fitPitched(state.map, b, opts), cameraPadding};
 
 init();

@@ -1,0 +1,233 @@
+{
+ "schema": "citymeter-commercialdistrict-around-contracts/1",
+ "plan": {
+  "file": "handoff/around/plan.json",
+  "sha256": "d5d37c7c3cbea3ddefb72f14e27cd989fe758f7a2e83ac2fa33de62a51f54f94"
+ },
+ "decisions": "handoff/around/decisions.json",
+ "boundary": {
+  "inside": "รายการที่จุดอยู่ในขอบย่านของรุ่นข้อมูลนั้น (ขอบร่างของทะเบียนย่านกลาง หรือขอบที่เจ้าของให้ปรับ)",
+  "around": "รายการที่อยู่นอกขอบของย่านนั้น และห่างจากเส้นขอบไม่เกินระยะที่เลือก วัดเส้นตรง · ค่า 800 ม. รวมค่า 400 ม. · รวมรายการที่อยู่ในย่านข้างเคียง",
+  "ringsM": [
+   400,
+   800
+  ],
+  "neverSum": "ค่ารอบย่านของสองย่านนับรายการเดียวกันได้ จึงห้ามบวกข้ามย่าน และห้ามบวกจำนวนของสองชุดข้อมูล",
+  "notTheSameAs": [
+   "ผลคัดย่านที่พักของทะเบียน: ระยะเดินตามข่ายทางเดินจากจุดเริ่มประเมินของทะเบียน นับเมื่อระยะเดินบวกเผื่อ 50 ม. ยังไม่เกิน 400 หรือ 800 ม.",
+   "Yolk: รัศมีเส้นตรงจากจุดอ้างอิงของย่าน"
+  ]
+ },
+ "valueStates": [
+  {
+   "state": "measured",
+   "th": "ค่าที่วัดได้",
+   "screen": "ตัวเลขกับหน่วย เช่น 7 แห่ง",
+   "use": "จำนวนมากกว่า 0 พร้อมหน่วย"
+  },
+  {
+   "state": "measured_zero",
+   "th": "ศูนย์ (สำรวจแล้ว)",
+   "screen": "0 กับหน่วย · ในประโยคและในช่องเขียนว่า ไม่พบ… (0 แห่ง)",
+   "use": "ชุดข้อมูลมีรายการในจังหวัด แต่ไม่มีในขอบหรือในแนวรอบ: 0 พร้อมหน่วย"
+  },
+  {
+   "state": "out_of_scope",
+   "th": "นอกขอบเขตข้อมูล",
+   "screen": "— นอกขอบเขตข้อมูล (คงขีดตาม INV-02 และเพิ่มคำบอกขอบเขต)",
+   "use": "ชุดข้อมูลไม่มีรายการที่มีพิกัดในจังหวัดของย่าน: ไม่มีคีย์ในไฟล์ ไม่แสดง 0"
+  },
+  {
+   "state": "no_data",
+   "th": "ไม่มีข้อมูล",
+   "screen": "— ไม่มีข้อมูล พร้อมเหตุผลสั้น",
+   "use": "รายการอยู่ในขอบแต่แหล่งไม่ให้ตัวเลข เช่น ที่พักที่ไม่มีจำนวนห้อง: บอกจำนวนรายการที่มีตัวเลข"
+  },
+  {
+   "state": "suppressed",
+   "th": "ปิดค่า",
+   "screen": "‹ เกณฑ์ · ปิดค่า",
+   "use": "ชั้นแบบจำลองที่ฐานในขอบเล็กกว่าเกณฑ์: ไม่แสดงตัวเลข บอกเกณฑ์"
+  },
+  {
+   "state": "not_yet",
+   "th": "ยังไม่ถึงรอบข้อมูล",
+   "screen": "ยังไม่ถึงรอบข้อมูล · บอกวันที่คาดหรือรุ่นที่รอ (EVID-05)",
+   "use": "ชั้นที่ยังไม่มีรุ่นสำหรับย่านหรือจังหวัดนั้น และรหัสที่ยังไม่มีขอบ: ไม่แสดงตัวเลข บอกว่ารออะไร"
+  }
+ ],
+ "evidenceClasses": [
+  {
+   "id": "derived_count",
+   "th": "นับ",
+   "label": "Observed fact",
+   "example": "จำนวนรายการในขอบและรอบย่าน"
+  },
+  {
+   "id": "publisher_listed",
+   "th": "แหล่งรายงาน",
+   "label": "Observed fact ในขอบเขตของแหล่ง",
+   "example": "ห้องที่แหล่งบันทึก นักเรียนที่บันทึก"
+  },
+  {
+   "id": "modelled_estimate",
+   "th": "แบบจำลอง",
+   "label": "แบบจำลอง ไม่ใช่ค่าที่สังเกต",
+   "example": "ผู้อยู่อาศัยตามทะเบียนที่แบ่งลงอาคาร คนทำงานในอาคารสำนักงาน"
+  },
+  {
+   "id": "benchmark",
+   "th": "อันดับ",
+   "label": "Benchmark interpretation",
+   "example": "อันดับในชุดอ้างอิงที่ตรึง พร้อมจำนวนของกลุ่มและจำนวนที่ได้อันดับร่วม"
+  },
+  {
+   "id": "generated_prior",
+   "th": "สมมติฐาน",
+   "label": "Hypothesis",
+   "example": "บทบาทที่หลักฐานชี้ และสิ่งที่ควรไปดู"
+  }
+ ],
+ "referenceSet": {
+  "rule": "อันดับเทียบกับชุดย่านที่ตรึงตามรุ่น: รายการรหัสของย่านที่มีขอบในรุ่นนั้น ระบุ id จำนวน และ SHA-256 ของรายการรหัส",
+  "release": {
+   "id": "commercialdistrict-0.4.0-outlined",
+   "n": 395,
+   "codesSha256": "d9ae2a5b33ebfdddb4b384014894d9ae57896675b4e6e37d6ca473f6a32d4f6f",
+   "rule": "the neighbourhoods with an outline in this release, in the order of data/neighborhoods.json, codes joined by a line feed; frozen with the release (D-8)"
+  }
+ },
+ "lowLocatedRule": {
+  "thresholdPct": 90,
+  "datasetsToday": [
+   "factory",
+   "fitness",
+   "hospital",
+   "industrialestate",
+   "office",
+   "pharmacy",
+   "school"
+  ],
+  "rule": "ชุดที่มีพิกัดไม่ถึงเกณฑ์: ในส่วนใหม่แสดงจำนวนพร้อมเครื่องหมาย ไม่จัดอันดับ (ตามคำตัดสิน D-4)",
+  "datasetsThisRelease": [
+   "factory",
+   "fitness",
+   "hospital",
+   "industrialestate",
+   "office",
+   "pharmacy",
+   "school"
+  ]
+ },
+ "provenanceLine": "ทุกมุมมองและทุกส่วนที่แหล่งต่างจากมุมมองหลัก จบด้วยบรรทัดเดียว: ชุดข้อมูล · แหล่ง · วันที่ · ขอบเขต · วิธีนับ และแถว 4 ช่องมีบรรทัดที่มาสั้นใต้แถว (ชุดข้อมูล · แหล่ง · วันที่ · ขอบเขต)",
+ "glance": {
+  "tiles": [
+   {
+    "id": "residents",
+    "th": "คนอยู่",
+    "en": "Living here",
+    "measure": "ผู้อยู่อาศัยตามทะเบียนในย่าน (คน)",
+    "evidence": "modelled_estimate",
+    "round": 2
+   },
+   {
+    "id": "students",
+    "th": "นักเรียน",
+    "en": "Students",
+    "measure": "นักเรียนที่บันทึกของชุดสถานศึกษาในย่าน (คน)",
+    "evidence": "publisher_listed",
+    "round": 1
+   },
+   {
+    "id": "rooms",
+    "th": "ห้องพัก",
+    "en": "Rooms",
+    "measure": "ห้องที่แหล่งบันทึกของชุดที่พักในย่าน (ห้อง)",
+    "evidence": "publisher_listed",
+    "round": 1
+   },
+   {
+    "id": "centers",
+    "th": "ศูนย์และตลาด",
+    "en": "Centers and markets",
+    "measure": "ศูนย์การค้าและตลาดในย่าน (แห่ง)",
+    "evidence": "derived_count",
+    "round": 1
+   }
+  ],
+  "levelRule": {
+   "source": "montri-th/shoppingcenter js/venue-locale.js",
+   "commit": "dfcc6cda00bfbc9dd9b0e65c442319ff060d4dff",
+   "sha256": "27f3e8585eead076d493df1a210abf21a1c65eae06cfa1b63a5388e3cb90adff",
+   "levelOf": "export const levelOf = (p, count = 1) => (count > 0 && p != null ? Math.min(5, Math.floor(p / 20) + 1) : 0);",
+   "levelWords": "export const LEVEL_WORDS = Object.freeze([['ไม่พบ', 'none found'], ['น้อยมาก', 'very low'], ['น้อย', 'low'], ['ปานกลาง', 'middle'], ['มาก', 'high'], ['มากที่สุด', 'very high']]);",
+   "midRank": "100 × (below + ½ equal) / n (montri-th/shoppingcenter scripts/build-residents.py#mid_pct)"
+  }
+ },
+ "layers": [
+  "inside_counts",
+  "around_counts",
+  "venue_links",
+  "registered_residents",
+  "office_workers",
+  "admin_areas",
+  "role_evidence"
+ ],
+ "invariants": {
+  "source": "handoff/product-brief.json invariants (unchanged in 0.4.0; tests/around.test.js holds them equal)",
+  "items": [
+   {
+    "id": "INV-01",
+    "rule": "Counts of two datasets are never added; no total of POIs is shown."
+   },
+   {
+    "id": "INV-02",
+    "rule": "A dataset with no located record in the neighbourhood's province is out of scope there: “—”, never 0."
+   },
+   {
+    "id": "INV-03",
+    "rule": "Every share shows its numerator and denominator (visible or in its title and accessible name)."
+   },
+   {
+    "id": "INV-04",
+    "rule": "Every rank names its peers with their number (“จาก N ย่าน …”)."
+   },
+   {
+    "id": "INV-05",
+    "rule": "Density uses the registry's area_m2, never a recomputed area."
+   },
+   {
+    "id": "INV-06",
+    "rule": "Pairs and similar mixes are correlations, never stated as causes or performance."
+   },
+   {
+    "id": "INV-07",
+    "rule": "Colour scales use all 41 LDS samples; the same HEX on light and dark; no opacity on a data colour."
+   },
+   {
+    "id": "INV-08",
+    "rule": "Outlines are drawn as the registry delivers them (display simplification only) and called drafts."
+   },
+   {
+    "id": "INV-09",
+    "rule": "Every panel view ends with one provenance line: dataset · source · date · boundary · วิธีนับ."
+   },
+   {
+    "id": "INV-10",
+    "rule": "No caveat line on screen; method and limits live in DATA_METHOD.md."
+   },
+   {
+    "id": "INV-11",
+    "rule": "The registry's address, export and cells never enter the repository."
+   },
+   {
+    "id": "INV-12",
+    "rule": "Neighbourhood names stay Thai in English; no view is left untranslated otherwise."
+   },
+   {
+    "id": "INV-13",
+    "rule": "An outline redrawn by the owner's rule (0.3.0) replaces the registry outline as an owner amendment: it only adds area, overlaps no other outline, keeps the registry's name, and is described as extended by the rule and awaiting the registry; never called the registry's outline or an administrative boundary"
+   }
+  ]
+ }
+}

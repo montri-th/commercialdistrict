@@ -1173,3 +1173,93 @@ td.num, th.num { text-align: right; }
 @media (max-width: 720px) {
   .lodging-figures { grid-template-columns: 1fr; }
 }
+
+/* 15. «ในย่านนี้» and «รอบย่านนี้» (0.4.0; owner 2026-11-25 08:15 “พี่ช่วยปรับ web demo ตามที่แนะนำเลยครับ”,
+   proposal D-1 … D-9, handoff/around/) ------------------------------------------------------------------------------
+   D-5: with a neighbourhood open, the dataset heading (kept for screen readers), the search and the filters step aside
+   and the back button shares the breadcrumb's row, as Shopping Center's venue panel; the glance then sits in the first
+   screen. The phone sheet keeps its own bar (sheet-back), so the panel's back button is for wider screens. */
+.panel-back[hidden] { display: none; }
+.panel-back { padding: 6px 14px 6px 10px; font-size: 12px; }
+@media (min-width: 761px), (orientation: landscape) {
+  .panel[data-mode="neighborhood"] .panel-top { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding-top: 8px; padding-bottom: 8px; }
+  .panel[data-mode="neighborhood"] .panel-top > .crumbs-nav { flex: 1 1 160px; min-width: 0; margin: 0; }
+  .panel[data-mode="neighborhood"] .panel-top > .sheet-links { margin: 0; }
+  .panel[data-mode="neighborhood"] .dataset-heading { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .panel[data-mode="neighborhood"] .filters, .panel[data-mode="neighborhood"] #filter-chips { display: none; }
+}
+/* the phone sheet has its own back button in its bar (and its own rules for the head, §7) */
+@media (max-width: 760px) and (orientation: portrait) {
+  .panel-back:not([hidden]) { display: none; }
+}
+
+/* The glance: four readings of one dataset each as tiles (pictogram, figure, five-step level), the family's pattern of
+   «รอบศูนย์นี้» (montri-th/shoppingcenter). Data colours come from the LDS count LUT through the inline style of a filled
+   bar and are the same on both themes; every bar has an outline, so the level reads without the colour. */
+.nb-glance { gap: 8px; }
+.glance-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.glance-tile { box-sizing: border-box; width: 100%; height: 100%; min-height: 44px; display: grid; grid-template-columns: 24px minmax(0, 1fr); column-gap: 8px; row-gap: 2px; align-content: start; text-align: left; padding: 8px 10px; border: 0; border-radius: var(--radius-sm); background: var(--surface-alt); color: var(--text-primary); font: inherit; white-space: normal; overflow-wrap: break-word; }
+button.glance-tile:hover { background: var(--surface-alt); box-shadow: inset 0 0 0 1px var(--border-default); }
+.glance-tile:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; }
+.glance-tile > .pictogram { grid-row: 1 / span 4; width: 24px; height: 24px; font-size: 24px; color: var(--text-primary); }
+.glance-tile > :not(.pictogram) { grid-column: 2; }
+.glance-tile .data-number, .glance-tile .glance-tag { white-space: nowrap; }
+.glance-label { font-size: 12px; line-height: 1.4; color: var(--text-secondary); }
+.glance-tag { display: inline-block; padding: 0 6px; border: 1px dashed var(--border-default); border-radius: 999px; font-size: 12px; line-height: 1.45; white-space: nowrap; }
+.glance-fig { font-size: 12px; line-height: 1.25; color: var(--text-secondary); }
+.glance-fig b { font-size: 20px; font-weight: 600; color: var(--text-primary); }
+.glance-fig.is-state, .glance-wait { font-size: 13px; font-weight: 600; line-height: 1.35; color: var(--text-secondary); }
+.glance-sub { font-size: 12px; line-height: 1.35; color: var(--text-metadata); }
+.glance-key { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 0; }
+.glance-source { margin: 0; font-size: 12px; line-height: 1.4; }
+.level-meter { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; }
+.level-meter i { box-sizing: border-box; width: 7px; border: 1px solid var(--text-secondary); border-radius: 1px; }
+.level-meter i:nth-child(1) { height: 5px; }
+.level-meter i:nth-child(2) { height: 7px; }
+.level-meter i:nth-child(3) { height: 9px; }
+.level-meter i:nth-child(4) { height: 11px; }
+.level-meter i:nth-child(5) { height: 14px; }
+.level-meter i.on { border-color: var(--text-primary); background: var(--text-primary); }
+/* an empty step is a low stub, so the level reads by shape whatever the data colour is on the theme (DATAVIZ-03) */
+.level-meter i:not(.on) { height: 3px; border-color: var(--text-metadata); }
+.glance-tile .level-meter { margin-top: 3px; }
+/* the star that marks a count from a dataset with points for under 90 % of its records: 12 px, never smaller */
+.nb-glance sup, .around-section sup { font-size: 12px; line-height: 0; }
+
+/* «รอบย่านนี้»: one table, a column per reading, the chosen one stressed; never a total row or column. */
+.around-section { gap: 8px; }
+.around-switch { display: flex; flex-wrap: wrap; gap: 6px; }
+.around-switch .seg { padding: 6px 14px; font-size: 12px; font-weight: 600; color: var(--text-secondary); background: transparent; }
+.around-switch .seg[aria-pressed="true"] { background: var(--surface-alt); border-color: var(--border-emphasis); color: var(--text-primary); }
+.around-switch .seg:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; }
+/* room for the row buttons' focus ring inside the scrolling box (3 px ring, 1 px offset) */
+.around-scroll { margin-top: 0; padding: 4px; overflow-x: auto; }
+.around-table { width: 100%; min-width: 0; border-collapse: collapse; font-size: 13px; }
+.around-table th, .around-table td { padding: 2px 6px; border-bottom: 1px solid var(--border-hairline); vertical-align: middle; }
+.around-table thead th { position: static; background: transparent; font-size: 12px; font-weight: 600; color: var(--text-metadata); padding: 4px 6px; white-space: nowrap; }
+.around-table thead th.is-chosen { color: var(--text-primary); box-shadow: inset 0 -2px 0 var(--text-primary); }
+.around-table th[scope="row"] { position: static; background: transparent; padding: 0; text-align: left; font-weight: 400; color: var(--text-primary); white-space: normal; }
+.around-table .pillar-row th { position: static; background: transparent; padding: 10px 6px 2px; border-bottom: 0; }
+.around-table td.num { text-align: right; font-size: 14px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.around-table td.is-zero { color: var(--text-secondary); }
+.around-table td.is-out { text-align: left; font-size: 12px; color: var(--text-metadata); white-space: normal; }
+.around-table td.is-none { color: var(--text-metadata); }
+.around-table[data-around="in"] td.col-in, .around-table[data-around="400"] td.col-400, .around-table[data-around="800"] td.col-800 { font-weight: 600; }
+.around-ds { display: grid; gap: 1px; width: 100%; min-height: 44px; padding: 4px 6px; border: 0; border-radius: var(--radius-sm); background: transparent; color: inherit; text-align: left; white-space: normal; font-size: 13px; }
+.around-ds:hover { background: var(--surface-alt); }
+.around-ds:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 1px; }
+.around-name { display: flex; align-items: center; gap: 6px; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.around-sub { display: flex; align-items: center; gap: 4px; font-size: 12px; line-height: 1.35; color: var(--text-metadata); }
+.around-sub .ds-swatch { margin-bottom: 0; }
+.around-venues { display: grid; gap: 4px; }
+.venue-links li { font-size: 13px; line-height: 1.7; }
+.venue-links .hint { margin-right: 4px; }
+/* the line of «รอบย่านนี้» in the key, drawn as on the map: one neutral ink in long dashes */
+/* the long dashes of the map's line ([6, 3] line widths): drawn, not a border style, so the key matches the map */
+.legend-around { width: 18px; height: 2px; background: repeating-linear-gradient(90deg, var(--text-secondary) 0 7px, transparent 7px 10px); }
+.legend-around-item[hidden] { display: none !important; }
+/* A narrow panel reads one distance at a time: the inside column beside the chosen one (NL-04). */
+@media (max-width: 760px) {
+  .around-table[data-around="in"] .col-400, .around-table[data-around="in"] .col-800,
+  .around-table[data-around="400"] .col-800, .around-table[data-around="800"] .col-400 { display: none; }
+}

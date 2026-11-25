@@ -1,0 +1,1770 @@
+{
+ "document": {
+  "id": "02-CityMETER__commercialdistrict-neighbourhood-locale-insight-proposal__v1__2026-11-25",
+  "supersedes": null,
+  "status": "proposal_for_owner_decision",
+  "changeLog": [
+   {
+    "version": "v1",
+    "date": "2026-11-25",
+    "note": "ฉบับแรก: ข้อเสนอและแผน ยังไม่มีคำตัดสินของเจ้าของ ยังไม่มีการแก้โค้ด ข้อมูล ชีต หรือเว็บ"
+   }
+  ],
+  "sources": [
+   {
+    "ref": "montri-th/commercialdistrict",
+    "commit": "24a30172c82cbc52828a15d76a5dfb599c5206e5",
+    "observedAt": "2026-11-25"
+   },
+   {
+    "ref": "montri-th/shoppingcenter",
+    "commit": "dfcc6cda00bfbc9dd9b0e65c442319ff060d4dff",
+    "observedAt": "2026-11-25"
+   },
+   {
+    "ref": "https://citymeter.pages.dev/release.json",
+    "commit": "24a30172c82cbc52828a15d76a5dfb599c5206e5",
+    "observedAt": "2026-11-25T07:04:00+07:00",
+    "assembledAt": "2026-11-24T19:39:09Z"
+   },
+   {
+    "ref": "Landometer-Design-System-v0.9.7.md",
+    "commit": "sha256:d3085cbc0a50195f1cbf0c77b1d77c0d19b84364daf2948eb367348d65432d96",
+    "observedAt": "2026-11-25"
+   },
+   {
+    "ref": "Landometer_Master_Brand_Brief_v0_5_3_ecosystem_alignment_evidence_standard.md",
+    "commit": null,
+    "observedAt": "2026-11-25"
+   }
+  ]
+ },
+ "decision": {
+  "ownerDecisions": [
+   {
+    "id": "D-1",
+    "question": "«รอบย่าน» วัดไกลแค่ไหน และวัดจากอะไร",
+    "options": [
+     "ก) 400 และ 800 ม. เส้นตรงจากขอบย่าน",
+     "ข) 500 ม. และ 1 กม. เส้นตรงจากขอบย่าน",
+     "ค) 1 · 3 · 5 กม. แบบเดียวกับศูนย์การค้า"
+    ],
+    "recommendation": "ก",
+    "blocks": [
+     "NL-00",
+     "NL-01",
+     "NL-02",
+     "NL-04",
+     "NL-05"
+    ],
+    "status": "open",
+    "meaning": "ระยะเดียวกับที่ผลคัดย่านที่พักของทะเบียนใช้ และทับกันระหว่างย่านน้อยที่สุดในสามทาง",
+    "openRisk": "ผู้อ่านอาจสับสนกับ «ที่พักที่เดินถึงใน 400 ม.» ของผลคัดย่านที่พัก ซึ่งวัดตามทางเดินจากจุดเริ่ม ไม่ใช่เส้นตรงจากขอบ",
+    "decision": null,
+    "ownerWords": null,
+    "decidedBy": null,
+    "decidedAt": null,
+    "delegatedToAuthor": false,
+    "rejectedAlternatives": []
+   },
+   {
+    "id": "D-2",
+    "question": "ชื่อส่วนบนหน้าเว็บ และจะนับเป็น Locale Insight ชนิดใหม่หรือไม่",
+    "options": [
+     "ก) ชื่อ «รอบย่านนี้» เป็นส่วนหนึ่งของชุดข้อมูลย่านการค้า ยังไม่ตั้งเป็น Locale ชนิดที่สี่",
+     "ข) ชื่อ «คนในและรอบย่าน»",
+     "ค) ตั้งเป็น Locale ชนิดใหม่ในสเปก Locale Insight"
+    ],
+    "recommendation": "ก",
+    "blocks": [
+     "NL-04",
+     "NL-S1"
+    ],
+    "status": "open",
+    "meaning": "ครอบครัวเดโมอ่านเหมือนกัน («รอบศูนย์นี้» · «รอบย่านนี้») และไม่ปนค่าเทียบของ Master Locale",
+    "openRisk": "ถ้าภายหลังสเปก Locale Insight เพิ่มชนิดย่าน ต้องย้ายรหัสชั้นข้อมูลตามสเปกนั้น",
+    "decision": null,
+    "ownerWords": null,
+    "decidedBy": null,
+    "decidedAt": null,
+    "delegatedToAuthor": false,
+    "rejectedAlternatives": []
+   },
+   {
+    "id": "D-3",
+    "question": "คงกติกา «ไม่บวกจำนวนข้ามชุดข้อมูล» (INV-01) ในส่วนใหม่หรือยกเว้นแบบศูนย์การค้า",
+    "options": [
+     "ก) คงกติกา: หนึ่งช่องหนึ่งตัววัดของชุดเดียว",
+     "ข) ยกเว้นเฉพาะส่วนใหม่ ให้รวมเป็น «แห่ง» ได้แบบ «รอบศูนย์นี้»"
+    ],
+    "recommendation": "ก",
+    "blocks": [
+     "NL-00",
+     "NL-04"
+    ],
+    "status": "open",
+    "meaning": "ตัวเลขทุกตัวมีหน่วยเดียวและตรวจย้อนถึงชุดเดียวได้",
+    "openRisk": "หน้าย่านกับหน้าศูนย์การค้าจะสรุปคนละแบบ จนกว่าศูนย์การค้าจะปรับ",
+    "decision": null,
+    "ownerWords": null,
+    "decidedBy": null,
+    "decidedAt": null,
+    "delegatedToAuthor": false,
+    "rejectedAlternatives": []
+   },
+   {
+    "id": "D-4",
+    "question": "ชุดข้อมูลที่มีพิกัดไม่ถึง 90% ของรายการ (7 จาก 16 ชุด) จะจัดอันดับในส่วนใหม่หรือไม่",
+    "options": [
+     "ก) ส่วนใหม่แสดงจำนวนพร้อมเครื่องหมาย ไม่จัดอันดับ และเสนอทบทวนจุดเด่นเดิมเป็นงานแยก",
+     "ข) จัดอันดับทุกชุดเหมือนหน้าเดิม",
+     "ค) เอา 7 ชุดออกจากการจัดอันดับทั้งหน้าในรอบนี้"
+    ],
+    "recommendation": "ก",
+    "blocks": [
+     "NL-00",
+     "NL-06"
+    ],
+    "status": "open",
+    "meaning": "เข้มกว่า «รอบศูนย์นี้» ซึ่งไม่ให้ชุดกลุ่มนี้ขึ้นเป็นจุดเด่นและงดระดับเฉพาะช่องที่ตัวเลขมาจากชุดกลุ่มนี้ตั้งแต่ครึ่งหนึ่ง โดยไม่เปลี่ยนจุดเด่นที่เผยแพร่แล้วในรอบเดียวกัน",
+    "openRisk": "จุดเด่นเดิม 136 ข้อยังมาจากชุดกลุ่มนี้จนกว่าจะทบทวน",
+    "decision": null,
+    "ownerWords": null,
+    "decidedBy": null,
+    "decidedAt": null,
+    "delegatedToAuthor": false,
+    "rejectedAlternatives": []
+   },
+   {
+    "id": "D-5",
+    "question": "แถว 4 ช่อง “ในย่านนี้” ซึ่งยกนักเรียนและห้องพักที่แหล่งรายงานขึ้นจากส่วนที่พับ จะวางตรงไหนของแผงย่าน",
+    "options": [
+     "ก) แบบเดียวกับหน้าศูนย์การค้า: เมื่อเปิดย่าน ซ่อนหัวชุดข้อมูล ช่องค้น และตัวกรอง แล้ววางแถว 4 ช่องต่อจากตัวเลขของย่าน",
+     "ข) ใช้ที่ของแถวตัวเลขของย่าน 4 ช่องเดิม",
+     "ค) เพิ่มเป็นแถวใหม่ต่อจากตัวเลขของย่านโดยไม่ซ่อนอะไร",
+     "ง) คงตัวเลขกลุ่มนี้ไว้ในส่วนที่พับตามสัญญาปัจจุบัน"
+    ],
+    "recommendation": "ก",
+    "blocks": [
+     "NL-00",
+     "NL-04"
+    ],
+    "status": "open",
+    "meaning": "แถว 4 ช่องอยู่ในจอแรกทั้งแถว และหน้าย่านกับหน้าศูนย์การค้าจัดหัวของหน้ารายละเอียดแบบเดียวกัน",
+    "openRisk": "แก้สัญญา countingUnitContract ของเดโม ซึ่งวันนี้ให้ตัวเลขกลุ่มนี้อยู่ในส่วนที่พับเท่านั้น และผู้ใช้ต้องกดกลับก่อนจึงค้นย่านอื่นได้",
+    "decision": null,
+    "ownerWords": null,
+    "decidedBy": null,
+    "decidedAt": null,
+    "delegatedToAuthor": false,
+    "rejectedAlternatives": []
+   },
+   {
+    "id": "D-6",
+    "question": "ชีตทะเบียนย่าน: ใครเขียน เมื่อไร และชื่อแท็บ",
+    "options": [
+     "ก) ChatGPT เขียนตามบรีฟคำต่อคำ หลังเจ้าของยืนยันว่ารอบคัดย่านการค้าจบแล้ว แล้ว Claude อ่านกลับ",
+     "ข) Claude เขียนผ่าน Chrome ของเจ้าของ",
+     "ค) ยังไม่เขียนจนกว่ารอบ 1 ออกรุ่น"
+    ],
+    "recommendation": "ก",
+    "blocks": [
+     "NL-S1"
+    ],
+    "status": "open",
+    "meaning": "มีผู้เขียนชีตทีละคน และใช้วิธีเดียวกับแท็บ 26_VENUE_LOCALE_RELEASES ของชีตศูนย์การค้า",
+    "openRisk": "ถ้าเขียนระหว่างที่อีกฝ่ายยังเขียนอยู่ แถวอาจถูกทับ",
+    "decision": null,
+    "ownerWords": null,
+    "decidedBy": null,
+    "decidedAt": null,
+    "delegatedToAuthor": false,
+    "rejectedAlternatives": []
+   },
+   {
+    "id": "D-7",
+    "question": "ชั้นสมมติฐาน «ใครน่าจะใช้ย่านนี้» ใช้โครงไหน",
+    "options": [
+     "ก) ต่อยอดบทบาทย่าน 8 บทบาทที่หน้าเว็บมีอยู่ ด้วยกติกาที่เปิดให้อ่าน",
+     "ข) นำกลุ่มคน 4 กลุ่มและตัวปรับของศูนย์การค้ามาใช้",
+     "ค) ยังไม่ทำชั้นนี้"
+    ],
+    "recommendation": "ก",
+    "blocks": [
+     "NL-13"
+    ],
+    "status": "open",
+    "meaning": "ไม่มีคำศัพท์สองชุดสำหรับเรื่องเดียวกัน และทุกข้อสรุปชี้กลับไปที่หลักฐานที่นับได้",
+    "openRisk": "รหัสบทบาทของทะเบียนกับของเดโมยังไม่ตรงกัน ต้องตกลงก่อนรอบ 3",
+    "decision": null,
+    "ownerWords": null,
+    "decidedBy": null,
+    "decidedAt": null,
+    "delegatedToAuthor": false,
+    "rejectedAlternatives": []
+   },
+   {
+    "id": "D-8",
+    "question": "ชุดย่านที่ใช้เทียบอันดับ ตรึงตามรุ่น หรือเปลี่ยนตามทะเบียนล่าสุด",
+    "options": [
+     "ก) ตรึงตามรุ่นข้อมูล: 395 ย่านของทะเบียนที่อ่าน 24 พ.ย. 2569 จนกว่าจะออกรุ่นใหม่ที่ระบุรุ่นที่แทน",
+     "ข) ใช้ทะเบียนล่าสุดทุกครั้งที่ build"
+    ],
+    "recommendation": "ก",
+    "blocks": [
+     "NL-00",
+     "NL-01"
+    ],
+    "status": "open",
+    "meaning": "อันดับของย่านเดิมไม่ขยับเองเมื่อทะเบียนเพิ่มรหัส",
+    "openRisk": "ย่านใหม่ต้องรอรุ่นถัดไปจึงจะมีอันดับ",
+    "decision": null,
+    "ownerWords": null,
+    "decidedBy": null,
+    "decidedAt": null,
+    "delegatedToAuthor": false,
+    "rejectedAlternatives": []
+   },
+   {
+    "id": "D-9",
+    "question": "ชั้นแบบจำลองผู้อยู่อาศัย: ใครรันกับฐานอาคารและทะเบียนราษฎร และเผยแพร่ระดับไหน",
+    "options": [
+     "ก) รันด้วยวิธีเดียวกับศูนย์การค้า (variant A) โดยผู้ที่เข้าถึงฐาน production แล้วเผยแพร่ค่าระดับย่านพร้อมป้ายแบบจำลอง",
+     "ข) ทำเฉพาะกรุงเทพมหานครก่อน",
+     "ค) ยังไม่ทำ"
+    ],
+    "recommendation": "ก",
+    "blocks": [
+     "NL-08",
+     "NL-11"
+    ],
+    "status": "open",
+    "meaning": "ได้ตัวเลข «คนอยู่» ที่เทียบกับหน้าศูนย์การค้าได้ เพราะวิธีและเดือนประชากรเดียวกัน",
+    "openRisk": "ชุดที่ศูนย์การค้าใช้ครอบคลุม 54 จังหวัด ส่วนย่านอยู่ใน 77 จังหวัด จึงต้องขยายฐานหรือยอมรับสถานะยังไม่ถึงรอบข้อมูล",
+    "decision": null,
+    "ownerWords": null,
+    "decidedBy": null,
+    "decidedAt": null,
+    "delegatedToAuthor": false,
+    "rejectedAlternatives": []
+   }
+  ]
+ },
+ "repo": {
+  "name": "montri-th/commercialdistrict",
+  "baseCommit": "24a30172c82cbc52828a15d76a5dfb599c5206e5",
+  "baseVersion": "0.3.0",
+  "review": "pull request เข้า main · main ขึ้นเว็บจริงภายในไม่กี่นาทีหลัง merge (เห็นสองครั้งเมื่อ 25 พ.ย. 2569) จึง merge ได้เมื่อเจ้าของสั่งสำหรับชุดการเปลี่ยนนั้นเท่านั้น",
+  "qualityGates": [
+   "npm test",
+   "npm run check:lds -- --lds <ไฟล์ LDS 0.9.7>",
+   "npm run handoff:manifest",
+   "npm run verify:live",
+   "เดินดูไทย/อังกฤษ ที่ desktop และ 393 px"
+  ],
+  "otherRepos": [
+   "montri-th/shoppingcenter",
+   "montri-th/office"
+  ]
+ },
+ "surfaces": [
+  {
+   "id": "S1",
+   "name": "แผงย่าน (โหมด neighborhood)",
+   "rules": "static · ไม่มี login ไม่มีการเขียน · บรรทัดที่มาหนึ่งบรรทัดต่อมุมมองและต่อส่วนที่แหล่งต่างกัน · ไม่มีข้อความเตือนบนจอ · ไทย/อังกฤษ"
+  },
+  {
+   "id": "S2",
+   "name": "แผนที่ MapLibre",
+   "rules": "สีข้อมูลจาก LDS 0.9.7 เท่านั้น 41 ระดับ สีเดียวกันทั้งสองธีม · เส้นรอบย่านใช้สีกลาง · มีทางอ่านแบบไม่ใช่แผนที่"
+  },
+  {
+   "id": "S3",
+   "name": "แถบเปรียบเทียบย่าน",
+   "rules": "เทียบได้ถึง 4 ย่าน · หนึ่งแถวหนึ่งชุดหรือหนึ่งชั้น ไม่มีแถวรวม"
+  },
+  {
+   "id": "S4",
+   "name": "ตารางทุกย่าน",
+   "rules": "ทางอ่านแบบไม่ใช่แผนที่ · หัวคอลัมน์และหน่วยครบ · เรียงสถานะที่ไม่มีค่าไว้ท้าย"
+  },
+  {
+   "id": "S5",
+   "name": "ไฟล์ข้อมูลและ DATA_METHOD.md",
+   "rules": "เผยแพร่เฉพาะ field ตาม DATA_METHOD.md §10 · ทุกไฟล์มีรุ่น วันที่ และแหล่ง · cache tag เดียวต่อ release"
+  },
+  {
+   "id": "S6",
+   "name": "ชีตทะเบียนย่านกลาง CityMETER (Google Sheet ภายใน)",
+   "rules": "เขียนเมื่อเจ้าของสั่งเป็นครั้ง ๆ · เก็บตัวชี้ไปยังรุ่น ไม่เก็บตัวเลขรายย่าน · ที่อยู่และเซลล์ของชีตไม่เข้า repo"
+  },
+  {
+   "id": "S7",
+   "name": "หน้า Shopping Center ส่วน «รอบศูนย์นี้»",
+   "rules": "repo อื่น · ชุดข้อมูล data/locale/ ของรุ่นที่ออกแล้วไม่แก้ทับ"
+  },
+  {
+   "id": "S8",
+   "name": "Yolk MCP",
+   "rules": "ระบบอื่น · เปลี่ยนผ่านคำขอถึงผู้ดูแล · วันนี้ใช้จุดอ้างอิงของย่านเป็นศูนย์กลางรัศมีเส้นตรง"
+  }
+ ],
+ "dataContracts": {
+  "boundary": {
+   "inside": "รายการที่จุดอยู่ในขอบย่านของรุ่นข้อมูลนั้น (ขอบร่างของทะเบียนย่านกลาง หรือขอบที่เจ้าของให้ปรับ)",
+   "around": "รายการที่อยู่นอกขอบของย่านนั้น และห่างจากเส้นขอบไม่เกินระยะที่เลือก วัดเส้นตรง · ค่า 800 ม. รวมค่า 400 ม. · รวมรายการที่อยู่ในย่านข้างเคียง",
+   "ringsM": [
+    400,
+    800
+   ],
+   "neverSum": "ค่ารอบย่านของสองย่านนับรายการเดียวกันได้ จึงห้ามบวกข้ามย่าน และห้ามบวกจำนวนของสองชุดข้อมูล",
+   "notTheSameAs": [
+    "ผลคัดย่านที่พักของทะเบียน: ระยะเดินตามข่ายทางเดินจากจุดเริ่มประเมินของทะเบียน นับเมื่อระยะเดินบวกเผื่อ 50 ม. ยังไม่เกิน 400 หรือ 800 ม.",
+    "Yolk: รัศมีเส้นตรงจากจุดอ้างอิงของย่าน"
+   ]
+  },
+  "valueStates": [
+   {
+    "state": "measured",
+    "th": "ค่าที่วัดได้",
+    "screen": "ตัวเลขกับหน่วย เช่น 7 แห่ง",
+    "use": "จำนวนมากกว่า 0 พร้อมหน่วย"
+   },
+   {
+    "state": "measured_zero",
+    "th": "ศูนย์ (สำรวจแล้ว)",
+    "screen": "0 กับหน่วย · ในประโยคและในช่องเขียนว่า ไม่พบ… (0 แห่ง)",
+    "use": "ชุดข้อมูลมีรายการในจังหวัด แต่ไม่มีในขอบหรือในแนวรอบ: 0 พร้อมหน่วย"
+   },
+   {
+    "state": "out_of_scope",
+    "th": "นอกขอบเขตข้อมูล",
+    "screen": "— นอกขอบเขตข้อมูล (คงขีดตาม INV-02 และเพิ่มคำบอกขอบเขต)",
+    "use": "ชุดข้อมูลไม่มีรายการที่มีพิกัดในจังหวัดของย่าน: ไม่มีคีย์ในไฟล์ ไม่แสดง 0"
+   },
+   {
+    "state": "no_data",
+    "th": "ไม่มีข้อมูล",
+    "screen": "— ไม่มีข้อมูล พร้อมเหตุผลสั้น",
+    "use": "รายการอยู่ในขอบแต่แหล่งไม่ให้ตัวเลข เช่น ที่พักที่ไม่มีจำนวนห้อง: บอกจำนวนรายการที่มีตัวเลข"
+   },
+   {
+    "state": "suppressed",
+    "th": "ปิดค่า",
+    "screen": "‹ เกณฑ์ · ปิดค่า",
+    "use": "ชั้นแบบจำลองที่ฐานในขอบเล็กกว่าเกณฑ์: ไม่แสดงตัวเลข บอกเกณฑ์"
+   },
+   {
+    "state": "not_yet",
+    "th": "ยังไม่ถึงรอบข้อมูล",
+    "screen": "ยังไม่ถึงรอบข้อมูล · บอกวันที่คาดหรือรุ่นที่รอ (EVID-05)",
+    "use": "ชั้นที่ยังไม่มีรุ่นสำหรับย่านหรือจังหวัดนั้น และรหัสที่ยังไม่มีขอบ: ไม่แสดงตัวเลข บอกว่ารออะไร"
+   }
+  ],
+  "evidenceClasses": [
+   {
+    "id": "derived_count",
+    "th": "นับ",
+    "label": "Observed fact",
+    "example": "จำนวนรายการในขอบและรอบย่าน"
+   },
+   {
+    "id": "publisher_listed",
+    "th": "แหล่งรายงาน",
+    "label": "Observed fact ในขอบเขตของแหล่ง",
+    "example": "ห้องที่แหล่งบันทึก นักเรียนที่บันทึก"
+   },
+   {
+    "id": "modelled_estimate",
+    "th": "แบบจำลอง",
+    "label": "แบบจำลอง ไม่ใช่ค่าที่สังเกต",
+    "example": "ผู้อยู่อาศัยตามทะเบียนที่แบ่งลงอาคาร คนทำงานในอาคารสำนักงาน"
+   },
+   {
+    "id": "benchmark",
+    "th": "อันดับ",
+    "label": "Benchmark interpretation",
+    "example": "อันดับในชุดอ้างอิงที่ตรึง พร้อมจำนวนของกลุ่มและจำนวนที่ได้อันดับร่วม"
+   },
+   {
+    "id": "generated_prior",
+    "th": "สมมติฐาน",
+    "label": "Hypothesis",
+    "example": "บทบาทที่หลักฐานชี้ และสิ่งที่ควรไปดู"
+   }
+  ],
+  "referenceSet": {
+   "rule": "อันดับเทียบกับชุดย่านที่ตรึงตามรุ่น: รายการรหัสของย่านที่มีขอบในรุ่นนั้น ระบุ id จำนวน และ SHA-256 ของรายการรหัส",
+   "today": {
+    "n": 395,
+    "registryReadOn": "2026-11-24",
+    "registryExportSha256": "7fc44f7cc0197f9118f8b484f59c8c01a7300d1a2c5a81d8359302be8cd04dbc"
+   }
+  },
+  "lowLocatedRule": {
+   "thresholdPct": 90,
+   "datasetsToday": [
+    "factory",
+    "fitness",
+    "hospital",
+    "industrialestate",
+    "office",
+    "pharmacy",
+    "school"
+   ],
+   "rule": "ชุดที่มีพิกัดไม่ถึงเกณฑ์: ในส่วนใหม่แสดงจำนวนพร้อมเครื่องหมาย ไม่จัดอันดับ (ตามคำตัดสิน D-4)"
+  },
+  "provenanceLine": "ทุกมุมมองและทุกส่วนที่แหล่งต่างจากมุมมองหลัก จบด้วยบรรทัดเดียว: ชุดข้อมูล · แหล่ง · วันที่ · ขอบเขต · วิธีนับ และแถว 4 ช่องมีบรรทัดที่มาสั้นใต้แถว (ชุดข้อมูล · แหล่ง · วันที่ · ขอบเขต)",
+  "glance": {
+   "tiles": [
+    {
+     "id": "residents",
+     "th": "คนอยู่",
+     "en": "Living here",
+     "measure": "ผู้อยู่อาศัยตามทะเบียนในย่าน (คน)",
+     "evidence": "modelled_estimate",
+     "round": 2
+    },
+    {
+     "id": "students",
+     "th": "นักเรียน",
+     "en": "Students",
+     "measure": "นักเรียนที่บันทึกของชุดสถานศึกษาในย่าน (คน)",
+     "evidence": "publisher_listed",
+     "round": 1
+    },
+    {
+     "id": "rooms",
+     "th": "ห้องพัก",
+     "en": "Rooms",
+     "measure": "ห้องที่แหล่งบันทึกของชุดที่พักในย่าน (ห้อง)",
+     "evidence": "publisher_listed",
+     "round": 1
+    },
+    {
+     "id": "centers",
+     "th": "ศูนย์และตลาด",
+     "en": "Centers and markets",
+     "measure": "ศูนย์การค้าและตลาดในย่าน (แห่ง)",
+     "evidence": "derived_count",
+     "round": 1
+    }
+   ],
+   "levelRule": {
+    "source": "montri-th/shoppingcenter js/venue-locale.js",
+    "commit": "dfcc6cda00bfbc9dd9b0e65c442319ff060d4dff",
+    "sha256": "27f3e8585eead076d493df1a210abf21a1c65eae06cfa1b63a5388e3cb90adff",
+    "levelOf": "export const levelOf = (p, count = 1) => (count > 0 && p != null ? Math.min(5, Math.floor(p / 20) + 1) : 0);",
+    "levelWords": "export const LEVEL_WORDS = Object.freeze([['ไม่พบ', 'none found'], ['น้อยมาก', 'very low'], ['น้อย', 'low'], ['ปานกลาง', 'middle'], ['มาก', 'high'], ['มากที่สุด', 'very high']]);",
+    "note": "ระดับ 1–5 จากระดับเทียบ 0–100 ที่นับค่าเท่ากันครึ่งหนึ่ง · 0 เมื่อค่าเป็นศูนย์ที่สำรวจแล้วหรือไม่มีอันดับ · ช่องที่ติดดาวไม่มีระดับ"
+   }
+  },
+  "ledgerColumnSpec": [
+   {
+    "name": "ledger_id",
+    "type": "ข้อความ",
+    "meaning": "รหัสแถว NLR-001 ขึ้นไป ไม่ซ้ำและไม่นำกลับมาใช้"
+   },
+   {
+    "name": "layer",
+    "type": "ข้อความ",
+    "meaning": "รหัสชั้นข้อมูล หนึ่งในรายการ layers"
+   },
+   {
+    "name": "layer_th",
+    "type": "ข้อความ",
+    "meaning": "ชื่อชั้นภาษาไทยที่คนอ่าน"
+   },
+   {
+    "name": "release_id",
+    "type": "ข้อความ",
+    "meaning": "รหัสรุ่นตามไฟล์ของรุ่น ว่างได้เมื่อไฟล์ไม่มีรหัสรุ่น และ notes ต้องบอกว่าระบุรุ่นด้วยอะไร"
+   },
+   {
+    "name": "status",
+    "type": "ข้อความ",
+    "meaning": "release_candidate หรือ serving_derivative ชุดเดียวกับชีตศูนย์การค้า"
+   },
+   {
+    "name": "as_of",
+    "type": "วันที่",
+    "meaning": "วันที่ของข้อมูล หรือวันที่สร้างไฟล์ของรุ่น"
+   },
+   {
+    "name": "supersedes_release_id",
+    "type": "ข้อความ",
+    "meaning": "รุ่นที่แถวนี้แทน ว่างในแถวแรกของชั้น"
+   },
+   {
+    "name": "neighbourhood_scope",
+    "type": "ข้อความ",
+    "meaning": "ย่านที่ชั้นครอบคลุม: จำนวน ที่มาของรายการรหัส และรหัสที่ไม่อยู่ในรุ่น · ชีตศูนย์การค้าใช้ venue_scope"
+   },
+   {
+    "name": "evidence_class",
+    "type": "ข้อความ",
+    "meaning": "ชนิดหลักฐานของค่าในชั้น ตามคำใน evidenceClasses"
+   },
+   {
+    "name": "inputs",
+    "type": "ข้อความ",
+    "meaning": "ไฟล์และรุ่นที่ใช้สร้าง พร้อม SHA-256"
+   },
+   {
+    "name": "artifact",
+    "type": "ข้อความ",
+    "meaning": "repo commit และไฟล์ที่เป็นผล"
+   },
+   {
+    "name": "artifact_sha256",
+    "type": "ข้อความ",
+    "meaning": "SHA-256 ของไฟล์ผลทุกไฟล์"
+   },
+   {
+    "name": "blocking_issues",
+    "type": "ข้อความ",
+    "meaning": "ประเด็นที่กันไม่ให้ยกสถานะรุ่น"
+   },
+   {
+    "name": "excluded_codes",
+    "type": "ข้อความ",
+    "meaning": "รหัสกลางที่ไม่อยู่ในรุ่น หรือตัวชี้ไปยังรายการนั้นในไฟล์ · ชีตศูนย์การค้าใช้ excluded_venue_ids"
+   },
+   {
+    "name": "method_doc",
+    "type": "ข้อความ (URL)",
+    "meaning": "เอกสารวิธีที่ commit ของรุ่น"
+   },
+   {
+    "name": "served_in",
+    "type": "ข้อความ",
+    "meaning": "เว็บและรุ่นที่ใช้ชั้นนี้ พร้อม commit และ cache tag"
+   },
+   {
+    "name": "live_checked_on",
+    "type": "วันที่",
+    "meaning": "วันที่ตรวจไบต์บนเว็บจริงครั้งล่าสุด · แก้ได้"
+   },
+   {
+    "name": "not_for",
+    "type": "ข้อความ",
+    "meaning": "สิ่งที่ห้ามใช้ชั้นนี้สรุป"
+   },
+   {
+    "name": "notes",
+    "type": "ข้อความ",
+    "meaning": "หมายเหตุ · แก้ได้"
+   }
+  ],
+  "ledgerColumns": [
+   "ledger_id",
+   "layer",
+   "layer_th",
+   "release_id",
+   "status",
+   "as_of",
+   "supersedes_release_id",
+   "neighbourhood_scope",
+   "evidence_class",
+   "inputs",
+   "artifact",
+   "artifact_sha256",
+   "blocking_issues",
+   "excluded_codes",
+   "method_doc",
+   "served_in",
+   "live_checked_on",
+   "not_for",
+   "notes"
+  ],
+  "layers": [
+   "inside_counts",
+   "around_counts",
+   "venue_links",
+   "registered_residents",
+   "office_workers",
+   "admin_areas",
+   "role_evidence"
+  ],
+  "lockedInvariants": {
+   "source": "handoff/product-brief.json",
+   "sha256": "b3594f7055520bef5f770bebe08dfa423808302c1f8b592c9e131d691a2adaea",
+   "commit": "24a30172c82cbc52828a15d76a5dfb599c5206e5",
+   "items": [
+    {
+     "id": "INV-01",
+     "rule": "Counts of two datasets are never added; no total of POIs is shown."
+    },
+    {
+     "id": "INV-02",
+     "rule": "A dataset with no located record in the neighbourhood's province is out of scope there: “—”, never 0."
+    },
+    {
+     "id": "INV-03",
+     "rule": "Every share shows its numerator and denominator (visible or in its title and accessible name)."
+    },
+    {
+     "id": "INV-04",
+     "rule": "Every rank names its peers with their number (“จาก N ย่าน …”)."
+    },
+    {
+     "id": "INV-05",
+     "rule": "Density uses the registry's area_m2, never a recomputed area."
+    },
+    {
+     "id": "INV-06",
+     "rule": "Pairs and similar mixes are correlations, never stated as causes or performance."
+    },
+    {
+     "id": "INV-07",
+     "rule": "Colour scales use all 41 LDS samples; the same HEX on light and dark; no opacity on a data colour."
+    },
+    {
+     "id": "INV-08",
+     "rule": "Outlines are drawn as the registry delivers them (display simplification only) and called drafts."
+    },
+    {
+     "id": "INV-09",
+     "rule": "Every panel view ends with one provenance line: dataset · source · date · boundary · วิธีนับ."
+    },
+    {
+     "id": "INV-10",
+     "rule": "No caveat line on screen; method and limits live in DATA_METHOD.md."
+    },
+    {
+     "id": "INV-11",
+     "rule": "The registry's address, export and cells never enter the repository."
+    },
+    {
+     "id": "INV-12",
+     "rule": "Neighbourhood names stay Thai in English; no view is left untranslated otherwise."
+    },
+    {
+     "id": "INV-13",
+     "rule": "An outline redrawn by the owner's rule (0.3.0) replaces the registry outline as an owner amendment: it only adds area, overlaps no other outline, keeps the registry's name, and is described as extended by the rule and awaiting the registry; never called the registry's outline or an administrative boundary"
+    }
+   ]
+  }
+ },
+ "problems": [
+  {
+   "id": "F-01",
+   "summary": "หน้าย่านยังไม่ตอบว่ามีคนขนาดไหน: ห้องพัก นักเรียน เตียง คนงาน และบุคลากรที่แหล่งรายงาน อยู่ในส่วนที่พับไว้ท้ายแผง"
+  },
+  {
+   "id": "F-02",
+   "summary": "ย่านที่ข้อมูลบาง: 153 ย่านไม่มีจุดเด่น 19 ย่านไม่มีรายการในขอบ และ 196 ย่านมีไม่เกิน 3 ชุด"
+  },
+  {
+   "id": "F-03",
+   "summary": "ขอบเป็นฉบับร่างทุกย่าน ตัวเลขในขอบจึงไวต่อตำแหน่งเส้น และหน้าเว็บยังไม่มีทางให้เห็น"
+  },
+  {
+   "id": "F-04",
+   "summary": "อันดับจำนวนที่แสดงหลายข้อเป็นอันดับร่วมของหลายย่าน โดยผู้อ่านไม่รู้"
+  },
+  {
+   "id": "F-05",
+   "summary": "7 จาก 16 ชุดมีพิกัดไม่ถึง 90% ของรายการ แต่ยังถูกจัดอันดับและขึ้นเป็นจุดเด่น ขณะที่ «รอบศูนย์นี้» ไม่ให้ชุดกลุ่มนี้ขึ้นเป็นจุดเด่น"
+  },
+  {
+   "id": "F-06",
+   "summary": "ลิงก์ศูนย์การค้ากับย่านมีทางเดียว และฝั่งศูนย์การค้าขาดลิงก์ของศูนย์ที่อยู่ในขอบที่ปรับเพิ่มเมื่อ 24 พ.ย. 2569"
+  },
+  {
+   "id": "F-07",
+   "summary": "ทะเบียนเพิ่มรหัสเร็วกว่าเว็บ และยังไม่มีชุดอ้างอิงที่ตรึงตามรุ่น"
+  },
+  {
+   "id": "F-08",
+   "summary": "ชีตทะเบียนย่านยังไม่มีบัญชีรุ่นของข้อมูลที่เว็บใช้"
+  },
+  {
+   "id": "F-09",
+   "summary": "เอกสารใน repo มีตัวเลขและลิงก์ที่ไม่ตรงกับข้อมูลรุ่นเดียวกัน"
+  },
+  {
+   "id": "F-10",
+   "summary": "ครอบครัวนี้มีวิธีวัด «รอบ» สามแบบที่ชื่อคล้ายกัน"
+  },
+  {
+   "id": "F-11",
+   "summary": "คำบอกสถานะของหน้าย่านมีสามแบบ ชั้นใหม่ต้องใช้อีกสามแบบตาม LDS EVID-05"
+  },
+  {
+   "id": "F-12",
+   "summary": "ตารางช่อง 250 ม. ของผู้อยู่อาศัยรอบศูนย์ ใช้กับขอบย่านไม่ได้"
+  }
+ ],
+ "phases": [
+  {
+   "id": "P0",
+   "title": "ตัดสินและล็อกสัญญา",
+   "goal": "คำตัดสิน D-1 D-3 D-4 D-5 D-8 และสัญญาของชั้นข้อมูลอยู่ใน repo ก่อนเขียนโค้ด"
+  },
+  {
+   "id": "P1",
+   "title": "รอบ 1 · ในย่านและรอบย่านจากข้อมูลที่มีอยู่",
+   "goal": "แถว 4 ช่อง ตารางในย่าน–รอบย่าน ลิงก์ศูนย์การค้า และอันดับที่บอกจำนวนร่วม โดยไม่มีแหล่งข้อมูลใหม่"
+  },
+  {
+   "id": "PS",
+   "title": "บัญชีรุ่นในชีตทะเบียนย่าน",
+   "goal": "ชีตชี้ไปยังรุ่นข้อมูลที่เว็บใช้ โดยไม่เก็บตัวเลขรายย่าน"
+  },
+  {
+   "id": "P2",
+   "title": "รอบ 2 · ชั้นแบบจำลอง",
+   "goal": "ผู้อยู่อาศัยตามทะเบียน คนทำงานในอาคารสำนักงาน และพื้นที่ปกครองที่ย่านคร่อม แต่ละชั้นออกเป็นรุ่นของตัวเอง"
+  },
+  {
+   "id": "P3",
+   "title": "รอบ 3 · บทบาทจากหลักฐานและการทดสอบกับผู้อ่าน",
+   "goal": "ข้อสรุปเชิงสมมติฐานที่ชี้กลับไปยังหลักฐาน และผลทดสอบกับผู้อ่านจริง"
+  }
+ ],
+ "gates": [
+  {
+   "id": "G0",
+   "phase": "P0",
+   "requires": [
+    "NL-00"
+   ],
+   "nonBlockingInPhase": [],
+   "criteria": [
+    "เจ้าของตัดสิน D-1 D-3 D-4 D-5 D-8 และบันทึกคำพูดคำต่อคำในแผน",
+    "handoff/around/ อยู่ใน repo และ npm test ผ่าน"
+   ],
+   "signoff": "เจ้าของ (Montri)"
+  },
+  {
+   "id": "G1",
+   "phase": "P1",
+   "requires": [
+    "NL-01",
+    "NL-02",
+    "NL-04",
+    "NL-05",
+    "NL-06",
+    "NL-07"
+   ],
+   "nonBlockingInPhase": [
+    "NL-03"
+   ],
+   "criteria": [
+    "rows[].c ของข้อมูลเดิมไม่เปลี่ยน และข้อตรวจใหม่ผ่านทั้งหมด",
+    "check:lds ไม่มีค่าที่ไม่ตรง",
+    "เจ้าของสั่งเผยแพร่ แล้ว verify:live ผ่านกับ commit บนเว็บจริง",
+    "เดินดูหน้าเว็บจริงไทย/อังกฤษ ที่ desktop และ 393 px ครบ 4 ย่านตัวอย่าง"
+   ],
+   "signoff": "เจ้าของ (Montri)"
+  },
+  {
+   "id": "GS",
+   "phase": "PS",
+   "requires": [
+    "NL-S1"
+   ],
+   "nonBlockingInPhase": [],
+   "criteria": [
+    "เจ้าของสั่งเขียนชีตครั้งนี้",
+    "อ่านกลับตรงบรีฟทุกช่อง และแท็บเดิมไม่เปลี่ยน"
+   ],
+   "signoff": "เจ้าของ (Montri)"
+  },
+  {
+   "id": "G2",
+   "phase": "P2",
+   "requires": [
+    "NL-08",
+    "NL-11"
+   ],
+   "nonBlockingInPhase": [
+    "NL-09",
+    "NL-10"
+   ],
+   "criteria": [
+    "รุ่นของชั้นแบบจำลองมี manifest และ SHA-256 และมีแถวในบัญชีรุ่นของชีต",
+    "ผลรวมรายแขวง/ตำบลตรงกับประชากรตามทะเบียนของเดือนที่ใช้",
+    "เจ้าของดูย่านตัวอย่าง 10 ย่านแล้วสั่งเผยแพร่"
+   ],
+   "signoff": "เจ้าของ (Montri)"
+  },
+  {
+   "id": "G3",
+   "phase": "P3",
+   "requires": [
+    "NL-12",
+    "NL-13"
+   ],
+   "nonBlockingInPhase": [
+    "NL-14"
+   ],
+   "criteria": [
+    "ผลทดสอบผู้อ่าน 5 คนผ่านเกณฑ์ของ H1–H4 หรือมีแผนแก้ข้อที่ไม่ผ่าน",
+    "ข้อสรุปเชิงสมมติฐานทุกข้อชี้กลับไปยังหลักฐานที่มีรุ่น"
+   ],
+   "signoff": "เจ้าของ (Montri)"
+  }
+ ],
+ "tasks": [
+  {
+   "id": "NL-00",
+   "phase": "P0",
+   "priority": "P0",
+   "estimateDays": 0.5,
+   "ownerDecision": [
+    "D-1",
+    "D-3",
+    "D-4",
+    "D-5",
+    "D-8"
+   ],
+   "title": {
+    "th": "ล็อกสัญญาของชั้น «รอบย่านนี้» ไว้ใน repo",
+    "en": "Lock the contracts of the surroundings layer in the repository"
+   },
+   "problemRefs": [
+    "F-07",
+    "F-10",
+    "F-11"
+   ],
+   "dependsOn": [],
+   "surfaces": [
+    "S5"
+   ],
+   "readFirst": [
+    "AGENTS.md",
+    "DATA_METHOD.md",
+    "handoff/product-brief.json",
+    "handoff/handoff.schema.json"
+   ],
+   "repoPaths": [
+    "AGENTS.md",
+    "handoff/README.md",
+    "new:handoff/around/README.md",
+    "new:handoff/around/plan.json",
+    "new:handoff/around/contracts.json",
+    "new:handoff/around/SOURCES.md",
+    "new:handoff/around/CHANGELOG.md"
+   ],
+   "steps": [
+    "คัดลอกบล็อก JSON ของภาคผนวก C ลง handoff/around/plan.json ให้ตรงทุกไบต์",
+    "เขียน handoff/around/contracts.json จาก dataContracts ของแผนนี้: สถานะค่า 6 แบบ ชนิดหลักฐาน นิยามในย่านและรอบย่าน ชุดอ้างอิง กฎชุดที่มีพิกัดไม่ถึง 90% และ INV-01 ถึง INV-13 คำต่อคำ",
+    "เขียน handoff/around/SOURCES.md: ไฟล์ต้นทาง 16 ชุดตาม datasets[].source ของ data/neighborhoods.json พร้อม repo commit และ SHA-256",
+    "เพิ่มบรรทัดใน AGENTS.md และ handoff/README.md ชี้มาที่ handoff/around/ และเปิด CHANGELOG.md ด้วยรายการแรก"
+   ],
+   "acceptance": [
+    "SHA-256 ของ handoff/around/plan.json เท่ากับค่าที่รายงานพิมพ์ไว้ในหัวภาคผนวก C",
+    "ข้อความ INV ทุกข้อใน contracts.json เท่ากับ handoff/product-brief.json ทุกตัวอักษร",
+    "ไม่มีที่อยู่ รหัสไฟล์ หรือเซลล์ของชีตทะเบียนย่านในไฟล์ใดของ repo",
+    "npm test ผ่านเท่าเดิม ไม่มีไฟล์โค้ดหรือข้อมูลเปลี่ยน"
+   ],
+   "verify": [
+    "npm test",
+    "git diff --stat (มีเฉพาะ AGENTS.md handoff/README.md และไฟล์ใหม่ใต้ handoff/around/)"
+   ],
+   "doNot": [
+    "ห้ามแก้โค้ด ข้อมูล หรือเวอร์ชัน",
+    "ห้ามใส่ที่อยู่หรือเซลล์ของชีตทะเบียนย่าน (INV-11)",
+    "ห้ามใส่ราคา สัญญา หรือ pipeline",
+    "ห้าม merge เข้า main โดยไม่มีคำสั่งเจ้าของ"
+   ],
+   "prompt": "อ่าน AGENTS.md และ handoff/product-brief.json ก่อน แล้วสร้างโฟลเดอร์ handoff/around/ ตามงาน NL-00 ของ handoff/around/plan.json: วาง plan.json ให้ตรงทุกไบต์ เขียน contracts.json จาก dataContracts (INV คัดคำต่อคำ) SOURCES.md และ CHANGELOG.md เพิ่มลิงก์ใน AGENTS.md กับ handoff/README.md ห้ามแตะโค้ดและข้อมูล เปิด PR แล้วหยุด"
+  },
+  {
+   "id": "NL-01",
+   "phase": "P1",
+   "priority": "P0",
+   "estimateDays": 2,
+   "ownerDecision": [
+    "D-1",
+    "D-8"
+   ],
+   "title": {
+    "th": "นับรายการรอบย่านของ 16 ชุดในขั้นสร้างข้อมูล",
+    "en": "Count the records around each outline in the data build"
+   },
+   "problemRefs": [
+    "F-02",
+    "F-03",
+    "F-07"
+   ],
+   "dependsOn": [
+    "NL-00"
+   ],
+   "surfaces": [
+    "S5"
+   ],
+   "readFirst": [
+    "scripts/build-data.py",
+    "DATA_METHOD.md",
+    "new:handoff/around/contracts.json",
+    "tests/data.test.js"
+   ],
+   "repoPaths": [
+    "scripts/build-data.py",
+    "DATA_METHOD.md",
+    "tests/data.test.js",
+    "new:data/around.json",
+    "new:tests/around.test.js"
+   ],
+   "steps": [
+    "ใน scripts/build-data.py หลังนับรายการในขอบ (ลูปที่เรียก extract) ให้นับรายการที่อยู่นอกขอบของย่านนั้นและห่างจากเส้นขอบไม่เกิน 400 ม. กับไม่เกิน 800 ม. วัดเส้นตรงบนขอบจริงของ bundle ในระบบพิกัดที่มีศูนย์กลางที่จุดอ้างอิงของย่าน",
+    "เขียน data/around.json: meta (schema citymeter-commercialdistrict-around/1 · release · rings [400, 800] · outlineRelease · referenceSet {id, n, sha256 ของรายการรหัส} · builtOn) และ rows {รหัสย่าน: {ชุดข้อมูล: [รอบ 400, รอบ 800]}} เฉพาะชุดที่มีรายการในจังหวัดของย่าน",
+    "เพิ่มหัวข้อ «รอบย่าน» ใน DATA_METHOD.md: นิยาม ค่าสะสม รวมรายการที่อยู่ในย่านข้างเคียง ห้ามบวกข้ามย่าน เป็นเส้นตรงไม่ใช่ระยะเดิน และต่างจากผลคัดย่านที่พัก (§2a) กับรัศมีจากจุดอ้างอิงของ Yolk อย่างไร",
+    "เขียน tests/around.test.js และเพิ่มข้อตรวจใน tests/data.test.js"
+   ],
+   "acceptance": [
+    "rows[].c ใน data/neighborhoods.json ไม่เปลี่ยนแม้ไบต์เดียวเมื่อ build จาก input เดิม",
+    "ทุกช่อง: รอบ 800 ≥ รอบ 400 ≥ 0 และเป็นจำนวนเต็ม",
+    "ชุดข้อมูลที่เป็นคีย์ของ rows[รหัส] ใน around.json เท่ากับคีย์ของ rows[].c ของย่านนั้น (ชุดที่ไม่มีรายการในจังหวัดไม่มีคีย์ ไม่ใช่ 0)",
+    "เทียบกับผลลองนับในชุดประกอบของรายงาน (pilot_cells.json บนขอบที่เว็บวาด): รายงานจำนวนช่องที่ต่างและเหตุผล ช่องในขอบของผลลองนับตรงกับค่าที่เผยแพร่ 4,800 จาก 4,806 ช่อง",
+    "meta.referenceSet.n เท่ากับจำนวนย่านที่มีขอบของรุ่นนั้น และ sha256 ของรายการรหัสทำซ้ำได้"
+   ],
+   "verify": [
+    "python3 -I scripts/build-data.py … (input ของเจ้าของ: bundle และ export ของทะเบียน)",
+    "npm test"
+   ],
+   "doNot": [
+    "ห้ามบวกจำนวนข้ามชุดข้อมูลหรือเขียนยอดรวม (INV-01)",
+    "ห้ามบวกค่ารอบย่านข้ามย่าน",
+    "ห้ามคำนวณพื้นที่ใหม่ (INV-05)",
+    "ห้ามเปลี่ยนจุดเด่นหรืออันดับเดิมในงานนี้",
+    "ห้ามเผยแพร่"
+   ],
+   "prompt": "อ่าน scripts/build-data.py DATA_METHOD.md และ handoff/around/contracts.json แล้วทำงาน NL-01: เพิ่มการนับรายการนอกขอบภายใน 400 และ 800 ม. จากเส้นขอบของแต่ละย่าน เขียน data/around.json ตาม schema ในงาน เพิ่มหัวข้อ «รอบย่าน» ใน DATA_METHOD.md และ tests/around.test.js ตรวจว่า rows[].c ไม่เปลี่ยน ห้ามเขียนยอดรวมข้ามชุดหรือข้ามย่าน"
+  },
+  {
+   "id": "NL-02",
+   "phase": "P1",
+   "priority": "P1",
+   "estimateDays": 1,
+   "ownerDecision": [
+    "D-1"
+   ],
+   "title": {
+    "th": "ไฟล์ลิงก์ศูนย์การค้าในและใกล้ย่าน ผูกด้วยรหัส",
+    "en": "One link file between shopping venues and neighbourhoods, joined by id"
+   },
+   "problemRefs": [
+    "F-06"
+   ],
+   "dependsOn": [
+    "NL-00"
+   ],
+   "surfaces": [
+    "S5",
+    "S7"
+   ],
+   "readFirst": [
+    "scripts/build-data.py",
+    "DATA_METHOD.md",
+    "montri-th/shoppingcenter:data/locale/meta.json"
+   ],
+   "repoPaths": [
+    "scripts/build-data.py",
+    "DATA_METHOD.md",
+    "new:data/venue-links.json",
+    "new:tests/venue-links.test.js",
+    "montri-th/shoppingcenter:data/venues.json",
+    "montri-th/shoppingcenter:data/locale/meta.json"
+   ],
+   "steps": [
+    "อ่านชุดศูนย์ที่มีส่วน «รอบศูนย์นี้» จาก montri-th/shoppingcenter ที่ commit ที่ตรึงไว้: countable และ status = supply และ group เป็น mall community หรือ outlet และมีจุด",
+    "หาขอบย่านที่ครอบจุดของศูนย์ (ขอบแรกตามลำดับของทะเบียน) ถ้าไม่มีให้หาย่านที่ใกล้ที่สุดและระยะจากเส้นขอบ เก็บเมื่อไม่เกิน 800 ม.",
+    "เขียน data/venue-links.json: meta (schema · outlineRelease · venueSource {repo, commit, sha256} · กติกา) · byNeighbourhood {รหัสย่าน: {inside: [venue_id], near400: [...], near800: [...]}} · byVenue {venue_id: {inside: รหัสย่านหรือ null, nearest: {code, m} หรือ null}}",
+    "เขียน tests/venue-links.test.js: ทุกรหัสมีอยู่จริงทั้งสองฝั่ง ศูนย์หนึ่งอยู่ในขอบได้ย่านเดียว"
+   ],
+   "acceptance": [
+    "ผูกด้วย venue_id และรหัสกลางเท่านั้น ไม่มีการจับคู่ด้วยชื่อ",
+    "รายงานจำนวนบนขอบจริงเทียบกับผลบนขอบที่เว็บวาดของรายงานนี้: 166 ศูนย์ใน 93 ย่าน",
+    "ศูนย์ทั้ง 136 แห่งที่ Shopping Center ลิงก์ไว้วันนี้ยังได้รหัสย่านเดิม หรือมีรายการอธิบายทีละแห่ง"
+   ],
+   "verify": [
+    "python3 -I scripts/build-data.py …",
+    "npm test"
+   ],
+   "doNot": [
+    "ห้ามจับคู่ด้วยชื่อ",
+    "ห้ามแก้ repo shoppingcenter ในงานนี้",
+    "ห้ามนับศูนย์การค้าชุดนี้ซ้อนกับชุด «ศูนย์การค้าและตลาด» ที่หน้าย่านนับอยู่แล้ว"
+   ],
+   "prompt": "ทำงาน NL-02: สร้าง data/venue-links.json จากจุดของศูนย์การค้าชุด «รอบศูนย์นี้» (repo shoppingcenter ที่ commit ที่ตรึง) กับขอบย่านของรุ่นนี้ ผูกด้วยรหัสเท่านั้น มีทั้งมุมมองรายย่านและรายศูนย์ เพิ่มหัวข้อวิธีใน DATA_METHOD.md และ tests/venue-links.test.js"
+  },
+  {
+   "id": "NL-03",
+   "phase": "P1",
+   "priority": "P2",
+   "estimateDays": 1,
+   "ownerDecision": [],
+   "title": {
+    "th": "Shopping Center อ่านลิงก์ย่านจากไฟล์ของ Commercial District",
+    "en": "Shopping Center reads its neighbourhood link from the district's file"
+   },
+   "problemRefs": [
+    "F-06"
+   ],
+   "dependsOn": [
+    "NL-02",
+    "NL-07"
+   ],
+   "surfaces": [
+    "S7"
+   ],
+   "readFirst": [
+    "montri-th/shoppingcenter:js/venue-locale.js",
+    "montri-th/shoppingcenter:data/locale/meta.json",
+    "montri-th/shoppingcenter:DATA_METHOD.md"
+   ],
+   "repoPaths": [
+    "montri-th/shoppingcenter:js/venue-locale.js",
+    "montri-th/shoppingcenter:data/locale/meta.json",
+    "montri-th/shoppingcenter:DATA_METHOD.md"
+   ],
+   "steps": [
+    "ใน js/venue-locale.js ให้อ่าน ../commercialdistrict/data/venue-links.json จาก origin เดียวกันเมื่อเปิดส่วน «รอบศูนย์นี้» แล้วใช้ byVenue[venue_id] แทน facts.nb",
+    "ถ้าอ่านไฟล์ไม่ได้ ให้ใช้ facts.nb เดิมและไม่แสดงข้อความผิดพลาดแก่ผู้ใช้",
+    "แสดงรุ่นของขอบ (meta.outlineRelease) ในบรรทัดที่มาของส่วนพื้นที่ และแก้ DATA_METHOD.md ของ Shopping Center ให้ชี้แหล่งใหม่"
+   ],
+   "acceptance": [
+    "ศูนย์ที่อยู่ในขอบย่านของรุ่นปัจจุบันทุกแห่งมีลิงก์ไปย่าน (วันนี้ขาด 30 แห่ง)",
+    "ปิดเครือข่ายของไฟล์ venue-links.json แล้วหน้าเว็บยังทำงานด้วย facts.nb เดิม",
+    "ชุดข้อมูล data/locale/ ของ Shopping Center ไม่ถูกแก้ทับ"
+   ],
+   "verify": [
+    "npm test (repo shoppingcenter)",
+    "เปิดหน้าเว็บจริงของศูนย์ตัวอย่าง 3 แห่งทั้งไทยและอังกฤษ"
+   ],
+   "doNot": [
+    "ห้ามแก้ไฟล์ใต้ data/locale/ ของรุ่นที่ออกแล้ว (รุ่นใหม่ต้องระบุรุ่นที่แทน)",
+    "ห้ามแก้ js/shell/ ใน repo เดียว",
+    "ห้ามเผยแพร่โดยไม่มีคำสั่งเจ้าของ"
+   ],
+   "prompt": "ใน repo shoppingcenter ทำงาน NL-03: ให้ js/venue-locale.js อ่านลิงก์ย่านจาก ../commercialdistrict/data/venue-links.json (origin เดียวกัน) โดยมี facts.nb เป็นทางสำรอง ไม่แก้ data/locale/ ของรุ่นที่ออกแล้ว"
+  },
+  {
+   "id": "NL-04",
+   "phase": "P1",
+   "priority": "P0",
+   "estimateDays": 3,
+   "ownerDecision": [
+    "D-1",
+    "D-2",
+    "D-3",
+    "D-5"
+   ],
+   "title": {
+    "th": "ส่วน «รอบย่านนี้» ในแผงย่าน: แถว 4 ช่อง และตารางในย่าน–รอบย่าน",
+    "en": "The surroundings section of the neighbourhood panel"
+   },
+   "problemRefs": [
+    "F-01",
+    "F-02",
+    "F-03",
+    "F-11"
+   ],
+   "dependsOn": [
+    "NL-01",
+    "NL-02"
+   ],
+   "surfaces": [
+    "S1",
+    "S4"
+   ],
+   "readFirst": [
+    "js/panel.js",
+    "js/profile.js",
+    "js/model.js",
+    "new:handoff/around/contracts.json",
+    "AGENTS.md"
+   ],
+   "repoPaths": [
+    "js/model.js",
+    "js/profile.js",
+    "js/panel.js",
+    "js/app.js",
+    "js/lang-en.js",
+    "styles.css",
+    "tests/views.test.js",
+    "index.html"
+   ],
+   "steps": [
+    "js/model.js: โหลด data/around.json และ data/venue-links.json เมื่อเปิดย่าน ถอดเป็นสถานะค่า (measured · measured_zero · out_of_scope · not_yet)",
+    "js/profile.js#buildNeighborhood: เพิ่ม view model around {answers[4], groups[Land, Location, Living] ของ {ds, inside, ring400, ring800, state, starred}, venues {inside, near}}",
+    "js/panel.js: เพิ่มฟังก์ชัน glanceRow (แถว 4 ช่อง “ในย่านนี้” พร้อมบรรทัดที่มาสั้นใต้แถว) วางตามคำตัดสิน D-5 และปรับ datasetsSection เป็นส่วน «รอบย่านนี้»: ตารางที่มีหัวคอลัมน์ ชุดข้อมูล · ในย่าน · รอบย่าน 400 ม. · รอบย่าน 800 ม. มีปุ่มเลือกระยะ และปิดท้ายส่วนด้วยบรรทัดที่มาของส่วนเอง แบบเดียวกับ lodgingSection",
+    "แถว 4 ช่อง เรียงเรื่องเดียวกับแถวของ «รอบศูนย์นี้»: คนอยู่ (รอบ 2) · นักเรียน = นักเรียนที่บันทึกของชุดสถานศึกษา · ห้องพัก = ห้องที่แหล่งบันทึกของชุดที่พัก · ศูนย์และตลาด = ศูนย์การค้าและตลาดในย่าน แต่ละช่องมีไอคอน ตัวเลข มาตรวัด 5 ขั้นตาม levelRule ของสัญญา และกดแล้วไปที่แถวของชุดนั้นในตาราง ช่องที่ยังไม่มีรุ่นข้อมูลแสดงสถานะยังไม่ถึงรอบข้อมูล ไม่แสดงตัวเลข",
+    "ตามคำตัดสิน D-5 ทาง ก: เมื่อแผงอยู่ในโหมดย่าน ซ่อนหัวชุดข้อมูล ช่องค้น และตัวกรอง (คงไว้ให้โปรแกรมอ่านจอ) และให้ปุ่มกลับอยู่แถวเส้นทางนำ ใน index.html styles.css และ js/app.js",
+    "js/lang-en.js และ L(th, en) ครบทุกข้อความใหม่ ชื่อย่านคงเป็นไทย · styles.css ใช้ token เดิม ไม่มีกรอบตกแต่งหรือแถบสีซ้าย · bump cache tag ตามกติกา release",
+    "tests/views.test.js: ย่านตัวอย่าง 4 แบบ (หนาแน่น · บาง · ย่านที่พัก · ชุดข้อมูลไม่ถึงจังหวัด)"
+   ],
+   "acceptance": [
+    "ตามคำตัดสิน D-5: ทาง ก และ ข แถว 4 ช่องของย่านสยามพร้อมบรรทัดที่มาสั้นอยู่ในจอแรกของแผงทั้งแถวที่หน้าต่าง 1710 × 875 (ขอบล่างไม่เกิน 827 px โดยไม่เลื่อน) · ทาง ค บรรทัดตัวเลขของทั้ง 4 ช่องอยู่เหนือ 827 px",
+    "แต่ละช่องมีไอคอน ตัวเลขกับหน่วย คำบอกชนิดหลักฐาน และมาตรวัด 5 ขั้นที่มีเส้นขอบทุกขั้น ช่องที่ค่าเป็นสถานะหรือมาจากชุดที่ติดดาวไม่มีมาตรวัด",
+    "ไม่มีตัวเลขใดเป็นผลบวกของสองชุดข้อมูล และไม่มีคำว่า POI รวม",
+    "ชุดที่ไม่มีรายการในจังหวัดแสดงคำว่า นอกขอบเขตข้อมูล ไม่ใช่ 0 · ชั้นที่ยังไม่มีรุ่นแสดง ยังไม่ถึงรอบข้อมูล",
+    "ตารางอ่านด้วยแป้นพิมพ์และโปรแกรมอ่านจอได้: มี caption หัวคอลัมน์ และ scope",
+    "ไทยและอังกฤษ ที่ desktop และกรอบ 393 px ไม่มีข้อความล้นหรือทับกัน และแผ่นมือถือยังพักที่ 34%",
+    "ส่วนใหม่จบด้วยบรรทัดที่มาหนึ่งบรรทัด: ชุดข้อมูล · แหล่ง · วันที่ · ขอบเขต · วิธีนับ"
+   ],
+   "verify": [
+    "npm test",
+    "npm run check:lds -- --lds <ไฟล์ LDS 0.9.7>",
+    "npm start แล้วเดินดูไทย/อังกฤษ ที่ desktop และ 393 px"
+   ],
+   "doNot": [
+    "ห้ามบวกจำนวนข้ามชุดข้อมูล (INV-01)",
+    "ห้ามเขียนข้อความเตือนบนจอ วิธีและข้อจำกัดอยู่ใน DATA_METHOD.md (INV-10)",
+    "ห้ามเรียกจำนวนว่าคนเดิน ยอดขาย ความต้องการ หรือส่วนแบ่งตลาด",
+    "ห้ามใช้เฮกตาร์",
+    "ห้ามแก้ js/shell/",
+    "ห้ามเปลี่ยนสีข้อมูลตามธีม (INV-07)"
+   ],
+   "prompt": "อ่าน AGENTS.md js/panel.js js/profile.js js/model.js และ handoff/around/contracts.json แล้วทำงาน NL-04: เพิ่มแถว 4 ช่องและส่วน «รอบย่านนี้» ในแผงย่าน อ่านค่าจาก data/around.json กับ data/venue-links.json แสดงสถานะค่าเป็นคำตามสัญญา จบส่วนด้วยบรรทัดที่มาของตัวเอง ครบไทย/อังกฤษ และผ่าน npm test กับ check:lds"
+  },
+  {
+   "id": "NL-05",
+   "phase": "P1",
+   "priority": "P1",
+   "estimateDays": 1.5,
+   "ownerDecision": [
+    "D-1"
+   ],
+   "title": {
+    "th": "แผนที่: เส้นรอบย่าน และคีย์ที่อยู่ของตัวเลือกระยะ",
+    "en": "Map: the surroundings line and the address key of the chosen distance"
+   },
+   "problemRefs": [
+    "F-03",
+    "F-10"
+   ],
+   "dependsOn": [
+    "NL-04"
+   ],
+   "surfaces": [
+    "S2"
+   ],
+   "readFirst": [
+    "js/layers.js",
+    "js/app.js",
+    "js/records.js",
+    "AGENTS.md"
+   ],
+   "repoPaths": [
+    "js/layers.js",
+    "js/app.js",
+    "js/lang-en.js",
+    "tests/frame.test.js",
+    "tests/views.test.js"
+   ],
+   "steps": [
+    "js/layers.js: เมื่อเปิดส่วน «รอบย่านนี้» ให้วาดเส้นประสีกลางที่ระยะที่เลือกจากขอบย่าน (buffer ของขอบที่เว็บวาด คำนวณฝั่งเว็บ) ไม่ระบายสีข้อมูลในแนวรอบ",
+    "js/app.js: เพิ่มคีย์ f.around (in · 400 · 800) ในที่อยู่ ผ่าน codec ของ shell ค่าเริ่มต้นไม่เขียนลงลิงก์ และปุ่มย้อนกลับของเบราว์เซอร์คืนค่าก่อนหน้า",
+    "คำอธิบายแผนที่เพิ่มหนึ่งแถว «แนวรอบย่าน <ระยะ> ม. · เส้นตรงจากขอบ» และมีทางอ่านแบบไม่ใช่แผนที่จากตารางของ NL-04"
+   ],
+   "acceptance": [
+    "ลิงก์ที่มี f.around=800 เปิดแล้วได้ตารางและเส้นที่ระยะ 800 ม. ทั้งไทยและอังกฤษ",
+    "เส้นรอบย่านไม่ใช้สีของสเกลข้อมูลและไม่บังขอบย่าน",
+    "จัดกรอบแผนที่ให้เห็นแนวรอบย่านทั้งหมดเมื่อเลือกระยะ โดยไม่บังแผงและแผ่นมือถือ"
+   ],
+   "verify": [
+    "npm test",
+    "เดินดูหน้าเว็บในเครื่องที่ desktop และ 393 px"
+   ],
+   "doNot": [
+    "ห้ามระบายสีข้อมูลในแนวรอบย่าน",
+    "ห้ามแก้ js/shell/",
+    "ห้ามเพิ่มคีย์ที่อยู่นอกไวยากรณ์ f.* ของ shell"
+   ],
+   "prompt": "ทำงาน NL-05: วาดเส้นแนวรอบย่านตามระยะที่เลือกใน js/layers.js และเพิ่มคีย์ f.around ใน js/app.js ผ่าน codec ของ shell เพิ่มแถวในคำอธิบายแผนที่ และ test ที่ครอบการคืนค่าจากลิงก์"
+  },
+  {
+   "id": "NL-06",
+   "phase": "P1",
+   "priority": "P1",
+   "estimateDays": 1,
+   "ownerDecision": [
+    "D-4"
+   ],
+   "title": {
+    "th": "อันดับ: บอกจำนวนย่านที่ได้อันดับร่วม และเครื่องหมายชุดที่มีพิกัดไม่ถึง 90%",
+    "en": "Ranks: say how many share a rank, and mark the datasets located under 90%"
+   },
+   "problemRefs": [
+    "F-04",
+    "F-05"
+   ],
+   "dependsOn": [
+    "NL-00"
+   ],
+   "surfaces": [
+    "S1",
+    "S5"
+   ],
+   "readFirst": [
+    "scripts/build-data.py",
+    "js/panel.js",
+    "DATA_METHOD.md"
+   ],
+   "repoPaths": [
+    "scripts/build-data.py",
+    "js/panel.js",
+    "js/lang-en.js",
+    "DATA_METHOD.md",
+    "tests/views.test.js",
+    "tests/data.test.js"
+   ],
+   "steps": [
+    "scripts/build-data.py: ใส่จำนวนย่านที่มีค่าเท่ากันในกลุ่มเทียบเดียวกัน (t) ให้ทุกจุดเด่นชนิดจำนวนและความหนาแน่น และใส่ locatedShare ให้ datasets[]",
+    "scripts/build-data.py: คำนวณระดับเทียบ 0–100 ของตัววัดในแถว 4 ช่อง (นักเรียน ห้อง ศูนย์และตลาด) ในชุดอ้างอิงที่ตรึง โดยนับค่าที่เท่ากันครึ่งหนึ่ง แล้วเก็บไว้ในแถวของย่าน เพื่อให้มาตรวัด 5 ขั้นใช้ levelRule เดียวกับ «รอบศูนย์นี้»",
+    "js/panel.js#highlightWords: เมื่อ t > 1 เขียน «มากอันดับ k ร่วม t ย่าน» / “Rank k, shared by t”",
+    "ตามคำตัดสิน D-4: ในส่วน «รอบย่านนี้» ชุดที่ locatedShare ต่ำกว่า 0.9 แสดงจำนวนพร้อมเครื่องหมายและไม่จัดอันดับ คำอธิบายเครื่องหมายอยู่ใน DATA_METHOD.md",
+    "เพิ่ม test: จำนวนร่วมรวมกันตรงกับข้อมูล และไม่มีอันดับของชุดที่ติดเครื่องหมายในส่วนใหม่"
+   ],
+   "acceptance": [
+    "จุดเด่นชนิดจำนวนที่มีย่านร่วมตั้งแต่ 3 ย่านขึ้นไป (289 จาก 390 ข้อในข้อมูลวันนี้) แสดงจำนวนร่วมทุกข้อ",
+    "อันดับทุกข้อยังบอกกลุ่มเทียบและจำนวนของกลุ่ม (INV-04)",
+    "ไม่เปลี่ยนชุดจุดเด่นเดิมของย่านใดในงานนี้"
+   ],
+   "verify": [
+    "python3 -I scripts/build-data.py …",
+    "npm test"
+   ],
+   "doNot": [
+    "ห้ามเปลี่ยนเกณฑ์จุดเด่นเดิม (meta.rules) ในงานนี้",
+    "ห้ามใช้คำว่า มากกว่า N% ของย่าน"
+   ],
+   "prompt": "ทำงาน NL-06: เพิ่มจำนวนย่านที่ได้อันดับร่วมในข้อมูลและในถ้อยคำของ highlightWords และทำเครื่องหมายชุดข้อมูลที่มีพิกัดไม่ถึง 90% ในส่วน «รอบย่านนี้» ตามคำตัดสิน D-4 โดยไม่เปลี่ยนเกณฑ์จุดเด่นเดิม"
+  },
+  {
+   "id": "NL-07",
+   "phase": "P1",
+   "priority": "P0",
+   "estimateDays": 1,
+   "ownerDecision": [],
+   "title": {
+    "th": "ออกรุ่นรอบ 1: เอกสารให้ตรงข้อมูล handoff และตรวจของจริง",
+    "en": "Release round 1: documents in step with the data, handoff, live check"
+   },
+   "problemRefs": [
+    "F-09"
+   ],
+   "dependsOn": [
+    "NL-04",
+    "NL-05",
+    "NL-06"
+   ],
+   "surfaces": [
+    "S1",
+    "S2",
+    "S5"
+   ],
+   "readFirst": [
+    "AGENTS.md",
+    "tests/release.test.js",
+    "scripts/verify-live.mjs",
+    "handoff/README.md"
+   ],
+   "repoPaths": [
+    "PRODUCT_STATEMENT.md",
+    "handoff/PRODUCT_BRIEF.md",
+    "handoff/product-brief.json",
+    "handoff/IMPLEMENTATION_PLAN.md",
+    "handoff/implementation-plan.json",
+    "package.json",
+    "design-intent.json",
+    "index.html",
+    "scripts/build-handoff.mjs",
+    "scripts/verify-live.mjs",
+    "tests/release.test.js"
+   ],
+   "steps": [
+    "แก้ตัวเลขใน PRODUCT_STATEMENT.md ให้ตรงไฟล์ข้อมูลของรุ่น (วันนี้เขียน 229 และ 166 ย่าน ข้อมูลเป็น 242 และ 153) และเพิ่มส่วน «รอบย่านนี้»",
+    "อัปเดต handoff/*.md และ handoff/*.json: สัญญา countingUnitContract ตาม D-5 ที่อยู่เว็บจริง และรุ่น shell ตาม /release.json แล้วรัน npm run handoff:manifest",
+    "bump cache tag เดียวกันทุกจุด พร้อม package.json design-intent.json และ productVersion ตาม tests/release.test.js",
+    "ขอคำสั่งเผยแพร่จากเจ้าของ แล้วจึง merge · รอรอบ sync · รัน npm run verify:live · เดินดูหน้าเว็บจริงไทย/อังกฤษ ที่ desktop และ 393 px · เทียบไบต์ไฟล์ข้อมูลกับ repo"
+   ],
+   "acceptance": [
+    "npm test และ check:lds ผ่าน · verify:live ผ่านกับ commit ที่ /release.json รายงาน",
+    "ไฟล์ data/around.json และ data/venue-links.json บนเว็บจริงมี SHA-256 ตรงกับ repo",
+    "ตัวเลขใน PRODUCT_STATEMENT.md ทุกตัวสร้างจากไฟล์ข้อมูลของรุ่นเดียวกัน",
+    "เมนูของทุกหน้าในครอบครัวเดโมไม่เปลี่ยน (งานนี้ไม่เพิ่มหรือเปลี่ยนชื่อเดโม)"
+   ],
+   "verify": [
+    "npm test",
+    "npm run check:lds -- --lds <ไฟล์ LDS 0.9.7>",
+    "npm run handoff:manifest",
+    "npm run verify:live"
+   ],
+   "doNot": [
+    "ห้าม merge หรือเผยแพร่โดยไม่มีคำสั่งเจ้าของสำหรับชุดการเปลี่ยนนี้",
+    "ห้ามบอกว่าเสร็จจากผลในเครื่อง ต้องเห็นบนหน้าเว็บจริง",
+    "ห้ามแก้ตัวเลขในเอกสารด้วยมือ"
+   ],
+   "prompt": "ทำงาน NL-07 หลัง NL-04 ถึง NL-06 ผ่านแล้ว: ทำเอกสารและ handoff ให้ตรงข้อมูลรุ่นนี้ bump cache tag และเวอร์ชันตาม tests/release.test.js แล้วหยุดรอคำสั่งเผยแพร่จากเจ้าของ เมื่อได้คำสั่งจึง merge รัน verify:live และรายงานผลจากหน้าเว็บจริง"
+  },
+  {
+   "id": "NL-S1",
+   "phase": "PS",
+   "priority": "P0",
+   "estimateDays": 0.5,
+   "ownerDecision": [
+    "D-2",
+    "D-6"
+   ],
+   "title": {
+    "th": "บัญชีรุ่นในชีตทะเบียนย่าน: แท็บรุ่นข้อมูล แท็บคำอธิบายคอลัมน์ และแถวใน «เริ่มที่นี่»",
+    "en": "Release ledger in the neighbourhood registry sheet"
+   },
+   "problemRefs": [
+    "F-07",
+    "F-08"
+   ],
+   "dependsOn": [],
+   "surfaces": [
+    "S6"
+   ],
+   "readFirst": [
+    "sheet:ทะเบียนย่านกลาง CityMETER › เริ่มที่นี่",
+    "drive:02-CityMETER__venue-locale-insight-sheet-record-chatgpt-brief__v1__2026-11-22.md"
+   ],
+   "repoPaths": [
+    "sheet:ทะเบียนย่านกลาง CityMETER › รุ่นข้อมูลรอบย่าน (แท็บใหม่)",
+    "sheet:ทะเบียนย่านกลาง CityMETER › คำอธิบายรุ่นข้อมูลรอบย่าน (แท็บใหม่)",
+    "sheet:ทะเบียนย่านกลาง CityMETER › เริ่มที่นี่ (ต่อท้าย 1 แถว)"
+   ],
+   "steps": [
+    "รอคำสั่งเจ้าของสำหรับการเขียนครั้งนี้ และยืนยันว่ารอบคัดย่านการค้าที่เขียนชีตเมื่อคืนจบแล้ว",
+    "เขียนบรีฟคำต่อคำ (ค่าทุกช่องเป็น JSON พร้อม SHA-256) จากร่างในหัวข้อ 6 ของรายงาน หลังตรวจค่ากับเว็บจริงซ้ำในวันที่เขียน",
+    "สร้างแท็บ «รุ่นข้อมูลรอบย่าน» 19 คอลัมน์ และเขียนแถว NLR-001 · สร้างแท็บ «คำอธิบายรุ่นข้อมูลรอบย่าน» 19 แถว · ต่อท้าย «เริ่มที่นี่» 1 แถว",
+    "อ่านกลับทุกช่องจากชีตจริง ช่องวันที่ต้องเป็นค่าวันที่ และยืนยันว่าแท็บอื่นไม่เปลี่ยน"
+   ],
+   "acceptance": [
+    "อ่านกลับตรงกับบรีฟทุกช่อง · as_of และ live_checked_on เป็นค่าวันที่",
+    "ไม่มีตัวเลขรายย่านในแท็บใหม่ · ไม่มีเซลล์เดิมของแท็บใดถูกแก้ โดยเฉพาะ «ชื่อกลาง»",
+    "ไม่ใช้ Undo ไม่สร้างไฟล์ใหม่ ไม่ export"
+   ],
+   "verify": [
+    "อ่านกลับผ่าน gviz ของชีต (อ่านอย่างเดียว) แล้วเทียบกับ JSON ของบรีฟ"
+   ],
+   "doNot": [
+    "ห้ามเขียนชีตก่อนเจ้าของสั่งเป็นครั้ง ๆ",
+    "ห้ามเก็บตัวเลขรายย่านในชีต",
+    "ห้ามแตะ «ชื่อกลาง» และแท็บเดิมทุกแท็บ",
+    "ห้ามยกสถานะรุ่นให้สูงกว่าไฟล์จริง",
+    "ห้ามคัดที่อยู่หรือเซลล์ของชีตลง repo (INV-11)"
+   ],
+   "prompt": "เมื่อเจ้าของสั่ง: เขียนบรีฟคำต่อคำสำหรับผู้เขียนชีต ตามร่างในหัวข้อ 6 ของรายงาน (2 แท็บใหม่ และ 1 แถวใน «เริ่มที่นี่») ตรวจค่ากับเว็บจริงก่อน ให้เขียนแบบ USER_ENTERED แล้วอ่านกลับทุกช่อง ห้ามแตะแท็บเดิม"
+  },
+  {
+   "id": "NL-08",
+   "phase": "P2",
+   "priority": "P0",
+   "estimateDays": 4,
+   "ownerDecision": [
+    "D-9"
+   ],
+   "title": {
+    "th": "ผู้อยู่อาศัยตามทะเบียน (แบบจำลอง) ในขอบและรอบย่าน คำนวณระดับอาคาร",
+    "en": "Modelled registered residents inside and around each outline, from buildings"
+   },
+   "problemRefs": [
+    "F-01",
+    "F-12"
+   ],
+   "dependsOn": [
+    "NL-07"
+   ],
+   "surfaces": [
+    "S5"
+   ],
+   "readFirst": [
+    "drive:02-CityMETER__venue-locale-residents-in-radius-method__v1__2026-11-19.md",
+    "montri-th/shoppingcenter:DATA_METHOD.md",
+    "DATA_METHOD.md"
+   ],
+   "repoPaths": [
+    "DATA_METHOD.md",
+    "new:scripts/build-around-residents.py",
+    "new:data/around-residents.json",
+    "new:tests/around-residents.test.js",
+    "montri-th/shoppingcenter:data/residents/meta.json"
+   ],
+   "steps": [
+    "ใช้วิธี venue-locale-residents-in-radius v1 §3 variant A แบบเดียวกับศูนย์การค้า: ประชากรตามทะเบียนของแขวง/ตำบล แบ่งลงอาคารตามพื้นที่ใช้สอย แล้วรวมอาคารที่จุดกึ่งกลางอยู่ในขอบย่าน และในแนวรอบ 400 กับ 800 ม.",
+    "ไม่ใช้ตารางช่อง 250 ม. ของศูนย์การค้า ให้รวมจากอาคารโดยตรง",
+    "เขียน data/around-residents.json: meta (release · populationMonth · วิธี · จังหวัดที่มีฐานอาคาร · เกณฑ์ปิดค่า) และ rows {รหัส: {in, ring400, ring800, buildings, state}} · จังหวัดที่ยังไม่มีฐานอาคารได้สถานะ not_yet · ย่านที่มีอาคารนับได้ต่ำกว่าเกณฑ์ได้สถานะ suppressed",
+    "เก็บชุดไฟล์ของรุ่นไว้ใน Drive พร้อม manifest และ SHA-256 แล้วเพิ่มแถวในบัญชีรุ่นของชีต"
+   ],
+   "acceptance": [
+    "ผลรวมที่แบ่งลงอาคารของแต่ละแขวง/ตำบลเท่ากับประชากรตามทะเบียนของเดือนที่ใช้ (ตรวจกับฐานเดียวกับ production)",
+    "ย่านที่อยู่ในรัศมีของศูนย์การค้าตัวอย่าง 5 แห่ง ให้ค่าที่อธิบายได้เมื่อเทียบกับค่ารัศมี 1 กม. ของศูนย์นั้น",
+    "ทุกค่ามีป้าย แบบจำลอง และไม่มีคำว่า คนที่อยู่จริง คนเดิน หรือกำลังซื้อ",
+    "รุ่นมีรหัส วันที่ manifest และ SHA-256 และไม่แก้ทับรุ่นก่อน"
+   ],
+   "verify": [
+    "python3 -I scripts/build-around-residents.py … (ต้องเข้าถึงฐานอาคารและประชากรของ production)",
+    "npm test"
+   ],
+   "doNot": [
+    "ห้ามเรียกผลว่าจำนวนประชากรทางการของย่าน",
+    "ห้ามบวกค่ารอบย่านข้ามย่าน",
+    "ห้ามใส่ credential ใน repo",
+    "ห้ามเปลี่ยนป้ายแบบจำลองเป็นข้อเท็จจริง"
+   ],
+   "prompt": "ทำงาน NL-08 ด้วยวิธี variant A ของ venue-locale-residents-in-radius v1: รวมผู้อยู่อาศัยตามทะเบียนที่แบ่งลงอาคาร ในขอบและในแนวรอบ 400/800 ม. ของแต่ละย่าน เขียน data/around-residents.json พร้อมสถานะ not_yet และ suppressed ตรวจผลรวมรายตำบล และออกเป็นรุ่นที่มี manifest"
+  },
+  {
+   "id": "NL-09",
+   "phase": "P2",
+   "priority": "P1",
+   "estimateDays": 2,
+   "ownerDecision": [],
+   "title": {
+    "th": "คนทำงานในอาคารสำนักงาน (แบบจำลองเป็นช่วง) สำหรับย่านที่มีสำนักงานในทะเบียน",
+    "en": "Modelled office workers as a range, where the office register reaches"
+   },
+   "problemRefs": [
+    "F-01"
+   ],
+   "dependsOn": [
+    "NL-07"
+   ],
+   "surfaces": [
+    "S5"
+   ],
+   "readFirst": [
+    "montri-th/shoppingcenter:DATA_METHOD.md",
+    "montri-th/office:data/offices.json",
+    "DATA_METHOD.md"
+   ],
+   "repoPaths": [
+    "DATA_METHOD.md",
+    "new:scripts/build-around-workers.py",
+    "new:data/around-workers.json",
+    "new:tests/around-workers.test.js",
+    "montri-th/office:data/offices.json"
+   ],
+   "steps": [
+    "ใช้สูตรเดียวกับ «รอบศูนย์นี้» (DATA_METHOD.md ของ Shopping Center §26): พื้นที่สำนักงาน × อัตราการเช่า ÷ 10–12 ตร.ม. ต่อคน แสดงเป็นช่วง โดยอ่านพารามิเตอร์จากรุ่นที่ศูนย์การค้าใช้ ไม่พิมพ์ซ้ำ",
+    "คำนวณเฉพาะอาคารสำนักงานที่มีจุดในขอบย่าน และในแนวรอบ 400/800 ม. · ย่านในจังหวัดที่ชุดสำนักงานไม่มีรายการเป็น out_of_scope",
+    "เขียน data/around-workers.json และหัวข้อวิธีใน DATA_METHOD.md"
+   ],
+   "acceptance": [
+    "แสดงเป็นช่วงต่ำ–สูงเสมอ ไม่มีค่าเดียว",
+    "ไม่บวกกับคนงานหรือบุคลากรที่แหล่งรายงานของชุดอื่น",
+    "ครอบคลุมย่านที่มีรายการสำนักงานในขอบ (50 ย่านในข้อมูลวันนี้) ที่เหลือเป็น measured_zero หรือ out_of_scope ตามจังหวัด"
+   ],
+   "verify": [
+    "python3 -I scripts/build-around-workers.py …",
+    "npm test"
+   ],
+   "doNot": [
+    "ห้ามเรียกผลว่าการจ้างงานหรือจำนวนพนักงานที่นับได้",
+    "ห้ามใช้อัตราตลาดกรุงเทพฯ กับจังหวัดอื่นโดยไม่บอก"
+   ],
+   "prompt": "ทำงาน NL-09: คำนวณคนทำงานในอาคารสำนักงานเป็นช่วง ด้วยสูตรและพารามิเตอร์ของ Shopping Center §26 สำหรับอาคารในขอบและรอบย่านของแต่ละย่าน เขียน data/around-workers.json และวิธีใน DATA_METHOD.md"
+  },
+  {
+   "id": "NL-10",
+   "phase": "P2",
+   "priority": "P2",
+   "estimateDays": 2,
+   "ownerDecision": [],
+   "title": {
+    "th": "พื้นที่ปกครองที่ย่านคร่อม: เขต/อำเภอ แขวง/ตำบล และ อปท.",
+    "en": "The administrative areas an outline lies across"
+   },
+   "problemRefs": [
+    "F-01"
+   ],
+   "dependsOn": [
+    "NL-07"
+   ],
+   "surfaces": [
+    "S5",
+    "S1"
+   ],
+   "readFirst": [
+    "DATA_METHOD.md",
+    "js/breadcrumb.js",
+    "montri-th/shoppingcenter:DATA_METHOD.md"
+   ],
+   "repoPaths": [
+    "scripts/build-data.py",
+    "DATA_METHOD.md",
+    "js/panel.js",
+    "js/lang-en.js",
+    "new:data/around-admin.json",
+    "new:tests/around-admin.test.js"
+   ],
+   "steps": [
+    "ตัดขอบย่านกับขอบเขตปกครองของ CityMETER production แล้วเก็บรายชื่อหน่วยที่ย่านคร่อมพร้อมสัดส่วนพื้นที่ของย่านในแต่ละหน่วย",
+    "แสดงในส่วนข้อมูลทะเบียนย่านเป็นรายการ พร้อมลิงก์ไปหน้า production ของหน่วยนั้น และคงคำว่าขอบย่านเป็นฉบับร่าง ไม่ใช่เขตปกครอง"
+   ],
+   "acceptance": [
+    "สัดส่วนพื้นที่ของหน่วยที่ย่านคร่อมรวมกันเป็น 100% (คลาดได้ไม่เกิน 0.5%)",
+    "ไม่แสดงค่าของหน่วยปกครองเป็นค่าของย่าน"
+   ],
+   "verify": [
+    "python3 -I scripts/build-data.py …",
+    "npm test"
+   ],
+   "doNot": [
+    "ห้ามเรียกขอบย่านว่าขอบเขตตามกฎหมายหรือเขตปกครอง (INV-08)",
+    "ห้ามเฉลี่ยค่าของหน่วยปกครองมาเป็นค่าของย่าน"
+   ],
+   "prompt": "ทำงาน NL-10: หาหน่วยปกครองที่ขอบย่านคร่อมพร้อมสัดส่วนพื้นที่ เขียน data/around-admin.json และแสดงเป็นรายการในส่วนข้อมูลทะเบียนย่าน"
+  },
+  {
+   "id": "NL-11",
+   "phase": "P2",
+   "priority": "P0",
+   "estimateDays": 2,
+   "ownerDecision": [
+    "D-9"
+   ],
+   "title": {
+    "th": "แสดงชั้นแบบจำลองในแถว 4 ช่อง ตาราง แถบเปรียบเทียบ และตารางทุกย่าน",
+    "en": "Show the modelled layers in the four tiles, the surroundings table, the compare tray and the table of all neighbourhoods"
+   },
+   "problemRefs": [
+    "F-01",
+    "F-11"
+   ],
+   "dependsOn": [
+    "NL-08",
+    "NL-09"
+   ],
+   "surfaces": [
+    "S1",
+    "S3",
+    "S4"
+   ],
+   "readFirst": [
+    "js/panel.js",
+    "js/profile.js",
+    "new:handoff/around/contracts.json"
+   ],
+   "repoPaths": [
+    "js/model.js",
+    "js/profile.js",
+    "js/panel.js",
+    "js/app.js",
+    "js/scales.js",
+    "js/lang-en.js",
+    "styles.css",
+    "tests/views.test.js"
+   ],
+   "steps": [
+    "ช่อง «คนอยู่» ของแถว 4 ช่องอ่าน data/around-residents.json · เพิ่มแถวคนทำงานในอาคารสำนักงานเป็นช่วง",
+    "ทุกค่าของชั้นแบบจำลองมีคำว่า แบบจำลอง ในชื่อแถว และบรรทัดที่มาของส่วนระบุรุ่น เดือนประชากร และวิธี",
+    "แถบเปรียบเทียบและตารางทุกย่านเพิ่มแถว/คอลัมน์ของชั้นใหม่ ใช้สเกล count และ density.area ของ LDS ครบ 41 ระดับ",
+    "ครบหกสถานะของ EVID-05 เป็นคำ ลาย และเส้นขอบ ไม่ใช้สีอย่างเดียว"
+   ],
+   "acceptance": [
+    "ย่านในจังหวัดที่ยังไม่มีฐานอาคารแสดง ยังไม่ถึงรอบข้อมูล พร้อมบอกว่ารอรุ่นใด ไม่แสดง 0",
+    "check:lds ไม่มีค่าที่ไม่ตรง และสีข้อมูลเหมือนกันทั้งพื้นสว่างและมืด",
+    "ไทย/อังกฤษ ที่ desktop และ 393 px ผ่านการเดินดู"
+   ],
+   "verify": [
+    "npm test",
+    "npm run check:lds -- --lds <ไฟล์ LDS 0.9.7>"
+   ],
+   "doNot": [
+    "ห้ามแสดงค่าแบบจำลองโดยไม่มีป้าย",
+    "ห้ามใช้สูตรสีพื้นมืดหรือ opacity กับสีข้อมูล",
+    "ห้ามเดาค่าสี ให้อ่านจากไฟล์ LDS ที่ตรวจ hash แล้ว"
+   ],
+   "prompt": "ทำงาน NL-11: นำ data/around-residents.json และ data/around-workers.json ขึ้นแถว 4 ช่อง ตาราง «รอบย่านนี้» แถบเปรียบเทียบ และตารางทุกย่าน พร้อมป้ายแบบจำลองและหกสถานะของ EVID-05"
+  },
+  {
+   "id": "NL-12",
+   "phase": "P3",
+   "priority": "P0",
+   "estimateDays": 2,
+   "ownerDecision": [],
+   "title": {
+    "th": "ทดสอบกับผู้อ่าน 5 คน ก่อนเพิ่มชั้นสมมติฐาน",
+    "en": "Test with five readers before adding the hypothesis layer"
+   },
+   "problemRefs": [
+    "F-02",
+    "F-10"
+   ],
+   "dependsOn": [
+    "NL-11"
+   ],
+   "surfaces": [
+    "S1"
+   ],
+   "readFirst": [
+    "PRODUCT_STATEMENT.md",
+    "new:handoff/around/contracts.json"
+   ],
+   "repoPaths": [
+    "PRODUCT_STATEMENT.md",
+    "new:handoff/around/user-test.md"
+   ],
+   "steps": [
+    "เขียนแบบทดสอบ 4 ข้อจากสมมติฐาน H1–H4 ของหัวข้อ 7 ในรายงาน และเกณฑ์ผ่านก่อนเริ่ม",
+    "ให้ผู้อ่าน 5 คนจากกลุ่มผู้ใช้ของ PRODUCT_STATEMENT.md เปิดย่าน 3 แบบ (หนาแน่น · บาง · ย่านที่พัก) บนเว็บจริง แล้วบันทึกคำตอบคำต่อคำ",
+    "บันทึกผลใน handoff/around/user-test.md: ผ่าน/ไม่ผ่านรายข้อ สิ่งที่ผู้อ่านเข้าใจผิด และข้อเสนอแก้"
+   ],
+   "acceptance": [
+    "มีผลครบ 5 คน และเกณฑ์เขียนไว้ก่อนวันทดสอบ",
+    "ไม่นับผู้ทดสอบเป็นผู้ใช้ภายนอกหรือ traction"
+   ],
+   "verify": [
+    "อ่าน handoff/around/user-test.md เทียบกับเกณฑ์"
+   ],
+   "doNot": [
+    "ห้ามเปลี่ยนเกณฑ์หลังเห็นผล",
+    "ห้ามใส่ชื่อหรือข้อมูลที่ระบุตัวผู้ทดสอบ"
+   ],
+   "prompt": "เตรียมแบบทดสอบของงาน NL-12 จากสมมติฐาน H1–H4 และเกณฑ์ผ่าน เขียนเป็น handoff/around/user-test.md (ส่วนผลเว้นไว้) แล้วหยุดรอเจ้าของนัดผู้อ่าน"
+  },
+  {
+   "id": "NL-13",
+   "phase": "P3",
+   "priority": "P1",
+   "estimateDays": 3,
+   "ownerDecision": [
+    "D-7"
+   ],
+   "title": {
+    "th": "บทบาทที่หลักฐานชี้: ต่อยอด 8 บทบาทด้วยหลักฐานจากชั้นใหม่ และสิ่งที่ควรไปดู",
+    "en": "Roles the evidence points to, with one thing to check on site"
+   },
+   "problemRefs": [
+    "F-01",
+    "F-02"
+   ],
+   "dependsOn": [
+    "NL-12"
+   ],
+   "surfaces": [
+    "S1",
+    "S5"
+   ],
+   "readFirst": [
+    "scripts/build-data.py",
+    "js/profile.js",
+    "js/panel.js",
+    "DATA_METHOD.md"
+   ],
+   "repoPaths": [
+    "scripts/build-data.py",
+    "js/profile.js",
+    "js/panel.js",
+    "js/lang-en.js",
+    "DATA_METHOD.md",
+    "tests/views.test.js"
+   ],
+   "steps": [
+    "ขยายตาราง ROLES ใน scripts/build-data.py ให้แต่ละบทบาทชี้หลักฐานจากชั้นใหม่ได้ (ห้องพัก นักเรียน ผู้อยู่อาศัยแบบจำลอง คนทำงานแบบจำลอง) ด้วยกติกาที่เขียนไว้ใน DATA_METHOD.md §6",
+    "ในส่วนจุดเด่นที่สัมพันธ์กัน แต่ละบทบาทแสดงสามอย่าง: คำถามหนึ่งข้อ หลักฐานหนึ่งบรรทัดพร้อมชนิดหลักฐาน และสิ่งที่ควรไปดูในพื้นที่หนึ่งอย่าง",
+    "ไม่มีตารางเวลา 7 × 24 ไม่มีรายชื่อรูปแบบร้าน และไม่มีคำว่ากำลังซื้อ"
+   ],
+   "acceptance": [
+    "ทุกข้อสรุปของบทบาทชี้กลับไปยังแถวหลักฐานที่มีรุ่นและวันที่",
+    "ป้ายของข้อสรุปเป็น สมมติฐาน ทุกข้อ",
+    "บทบาทที่ไม่มีชุดข้อมูลในจังหวัดบอกว่า นอกขอบเขตข้อมูล ไม่ใช่ ไม่มีบทบาท"
+   ],
+   "verify": [
+    "python3 -I scripts/build-data.py …",
+    "npm test"
+   ],
+   "doNot": [
+    "ห้ามใช้ตัวปรับของศูนย์การค้าหรือค่าเทียบของ Master Locale กับย่าน",
+    "ห้ามเขียนข้อสรุปเป็นข้อเท็จจริง",
+    "ห้ามสรุปรายได้ กำลังซื้อ หรือพฤติกรรมจากจำนวนสถานที่"
+   ],
+   "prompt": "ทำงาน NL-13 ตามคำตัดสิน D-7: ให้บทบาทย่าน 8 บทบาทชี้หลักฐานจากชั้นใหม่ด้วยกติกาที่เปิดอ่านได้ และแสดงเป็น คำถาม · หลักฐาน · สิ่งที่ควรไปดู ทุกข้อติดป้ายสมมติฐาน"
+  },
+  {
+   "id": "NL-14",
+   "phase": "P3",
+   "priority": "P2",
+   "estimateDays": 1,
+   "ownerDecision": [],
+   "title": {
+    "th": "คำขอนำเข้า Yolk สำหรับย่าน: ค่าในขอบและรอบย่านพร้อมป้าย",
+    "en": "Yolk import request for neighbourhoods"
+   },
+   "problemRefs": [
+    "F-10"
+   ],
+   "dependsOn": [
+    "NL-11"
+   ],
+   "surfaces": [
+    "S8"
+   ],
+   "readFirst": [
+    "drive:02-CityMETER__yolk-mcp-venue-locale-import-change-request__v1__2026-11-22.md",
+    "new:handoff/around/contracts.json"
+   ],
+   "repoPaths": [
+    "new:handoff/around/yolk-import-request.md"
+   ],
+   "steps": [
+    "เขียนคำขอเปลี่ยนแปลงถึงผู้ดูแล Yolk ตามแบบของชุดนำเข้า venue locale: รหัสย่านเป็นคีย์ ค่าในขอบและรอบย่านพร้อมชนิดหลักฐาน สถานะค่า รุ่น และวันที่",
+    "ระบุความต่างจากคำตอบของ Yolk วันนี้ ซึ่งใช้จุดอ้างอิงของย่านเป็นศูนย์กลางรัศมีเส้นตรง"
+   ],
+   "acceptance": [
+    "คำขอไม่มีตัวเลขที่ไม่มีรุ่นกำกับ",
+    "ระบุว่าค่ารอบย่านของสองย่านที่ติดกันนับรายการชุดเดียวกันได้ จึงห้ามบวกข้ามย่าน"
+   ],
+   "verify": [
+    "ผู้ดูแล Yolk อ่านและตอบรับหรือขอแก้"
+   ],
+   "doNot": [
+    "ห้ามแก้ระบบ Yolk จากงานนี้",
+    "ห้ามใส่ credential"
+   ],
+   "prompt": "เขียน handoff/around/yolk-import-request.md ตามงาน NL-14 โดยใช้โครงของคำขอนำเข้า venue locale ฉบับ 22 พ.ย. 2569 เป็นแบบ"
+  }
+ ],
+ "aiContext": {
+  "oneLine": "«รอบย่านนี้» เพิ่มแถว 4 ช่อง “ในย่านนี้” (คนอยู่ · นักเรียน · ห้องพัก · ศูนย์และตลาด) และตารางในย่าน–รอบย่าน 400/800 ม. ของทุกชุดข้อมูล ให้แผงย่านของ Commercial District โดยทุกตัวเลขมาจากชุดข้อมูลเดียว มีรุ่น และมีป้ายชนิดหลักฐาน",
+  "mustAlways": [
+   "เริ่มจากคำถามของผู้ใช้: ย่านนี้มีใคร และรอบ ๆ มีอะไร",
+   "บอกชุดข้อมูล แหล่ง วันที่ และขอบเขตของทุกตัวเลข",
+   "อ่านค่าที่วัดได้ ก่อนอันดับ ก่อนการตีความ",
+   "แสดงสถานะค่าเป็นคำตาม EVID-05",
+   "ผูกย่านและศูนย์การค้าด้วยรหัสเท่านั้น",
+   "ออกข้อมูลเป็นรุ่นที่ระบุรุ่นที่แทน และลงบัญชีรุ่น"
+  ],
+  "mustNever": [
+   "บวกจำนวนข้ามชุดข้อมูล หรือบวกค่ารอบย่านข้ามย่าน",
+   "เรียกจำนวนว่าคนเดิน ยอดขาย รายได้ ความต้องการ กำลังซื้อ หรือส่วนแบ่งตลาด",
+   "เรียกขอบย่านว่าเขตปกครองหรือขอบเขตตามกฎหมาย",
+   "แสดงค่าที่ไม่มีข้อมูลเป็น 0",
+   "ยกแบบจำลองเป็นค่าที่สังเกต หรือยกแผนเป็นของที่มีแล้ว",
+   "ใช้ค่าเทียบของ Master Locale หรือของศูนย์การค้ากับย่าน",
+   "เขียนชีตทะเบียนย่านหรือเผยแพร่เว็บโดยไม่มีคำสั่งเจ้าของ",
+   "นำที่อยู่หรือเซลล์ของชีตทะเบียนย่านเข้า repo"
+  ],
+  "designSystem": {
+   "id": "lds-0.9.7-landometer-standalone-r1",
+   "release": "v0.9.7-owner.1",
+   "colorSet": "color-srgb-10",
+   "sha256": "d3085cbc0a50195f1cbf0c77b1d77c0d19b84364daf2948eb367348d65432d96",
+   "families": [
+    "count",
+    "density.area"
+   ],
+   "rules": [
+    "EVIDENCE-01",
+    "EVID-05",
+    "DATAVIZ-01",
+    "DATAVIZ-02",
+    "DATAVIZ-03",
+    "DATAVIZ-05",
+    "MAP-01",
+    "LAYOUT-01"
+   ]
+  }
+ }
+}
