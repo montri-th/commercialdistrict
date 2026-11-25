@@ -371,13 +371,45 @@ def utm_area(geom):
     return transform(Transformer.from_crs(4326, zone, always_xy=True).transform, geom).area
 
 
+# The registry's tabs were renamed on 2026-11-25 to the layout of the other research sheets of the Dataset
+# Registry (its 00_README holds the table of contents, old name beside new; the gids did not change). The build
+# reads a tab by its new name or by its old one, never both, so an export from before the rename still builds.
+REGISTRY_TABS = {'ชื่อกลาง': '01_NEIGHBOURHOODS', 'หลักฐานบทบาท': '08_ROLE_EVIDENCE', 'ย่านที่พัก 268': '19_LODGING_SCREEN'}
+REGISTRY_TABS_RENAMED_ON = '2026-11-25'
+REGISTRY_TAB_READ = {}  # old name -> the tab name this export has (recorded in the data's provenance)
+
+
+# The columns the build reads by position, checked against their header (the registry's own column names, read from
+# the sheet on 2026-11-25): a moved or renamed column stops the build instead of being read as another field.
+REGISTRY_COLUMNS = {
+    'ชื่อกลาง': {1: 'ชื่อย่านกลาง', 9: 'รหัสย่านใช้งานปัจจุบัน', 10: 'ชื่อย่านใช้งานปัจจุบัน', 11: 'สถานะรหัสเดิม'},
+    'หลักฐานบทบาท': {0: 'รหัสย่านกลาง', 3: 'บทบาทย่าน', 4: 'สถานะ'},
+}
+
+
+def registry_tab_on(old, on):
+    """The registry tab's name on a date (ISO YYYY-MM-DD, checked): the old name before the rename, the new one from
+    that day."""
+    return REGISTRY_TABS[old] if date.fromisoformat(on) >= date.fromisoformat(REGISTRY_TABS_RENAMED_ON) else old
+
+
 def registry_tables(xlsx):
     wb = openpyxl.load_workbook(xlsx, read_only=True, data_only=True)
     def rows(name):
-        ws = wb[name]
+        new = REGISTRY_TABS.get(name)
+        found = [n for n in (new, name) if n and n in wb.sheetnames]
+        if len(found) != 1:
+            renamed = f' (renamed {new!r} on {REGISTRY_TABS_RENAMED_ON})' if new else ''
+            sys.exit(f'registry export: tab {name!r}{renamed}: found {found or "neither"}')
+        REGISTRY_TAB_READ[name] = found[0]
+        ws = wb[found[0]]
         out = [['' if v is None else v for v in r] for r in ws.iter_rows(values_only=True)]
         width = max(len(r) for r in out)
         out = [r + [''] * (width - len(r)) for r in out]
+        for i, want in REGISTRY_COLUMNS.get(name, {}).items():
+            got = str(out[0][i]).strip() if i < len(out[0]) else ''
+            if got != want:
+                sys.exit(f'registry export: tab {found[0]!r} column {i + 1} is headed {got!r}; the build reads it as {want!r}')
         return out[0], out[1:]
     return rows
 
@@ -575,7 +607,7 @@ def main():
                     sys.exit(f"{am['id']}: the amendment overlaps the lodging draft {f['properties']['canonical_id']}")
         lod_meta = {
             'title': 'ผลคัดย่านที่พัก', 'titleEn': 'Lodging neighbourhood screen',
-            'source': 'ทะเบียนย่านกลาง CityMETER: แท็บ «ย่านที่พัก 268» และ lodging-held78-recovery-2026-11-18/decision-ledger.json ของ ZIP',
+            'source': f'ทะเบียนย่านกลาง CityMETER: แท็บ «{REGISTRY_TAB_READ.get("ย่านที่พัก 268", "ย่านที่พัก 268")}» และ lodging-held78-recovery-2026-11-18/decision-ledger.json ของ ZIP',
             'revision': json.load(open(os.path.join(a.lodging, 'implementation-contract.json'), encoding='utf-8')).get('revision', ''),
             'readOn': a.read_on, 'sourceRecords': 30730, 'proposals': len(ledger),
             'supported': sum(1 for g in ledger if not g['status'].startswith('H_')), 'held': sum(1 for g in ledger if g['status'].startswith('H_')),
@@ -792,7 +824,7 @@ def main():
                        check=True, capture_output=True)
         display = json.load(open(dst, encoding='utf-8'))
     display['metadata'] = {
-        'source': 'CityMETER central neighbourhood registry — national-gis/canonical-boundaries.geojson of the owner bundle; kind=lodging: review drafts of its lodging screen (boundaries/current-all268-review-drafts.geojson); the registry admitted these areas as central codes on ' + a.admitted_on + ' (tab ชื่อกลาง), the outlines stay drafts' if admit else 'CityMETER central neighbourhood registry — national-gis/canonical-boundaries.geojson of the owner bundle; kind=lodging: review drafts of its lodging screen (boundaries/current-all268-review-drafts.geojson), not admitted by the registry',
+        'source': 'CityMETER central neighbourhood registry — national-gis/canonical-boundaries.geojson of the owner bundle; kind=lodging: review drafts of its lodging screen (boundaries/current-all268-review-drafts.geojson); the registry admitted these areas as central codes on ' + a.admitted_on + ' (tab ' + registry_tab_on('ชื่อกลาง', a.admitted_on) + '), the outlines stay drafts' if admit else 'CityMETER central neighbourhood registry — national-gis/canonical-boundaries.geojson of the owner bundle; kind=lodging: review drafts of its lodging screen (boundaries/current-all268-review-drafts.geojson), not admitted by the registry',
         'features': len(display['features']),
         **({'amended': {'ids': [x['id'] for x in amendments], 'note': "owner's amendments of outlines (amendments/outline-amendments.geojson): drawn by the registry's rules (0.2.4) or redrawn by the owner's rule from the basemap (0.3.0, `rule`); every count uses them"}} if amendments else {}),
         'simplification': 'mapshaper -simplify interval=1.5 keep-shapes (display only; shared edges kept); every count uses the delivered outline',
@@ -874,7 +906,7 @@ def main():
         'registry': {'title': 'ทะเบียนย่านกลาง CityMETER', 'kind': 'Google Sheet (internal)', 'readOn': a.read_on,
                      'exportSha256': sha256_file(a.registry),
                      # (0.2.1) the rows added after that export, read back from the sheet and checked by SHA-256
-                     'admitted': {'on': a.admitted_on, 'tab': 'ชื่อกลาง', 'codes': len(admit), 'rowsSha256': admitted_sha} if admit else None},
+                     'admitted': {'on': a.admitted_on, 'tab': registry_tab_on('ชื่อกลาง', a.admitted_on), 'codes': len(admit), 'rowsSha256': admitted_sha} if admit else None},
         'bundle': {'title': 'CityMETER • ทะเบียนย่าน ขอบเขต และหลักฐานล่าสุด.zip', 'sha256': sha256_file(a.bundle_zip) if a.bundle_zip else '',
                    'boundaries': 'national-gis/canonical-boundaries.geojson', 'boundariesSha256': sha256_file(canon_path),
                    'revision': {k: revision.get(k) for k in ('policy_version', 'canonical_codes', 'closed_neighbourhoods', 'pending_without_closed_geometry', 'collection_codes')}

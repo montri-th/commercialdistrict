@@ -168,11 +168,13 @@
   "inside_counts",
   "around_counts",
   "venue_links",
+  "glance_levels",
   "registered_residents",
   "office_workers",
   "admin_areas",
   "role_evidence"
  ],
+ "layersNote": "glance_levels («ในย่านนี้», release 0.4.0) was added on 2026-11-25; the accepted plan (plan.json, byte for byte) lists the other 7. Ledger ids in the registry's 12_LAYER_RELEASES follow the order of release (Claude's choice when writing the ledger brief; the owner may change it), so NLR-004 is glance_levels and registered_residents would take the next free id when it is released.",
  "invariants": {
   "source": "handoff/product-brief.json invariants (unchanged in 0.4.0; tests/around.test.js holds them equal)",
   "items": [
