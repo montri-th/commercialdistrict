@@ -25,7 +25,7 @@ import {decodeAround, aroundDistance, aroundMatches} from './around.js';
 import {renderOverview, renderNeighborhood, renderCompare, renderFilterChips, tableHeadHTML, tableRowHTML, esc, L, dens, sharePct, thaiDate} from './panel.js';
 import {loadMapLibrary} from './shell/vendors.js';
 import {installAreaLabels, installRecordLabels} from './map-layers.js';
-import {installNeighborhoodLayers, pinCollection, poiCollection, pinScale, framePoints, OUTLINE_MIN_ZOOM, POI_MIN_ZOOM, PIN_CHOSEN, FIT_MAX_ZOOM} from './layers.js';
+import {installNeighborhoodLayers, pinCollection, poiCollection, pinScale, framePoints, OUTLINE_MIN_ZOOM, POI_MIN_ZOOM, PIN, PIN_CHOSEN, FIT_MAX_ZOOM} from './layers.js';
 import {CONDO, ALL, resolveChosen, decodeRecords, condoDataset, decodeCondo, cellsIn, growBox, spotsOf, seriesOfDs, barSets, barHTML, labelItems, tipHTML, detailHTML, listHTML, panelListHTML, recordName} from './records.js';
 import {provinceLocator} from './provinces.js';
 import {buildMapStyle, basemapPalette, TILEJSON_URL, MASSING_BEFORE} from './shell/map-style.js';
@@ -67,7 +67,7 @@ const state = {
   rows: [], pending: [], overview: null, ramp: null, fills: new Map(),
   // kind of neighbourhood shown (0.2.0, `f.kind`): '' every one · registry · lodging · added (js/model.js KINDS)
   kind: '',
-  // «รอบย่านนี้» (0.4.0, `f.around`): data/around.json decoded (null until it arrives or if it did not), the reading
+  // «ขอบเดินถึง» (0.4.0, `f.around`): data/around.json decoded (null until it arrives or if it did not), the reading
   // (in · 400 · 800: the column the table stresses and the line the map draws) and the lines, one file per neighbourhood
   around: null, distance: 'in', rings: new Map(), ringsLoading: new Set(), frameOnRing: '',
   map: null, loaded: false, mapTheme: '', initialCameraDone: false, tileTemplate: '', budget: null,
@@ -88,7 +88,7 @@ function saveURL() {
   if (state.kind) p.set('kind', state.kind);
   if (state.nb) p.set('neighborhood', state.nb);
   if (state.focus) p.set('show', state.focus);
-  // the reading of «รอบย่านนี้» belongs to an open neighbourhood; inside (the default) is never written
+  // the reading of «ขอบเดินถึง» belongs to an open neighbourhood; inside (the default) is never written
   if (state.nb && state.distance !== 'in') p.set('around', state.distance);
   if (state.lens) p.set('metric', state.lens);
   if (state.compare.length) p.set('compare', state.compare.join(','));
@@ -297,7 +297,7 @@ function goBack() {
 }
 
 /**
- * The reading of «รอบย่านนี้» (0.4.0, NL-05): inside, or within 400 m or 800 m around. The table stresses that column,
+ * The reading of «ขอบเดินถึง» (0.4.0, NL-05): inside, or within 400 m or 800 m around. The table stresses that column,
  * the map draws the line at that distance and frames it whole; inside draws no line and frames the outline.
  */
 function setDistance(value) {
@@ -309,7 +309,7 @@ function setDistance(value) {
   document.querySelector(`#panel-view [data-action="set-around"][data-value="${next}"]`)?.focus({preventScroll: true});
   // one camera move: fitNb frames now when the line is known (or inside), else once it arrives (ensureRing)
   if (state.nb) { const r = openRow(); ensureRing(r); if (state.loaded) fitNb(r); }
-  announce(next === 'in' ? L('ในย่าน', 'Inside') : L(`รอบย่าน ${num(+next)} ม. · เส้นตรงจากขอบ`, `Within ${num(+next)} m around · straight line from the edge`));
+  announce(next === 'in' ? L('ในย่าน', 'Inside') : L(`ขอบเดินถึง ${num(+next)} ม. · เส้นตรงจากขอบย่าน ไม่ใช่ระยะเดินจริง`, `Walkable edge ${num(+next)} m · a straight line from the outline, not a walking route`));
 }
 
 /** A glance tile goes to its dataset's row of the table and moves the focus there (the row's own button). */
@@ -416,14 +416,14 @@ function renderLegend() {
     : L('สีและรูปทรง = หมวดของจุดเด่นแรกของย่าน (Land · Location · Living)', 'Colour and shape = pillar of the neighbourhood’s first highlight (Land · Location · Living)');
   const poiItem = $('legend-poi');
   if (poiItem) poiItem.hidden = !state.nb;
-  // (0.4.0) the line of «รอบย่านนี้», named by its distance, drawn in the key as on the map
+  // (0.4.0) the line of «ขอบเดินถึง», named by its distance, drawn in the key as on the map
   const aroundItem = $('legend-around');
   if (aroundItem) {
     const on = Boolean(ringGeometry());
     aroundItem.hidden = !on;
     if (on) {
-      $('legend-around-label').textContent = L(`แนวรอบย่าน ${num(+state.distance)} ม.`, `${num(+state.distance)} m around the outline`);
-      aroundItem.title = L(`เส้นตรงจากขอบย่าน ${num(+state.distance)} ม. · ตัวเลขรอบย่านอยู่ในตาราง «รอบย่านนี้» ของแผงข้อมูล`, `Straight line ${num(+state.distance)} m from the outline's edge · the figures around are in the panel's table “Around this neighbourhood”`);
+      $('legend-around-label').textContent = L(`แนวขอบเดินถึง ${num(+state.distance)} ม.`, `Walkable edge ${num(+state.distance)} m`);
+      aroundItem.title = L(`เส้นตรงจากขอบย่าน ${num(+state.distance)} ม. ไม่ใช่ระยะเดินจริง · ตัวเลขอยู่ในตาราง «ขอบเดินถึง» ของแผงข้อมูล`, `Straight line ${num(+state.distance)} m from the outline's edge, not a walking route · the figures are in the panel's table “The walkable edge”`);
     }
   }
   const railItem = $('legend-rail'), rail = state.railData?.meta;
@@ -588,7 +588,7 @@ function fitNb(r, {instant = false} = {}) {
   // outline first and the line after — opening a neighbourhood, the switch and back/forward all come this way
   if (r.id === state.nb && state.distance !== 'in' && !state.rings.has(r.id)) { state.frameOnRing = r.id; ensureRing(r); return; }
   const [w, s, e, n] = r.bbox;
-  // (0.4.0) with a distance of «รอบย่านนี้» chosen, the line at that distance is framed whole (NL-05)
+  // (0.4.0) with a distance of «ขอบเดินถึง» chosen, the line at that distance is framed whole (NL-05)
   const ring = r.id === state.nb ? ringGeometry() : null;
   const geometry = ring || state.outlineById?.get(r.id)?.geometry || {type: 'Polygon', coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]]};
   const points = framePoints(geometry, ring ? {margin: 0.04} : {});
@@ -847,11 +847,11 @@ function refreshCondo() {
   });
 }
 
-/** The chosen set's names beside its pins (the records' or the condominium points'). */
+/** Names beside pins: the chosen set's (the records' or the condominium points'), or in the all view the venues' (0.4.1). */
 function updateRecordLabels() {
   const chosen = chosenSet();
   state.recordLabels?.update(chosen === CONDO ? labelItems(state.condoSpots, CONDO).map(x => ({...x, id: `c${x.id}`}))
-    : chosen ? labelItems(state.spots, chosen) : []);
+    : labelItems(state.spots, chosen));
 }
 
 /** The dataset bar on the map: “ทั้งหมด” and the sets of the open neighbourhood (owner 2026-11-16 “เลือกดูทีละชุด”). */
@@ -1084,7 +1084,7 @@ function initMap() {
     state.recordLabels = installRecordLabels(state.map, $('map'), {onSelect: id => {
       const spot = typeof id === 'string' && id.startsWith('c') ? state.condoSpots[+id.slice(1)] : state.spots[id];
       if (spot) openPoiCard([spot]);
-    }, reservedBottom: labelBottomSpace, avoid: '#nb-labels .area-label:not([hidden])', pinRadius: () => (PIN_CHOSEN * pinScale(state.map?.getZoom() || 15)) / 2 + 1});
+    }, reservedBottom: labelBottomSpace, avoid: '#nb-labels .area-label:not([hidden])', pinRadius: () => ((chosenSet() ? PIN_CHOSEN : PIN) * pinScale(state.map?.getZoom() || 15)) / 2 + 1});
     state.map.on('moveend', scheduleLabelView);
     state.map.on('moveend', followCamera);
     state.map.on('moveend', () => { if (state.nb && chosenSet() === CONDO) refreshCondo(); });
@@ -1359,8 +1359,8 @@ const PARTIAL = {
   'units': ['รูปอาคารของ CityMETER', 'อาคารบางจังหวัดแสดงจากแผนที่ฐานแทนชุดอาคารของ CityMETER', 'CityMETER building shapes', 'Buildings in some provinces come from the basemap instead of the CityMETER set'],
   'basemap': ['แผนที่ฐาน', 'ถนน แหล่งน้ำ และอาคารพื้นหลังอาจไม่แสดง ข้อมูลในแผงและตารางยังใช้ได้', 'Basemap', 'Roads, water and background buildings may be missing; the panel and the table still work'],
   'rail': ['ระบบราง', 'แผนที่ไม่แสดงแนวรถไฟฟ้าและสถานี ตัวเลขในแผงยังครบ', 'Rail', 'The map shows no rail lines or stations; the panel figures are complete'],
-  'around': ['ตัวเลขรอบย่าน', 'แผงแสดงเฉพาะตัวเลขในย่าน ยังไม่มีตัวเลขรอบย่านและระดับเทียบ', 'Figures around the neighbourhood', 'The panel shows the figures inside only, without those around or the levels'],
-  'rings': ['แนวรอบย่าน', 'แผนที่ไม่แสดงเส้นรอบย่าน ตัวเลขในแผงยังครบ', 'The line around the neighbourhood', 'The map does not draw the line around; the panel figures are complete'],
+  'around': ['ตัวเลขขอบเดินถึง', 'แผงแสดงเฉพาะตัวเลขในย่าน ยังไม่มีตัวเลขขอบเดินถึงและระดับเทียบ', 'Walkable-edge figures', 'The panel shows the figures inside only, without the walkable edge or the levels'],
+  'rings': ['แนวขอบเดินถึง', 'แผนที่ไม่แสดงแนวขอบเดินถึง ตัวเลขในแผงยังครบ', 'The walkable-edge line', 'The map does not draw the walkable-edge line; the panel figures are complete'],
 };
 function partial(key) {
   const words = PARTIAL[key];
@@ -1375,7 +1375,7 @@ async function init() {
       fetchJSON(`data/neighborhoods.json${v}`, {timeout: 30000}),
       fetchJSON(`data/provinces.geojson${v}`, {timeout: 30000}).catch(e => { partial('data/provinces.geojson'); console.warn('Province frames unavailable', e); return null; }),
       fetchJSON(`data/boundaries.geojson${v}`, {timeout: 30000}).catch(e => { partial('data/boundaries.geojson'); console.warn('Outlines unavailable', e); return null; }),
-      // (0.4.0) «รอบย่านนี้»: without it the panel keeps the figures inside and says the rest did not load
+      // (0.4.0) «ขอบเดินถึง»: without it the panel keeps the figures inside and says the rest did not load
       fetchJSON(`data/around.json${v}`, {timeout: 30000}).catch(e => { partial('around'); console.warn('Surroundings unavailable', e); return null; }),
     ]);
     try { state.around = aroundJSON ? decodeAround(aroundJSON) : null; } catch (e) { partial('around'); console.warn('Surroundings invalid', e); state.around = null; }

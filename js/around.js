@@ -1,5 +1,5 @@
 /**
- * CityMETER · Commercial District — «รอบย่านนี้» and the glance «ในย่านนี้» (0.4.0; pure: no DOM, no map).
+ * CityMETER · Commercial District — «ขอบเดินถึง» and the glance «ในย่านนี้» (0.4.0; pure: no DOM, no map).
  *
  * Owner 2026-11-25 08:15, VERBATIM: “พี่ช่วยปรับ web demo ตามที่แนะนำเลยครับ” — the recommended options D-1 … D-9 of the
  * proposal in handoff/around/ (plan.json, contracts.json).
@@ -77,7 +77,7 @@ export function glanceTiles(row, model, around) {
 }
 
 /**
- * Every dataset of a neighbourhood by pillar, for the table of «รอบย่านนี้»: its inside cell (js/model.js#cell), its
+ * Every dataset of a neighbourhood by pillar, for the table of «ขอบเดินถึง»: its inside cell (js/model.js#cell), its
  * figures around ([r400, r800]; null out of scope; undefined while the file loads or when it did not load) and the star.
  */
 export function aroundGroups(row, model, around) {

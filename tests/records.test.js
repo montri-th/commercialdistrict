@@ -107,10 +107,12 @@ test('a neighbourhood opens on its first highlight (0.1.4); the reader’s pick,
   assert.equal(resolveChosen('', {records: [], highlights}), '');
 });
 
-test('names go beside the chosen set only; a pile says so in words, never with a count', () => {
+test('names go beside the chosen set only, or in the all view beside the venues (0.4.1, D-11); a pile says so in words, never with a count', () => {
   const {model} = load();
   const spots = spotsOf(decodeRecords(readJSON(`data/records/${SIAM}.json`), model));
-  assert.deepEqual(labelItems(spots, ''), []);
+  const all = labelItems(spots, '');
+  assert.ok(all.length && all.every(x => spots[x.id].ds.item === 'venue'), 'the all view names the centres and markets only');
+  assert.equal(all.length, spots.filter(g => g.ds.item === 'venue').length);
   const items = labelItems(spots, 'luxurybrands');
   assert.ok(items.length && items.every(x => spots[x.id].ds.id === 'luxurybrands'));
   const pile = items.find(x => spots[x.id].items.length > 1);

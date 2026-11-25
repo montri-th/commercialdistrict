@@ -18,6 +18,13 @@
    "channel": "Claude chat, Project 02 CityMETER",
    "verbatim": "และพี่ช่วยสั่ง ChatGPT ปรับปรุง Google sheet [ทะเบียนย่านกลาง CityMETER] ตอนนี้ชีทนี้ จัด tab ได้สับสนมาก อยากให้จัดใหม่ให้สะอาดเรียบร้อย ในรูปแบบที่เทียบเคียงเข้ากันได้กับ dataset อื่นๆที่เชื่อมโยงกันใน registry ด้วย ให้รองรับการปรับปรุงนี้",
    "note": "the sheet address in the message is replaced by its name here (INV-11: the registry address never enters the repository)"
+  },
+  {
+   "at": "2026-11-25T23:01:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "ทำตามที่พี่เสนอเลยครับ",
+   "note": "answers Claude's table of 2026-11-25 22:21: centre pins (0.4.1), the neighbourhood's distances, PR #27"
   }
  ],
  "reading": {
@@ -151,6 +158,45 @@
    "meaning": "ได้ตัวเลข «คนอยู่» ที่เทียบกับหน้าศูนย์การค้าได้ เพราะวิธีและเดือนประชากรเดียวกัน",
    "appliedAs": "แบบจำลองผู้อยู่อาศัยใช้วิธีเดียวกับศูนย์การค้า (variant A) แล้วเผยแพร่ค่าระดับย่านพร้อมป้ายแบบจำลอง (รอบ 2)",
    "where": "ยังไม่ทำในรุ่นนี้: ช่อง «คนอยู่» บอกว่ายังไม่ถึงรอบข้อมูล (plan NL-08, NL-11)"
+  },
+  {
+   "id": "D-10",
+   "question": "ย่านใหญ่กว่า venue แต่ทำไมใช้ 400/800 ม. ขณะที่ venue ใช้ 1 · 3 · 5 กม. (เจ้าของถาม 25 พ.ย. 2569 22:09 และ 22:10)",
+   "status": "decided",
+   "decision": "ก",
+   "option": "ก) แยกสองระยะสองหน้าที่: พื้นที่ให้บริการ 1 · 3 · 5 กม. วัดจากขอบย่าน สำหรับตัวเลขคน (คนอยู่ คนทำงาน นักเรียน ห้องพัก) และใช้เทียบกับ venue · คง 400 และ 800 ม. จากขอบไว้สำหรับคำถามย่านไหนเด่นเรื่องอะไร อะไรมาด้วยกัน และเปลี่ยนชื่อเป็น «ขอบเดินถึง»",
+   "options": [
+    "ก) พื้นที่ให้บริการ 1 · 3 · 5 กม. จากขอบย่าน + 400/800 ม. ชื่อ «ขอบเดินถึง»",
+    "ข) พื้นที่ให้บริการ 1 · 3 · 5 กม. จากจุดกลางย่าน (วิธีเดียวกับ venue ทุกอย่าง แต่ย่านยาวไม่คลุม venue ที่ปลายย่าน)",
+    "ค) เปลี่ยน 400/800 ม. เป็น 1 · 3 · 5 กม. ทั้งหมด (ลักษณะย่านกลืนกัน: ในกรุงเทพฯ ภายใน 3 กม. มีย่านอื่นมัธยฐาน 4.5 ย่าน ภายใน 5 กม. 14 ย่าน)"
+   ],
+   "recommendation": "ก",
+   "decidedAt": "2026-11-25T23:01:00+07:00",
+   "decidedBy": "owner",
+   "ownerWords": "ทำตามที่พี่เสนอเลยครับ",
+   "delegatedToAuthor": false,
+   "amends": "D-1 (adds a distance; 400/800 m stay)",
+   "meaning": "พื้นที่ให้บริการของย่านคลุมพื้นที่ให้บริการของทุก venue ในย่านเสมอ ตัวเลขคนของย่านเทียบกับหน้าศูนย์การค้าได้ตามเจตนาของ D-9 และ 400/800 ม. ไม่ถูกอ่านเป็นพื้นที่ให้บริการ",
+   "evidence": "data/rings 0.4.0: ขอบย่านมัธยฐาน 0.21 ตร.กม. ขยาย 800 ม. ได้ 4.26 ตร.กม. ≈ วงกลมรัศมี 1.16 กม. · วง venue 1/3/5 กม. = 3.1/28.3/78.5 ตร.กม.",
+   "appliedAs": "0.4.1: ชื่อ «ขอบเดินถึง» แทน «รอบย่าน» บนหน้าเว็บ พร้อมบอกว่าเป็นเส้นตรงจากขอบ ไม่ใช่ระยะเดินจริง · รอบ 2: พื้นที่ให้บริการ 1 · 3 · 5 กม. จากขอบ (handoff/implementation-plan.json around.amendments)",
+   "where": "js/panel.js distanceWords · js/app.js · index.html · DATA_METHOD.md §12 · handoff/implementation-plan.json"
+  },
+  {
+   "id": "D-11",
+   "question": "ทำไมบางย่านเห็นหมุดศูนย์การค้า บางย่านไม่เห็น เช่น True Digital Park ในย่านปุณณวิถี (เจ้าของถาม 25 พ.ย. 2569 22:04)",
+   "status": "decided",
+   "decision": "ก",
+   "option": "ก) ศูนย์การค้ามาก่อน: หมุดศูนย์การค้าและตลาดอยู่บนสุดเสมอพร้อมชื่อในมุมมองทั้งหมด · จุดที่มีหลายรายการอ่านเป็นกอง กดแล้วเห็นรายชื่อแยกชุด · ตัวตรวจว่าทุกศูนย์ที่นับในย่านเป็นหมุดบนสุดทุกย่าน",
+   "recommendation": "ก",
+   "decidedAt": "2026-11-25T23:01:00+07:00",
+   "decidedBy": "owner",
+   "ownerWords": "ทำตามที่พี่เสนอเลยครับ",
+   "delegatedToAuthor": false,
+   "meaning": "หลักการนับเหมือนเดิม (ทุกรายการที่พิกัดอยู่ในขอบร่าง) การวาดเหมือนกันทุกย่าน",
+   "evidence": "data 0.4.0: ศูนย์และตลาด 627 แห่งใน 227 ย่าน · 68 แห่งพิกัดเดียวกับหมุดชุดที่วาดทีหลังจึงถูกทับมิด · อีก 73 แห่งมีหมุดอื่นห่างไม่เกิน 15 ม. · 10 ย่านหมุดศูนย์ทุกแห่งถูกทับ รวมปุณณวิถี",
+   "appliedAs": "0.4.1: js/layers.js poiCollection (VENUE_LIFT, กองข้ามชุด) · js/records.js labelItems และ tipHTML · js/app.js updateRecordLabels · tests/venue-pins.test.js",
+   "deviation": "ข้อเสนอเดิมให้ป้ายบอก “N รายการ จาก M ชุด” ตัดตัวเลขออกเพราะเป็นยอดรวมข้ามชุดข้อมูล (INV-01) และตัวตรวจเดิมห้ามตัวเลขใน tip · ใช้คำ “ตรงนี้มีหลายชุดซ้อนกัน” แทน",
+   "where": "js/layers.js · js/records.js · js/app.js · tests/venue-pins.test.js · DATA_METHOD.md §4"
   }
  ],
  "release": {
@@ -162,5 +208,13 @@
    "NL-08 … NL-11 (round 2: residents, office workers, administrative areas)",
    "NL-12 … NL-14 (round 3: reader test, roles from evidence, Yolk import)"
   ]
+ },
+ "amendedIn": {
+  "version": "0.4.1",
+  "decisions": [
+   "D-10",
+   "D-11"
+  ],
+  "scope": "D-11 in full; D-10 the name «ขอบเดินถึง» on the page, its service area in round 2"
  }
 }

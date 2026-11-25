@@ -177,7 +177,7 @@ test('ties: a count highlight says how many neighbourhoods share its rank (289 o
   assert.equal(highlightWords(fit, model.dsById.get('fitness'), siam).value, `มากอันดับ ${fit.v}`, 'without the count, the old words');
 });
 
-test('every neighbourhood renders the glance and «รอบย่านนี้» whole, with the file and without it', () => {
+test('every neighbourhood renders the glance and «ขอบเดินถึง» whole, with the file and without it', () => {
   const {model} = load();
   const A = around();
   for (const r of model.rows) {
@@ -199,7 +199,7 @@ test('every neighbourhood renders the glance and «รอบย่านนี�
       if (!a) {
         // without the file: no switch, no column around, no version or build date in the provenance line
         assert.ok(!/data-action="set-around"/.test(html) && !/col-400|col-800/.test(section), r.id);
-        assert.ok(!/รอบย่าน รุ่น/.test(section), r.id);
+        assert.ok(!/ขอบเดินถึง รุ่น/.test(section), r.id);
       } else {
         assert.equal((section.match(/class="num col-400/g) || []).length, 1 + Object.keys(r.c).length, `${r.id}: a 400 m cell for every dataset in scope`);
       }
@@ -220,7 +220,8 @@ test('handoff/around: the plan byte for byte, the owner’s words verbatim, the 
   assert.equal(sha256(readBytes('handoff/around/plan.json')), 'd5d37c7c3cbea3ddefb72f14e27cd989fe758f7a2e83ac2fa33de62a51f54f94');
   const dec = readJSON('handoff/around/decisions.json');
   assert.equal(dec.ownerWords[0].verbatim, 'พี่ช่วยปรับ web demo ตามที่แนะนำเลยครับ');
-  assert.deepEqual(dec.decisions.map(d => [d.id, d.status, d.decision]), ['D-1', 'D-2', 'D-3', 'D-4', 'D-5', 'D-6', 'D-7', 'D-8', 'D-9'].map(id => [id, 'decided', 'ก']));
+  assert.deepEqual(dec.decisions.map(d => [d.id, d.status, d.decision]), ['D-1', 'D-2', 'D-3', 'D-4', 'D-5', 'D-6', 'D-7', 'D-8', 'D-9', 'D-10', 'D-11'].map(id => [id, 'decided', 'ก']));
+  assert.equal(dec.ownerWords.at(-1).verbatim, 'ทำตามที่พี่เสนอเลยครับ', 'D-10 and D-11 (2026-11-25 23:01)');
   const inv = readJSON('handoff/around/contracts.json').invariants.items;
   assert.deepEqual(inv, readJSON('handoff/product-brief.json').invariants);
 });
@@ -234,7 +235,7 @@ test('a neighbourhood with no highlight says what there is, inside and within 80
     const html = renderNeighborhood(buildNeighborhood(model, r), model, {ctx: ctx(), around: A});
     const lead = html.match(/<p class="aha-copy">([\s\S]*?)<\/p>/)[1];
     assert.match(lead, /ชุดที่มีข้อมูลในจังหวัด/, r.id);
-    assert.match(lead, /รอบย่าน 800 ม\. (พบ|ก็ไม่พบ)/, r.id);
+    assert.match(lead, /ขอบเดินถึง 800 ม\. (พบ|ก็ไม่พบ)/, r.id);
     assert.ok(!/ยังไม่มีชุดข้อมูลไหนเด่นเกินเกณฑ์/.test(lead), r.id);
   }
 });

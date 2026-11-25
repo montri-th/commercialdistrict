@@ -3,7 +3,7 @@
   "schemaVersion": "1.5.0",
   "documentType": "implementation-plan",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.4.0",
+  "productVersion": "0.4.1",
   "updatedOn": "2026-11-25",
   "language": "en",
   "architecture": {
@@ -66,7 +66,15 @@
     "plan": "handoff/around/plan.json (proposal v1, byte for byte)",
     "done040": ["NL-00", "NL-01", "NL-02", "NL-04", "NL-05", "NL-06", "NL-07"],
     "doneAfter040": ["NL-S1 (2026-11-25: the registry sheet's 12_LAYER_RELEASES rows NLR-001 … NLR-004, handoff/VERIFICATION.md)"],
-    "next": ["NL-03", "NL-08", "NL-09", "NL-10", "NL-11", "NL-12", "NL-13", "NL-14"]
+    "done041": ["D-11 centre pins on top, piles across datasets, centres named in the all view", "D-10 the 400/800 m named «ขอบเดินถึง»"],
+    "next": ["NL-03", "NL-08", "NL-09", "NL-10", "NL-11", "NL-12", "NL-13", "NL-14", "NL-15"],
+    "amendments": {
+      "by": "owner 2026-11-25 23:01 “ทำตามที่พี่เสนอเลยครับ” (D-10, handoff/around/decisions.json)",
+      "NL-08": "residents (modelled, variant A) inside the outline and within the service area 1, 3 and 5 km from its edge — not the 400/800 m edge",
+      "NL-09": "office workers (modelled range) inside the outline and within the service area 1, 3 and 5 km from its edge",
+      "NL-11": "the panel «คนในย่าน» in three groups — คนอยู่อาศัย · คนเดินทางเข้ามา (ทำงานและเรียน) · คนมาเยือน — each with its people figures (registry or model, labelled), what draws the group, and its level against the release's neighbourhoods; never one total across groups or datasets (INV-01)",
+      "NL-15 (new)": "the service area 1, 3 and 5 km from the edge for the figures already in the data (recorded students, staff, factory workers, rooms, beds), straight line, no sum across neighbourhoods; a centre inside the outline always lies inside the neighbourhood's service area at the same distance"
+    }
   },
   "backlog": [
     "English names for neighbourhoods when the registry carries them",

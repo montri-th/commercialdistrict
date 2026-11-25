@@ -42,7 +42,7 @@ test('every neighbourhood renders whole: highlights with their universe, every d
     const d = buildNeighborhood(model, r);
     const html = renderNeighborhood(d, model, {ctx: ctx()});
     assert.ok(!holes.test(html), r.id);
-    // (0.4.0) every dataset is a row of «รอบย่านนี้» (its button sets the lens)
+    // (0.4.0) every dataset is a row of «ขอบเดินถึง» (its button sets the lens)
     assert.equal((html.match(/class="around-ds"/g) || []).length, 16, r.id);
     assert.match(html, /data-prov="boundary"/);
     for (const x of d.highlights) if (x.h.k !== 'share') assert.match(html, /จาก [\d,]+ ย่าน/, r.id);
