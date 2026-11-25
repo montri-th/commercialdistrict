@@ -8,6 +8,7 @@
 | `PRODUCT_BRIEF.md` · `product-brief.json` | สัญญาของหน้าจอ: ข้อค้นพบแรก หน่วยนับ สี สถานะข้อมูล จุดเด่น คู่ที่มาด้วยกัน แผง การเปรียบเทียบ กล้อง |
 | `IMPLEMENTATION_PLAN.md` · `implementation-plan.json` | สถาปัตยกรรม โมดูล งาน acceptance criteria และ backlog |
 | `VERIFICATION.md` | ผลตรวจของรุ่นนี้: tests, LDS parity, render, English harvest, live |
+| `around/` | (0.4.0) «ในย่านนี้» และ «รอบย่านนี้»: คำตัดสินของเจ้าของคำต่อคำ สัญญาข้อมูล แผนลงมือ NL-00 ถึง NL-14 แหล่งที่ใช้สร้าง และ CHANGELOG |
 | `../DATA_METHOD.md` | ที่มาของทุกตัวเลข การวางจุด ความครอบคลุม กติกาจุดเด่น และฟิลด์ที่เผยแพร่ |
 | `../AGENTS.md` | ความต้องการของเจ้าของที่เป็นสัญญา — อ่านก่อนแก้ |
 
@@ -15,7 +16,7 @@
 
 1. แก้ย่านในทะเบียนย่านกลางเท่านั้น (ไม่ commit ชีต ไฟล์ส่งออก เซลล์ หรือที่อยู่ของชีต) · ขอบย่านมาจากชุดขอบล่าสุดของเจ้าของ
 2. clone เดโมทั้ง 16 repository ไว้ข้างกัน และบันทึก commit ที่อ่านใน `commits.json`
-3. `python3 -I scripts/build-data.py …` ตาม `DATA_METHOD.md` §11
+3. `python3 -I scripts/build-data.py …` ตาม `DATA_METHOD.md` §11 แล้ว `python3 -I scripts/build-around.py …` (0.4.0, `around/README.md`)
 4. `npm test` และ `npm run check:lds -- --lds <LDS 0.9.7 .md>` และเดินหน้าเว็บแบบ `?lang=en` ทุกมุมมองให้ไม่มีข้อความไทยค้าง (ยกเว้นชื่อย่าน)
 5. ขยับ `?v=YYYYMMDD-rN` ใน `index.html` + `package.json` + `design-intent.json` + handoff JSON
 6. push `main` → GitHub Pages → `npm run handoff:manifest` → `npm run verify:live`

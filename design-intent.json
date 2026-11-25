@@ -1,7 +1,7 @@
 {
   "artifact": "CityMETER Commercial District — 3D map of the central neighbourhood registry's closed draft outlines against the located records of 16 CityMETER demo datasets (Land · Location · Living): what each neighbourhood stands out for, what comes together, similar mixes and side-by-side comparison",
-  "productVersion": "0.3.0",
-  "updatedOn": "2026-11-16",
+  "productVersion": "0.4.0",
+  "updatedOn": "2026-11-25",
   "ldsVersion": "0.9.7",
   "release": "v0.9.7-owner.1",
   "revision": "standalone-0.9.7-r1",
@@ -27,5 +27,6 @@
   },
   "firstAha": "the dataset most concentrated in the neighbourhoods of the scope (its share of the located records, numerator and denominator) against the neighbourhoods' share of the area, then the next three; under a dataset, its share and the densest neighbourhood; computed per selection",
   "countingUnit": "one grain per dataset (its own unit); counts of two datasets are never added; out of scope (the dataset has no located record in the province) is never 0",
-  "noCaveats": "exactness through names, numerator and denominator, the peers of every rank, and one provenance line per view"
+  "noCaveats": "exactness through names, numerator and denominator, the peers of every rank, and one provenance line per view",
+  "surroundings": "0.4.0, owner 2026-11-25 “พี่ช่วยปรับ web demo ตามที่แนะนำเลยครับ” (handoff/around/): the glance «ในย่านนี้» — four tiles of one dataset each, the five-step meter of «รอบศูนย์นี้» whose filled bars take the LDS count sample of the mid-rank percentile (identical HEX on both themes; every bar outlined, so the level reads without the colour; a starred dataset has no meter) — and «รอบย่านนี้»: one table (inside · within 400 m · within 800 m), the chosen column stressed by weight and an underline, and on the map one line at that distance in text.secondary, long dashes, never a data colour or a fill; the neighbourhood panel compacts its head like Shopping Center (D-5): the dataset heading kept for screen readers, search and filters aside, the back button in the breadcrumb row"
 }

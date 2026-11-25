@@ -1,0 +1,166 @@
+{
+ "schema": "citymeter-commercialdistrict-around-decisions/1",
+ "plan": {
+  "file": "handoff/around/plan.json",
+  "id": "02-CityMETER__commercialdistrict-neighbourhood-locale-insight-proposal__v1__2026-11-25",
+  "sha256": "d5d37c7c3cbea3ddefb72f14e27cd989fe758f7a2e83ac2fa33de62a51f54f94"
+ },
+ "ownerWords": [
+  {
+   "at": "2026-11-25T08:15:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "พี่ช่วยปรับ web demo ตามที่แนะนำเลยครับ"
+  },
+  {
+   "at": "2026-11-25T08:15:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "และพี่ช่วยสั่ง ChatGPT ปรับปรุง Google sheet [ทะเบียนย่านกลาง CityMETER] ตอนนี้ชีทนี้ จัด tab ได้สับสนมาก อยากให้จัดใหม่ให้สะอาดเรียบร้อย ในรูปแบบที่เทียบเคียงเข้ากันได้กับ dataset อื่นๆที่เชื่อมโยงกันใน registry ด้วย ให้รองรับการปรับปรุงนี้",
+   "note": "the sheet address in the message is replaced by its name here (INV-11: the registry address never enters the repository)"
+  }
+ ],
+ "reading": {
+  "th": "“ตามที่แนะนำ” อ่านว่าเจ้าของรับทางที่ข้อเสนอแนะนำ (ทาง ก) ของคำตัดสิน D-1 ถึง D-9 · D-6 อ่านคู่กับประโยคที่สองที่ให้สั่ง ChatGPT",
+  "en": "“as recommended” is read as the owner taking the recommended option (option ก) of decisions D-1 to D-9; D-6 is read with the second sentence that asks for ChatGPT",
+  "label": "Inference (Claude) · the owner can correct it"
+ },
+ "decisions": [
+  {
+   "id": "D-1",
+   "question": "«รอบย่าน» วัดไกลแค่ไหน และวัดจากอะไร",
+   "status": "decided",
+   "decision": "ก",
+   "option": "ก) 400 และ 800 ม. เส้นตรงจากขอบย่าน",
+   "decidedAt": "2026-11-25T08:15:00+07:00",
+   "decidedBy": "owner",
+   "ownerWords": "พี่ช่วยปรับ web demo ตามที่แนะนำเลยครับ",
+   "delegatedToAuthor": false,
+   "meaning": "ระยะเดียวกับที่ผลคัดย่านที่พักของทะเบียนใช้ และทับกันระหว่างย่านน้อยที่สุดในสามทาง",
+   "appliedAs": "ระยะ 400 และ 800 ม. วัดเส้นตรงจากขอบย่าน",
+   "where": "data/around.json · data/rings/ · DATA_METHOD.md §12"
+  },
+  {
+   "id": "D-2",
+   "question": "ชื่อส่วนบนหน้าเว็บ และจะนับเป็น Locale Insight ชนิดใหม่หรือไม่",
+   "status": "decided",
+   "decision": "ก",
+   "option": "ก) ชื่อ «รอบย่านนี้» เป็นส่วนหนึ่งของชุดข้อมูลย่านการค้า ยังไม่ตั้งเป็น Locale ชนิดที่สี่",
+   "decidedAt": "2026-11-25T08:15:00+07:00",
+   "decidedBy": "owner",
+   "ownerWords": "พี่ช่วยปรับ web demo ตามที่แนะนำเลยครับ",
+   "delegatedToAuthor": false,
+   "meaning": "ครอบครัวเดโมอ่านเหมือนกัน («รอบศูนย์นี้» · «รอบย่านนี้») และไม่ปนค่าเทียบของ Master Locale",
+   "appliedAs": "ชื่อส่วน «รอบย่านนี้» เป็นส่วนหนึ่งของชุดข้อมูลย่านการค้า ไม่ตั้งเป็น Locale ชนิดใหม่",
+   "where": "js/panel.js aroundSection"
+  },
+  {
+   "id": "D-3",
+   "question": "คงกติกา «ไม่บวกจำนวนข้ามชุดข้อมูล» (INV-01) ในส่วนใหม่หรือยกเว้นแบบศูนย์การค้า",
+   "status": "decided",
+   "decision": "ก",
+   "option": "ก) คงกติกา: หนึ่งช่องหนึ่งตัววัดของชุดเดียว",
+   "decidedAt": "2026-11-25T08:15:00+07:00",
+   "decidedBy": "owner",
+   "ownerWords": "พี่ช่วยปรับ web demo ตามที่แนะนำเลยครับ",
+   "delegatedToAuthor": false,
+   "meaning": "ตัวเลขทุกตัวมีหน่วยเดียวและตรวจย้อนถึงชุดเดียวได้",
+   "appliedAs": "คงกติกาไม่บวกจำนวนข้ามชุดข้อมูล: หนึ่งช่อง หนึ่งชุดข้อมูล หนึ่งหน่วย",
+   "where": "js/around.js glanceTiles · tests/around.test.js"
+  },
+  {
+   "id": "D-4",
+   "question": "ชุดข้อมูลที่มีพิกัดไม่ถึง 90% ของรายการ (7 จาก 16 ชุด) จะจัดอันดับในส่วนใหม่หรือไม่",
+   "status": "decided",
+   "decision": "ก",
+   "option": "ก) ส่วนใหม่แสดงจำนวนพร้อมเครื่องหมาย ไม่จัดอันดับ และเสนอทบทวนจุดเด่นเดิมเป็นงานแยก",
+   "decidedAt": "2026-11-25T08:15:00+07:00",
+   "decidedBy": "owner",
+   "ownerWords": "พี่ช่วยปรับ web demo ตามที่แนะนำเลยครับ",
+   "delegatedToAuthor": false,
+   "meaning": "เข้มกว่า «รอบศูนย์นี้» ซึ่งไม่ให้ชุดกลุ่มนี้ขึ้นเป็นจุดเด่นและงดระดับเฉพาะช่องที่ตัวเลขมาจากชุดกลุ่มนี้ตั้งแต่ครึ่งหนึ่ง โดยไม่เปลี่ยนจุดเด่นที่เผยแพร่แล้วในรอบเดียวกัน",
+   "appliedAs": "ชุดที่มีพิกัดไม่ถึง 90% ของรายการติดดาว แสดงจำนวน ไม่จัดอันดับหรือระดับในส่วนใหม่ · จุดเด่นเดิมไม่เปลี่ยนในรุ่นนี้ การทบทวนเป็นงานแยก",
+   "where": "js/around.js lowLocated · js/panel.js"
+  },
+  {
+   "id": "D-5",
+   "question": "แถว 4 ช่อง “ในย่านนี้” ซึ่งยกนักเรียนและห้องพักที่แหล่งรายงานขึ้นจากส่วนที่พับ จะวางตรงไหนของแผงย่าน",
+   "status": "decided",
+   "decision": "ก",
+   "option": "ก) แบบเดียวกับหน้าศูนย์การค้า: เมื่อเปิดย่าน ซ่อนหัวชุดข้อมูล ช่องค้น และตัวกรอง แล้ววางแถว 4 ช่องต่อจากตัวเลขของย่าน",
+   "decidedAt": "2026-11-25T08:15:00+07:00",
+   "decidedBy": "owner",
+   "ownerWords": "พี่ช่วยปรับ web demo ตามที่แนะนำเลยครับ",
+   "delegatedToAuthor": false,
+   "meaning": "แถว 4 ช่องอยู่ในจอแรกทั้งแถว และหน้าย่านกับหน้าศูนย์การค้าจัดหัวของหน้ารายละเอียดแบบเดียวกัน",
+   "appliedAs": "เมื่อเปิดย่าน ซ่อนหัวชุดข้อมูล ช่องค้น และตัวกรอง (คงไว้ให้โปรแกรมอ่านจอ) ปุ่มกลับอยู่แถวเส้นทางนำ แถว 4 ช่องต่อจากตัวเลขของย่าน",
+   "where": "index.html · styles.css §15 · js/app.js renderPanel"
+  },
+  {
+   "id": "D-6",
+   "question": "ชีตทะเบียนย่าน: ใครเขียน เมื่อไร และชื่อแท็บ",
+   "status": "decided",
+   "decision": "ก",
+   "option": "ก) ChatGPT เขียนตามบรีฟคำต่อคำ หลังเจ้าของยืนยันว่ารอบคัดย่านการค้าจบแล้ว แล้ว Claude อ่านกลับ",
+   "decidedAt": "2026-11-25T08:15:00+07:00",
+   "decidedBy": "owner",
+   "ownerWords": "และพี่ช่วยสั่ง ChatGPT ปรับปรุง Google sheet [ทะเบียนย่านกลาง CityMETER] ตอนนี้ชีทนี้ จัด tab ได้สับสนมาก อยากให้จัดใหม่ให้สะอาดเรียบร้อย ในรูปแบบที่เทียบเคียงเข้ากันได้กับ dataset อื่นๆที่เชื่อมโยงกันใน registry ด้วย ให้รองรับการปรับปรุงนี้",
+   "delegatedToAuthor": false,
+   "meaning": "มีผู้เขียนชีตทีละคน และใช้วิธีเดียวกับแท็บ 26_VENUE_LOCALE_RELEASES ของชีตศูนย์การค้า",
+   "appliedAs": "ChatGPT เขียนชีตตามบรีฟคำต่อคำ แล้ว Claude อ่านกลับ · เริ่มเมื่อรอบตรวจผู้สมัครย่านที่ ChatGPT กำลังเขียนชีตอยู่จบแล้ว",
+   "where": "ใบสั่งงาน ChatGPT แยก (ไม่อยู่ใน repo ตาม INV-11)"
+  },
+  {
+   "id": "D-7",
+   "question": "ชั้นสมมติฐาน «ใครน่าจะใช้ย่านนี้» ใช้โครงไหน",
+   "status": "decided",
+   "decision": "ก",
+   "option": "ก) ต่อยอดบทบาทย่าน 8 บทบาทที่หน้าเว็บมีอยู่ ด้วยกติกาที่เปิดให้อ่าน",
+   "decidedAt": "2026-11-25T08:15:00+07:00",
+   "decidedBy": "owner",
+   "ownerWords": "พี่ช่วยปรับ web demo ตามที่แนะนำเลยครับ",
+   "delegatedToAuthor": false,
+   "meaning": "ไม่มีคำศัพท์สองชุดสำหรับเรื่องเดียวกัน และทุกข้อสรุปชี้กลับไปที่หลักฐานที่นับได้",
+   "appliedAs": "ชั้นสมมติฐานต่อยอดบทบาทย่าน 8 บทบาทที่หน้าเว็บมีอยู่ (รอบ 3 หลังทดสอบกับผู้อ่าน)",
+   "where": "ยังไม่ทำในรุ่นนี้ (plan NL-12, NL-13)"
+  },
+  {
+   "id": "D-8",
+   "question": "ชุดย่านที่ใช้เทียบอันดับ ตรึงตามรุ่น หรือเปลี่ยนตามทะเบียนล่าสุด",
+   "status": "decided",
+   "decision": "ก",
+   "option": "ก) ตรึงตามรุ่นข้อมูล: 395 ย่านของทะเบียนที่อ่าน 24 พ.ย. 2569 จนกว่าจะออกรุ่นใหม่ที่ระบุรุ่นที่แทน",
+   "decidedAt": "2026-11-25T08:15:00+07:00",
+   "decidedBy": "owner",
+   "ownerWords": "พี่ช่วยปรับ web demo ตามที่แนะนำเลยครับ",
+   "delegatedToAuthor": false,
+   "meaning": "อันดับของย่านเดิมไม่ขยับเองเมื่อทะเบียนเพิ่มรหัส",
+   "appliedAs": "ชุดย่านที่ใช้เทียบระดับตรึงตามรุ่น: 395 ย่านของรุ่น 0.4.0",
+   "where": "data/around.json meta.referenceSet"
+  },
+  {
+   "id": "D-9",
+   "question": "ชั้นแบบจำลองผู้อยู่อาศัย: ใครรันกับฐานอาคารและทะเบียนราษฎร และเผยแพร่ระดับไหน",
+   "status": "decided",
+   "decision": "ก",
+   "option": "ก) รันด้วยวิธีเดียวกับศูนย์การค้า (variant A) โดยผู้ที่เข้าถึงฐาน production แล้วเผยแพร่ค่าระดับย่านพร้อมป้ายแบบจำลอง",
+   "decidedAt": "2026-11-25T08:15:00+07:00",
+   "decidedBy": "owner",
+   "ownerWords": "พี่ช่วยปรับ web demo ตามที่แนะนำเลยครับ",
+   "delegatedToAuthor": false,
+   "meaning": "ได้ตัวเลข «คนอยู่» ที่เทียบกับหน้าศูนย์การค้าได้ เพราะวิธีและเดือนประชากรเดียวกัน",
+   "appliedAs": "แบบจำลองผู้อยู่อาศัยใช้วิธีเดียวกับศูนย์การค้า (variant A) แล้วเผยแพร่ค่าระดับย่านพร้อมป้ายแบบจำลอง (รอบ 2)",
+   "where": "ยังไม่ทำในรุ่นนี้: ช่อง «คนอยู่» บอกว่ายังไม่ถึงรอบข้อมูล (plan NL-08, NL-11)"
+  }
+ ],
+ "release": {
+  "version": "0.4.0",
+  "scope": "round 1 of the plan: NL-00 NL-01 NL-02 NL-04 NL-05 NL-06 NL-07",
+  "notInThisRelease": [
+   "NL-03 (Shopping Center reads the link file: a release of montri-th/shoppingcenter)",
+   "NL-S1 (the sheet ledger: through ChatGPT, D-6)",
+   "NL-08 … NL-11 (round 2: residents, office workers, administrative areas)",
+   "NL-12 … NL-14 (round 3: reader test, roles from evidence, Yolk import)"
+  ]
+ }
+}

@@ -3,8 +3,8 @@
   "schemaVersion": "1.5.0",
   "documentType": "product-brief",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.3.0",
-  "updatedOn": "2026-11-24",
+  "productVersion": "0.4.0",
+  "updatedOn": "2026-11-25",
   "datasetCheckedOn": "2026-11-16",
   "language": "th",
   "productName": "CityMETER · Commercial District",
@@ -33,7 +33,7 @@
   },
   "countingUnitContract": {
     "default": "per dataset, its located records inside the outline, in the dataset's own unit",
-    "alternatives": ["records per km² of the registry area (the lens)", "measures some datasets carry (rooms, workers, beds, students, recorded staff) in the closed details only"],
+    "alternatives": ["records per km² of the registry area (the lens)", "measures some datasets carry (rooms, workers, beds, students, recorded staff) in the closed details; since 0.4.0 students and rooms also in the glance «ในย่านนี้», each its own tile (D-3, D-5)"],
     "words": "แห่ง · สาขา · ร้าน · จุดขาย · ทะเบียน · รายการ · สถานี–สาย (datasets[].unitTh)",
     "rule": "never add counts of two datasets; out of scope (no located record in the province) is never 0"
   },
@@ -65,8 +65,9 @@
   },
   "panel": {
     "modes": ["overview", "neighborhood"],
-    "actions": ["select-nb", "select-province", "leave-province", "set-lens", "clear-lens", "cmp-add", "cmp-remove", "cmp-clear", "cmp-top", "cmp-similar", "open-table", "clear-search"],
-    "models": ["js/profile.js#buildOverview", "js/profile.js#buildNeighborhood", "js/profile.js#buildCompare", "js/profile.js#similarRows"]
+    "actions": ["select-nb", "select-province", "leave-province", "set-lens", "clear-lens", "cmp-add", "cmp-remove", "cmp-clear", "cmp-top", "cmp-similar", "open-table", "clear-search", "set-around", "around-jump"],
+    "models": ["js/profile.js#buildOverview", "js/profile.js#buildNeighborhood", "js/profile.js#buildCompare", "js/profile.js#similarRows", "js/around.js#glanceTiles", "js/around.js#aroundGroups", "js/around.js#venuesOf", "js/around.js#sharedBy"],
+    "order": ["detail head: name, highlights, add to comparison", "the neighbourhood figures (4)", "the glance «ในย่านนี้» (4 tiles, meter key, provenance)", "(lodging areas: the registry's lodging screen)", "highlights, with the neighbourhoods sharing a rank", "how the highlights relate", "«รอบย่านนี้»: switch, table, centres with a «รอบศูนย์นี้» page, its own provenance line", "records inside (closed)", "similar mixes", "ask bar", "registry record (closed)", "provenance"]
   },
   "buildingJoinContract": {
     "buildings": "OpenStreetMap or CityMETER Building V4 per data/building-units/ (js/massing.js)",
@@ -139,8 +140,20 @@
     {"viewKey": "lens", "title": "ย่านที่มี…แน่นที่สุด", "question": "ย่านไหนแน่นที่สุดในชุดนี้", "encoding": "bar per neighbourhood in the map's density.area sample", "metric": "records per km²", "scope": "the overview's scope, ranked when ≥ 3"},
     {"viewKey": "compare", "title": "เปรียบเทียบย่าน", "question": "ย่านเหล่านี้ต่างกันตรงไหน", "encoding": "matrix datasets × neighbourhoods: count, density, bar against the densest of the row, densest ringed", "metric": "count and records per km²", "scope": "up to four neighbourhoods"}
   ],
+  "aroundContract": {
+    "since": "0.4.0",
+    "decisions": "handoff/around/decisions.json (owner 2026-11-25 08:15, D-1 … D-9 as recommended)",
+    "contracts": "handoff/around/contracts.json",
+    "data": "data/around.json (scripts/build-around.py) · data/rings/<id>.json (display only)",
+    "around": "records outside the outline within 400 m and 800 m of its edge, straight line; 800 m holds 400 m; a record counted inside is never around; never added to the inside, across datasets or across neighbourhoods",
+    "states": "out_of_scope “— นอกขอบเขตข้อมูล” · measured_zero 0 / “ไม่พบ” · no_data “— ไม่มีข้อมูล” + how many lack the figure · not_yet “ยังไม่ถึงรอบข้อมูล” + what it awaits (LDS EVID-05)",
+    "glance": "คนอยู่ (modelled, round 2: not yet) · นักเรียน (school dataset, starred) · ห้องพัก (lodging dataset) · ศูนย์และตลาด (Shopping Center dataset); level = levelOf of «รอบศูนย์นี้» from the mid-rank percentile among the frozen reference set (meta.referenceSet, 395)",
+    "lowLocated": "factory, fitness, hospital, industrialestate, office, pharmacy, school: starred, count and density, never a rank or a level in the new layer (D-4)",
+    "address": "f.around = in · 400 · 800 (inside is never written); the map draws the line of the chosen distance and frames it",
+    "notYet": ["NL-03 Shopping Center reading the links", "NL-S1 the sheet ledger (ChatGPT, D-6)", "round 2: residents, office workers, administrative areas", "round 3: reader test, roles from evidence, Yolk import"]
+  },
   "delivery": {
-    "cacheTag": "?v=20261124-r3",
-    "shell": "citymeter-shell 0.6.2 (0.6.1 + this demo in the picker, shipped by release 0.1.0 to all 17 demos)"
+    "cacheTag": "?v=20261125-r1",
+    "shell": "citymeter-shell 0.6.4 (since release 0.2.6: Shopping Center marked as a demo with English; unchanged in 0.4.0)"
   }
 }

@@ -13,6 +13,7 @@
  *                and the neighbourhoods with a similar mix — never a claim about people, footfall or sales
  */
 import {PILLARS, cell, provinceByCode, rolesOf, pairsOf, multiStrong, datasetRanking} from './model.js';
+import {sharedBy} from './around.js';
 
 /** The pairs of datasets that rise together across the neighbourhoods (ρ ≥ the build's rule), strongest first. */
 export function strongPairs(model) {
@@ -115,7 +116,8 @@ export function datasetGroups(model, row) {
 
 /** The neighbourhood view. */
 export function buildNeighborhood(model, row) {
-  const highlights = (row.hl || []).map(h => ({h, ds: model.dsById.get(h.d)})).filter(x => x.ds);
+  // (0.4.0, NL-06) `shared`: the neighbourhoods holding the same value in the highlight's peer group (one rank for all)
+  const highlights = (row.hl || []).map(h => ({h, ds: model.dsById.get(h.d), shared: sharedBy(model, row, h)})).filter(x => x.ds);
   const pairs = pairsOf(row, model).map(p => ({...p, A: model.dsById.get(p.a), B: model.dsById.get(p.b)})).filter(p => p.A && p.B);
   const roles = rolesOf(row, model).map(r => ({...r, evidenceDs: r.evidence.map(id => model.dsById.get(id)).filter(Boolean),
     observed: r.datasets.map(id => model.dsById.get(id)).filter(Boolean).map(ds => ({ds, c: cell(row, ds)}))}));

@@ -1,6 +1,6 @@
 # CityMETER Commercial District — Implementation Plan
 
-รุ่น 0.3.0 · 24 พ.ย. 2569 · คู่กับ `implementation-plan.json` (schema 1.5.0)
+รุ่น 0.4.0 · 25 พ.ย. 2569 · คู่กับ `implementation-plan.json` (schema 1.5.0)
 
 ## สถาปัตยกรรม
 
@@ -21,12 +21,15 @@ Static site, ES modules ผ่าน import map ที่มี cache tag เด
 | `js/layers.js#framePoints` · `js/app.js#fitNb` (0.2.3) | เลือกย่านแล้วจัดกรอบพอดีขอบย่านในแผนที่ที่ว่าง ด้วย `fitBuilding` ของ shell |
 | `scripts/draw-outline-amendment.py` · `amendments/` · `build-data.py --outline-amendments` (0.2.4) | ขอบย่านที่เจ้าของสั่งปรับ (นิมมาน–เมญ่า) วาดตามหลักเกณฑ์ขอบย่านจากขอบของทะเบียนกับรูปแปลง OpenStreetMap ใช้กับขอบเดิมที่ตรง SHA-256 เท่านั้น ห้ามลดพื้นที่หรือทับขอบอื่น (`DATA_METHOD.md` §2b) |
 | `scripts/draw-outline-rule.browser.js` · `scripts/draw-outline-rule.py` · `scripts/rule-outlines.py` · `build-data.py --outline-amendments` (0.3.0) | ขอบย่านที่วาดใหม่ตามหลักที่เจ้าของกำหนด: เส้น B แนบอาคาร ไม่เกินเส้น A พื้นที่ที่แผนที่ฐานไม่ได้ระบุเป็นป่า ทุ่ง น้ำ หรือพื้นที่อุตสาหกรรม แบ่งครึ่งทางเมื่อพื้นที่ต่อกัน และตามขอบที่เจ้าของกำหนดใน 6 ย่าน (`amendments/outline-rule-limits-2026-11-24.json`) วาดในเดโมจริงแล้วเขียนเป็น amendment ที่ build ตรวจและใช้แทนขอบเดิม (DATA_METHOD.md §2c) |
+| `js/around.js` · `scripts/build-around.py` · `data/around.json` · `data/rings/` (0.4.0) | «ในย่านนี้» และ «รอบย่านนี้»: จำนวนรอบขอบ 400 และ 800 ม. ระดับเทียบในชุดย่านอ้างอิง ศูนย์การค้าที่มีหน้า «รอบศูนย์นี้» เส้นรอบย่าน และอันดับร่วม (`around/`) |
 | `js/scales.js` · `js/cues.js` | สเกล LDS และรูปทรงของหมวด |
 | `js/shell/` | citymeter-shell (ห้ามแก้ที่นี่ที่เดียว) |
 
 ## งาน
 
 T01 ข้อมูล → T02 model → T03 view models → T04 แผง → T05 แผนที่ → T06 orchestration → T07 tests + LDS parity → T08 publish และ family sync (รอเจ้าของอนุมัติ)
+
+**«รอบย่านนี้» (0.4.0):** แผนลงมือ NL-00 ถึง NL-14 และ NL-S1 อยู่ใน `around/plan.json` (ของข้อเสนอ ทุกไบต์) · รุ่นนี้ทำรอบ 1 (NL-00 NL-01 NL-02 NL-04 NL-05 NL-06 NL-07) · งานถัดไปและสิ่งที่ยังไม่ทำอยู่ใน `around/CHANGELOG.md`
 
 ## Acceptance criteria
 

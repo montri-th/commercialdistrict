@@ -65,7 +65,9 @@ test('every shipped outline has a frame that holds all its vertices', () => {
 test('the app fits a chosen neighbourhood with the shared fit, above the phone sheet, with no 880 m square any more', () => {
   const app = readFileSync(join(ROOT, 'js/app.js'), 'utf8');
   const fit = app.slice(app.indexOf('function fitNb('), app.indexOf('function fitMap('));
-  assert.match(fit, /framePoints\(geometry\)/);
+  // (0.4.0) the outline, or — with a distance of «รอบย่านนี้» chosen — the line at that distance, a thinner margin round it
+  assert.match(fit, /framePoints\(geometry, ring \? \{margin: 0\.04\} : \{\}\)/);
+  assert.match(fit, /const ring = r\.id === state\.nb \? ringGeometry\(\) : null;/);
   assert.match(fit, /fitBuilding\(map, points, \{box, preset, bearing: CAMERA\[preset\]\.bearing, minZoom: 11, maxZoom: FIT_MAX_ZOOM, fill: FIT_FILL/);
   assert.doesNotMatch(fit, /320\) \+ 120/, 'the old square of at least 880 m is gone');
   const select = app.slice(app.indexOf('function selectNb('), app.indexOf('function selectProvince('));

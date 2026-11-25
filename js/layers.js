@@ -26,10 +26,16 @@ import {cueImage} from './cues.js';
 
 export const LAYERS = Object.freeze({
   provinceLine: 'nb-province-line', provinceSelected: 'nb-province-selected',
-  fill: 'nb-fill', edge: 'nb-edge', zero: 'nb-zero', line: 'nb-line', lodging: 'nb-line-lodging', compare: 'nb-compare', hover: 'nb-hover', selected: 'nb-selected',
+  fill: 'nb-fill', edge: 'nb-edge', zero: 'nb-zero', around: 'nb-around-line', line: 'nb-line', lodging: 'nb-line-lodging', compare: 'nb-compare', hover: 'nb-hover', selected: 'nb-selected',
   pins: 'nb-pins', pinSelected: 'nb-pin-selected', condo: 'nb-condo', poi: 'nb-poi', poiSelected: 'nb-poi-selected',
 });
-const SRC = {provinces: 'nb-provinces', outlines: 'nb-outlines', pins: 'nb-pin-points', poi: 'nb-poi-points', condo: 'nb-condo-points', poiSelected: 'nb-poi-selected-point'};
+const SRC = {provinces: 'nb-provinces', outlines: 'nb-outlines', around: 'nb-around-ring', pins: 'nb-pin-points', poi: 'nb-poi-points', condo: 'nb-condo-points', poiSelected: 'nb-poi-selected-point'};
+/**
+ * (0.4.0, NL-05) The line of «รอบย่านนี้»: 400 m or 800 m out from the open outline (data/rings/<id>.json), one neutral
+ * ink in long dashes, under every outline line and pin — never a data colour, never a fill: the figures are in the panel.
+ */
+export const AROUND_DASH = [3, 2];
+export const AROUND_WIDTH = ['interpolate', ['linear'], ['zoom'], 10, 1.2, 14, 1.8, 17, 2.4];
 const EMPTY = {type: 'FeatureCollection', features: []};
 /** Outlines are drawn from this zoom; pins until PIN_MAX_ZOOM; the open neighbourhood's records from POI_MIN_ZOOM. */
 export const OUTLINE_MIN_ZOOM = 9;
@@ -114,6 +120,7 @@ export function installNeighborhoodLayers(map, {provinces, outlines, rows, iconO
   const before = firstLineLayerId(map);
   map.addSource(SRC.provinces, {type: 'geojson', data: provinces || EMPTY, maxzoom: GEOJSON_MAXZOOM, promoteId: 'id'});
   map.addSource(SRC.outlines, {type: 'geojson', data: outlines, maxzoom: GEOJSON_MAXZOOM, promoteId: 'id'});
+  map.addSource(SRC.around, {type: 'geojson', data: EMPTY, maxzoom: GEOJSON_MAXZOOM});
   map.addSource(SRC.pins, {type: 'geojson', data: pinCollection(rows), maxzoom: GEOJSON_MAXZOOM});
   map.addSource(SRC.poi, {type: 'geojson', data: EMPTY, maxzoom: GEOJSON_MAXZOOM});
   map.addSource(SRC.condo, {type: 'geojson', data: EMPTY, maxzoom: GEOJSON_MAXZOOM});
@@ -143,6 +150,8 @@ export function installNeighborhoodLayers(map, {provinces, outlines, rows, iconO
   // the registry since 0.2.1, its outline still a draft): dotted, so it reads apart from the outlines closed by the
   // registry's rules (solid) and from the compared ones (long dashes).
   const lineColor = ['case', ['boolean', ['feature-state', 'quiet'], false], cssVar('--border-default', '#C9D0CB'), cssVar('--text-secondary', '#4E5B52')];
+  map.addLayer({id: LAYERS.around, type: 'line', source: SRC.around, layout: {'line-join': 'round'},
+    paint: {'line-color': cssVar('--text-secondary', '#4E5B52'), 'line-width': AROUND_WIDTH, 'line-dasharray': AROUND_DASH}});
   map.addLayer({id: LAYERS.line, type: 'line', source: SRC.outlines, minzoom: OUTLINE_MIN_ZOOM, filter: ['!=', ['get', 'kind'], 'lodging'],
     paint: {'line-color': lineColor, 'line-width': ['interpolate', ['linear'], ['zoom'], 9, 0.6, 13, 1.1, 16, 1.6]}});
   map.addLayer({id: LAYERS.lodging, type: 'line', source: SRC.outlines, minzoom: OUTLINE_MIN_ZOOM, filter: ['==', ['get', 'kind'], 'lodging'],
@@ -209,6 +218,8 @@ export function installNeighborhoodLayers(map, {provinces, outlines, rows, iconO
   const setCondo = collection => map.getSource(SRC.condo)?.setData(collection || EMPTY);
   /** The ring round the record whose card is open ([lon, lat]), or none. */
   const markPoi = at => map.getSource(SRC.poiSelected)?.setData(at ? {type: 'FeatureCollection', features: [{type: 'Feature', geometry: {type: 'Point', coordinates: at}, properties: {}}]} : EMPTY);
+  /** (0.4.0) The line of «รอบย่านนี้» (a Polygon or MultiPolygon whose rings are drawn as lines), or none. */
+  const setAround = geometry => map.getSource(SRC.around)?.setData(geometry ? {type: 'FeatureCollection', features: [{type: 'Feature', geometry, properties: {}}]} : EMPTY);
   /**
    * Pins under a screen point, nearest first: [{layer: 'poi' | 'condo', id, d}] — every pin within POI_HIT px (scaled
    * with the zoom like the pins), so a pile at one point and its close neighbours read together.
@@ -251,7 +262,7 @@ export function installNeighborhoodLayers(map, {provinces, outlines, rows, iconO
     for (const id of Object.values(LAYERS)) if (map.getLayer(id)) map.removeLayer(id);
     for (const id of Object.values(SRC)) if (map.getSource(id)) map.removeSource(id);
   }
-  return {paint, setPins, select, hover, setCompare, setProvince, setPoints, setCondo, markPoi, hitPoi, hitTest, dispose, layerIds: LAYERS};
+  return {paint, setPins, select, hover, setCompare, setProvince, setPoints, setCondo, markPoi, setAround, hitPoi, hitTest, dispose, layerIds: LAYERS};
 }
 
 /**
