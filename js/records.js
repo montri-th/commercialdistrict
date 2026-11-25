@@ -174,16 +174,19 @@ export function barHTML(sets, chosen = '') {
   return [
     button(ALL, `<span>${esc(L('ทั้งหมด', 'All'))}</span>`, L('ทุกชุดข้อมูลในย่าน ขนาดเท่ากัน', 'Every dataset in the neighbourhood, alike')),
     ...sets.map(ds => button(ds.id, `${dsCue(ds)}<span>${esc(dsName(ds))}</span>${ds.id === CONDO ? `<small>${esc(L('จุดตามแหล่ง', 'source points'))}</small>` : ''}`,
-      ds.id === CONDO ? L('คอนโดมิเนียมรอบย่าน: จุดที่แผนที่ราคาประเมินของ CityMETER วาด ยังไม่ยืนยันตำแหน่งรายโครงการ ไม่นับในตัวเลขของย่าน', 'Condominiums round the neighbourhood: the points the CityMETER appraisal map draws, not confirmed project locations, never counted in a neighbourhood')
+      ds.id === CONDO ? L('คอนโดมิเนียมใกล้ย่าน: จุดที่แผนที่ราคาประเมินของ CityMETER วาด ยังไม่ยืนยันตำแหน่งรายโครงการ ไม่นับในตัวเลขของย่าน', 'Condominiums near the neighbourhood: the points the CityMETER appraisal map draws, not confirmed project locations, never counted in a neighbourhood')
         : L(`ดู${dsName(ds)}ในย่านพร้อมชื่อ`, `Show ${dsName(ds)} in the neighbourhood with names`))),
   ].join('');
 }
 
-/** The chosen set's names beside its pins: [{id: spot index, name, title, center}] in display priority. */
+/**
+ * Names beside pins: [{id: spot index, name, title, center}] in display priority — the chosen set's, or with no set
+ * chosen (the all view) the venues' (shopping centres and markets, 0.4.1 D-11).
+ */
 export function labelItems(spots, chosen) {
   const out = [];
   (spots || []).forEach((g, i) => {
-    if (!chosen || g.ds.id !== chosen) return;
+    if (chosen ? g.ds.id !== chosen : g.ds?.item !== 'venue') return;
     const first = nameOrNone(g.items[0]);
     const name = g.items.length > 1 ? `${first} ${L('ฯลฯ', '& more')}` : first;
     out.push({id: i, name, title: `${dsName(g.ds)} · ${g.items.map(nameOrNone).slice(0, 6).join(' · ')}`, center: [g.lon, g.lat],
@@ -210,7 +213,10 @@ export function tipHTML(spots) {
     return `<div class="poi-tip-row">${dsCue(ds)}<span class="poi-tip-text"><strong>${esc(dsName(ds))}</strong><small><span translate="no">${esc(names.join(' · '))}</span>${esc(more)}</small></span></div>`;
   }).join('');
   const rest = groups.length > 4 ? `<p class="poi-tip-hint">${esc(L('และชุดอื่น', 'and other datasets'))}</p>` : '';
-  return `${rows}${rest}<p class="poi-tip-hint">${esc(L('กดเพื่อดูรายชื่อ', 'Click for the list'))}</p>`;
+  // (0.4.1, D-11) records of several datasets under the pointer: the pile behind the top pin, said in words — never a
+  // total across datasets (INV-01)
+  const pile = groups.length > 1 ? `${L('ตรงนี้มีหลายชุดซ้อนกัน', 'Several datasets here')} · ` : '';
+  return `${rows}${rest}<p class="poi-tip-hint">${esc(pile + L('กดเพื่อดูรายชื่อ', 'Click for the list'))}</p>`;
 }
 
 /* ---------- card ---------- */

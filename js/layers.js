@@ -20,6 +20,12 @@
  * js/map-layers.js#installRecordLabels), and every other record is a small neutral dot that still answers the pointer.
  * Condominium display points (never counted) are drawn only when they are the chosen set: Land's diamond with a dashed
  * outline, round the open neighbourhood. A ring marks the record whose card is open.
+ *
+ * (0.4.1, owner 2026-11-25 23:01, D-11) A venue — a shopping centre or market (`ds.item` 'venue') — is drawn above every
+ * other pin of its kind of view, so the pins of its tenants (a gym, a restaurant, a luxury boutique the sources place
+ * at the centre's own point) no longer hide it; a point that holds records of several datasets reads as a pile (the
+ * second outline) whichever pin is on top, and the pointer reads them all (hitPoi takes every pin under it). In the
+ * all view the venues carry their names, as the chosen set's pins do.
  */
 import {GEOJSON_MAXZOOM, firstLineLayerId} from './map-layers.js';
 import {cueImage} from './cues.js';
@@ -31,7 +37,7 @@ export const LAYERS = Object.freeze({
 });
 const SRC = {provinces: 'nb-provinces', outlines: 'nb-outlines', around: 'nb-around-ring', pins: 'nb-pin-points', poi: 'nb-poi-points', condo: 'nb-condo-points', poiSelected: 'nb-poi-selected-point'};
 /**
- * (0.4.0, NL-05) The line of «รอบย่านนี้»: 400 m or 800 m out from the open outline (data/rings/<id>.json), one neutral
+ * (0.4.0, NL-05) The line of «ขอบเดินถึง»: 400 m or 800 m out from the open outline (data/rings/<id>.json), one neutral
  * ink in long dashes, under every outline line and pin — never a data colour, never a fill: the figures are in the panel.
  */
 // long dashes: apart from the short dashes of rail under construction ([2, 1.6]), of compared outlines ([2, 1.4]) and the dots of lodging drafts
@@ -95,6 +101,10 @@ export function iconSpec(name, {lut = [], zero = {}} = {}) {
   return null;
 }
 
+/** (0.4.1, D-11) A venue's pin sits this much above the others of its view (symbol-sort-key: higher is drawn on top). */
+export const VENUE_LIFT = 0.5;
+export const isVenue = ds => ds?.item === 'venue';
+
 /** A record pin's icon name (iconSpec). */
 export const pinIcon = (series, {chosen = false, stacked = false, dashed = false} = {}) => `poi:s${series}${chosen ? ':big' : ''}${stacked ? ':stack' : ''}${dashed ? ':dash' : ''}`;
 
@@ -108,12 +118,19 @@ export function pinCollection(rows, iconOf = () => 'pin:none', sortOf = () => 0)
  * Spots (js/records.js#spotsOf) → one pin each; `seriesOf(ds)` gives the pillar's series. Feature id = the spot's index
  * (the app keeps the spots to read the records back). `chosen`: the set the reader picked ('' = every set alike): its
  * pins larger and on top, every other a quiet dot. `dashed`: unconfirmed display points (the condominium layer).
+ * A venue's pin is lifted above the others of the same view (VENUE_LIFT), and a pin reads as a pile when its point
+ * holds more than one record of any dataset (0.4.1, D-11).
  */
 export function poiCollection(spots, seriesOf, {chosen = '', dashed = false} = {}) {
+  // records at each exact point, every dataset together (0.4.1): more than one → every pin there reads as a pile
+  const here = new Map();
+  for (const g of spots || []) here.set(`${g.lon}|${g.lat}`, (here.get(`${g.lon}|${g.lat}`) || 0) + g.items.length);
   return {type: 'FeatureCollection', features: (spots || []).map((g, i) => {
     const isChosen = Boolean(chosen) && g.ds.id === chosen, quiet = Boolean(chosen) && !isChosen;
+    const stacked = (here.get(`${g.lon}|${g.lat}`) || 0) > 1;
     return {type: 'Feature', id: i, geometry: {type: 'Point', coordinates: [g.lon, g.lat]},
-      properties: {d: g.ds.id, icon: quiet ? 'poi:quiet' : pinIcon(seriesOf(g.ds), {chosen: isChosen, stacked: g.items.length > 1, dashed}), sort: isChosen ? 3 : quiet ? 1 : 2}};
+      properties: {d: g.ds.id, icon: quiet ? 'poi:quiet' : pinIcon(seriesOf(g.ds), {chosen: isChosen, stacked, dashed}),
+        sort: (isChosen ? 3 : quiet ? 1 : 2) + (isVenue(g.ds) ? VENUE_LIFT : 0)}};
   })};
 }
 
@@ -220,7 +237,7 @@ export function installNeighborhoodLayers(map, {provinces, outlines, rows, iconO
   const setCondo = collection => map.getSource(SRC.condo)?.setData(collection || EMPTY);
   /** The ring round the record whose card is open ([lon, lat]), or none. */
   const markPoi = at => map.getSource(SRC.poiSelected)?.setData(at ? {type: 'FeatureCollection', features: [{type: 'Feature', geometry: {type: 'Point', coordinates: at}, properties: {}}]} : EMPTY);
-  /** (0.4.0) The line of «รอบย่านนี้» (a Polygon or MultiPolygon whose rings are drawn as lines), or none. */
+  /** (0.4.0) The line of «ขอบเดินถึง» (a Polygon or MultiPolygon whose rings are drawn as lines), or none. */
   const setAround = geometry => map.getSource(SRC.around)?.setData(geometry ? {type: 'FeatureCollection', features: [{type: 'Feature', geometry, properties: {}}]} : EMPTY);
   /**
    * Pins under a screen point, nearest first: [{layer: 'poi' | 'condo', id, d}] — every pin within POI_HIT px (scaled

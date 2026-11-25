@@ -5,6 +5,7 @@
 - เว็บ: https://montri-th.github.io/commercialdistrict/ (ไทย) · https://montri-th.github.io/commercialdistrict/?lang=en (English)
 - รุ่น 0.2.0 · 18 พฤศจิกายน 2569 · ขอบย่านจากทะเบียนย่านกลาง CityMETER รุ่น 2026-11-17-commercial-recovery-9 (อ่าน 18 พ.ย. 2569 จากไฟล์ส่งออกของเจ้าของ ไม่เผยแพร่ชีต ที่อยู่ของชีต หรือเซลล์ของชีต) และชุดขอบย่านล่าสุดของเจ้าของ · ย่านที่พักจากผลคัดย่านที่พักของทะเบียน · ข้อมูลจุดจาก 16 เดโมของ CityMETER ตาม commit ของ `main` วันที่ 18 พ.ย. 2569
 - รุ่น 0.4.0 · 25 พฤศจิกายน 2569 · «ในย่านนี้» และ «รอบย่านนี้» ตามข้อเสนอที่เจ้าของรับ (`handoff/around/`)
+- รุ่น 0.4.1 · 25 พฤศจิกายน 2569 · หมุดศูนย์การค้าและตลาดอยู่บนสุดพร้อมชื่อ และ «รอบย่าน» เปลี่ยนชื่อเป็น «ขอบเดินถึง» (D-10 · D-11 ใน `handoff/around/decisions.json`)
 - โค้ดต่อยอดจาก CityMETER · University (https://github.com/montri-th/university @ed2f350, citymeter-shell 0.6.1)
 - หมวด: Location (คำสั่งเจ้าของ 16 พ.ย. 2569)
 

@@ -310,11 +310,11 @@ function togetherSection(d) {
   return section('compare', L('จุดเด่นที่สัมพันธ์กัน', 'How the highlights relate'), '', parts.join(''));
 }
 
-/* ---------- 0.4.0: the glance «ในย่านนี้» and the section «รอบย่านนี้» (js/around.js, DATA_METHOD.md §12) ---------- */
+/* ---------- 0.4.0: the glance «ในย่านนี้» and the section «ขอบเดินถึง» (js/around.js, DATA_METHOD.md §12) ---------- */
 
-/** The words of a distance: in · รอบย่าน 400 ม. / Inside · Within 400 m around. */
+/** The words of a distance: in · ขอบเดินถึง 400 ม. / Inside · Walkable edge 400 m (0.4.1, D-10; 0.4.0 said รอบย่าน). */
 export const distanceWords = (d, {short = false} = {}) => (d === 'in' ? L('ในย่าน', 'Inside')
-  : short ? L(`รอบ ${num(+d)} ม.`, `${num(+d)} m around`) : L(`รอบย่าน ${num(+d)} ม.`, `Within ${num(+d)} m around`));
+  : short ? L(`ขอบ ${num(+d)} ม.`, `${num(+d)} m edge`) : L(`ขอบเดินถึง ${num(+d)} ม.`, `Walkable edge ${num(+d)} m`));
 /** Kinds of evidence as the page says them (handoff/around/contracts.json evidenceClasses). */
 const EVIDENCE_WORDS = {derived_count: ['นับ', 'counted'], publisher_listed: ['แหล่งรายงาน', 'source-listed'], modelled_estimate: ['แบบจำลอง', 'modelled']};
 const evidenceTag = id => (EVIDENCE_WORDS[id] ? `<span class="glance-tag">${esc(L(...EVIDENCE_WORDS[id]))}</span>` : '');
@@ -373,7 +373,7 @@ function glanceSection(r, model, around) {
       if (t.figure !== 'count') sub = t.known < t.records ? L(`${ds.nameTh} ${unitDs(t.records)} · มีตัวเลข ${unitDs(t.known)}`, `${unitDs(t.records)} · ${unitDs(t.known)} with a figure`) : L(`${ds.nameTh} ${unitDs(t.records)}`, unitDs(t.records));
     }
     const meter = t.level == null ? '' : `${levelMeter(t.level, t.value > 0 ? t.p : null)}<span class="sr-only">${esc(L(`${LEVEL_WORDS[t.level][0]} ระดับ ${num(t.level)} จาก 5 เทียบ ${num(uni(t.id))} ย่าน`, `${LEVEL_WORDS[t.level][1]}, level ${num(t.level)} of 5 among ${num(uni(t.id))} neighbourhoods`))}</span>`;
-    const title = L(`${th}: ${ds.nameTh} · กดเพื่อดูแถวของชุดนี้ในตารางรอบย่าน`, `${en}: ${dsName(ds)} · go to its row in the table below`);
+    const title = L(`${th}: ${ds.nameTh} · กดเพื่อดูแถวของชุดนี้ในตารางขอบเดินถึง`, `${en}: ${dsName(ds)} · go to its row in the table below`);
     return `<li><button type="button" class="glance-tile is-${t.state}" data-action="around-jump" data-value="${esc(ds.id)}" title="${esc(title)}">${icon}${label}${figure}${sub ? `<small class="glance-sub">${esc(sub)}</small>` : ''}${meter}</button></li>`;
   };
   const starred = tiles.some(t => t.star && t.state === 'measured');
@@ -404,7 +404,7 @@ function thinLead(r, model, around) {
   const a = around?.rows.get(r.id)?.a;
   if (!a) return esc(inside);
   const near = scope.filter(ds => (a[ds.id]?.[1] || 0) > 0).length;
-  return `${esc(inside)} · ${esc(near ? L(`รอบย่าน 800 ม. พบรายการ ${num(near)} จาก ${num(scope.length)} ชุด`, `within 800 m around: records of ${num(near)} of the ${num(scope.length)} datasets`) : L('รอบย่าน 800 ม. ก็ไม่พบ', 'none within 800 m around either'))}`;
+  return `${esc(inside)} · ${esc(near ? L(`ขอบเดินถึง 800 ม. พบรายการ ${num(near)} จาก ${num(scope.length)} ชุด`, `walkable edge 800 m: records of ${num(near)} of the ${num(scope.length)} datasets`) : L('ขอบเดินถึง 800 ม. ก็ไม่พบ', 'none in the 800 m walkable edge either'))}`;
 }
 
 /** A centre's «รอบศูนย์นี้» in the Shopping Center demo (`?e=venue:<id>`, citymeter-shell grammar). */
@@ -421,14 +421,14 @@ function aroundProvenance(r, model, around, distance) {
   // the date is the data's (the datasets of the neighbourhood's province), as the glance's line
   const dates = model.datasets.filter(ds => ds.id in (r.c || {})).map(dsDate).filter(Boolean).sort();
   const when = dates.length ? daySpan(dates[0], dates.at(-1)) : '';
-  const dataset = meta ? L(`CityMETER Commercial District · รอบย่าน รุ่น ${meta.release}`, `CityMETER Commercial District · surroundings ${meta.release}`) : 'CityMETER Commercial District';
+  const dataset = meta ? L(`CityMETER Commercial District · ขอบเดินถึง รุ่น ${meta.release}`, `CityMETER Commercial District · walkable edge ${meta.release}`) : 'CityMETER Commercial District';
   const boundary = meta ? L(`${r.name} · ขอบร่าง ${rai(r.areaM2)} ไร่ และนอกขอบไม่เกิน ${num(reach)} ม. วัดเส้นตรง`, `${r.name} · draft outline ${rai(r.areaM2)} rai and up to ${num(reach)} m beyond it, straight line`)
     : L(`${r.name} · ขอบร่าง ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline ${rai(r.areaM2)} rai`);
   return `<p class="hint panel-foot provenance"><span class="prov-part" data-prov="dataset">${pic('dataset')}<span class="sr-only">${L('ชุดข้อมูล ', 'Dataset ')}</span>${esc(dataset)}</span> <span class="prov-part" data-prov="source"><span class="sr-only">${L('แหล่ง', 'Source')}</span>${esc(L(`จาก ${num(model.datasets.length)} ชุดข้อมูล CityMETER ตามรุ่นที่ตรึง`, `from ${num(model.datasets.length)} CityMETER datasets at pinned versions`))}</span><span class="prov-part" data-prov="date">${pic('date')}<span class="sr-only">${L('ข้อมูล ', 'Data ')}</span>${esc(when)}</span><span class="prov-part" data-prov="boundary">${pic('area')}<span class="sr-only">${L('ขอบเขต ', 'Boundary ')}</span>${esc(boundary)}</span><span class="prov-part prov-method"><a href="${METHOD_URL}#12" target="_blank" rel="noopener">${L('วิธีนับ', 'Method')}</a></span></p>`;
 }
 
 /**
- * «รอบย่านนี้» (NL-04, NL-05): every dataset of the neighbourhood in one table — inside, within 400 m and within 800 m
+ * «ขอบเดินถึง» (NL-04, NL-05): every dataset of the neighbourhood in one table — inside, within 400 m and within 800 m
  * around, each in the dataset's own unit, never a total — with the switch of the distance the map draws, the centres
  * with a «รอบศูนย์นี้» page, and the section's own provenance line. A starred dataset (points for under 90 % of its
  * records, D-4) shows its count and density, never a rank.
@@ -441,7 +441,7 @@ function aroundSection(d, model, around, {distance = 'in', fillOf = () => ''} = 
   const loaded = Boolean(around), cols = loaded ? ['in', '400', '800'] : ['in'];
   const switcher = loaded ? `<div class="around-switch" role="group" aria-label="${esc(L('อ่านตารางและแผนที่ที่ระยะ', 'Read the table and the map at'))}">${cols.map(v => `<button type="button" class="seg" data-action="set-around" data-value="${v}" aria-pressed="${distance === v}">${esc(distanceWords(v))}</button>`).join('')}</div>` : '';
   const ringCell = (x, k) => {
-    if (!x.ring) return `<td class="num col-${k} is-none">—<span class="sr-only">${esc(L('ไม่มีตัวเลขรอบย่าน', 'no figure around'))}</span></td>`;
+    if (!x.ring) return `<td class="num col-${k} is-none">—<span class="sr-only">${esc(L('ไม่มีตัวเลขขอบเดินถึง', 'no figure for the edge'))}</span></td>`;
     const v = x.ring[RING_INDEX[k]];
     return `<td class="num col-${k} data-number${v ? '' : ' is-zero'}">${num(v)}</td>`;
   };
@@ -491,7 +491,7 @@ function aroundSection(d, model, around, {distance = 'in', fillOf = () => ''} = 
     ${vs.near.length ? `<li><span class="hint">${esc(distanceWords(distance))} ${count(vs.near.length)}</span> ${vs.near.map(v => `${vlink(v)} <small class="hint">${metres(v.m)}</small>`).join(' · ')}</li>` : ''}
   </ul></div>` : '';
   const hint = L(`ในย่านมีรายการ ${num(present)} จาก ${num(scope)} ชุด`, `${num(present)} of ${num(scope)} datasets inside`);
-  return `<section class="panel-section around-section" id="nb-around" aria-labelledby="nb-around-title"><div class="section-heading">${heading('distance', L('รอบย่านนี้', 'Around this neighbourhood'), 'nb-around-title')}<span class="hint">${esc(hint)}</span></div>
+  return `<section class="panel-section around-section" id="nb-around" aria-labelledby="nb-around-title"><div class="section-heading">${heading('distance', L('ขอบเดินถึง', 'The walkable edge'), 'nb-around-title')}<span class="hint">${esc(hint)}</span></div>
     ${switcher}${table}${note}${venues}${aroundProvenance(r, model, around, loaded ? distance : 'in')}</section>`;
 }
 
@@ -604,7 +604,7 @@ function registryDetails(d, model) {
 
 /**
  * d = js/profile.js#buildNeighborhood. inCompare: the row is in the compare set. around: decoded data/around.json (null
- * while it loads or when it did not load); distance: the reading of «รอบย่านนี้» (`f.around`: in · 400 · 800).
+ * while it loads or when it did not load); distance: the reading of «ขอบเดินถึง» (`f.around`: in · 400 · 800).
  */
 export function renderNeighborhood(d, model, {inCompare = false, compareFull = false, fillOf = () => '', ctx = {}, recordsHTML = '', around = null, distance = 'in'} = {}) {
   const r = d.row, province = provinceName(r.province), am = amendmentOf(r, model);
@@ -627,7 +627,7 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
     ${metricTile(d.inProvince, L(`ย่านใน${province}`, `in ${province}`), 'province')}
   </section>`;
   const lodging = lodgingSection(r, model);
-  // (0.4.0, D-5) the glance follows the neighbourhood's figures; «รอบย่านนี้» takes the place of the dataset list
+  // (0.4.0, D-5) the glance follows the neighbourhood's figures; «ขอบเดินถึง» takes the place of the dataset list
   return `${aha}${metrics}${glanceSection(r, model, around)}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${aroundSection(d, model, around, {distance, fillOf})}${recordsHTML}${similarSection(d)}
     ${actionBar({kind: 'neighborhood', name: r.name, province, point: {lat: r.ref[1], lon: r.ref[0]}})}
     ${registryDetails(d, model)}

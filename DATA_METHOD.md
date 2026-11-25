@@ -23,7 +23,7 @@ makes).
 - จำนวนรายการไม่ใช่ยอดขาย คนเดิน รายได้ หรือความต้องการ
 - **ในย่านนี้** (0.4.0) = แถว 4 ช่องใต้ตัวเลขของย่าน ช่องละหนึ่งชุดข้อมูล: คนอยู่ (แบบจำลอง ยังไม่ถึงรอบข้อมูล) · นักเรียนที่ชุดสถานศึกษาบันทึก · ห้องที่ชุดที่พักบันทึก · ศูนย์การค้าและตลาด
   มาตรวัด 5 ขั้นคือระดับเทียบกับชุดย่านอ้างอิงของรุ่น (§12) ไม่ใช่คะแนน
-- **รอบย่าน 400 ม. / 800 ม.** (0.4.0) = รายการที่อยู่นอกขอบย่าน และห่างจากเส้นขอบไม่เกินระยะนั้น วัดเส้นตรง ไม่ใช่ระยะเดิน · ค่า 800 ม. รวมค่า 400 ม. ·
+- **ขอบเดินถึง 400 ม. / 800 ม.** (0.4.0 ชื่อ «รอบย่าน»; ชื่อนี้ตั้งแต่ 0.4.1, D-10) = รายการที่อยู่นอกขอบย่าน และห่างจากเส้นขอบไม่เกินระยะนั้น วัดเส้นตรง ไม่ใช่ระยะเดิน · ไม่ใช่พื้นที่ให้บริการของย่าน (พื้นที่ให้บริการ 1 · 3 · 5 กม. จากขอบ สำหรับตัวเลขคน อยู่ในแผนรอบ 2) · ค่า 800 ม. รวมค่า 400 ม. ·
   รวมรายการที่อยู่ในย่านข้างเคียง · ไม่บวกกับค่าในย่าน และไม่บวกข้ามย่าน (§12)
 - **อันดับร่วม** (0.4.0) = ย่านที่มีค่าเท่ากันได้อันดับเดียวกัน จุดเด่นจึงบอกว่ากี่ย่านได้อันดับนั้นร่วมกัน (“มากอันดับ 4 ร่วม 5 ย่าน”, §5)
 - **\*** (0.4.0) = ชุดข้อมูลที่มีพิกัดไม่ถึง 90% ของรายการ ในส่วน «ในย่านนี้» และ «รอบย่านนี้» แสดงจำนวนที่พบ ไม่จัดอันดับหรือระดับ (§12)
@@ -355,7 +355,7 @@ then the choice **“เลือกดูทีละชุด”**.
 - **One set at a time.** A bar on the map names the sets in the open neighbourhood (its highlights first, then the
   pillar order; no number on it). A neighbourhood opens on its first highlight with records (0.1.4; owner 2026-11-16
   23:27: “เวลาคลิกย่าน ควรจะเห็น venue ที่ highlighted ก่อนมั้ย”), or on the dataset the map is read by (`m`) when it has records there; a pick does not follow to the
-  next neighbourhood. “ทั้งหมด” (`f.show=all`) draws every record alike; a chosen set (`f.show`) draws its pins larger with
+  next neighbourhood. “ทั้งหมด” (`f.show=all`) draws every record alike, a centre above the rest (0.4.1); a chosen set (`f.show`) draws its pins larger with
   their names beside them (HTML, so Thai shapes correctly and every name is a keyboard target; a name never covers a pin
   of its set), every other record as a small neutral dot (`text.muted`, not a paler data colour). Reading a dataset
   (`m`) with a neighbourhood open chooses that set too. Colours and shapes stay the pillars' (LDS DATAVIZ-05): one set
@@ -365,6 +365,16 @@ then the choice **“เลือกดูทีละชุด”**.
   record in its own demo (`<demo>/?e=<kind>:<key>`, the kinds each demo's address reads), Google Maps by name and Street
   View at the point, and dataset · source · date · boundary. Several records at a point open as a list of names by set.
   No tip, list or card shows a total across datasets. On a phone the card docks under the bar.
+- **Centres first (0.4.1, owner 2026-11-25 23:01 “ทำตามที่พี่เสนอเลยครับ”, D-11).** A shopping centre or market (the dataset whose
+  `item` is `venue`) is drawn above every other pin of its view (`symbol-sort-key` + `VENUE_LIFT` 0.5: in the all view
+  2.5 against 2; with a set chosen the chosen pins stay above a quiet centre), so the pins of records its sources place
+  at the centre's own point (a gym, a boutique, a camera shop) no longer hide it; in 0.4.0 data 68 of the 627 centres
+  inside 227 outlines shared their exact point with a pin drawn after them and were hidden in the all view, and 73 more
+  had another pin within 15 m (True Digital Park in ปุณณวิถี under a gym's pin). A point holding records of several
+  datasets reads as a pile (the second outline) whichever pin is on top; the pointer reads every pin under it, and the
+  tip says «ตรงนี้มีหลายชุดซ้อนกัน» in words — never a total across datasets (INV-01). The all view names the centres
+  beside their pins, as a chosen set's names are. Counting is unchanged (§4). `tests/venue-pins.test.js` checks every
+  neighbourhood.
 - **The panel.** “รายชื่อในย่าน” (closed) lists every name by set; each opens its card (the reading without the map).
 - **Condominium (display only).** The dataset registry's condominium dataset (group Land; CityMETER Condominium
   Thailand — Research Master, tab 07_PRODUCTION, read 16 Nov 2026, export SHA-256 in `meta.condo`): the points the
@@ -483,7 +493,15 @@ without a point), and writes `data/build-report.json` (files with bytes and SHA-
 count, bytes and a digest, totals, the strongest pairs). Rows' pairs follow the highlights' order (0.1.3; a set's order
 changed with Python's string hashing before).
 
-## 12. Surroundings «รอบย่านนี้» and the glance «ในย่านนี้» (0.4.0)
+## 12. Surroundings «รอบย่านนี้» (on the page «ขอบเดินถึง» since 0.4.1) and the glance «ในย่านนี้» (0.4.0)
+
+(0.4.1, owner 2026-11-25 23:01 “ทำตามที่พี่เสนอเลยครับ”, D-10) The 400 m and 800 m from the outline's edge are named «ขอบเดินถึง» on
+the page — a straight line from the edge, not a walking route — so they are not read as the neighbourhood's service area.
+The service area, 1, 3 and 5 km from the edge for the figures of people, is round 2 (handoff/implementation-plan.json
+`around.amendments`): a neighbourhood is larger than any venue in it, and from the edge its service area holds every
+such venue's at the same distance. Measured (data/rings, 0.4.0): the median outline (0.21 km²) grown by 800 m covers
+4.26 km², the area of a circle of 1.16 km — about a venue's smallest circle (1 km, 3.1 km²), against 28.3 and 78.5 km²
+for 3 and 5 km. `data/around.json` (built for 0.4.0) still names the section «รอบย่านนี้» in its notes.
 
 Owner 2026-11-25 08:15, VERBATIM: “พี่ช่วยปรับ web demo ตามที่แนะนำเลยครับ” — the recommended options of decisions D-1 …
 D-9 of the proposal `02-CityMETER__commercialdistrict-neighbourhood-locale-insight-proposal__v1__2026-11-25`
