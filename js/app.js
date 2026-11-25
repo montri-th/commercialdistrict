@@ -41,6 +41,7 @@ import {cueMarkup} from './cues.js';
 import {createCodec, createNavigator} from './shell/url.js';
 import {pageTitle} from './shell/title.js';
 import {LANG} from './shell/i18n.js';
+import {decodeLogoShard, logoPlate} from './logos.js';
 
 const $ = id => document.getElementById(id);
 /** Release tag of this module (index.html import map) — also versions the data files fetched later. */
@@ -61,7 +62,7 @@ const state = {
   province: '', search: '', nb: '', lens: '', compare: [], view3d: true, page: 0,
   // records of the open neighbourhood (0.1.3): shards by neighbourhood id, the pins drawn (spots), the reader's pick
   // (`show`: a dataset id, 'condo', 'all', or '' = the default of resolveChosen), the condominium cells, the card and the tip
-  records: new Map(), recordsLoading: new Set(), spots: [], focus: '', recordsOpen: false,
+  records: new Map(), recordsLoading: new Set(), logoShards: new Map(), logoLoads: new Map(), spots: [], focus: '', recordsOpen: false,
   condoDs: null, condoIndex: new Set(), condoCells: new Map(), condoSpots: [], condoNear: new Map(),
   poiPopup: null, poiCard: null, poiTip: null, poiTipKey: '', recordLabels: null,
   rows: [], pending: [], overview: null, ramp: null, fills: new Map(),
@@ -212,7 +213,7 @@ function renderPanel() {
   if (r) {
     html = renderNeighborhood(buildNeighborhood(state.model, r), state.model, {inCompare: state.compare.includes(r.id), compareFull: state.compare.length >= COMPARE_MAX,
       fillOf: ds => (state.lens === ds.id ? fillOfRow(r) : ''), ctx: panelCtx(), recordsHTML: panelListHTML(state.records.get(r.id) ?? null, {open: state.recordsOpen}),
-      around: state.around, distance: state.distance});
+      around: state.around, distance: state.distance, venueLogo: id => state.logoShards.get(r.id)?.venues.get(id) || null});
     $('map-aha').hidden = true;
   } else {
     state.overview = buildOverview(state.model, {rows: state.rows, province: state.province, ds: lensDs(), pending: state.pending});
@@ -221,6 +222,7 @@ function renderPanel() {
     renderMapAha(state.overview);
   }
   view.innerHTML = html;
+  if (r) ensureLogos(r);
   const mode = r ? 'neighborhood' : 'overview';
   view.dataset.mode = mode;
   $('panel').dataset.mode = mode;
@@ -788,12 +790,35 @@ function chosenSet() {
     condo: !!(state.condoDs && state.condoNear.get(r.id))});
 }
 
+/**
+ * (0.5.0) A neighbourhood's logo shard (data/logos/<id>.json, js/logos.js), once, from the moment it opens: the records
+ * take their logos when they are decoded, the centres «รอบย่านนี้» names take theirs in place (the panel keeps its
+ * scroll). Optional: without it the names show alone (`partial('logos')`).
+ */
+function ensureLogos(r) {
+  if (!state.logoLoads.has(r.id)) {
+    state.logoLoads.set(r.id, fetchJSON(`data/logos/${encodeURIComponent(r.id)}.json${V()}`)
+      .then(json => decodeLogoShard(json))
+      .catch(e => { partial('logos'); console.warn('Logos unavailable', r.id, e); return null; })
+      .then(shard => { state.logoShards.set(r.id, shard); if (state.nb === r.id) patchVenueLogos(shard); return shard; }));
+  }
+  return state.logoLoads.get(r.id);
+}
+
+function patchVenueLogos(shard) {
+  if (!shard) return;
+  for (const a of document.querySelectorAll('#panel-view .venue-links a[data-venue]')) {
+    const logo = shard.venues.get(a.dataset.venue);
+    if (logo && !a.querySelector('.logo-plate')) a.insertAdjacentHTML('afterbegin', logoPlate(logo, {height: 16, cls: 'inline-logo'}));
+  }
+}
+
 /** The open neighbourhood's records (data/records/<id>.json), once; the map, the bar and the panel list follow. */
 function ensureRecords(r) {
   if (!r || state.records.has(r.id) || state.recordsLoading.has(r.id)) return;
   state.recordsLoading.add(r.id);
-  fetchJSON(`data/records/${encodeURIComponent(r.id)}.json${V()}`)
-    .then(json => state.records.set(r.id, decodeRecords(json, state.model)))
+  Promise.all([fetchJSON(`data/records/${encodeURIComponent(r.id)}.json${V()}`), ensureLogos(r)])
+    .then(([json, shard]) => state.records.set(r.id, decodeRecords(json, state.model, shard)))
     .catch(e => { partial('records'); console.warn('Records unavailable', r.id, e); state.records.set(r.id, []); })
     .finally(() => {
       state.recordsLoading.delete(r.id);
@@ -1355,6 +1380,7 @@ const PARTIAL = {
   'data/provinces.geojson': ['กรอบจังหวัด', 'แผนที่ไม่แสดงขอบจังหวัด ตัวเลขในแผงยังครบ', 'Province outlines', 'The map shows no province outlines; the panel figures are complete'],
   'data/boundaries.geojson': ['ขอบย่าน', 'แผนที่แสดงเฉพาะหมุดของย่าน ตัวเลขในแผงยังครบ', 'Neighbourhood outlines', 'The map shows pins only; the panel figures are complete'],
   'records': ['จุดในย่าน', 'แผนที่ไม่แสดงจุดของย่านนี้ ตัวเลขในแผงยังครบ', 'Records inside the neighbourhood', 'The map does not draw this neighbourhood’s records; the panel figures are complete'],
+  'logos': ['โลโก้', 'ชื่อในย่านนี้แสดงโดยไม่มีโลโก้ ตัวเลขยังครบ', 'Logos', 'Names in this neighbourhood show without logos; the figures are complete'],
   'condo': ['จุดคอนโดมิเนียม', 'แผนที่อาจไม่แสดงจุดคอนโดมิเนียมบางส่วน', 'Condominium points', 'Some condominium points may be missing from the map'],
   'units': ['รูปอาคารของ CityMETER', 'อาคารบางจังหวัดแสดงจากแผนที่ฐานแทนชุดอาคารของ CityMETER', 'CityMETER building shapes', 'Buildings in some provinces come from the basemap instead of the CityMETER set'],
   'basemap': ['แผนที่ฐาน', 'ถนน แหล่งน้ำ และอาคารพื้นหลังอาจไม่แสดง ข้อมูลในแผงและตารางยังใช้ได้', 'Basemap', 'Roads, water and background buildings may be missing; the panel and the table still work'],

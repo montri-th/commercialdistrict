@@ -1,6 +1,7 @@
 /**
  * Map helpers shared by the layers of this page, and the HTML area labels (the province and neighbourhood chips).
  */
+import {logoWidth} from './logos.js';
 /**
  * maxzoom of every GeoJSON source the page adds. MapLibre 5.6.2 throws in SourceCache._updateRetainedTiles
  * (“reading 'key'”) when a pitched camera sits between maxzoom − 1 and maxzoom of a GeoJSON source and a near
@@ -163,7 +164,19 @@ export function installRecordLabels(map, container, {onSelect, reservedBottom = 
       button.type = 'button';
       button.className = 'record-label';
       button.setAttribute('translate', 'no');
-      button.textContent = a.name;
+      if (a.logo) {
+        // (0.5.0) the record's logo on its plate before the name, as Shopping Center names its venues; decorative
+        button.classList.add('has-logo');
+        const plate = document.createElement('span'), img = document.createElement('img'), text = document.createElement('span');
+        plate.className = 'logo-plate label-logo';
+        plate.style.background = a.logo.plate;
+        Object.assign(img, {src: a.logo.file, alt: '', width: logoWidth(a.logo, 14), height: 14, decoding: 'async'});
+        img.style.height = '14px';
+        plate.append(img);
+        text.className = 'label-text';
+        text.textContent = a.name;
+        button.append(plate, text);
+      } else button.textContent = a.name;
       button.title = a.title || a.name;
       button.hidden = true;
       button.onclick = () => onSelect?.(a.id);
