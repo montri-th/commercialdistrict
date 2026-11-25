@@ -42,6 +42,9 @@ export function decodeAround(json) {
   return {meta, rows: new Map(Object.entries(json.rows)), venues: json.venues || {}, byVenue: json.byVenue || {}};
 }
 
+/** The surroundings belong to the data of the page: one row per neighbourhood of data/neighborhoods.json, no other. */
+export const aroundMatches = (around, model) => Boolean(around && model) && around.rows.size === model.rows.length && model.rows.every(r => around.rows.has(r.id));
+
 /**
  * One reading of the glance inside the outline, by its EVID-05 state: out_of_scope (the dataset has no located record in
  * the province) · measured_zero (none inside) · no_data (records inside, none with a figure) · measured. `records`:

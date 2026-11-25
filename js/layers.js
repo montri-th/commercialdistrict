@@ -34,7 +34,8 @@ const SRC = {provinces: 'nb-provinces', outlines: 'nb-outlines', around: 'nb-aro
  * (0.4.0, NL-05) The line of «รอบย่านนี้»: 400 m or 800 m out from the open outline (data/rings/<id>.json), one neutral
  * ink in long dashes, under every outline line and pin — never a data colour, never a fill: the figures are in the panel.
  */
-export const AROUND_DASH = [3, 2];
+// long dashes: apart from the short dashes of rail under construction ([2, 1.6]), of compared outlines ([2, 1.4]) and the dots of lodging drafts
+export const AROUND_DASH = [6, 3];
 export const AROUND_WIDTH = ['interpolate', ['linear'], ['zoom'], 10, 1.2, 14, 1.8, 17, 2.4];
 const EMPTY = {type: 'FeatureCollection', features: []};
 /** Outlines are drawn from this zoom; pins until PIN_MAX_ZOOM; the open neighbourhood's records from POI_MIN_ZOOM. */
@@ -150,8 +151,9 @@ export function installNeighborhoodLayers(map, {provinces, outlines, rows, iconO
   // the registry since 0.2.1, its outline still a draft): dotted, so it reads apart from the outlines closed by the
   // registry's rules (solid) and from the compared ones (long dashes).
   const lineColor = ['case', ['boolean', ['feature-state', 'quiet'], false], cssVar('--border-default', '#C9D0CB'), cssVar('--text-secondary', '#4E5B52')];
+  // under the outlines: below the data-coloured edges (from zoom 14) and every outline line drawn after them
   map.addLayer({id: LAYERS.around, type: 'line', source: SRC.around, layout: {'line-join': 'round'},
-    paint: {'line-color': cssVar('--text-secondary', '#4E5B52'), 'line-width': AROUND_WIDTH, 'line-dasharray': AROUND_DASH}});
+    paint: {'line-color': cssVar('--text-secondary', '#4E5B52'), 'line-width': AROUND_WIDTH, 'line-dasharray': AROUND_DASH}}, LAYERS.edge);
   map.addLayer({id: LAYERS.line, type: 'line', source: SRC.outlines, minzoom: OUTLINE_MIN_ZOOM, filter: ['!=', ['get', 'kind'], 'lodging'],
     paint: {'line-color': lineColor, 'line-width': ['interpolate', ['linear'], ['zoom'], 9, 0.6, 13, 1.1, 16, 1.6]}});
   map.addLayer({id: LAYERS.lodging, type: 'line', source: SRC.outlines, minzoom: OUTLINE_MIN_ZOOM, filter: ['==', ['get', 'kind'], 'lodging'],

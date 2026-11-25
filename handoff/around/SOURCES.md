@@ -1,6 +1,6 @@
 # «รอบย่านนี้» — แหล่งที่ใช้สร้าง (0.4.0)
 
-ไฟล์ทุกไฟล์ข้างล่างตรวจด้วย SHA-256 ก่อนใช้ (`scripts/build-around.py` หยุดเมื่อไม่ตรง) และอยู่ใน `data/around.json` `meta.sources` · `meta.venues` · `meta.outlines` · `meta.inside` ด้วย ค่าเดียวกัน
+ไฟล์ข้อมูลข้างล่างตรวจด้วย SHA-256 ก่อนใช้ และ `scripts/build-around.py` หยุดเมื่อไม่ตรง: 16 ชุดข้อมูลกับค่าที่ `data/neighborhoods.json` ตรึง และ 2 ไฟล์ของ Shopping Center กับ `SC_PINNED` ในสคริปต์ · ค่าเดียวกันอยู่ใน `data/around.json` `meta.sources` · `meta.venues` · `meta.outlines` · `meta.inside` · กติการะดับใน `js/venue-locale.js` ตรวจด้วย test (บรรทัดเท่ากับ `contracts.json`) · เอกสารกำกับไม่อยู่ในการตรวจของสคริปต์
 
 ## ข้อมูลในขอบที่จับคู่ด้วย
 
@@ -36,7 +36,7 @@
 | ไฟล์ | SHA-256 | หมายเหตุ |
 |---|---|---|
 | montri-th/shoppingcenter @ `dfcc6cd` `data/venues.json` | `c951d31c800d9b194ab0922624ae101f9fc0d92ff130130ff3c52a4fc2e472c9` | ชุดที่มีส่วน «รอบศูนย์นี้»: countable · status supply · group mall, community or outlet · located (js/venue-locale.js inLocaleSet) · 492 แห่ง |
-| montri-th/shoppingcenter @ `dfcc6cd` `data/locale/meta.json` | `275bf644341761f8b4d8b33d123a586eb588e82445933f8fc8e17f099d91cdf3` | รุ่น `{'id': 'venue-locale-shopping-20261120-v0.2.3-rc1', 'status': 'release_candidate', 'manifestSha256': '01f71879d638585cea74dbfbd26ea3425aff753fc6e500576b0cc0822c39676f', 'schema': 'venue_locale_schema_v1', 'blockingIssues': 12}` |
+| montri-th/shoppingcenter @ `dfcc6cd` `data/locale/meta.json` | `275bf644341761f8b4d8b33d123a586eb588e82445933f8fc8e17f099d91cdf3` | รุ่น `venue-locale-shopping-20261120-v0.2.3-rc1` · release_candidate · manifest SHA-256 `01f71879d638585cea74dbfbd26ea3425aff753fc6e500576b0cc0822c39676f` · schema `venue_locale_schema_v1` · ประเด็นที่กันรุ่น stable 12 ข้อ |
 | montri-th/shoppingcenter `js/venue-locale.js` @ `dfcc6cd` | `27f3e8585eead076d493df1a210abf21a1c65eae06cfa1b63a5388e3cb90adff` | กติการะดับ `levelOf` และคำของระดับ `LEVEL_WORDS` คัดคำต่อคำลง `js/around.js` |
 
 ## เอกสารกำกับ (ไม่แจกจ่ายใน repository)

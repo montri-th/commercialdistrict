@@ -499,10 +499,11 @@ records outside its outline and no farther than 400 m and 800 m from its edge, s
   never around it — so the inside and the around never hold the same record;
 - distances are measured on the outline the map draws (`data/boundaries.geojson`: the delivered outline simplified at
   1.5 m with shared edges kept) in an azimuthal equidistant projection centred on the neighbourhood's reference point;
-  the line on the map is the same outline grown by 400 m or 800 m (`data/rings/<id>.json`, display only, simplified at
-  2 m). In release 0.4.0, 6 records sit on the other side of the drawn line from the data build's count — 5 inside the
-  drawn line that the build did not count inside (they are around, at 0 m) and 1 counted inside that lies just outside
-  it (it stays inside, never around): the 1.5 m simplification, recorded by the build;
+  the line on the map is that outline grown by 400 m or 800 m and simplified at 2 m (`data/rings/<id>.json`, display
+  only), so it can sit a few metres off the exact distance; the counts never use it. In release 0.4.0, 6 records sit on
+  the other side of the drawn outline from the data build's count — 5 inside the drawn outline that the build did not
+  count inside (they are around, at 0 m) and 1 counted inside that lies just outside it (it stays inside, never around):
+  the 1.5 m simplification, recorded in `meta.acrossTheDrawnLine`;
 - a dataset with no located record in the neighbourhood's province has no key (out of scope, never 0).
 
 The figures of two neighbourhoods can hold the same record (a shop between two outlines is around both): never add
@@ -526,7 +527,9 @@ how many records lack it). The level is the five-step meter of «รอบศู
 `montri-th/shoppingcenter` `js/venue-locale.js` @ `dfcc6cd`: `levelOf(p, count) = min(5, floor(p / 20) + 1)` for a value
 above zero, 0 for a measured zero; `p` is the mid-rank percentile, 100 × (below + ½ equal) / n, among the neighbourhoods
 of the reference set that have a value (rooms: 394 of 395 — one neighbourhood's lodging places carry no room figure;
-centers: 395). The filled bars take the LDS `count` sample of `p`; every bar has an outline.
+centers: 395). `p` is stored to six decimals; the build stops if that would move a level or the colour sample from the
+exact value's. The filled bars take the LDS `count` sample of `p`; every bar has an outline. The key under the tiles
+names the peers of each level by their number (rooms 394 · centers 395).
 
 **Reference set (D-8).** The 395 outlined neighbourhoods of this release, codes in the order of
 `data/neighborhoods.json` joined by a line feed: `meta.referenceSet` (id, n, SHA-256). It stays until a release names
@@ -539,14 +542,24 @@ count and density, never a rank or a level. Their highlights elsewhere on the pa
 
 **Shopping centres with a «รอบศูนย์นี้» page.** The centres of Shopping Center's own set — countable, status supply, group
 mall, community or outlet, with a point (`js/venue-locale.js#inLocaleSet`; 492 in `montri-th/shoppingcenter` @ `dfcc6cd`)
-— inside the outline (as the data build counted them; a centre newer than the pinned file by its point in the drawn
-outline) and outside it within 800 m, nearest first: `rows[<id>].v = {in: [venue id], near: [[venue id, metres]]}`,
-`byVenue` (each centre's neighbourhood and nearest outline) and `venues` (public names). Joined by id, never by name. In
-release 0.4.0: 167 inside 93 outlines, 355 centre–neighbourhood pairs within 800 m, 256 centres linked.
+— inside the outline only as the data build counted them (a centre the pinned Shopping Center file has no point for:
+inside the outline the drawn line covers it in; 4 in release 0.4.0, `meta.venues.notInPinnedFile`), and outside it
+within 800 m, nearest first (a centre of the pinned file the build did not count inside is near, at its distance:
+under 1 m reads “ไม่ถึง 1 ม.”), so the inside and the around never hold the same centre: `rows[<id>].v = {in: [venue
+id], near: [[venue id, metres]]}`, `byVenue` (each centre's neighbourhood and nearest outline) and `venues` (public
+names). Joined by id, never by name. Both Shopping Center files are checked against their SHA-256 (`SC_PINNED` in the
+script). In release 0.4.0: 166 inside 93 outlines, 356 centre–neighbourhood pairs within 800 m, 256 centres linked.
 
 **On the page.** The section's switch reads inside · within 400 m · within 800 m (`f.around` = in · 400 · 800; inside is
 the default and is never written in the address); the table stresses that column, the map draws the line at that
-distance in one neutral ink (never a data colour, never a fill) and frames it whole. On a narrow screen the table shows
-the inside column beside the chosen one. The section ends with its own provenance line: dataset · source · date ·
-boundary (the outline and up to 800 m beyond it) · method.
+distance in one neutral ink in long dashes (`[6, 3]`, apart from the short dashes of rail under construction and of
+compared outlines), under the outlines (never a data colour, never a fill), and frames it whole once its line has
+loaded — a reader who moves the map meanwhile keeps the view. A rank in the table names its peers and how many
+neighbourhoods share it (“มากอันดับ k จาก N ย่าน · ร่วม t ย่าน”); a starred dataset shows no rank and no colour
+swatch. A neighbourhood with no highlight leads with how many datasets have records inside and within 800 m around —
+a number of datasets, never one dataset ranked against another. On a narrow screen the table shows the inside column
+beside the chosen one. Without `data/around.json` the table keeps the inside column alone and the page says what did
+not load; a file of another data release (its neighbourhoods differ) is dropped the same way. The section ends with
+its own provenance line: dataset · source · the data's dates · boundary (the outline and up to 800 m beyond it) ·
+method.
 

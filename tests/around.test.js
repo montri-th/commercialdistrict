@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {ROOT, load, readJSON, readBytes, sha256} from './helpers.js';
-import {decodeAround, glanceTiles, aroundGroups, venuesOf, sharedBy, lowLocated, levelOf, LEVEL_WORDS, aroundDistance, DISTANCES} from '../js/around.js';
+import {decodeAround, glanceTiles, aroundGroups, venuesOf, sharedBy, lowLocated, levelOf, LEVEL_WORDS, aroundDistance, DISTANCES, pctFill} from '../js/around.js';
 import {buildNeighborhood} from '../js/profile.js';
 import {renderNeighborhood, highlightWords} from '../js/panel.js';
 
@@ -92,8 +92,16 @@ test('levels: the rule of «รอบศูนย์นี้» verbatim, mid-ra
   assert.equal(meta.glance.universe.students.ranked, false, 'the school dataset is never ranked here (D-4)');
   model.rows.forEach((r, i) => {
     const g = rows[r.id].g || {};
-    if (rooms[i] == null) assert.ok(!('rooms' in g), r.id); else assert.ok(Math.abs(g.rooms - midPct(rooms[i], uRooms)) < 0.051, r.id);
-    if (centers[i] == null) assert.ok(!('centers' in g), r.id); else assert.ok(Math.abs(g.centers - midPct(centers[i], uCenters)) < 0.051, r.id);
+    // the stored percentile is the exact mid-rank to 6 decimals, and the level and colour the page reads are the exact
+    // ones (0.4.0 review: a rounding to 0.1 had moved 39.975 to 40.0, one level up)
+    const same = (stored, value, all, label) => {
+      const exact = midPct(value, all);
+      assert.ok(Math.abs(stored - exact) < 5e-7, label);
+      assert.equal(levelOf(stored, value), levelOf(exact, value), `${label}: level`);
+      assert.equal(pctFill(stored), pctFill(exact), `${label}: colour`);
+    };
+    if (rooms[i] == null) assert.ok(!('rooms' in g), r.id); else same(g.rooms, rooms[i], uRooms, `${r.id} rooms`);
+    if (centers[i] == null) assert.ok(!('centers' in g), r.id); else same(g.centers, centers[i], uCenters, `${r.id} centers`);
     assert.ok(!('students' in g), r.id);
   });
 });
@@ -125,7 +133,15 @@ test('centres with a «รอบศูนย์นี้» page: one outline at 
     for (const [v, m] of x.v.near) { assert.ok(Number.isInteger(m) && m >= 0 && m <= 800, `${id} ${v}`); assert.ok(m >= last); last = m; assert.ok(A.venues[v]?.[0], v); assert.ok(!x.v.in.includes(v)); }
   }
   for (const [v, b] of Object.entries(A.byVenue)) if (b.in) assert.equal(seen.get(v), b.in, v);
-  assert.equal(seen.size, 167);
+  // a centre is inside an outline only when the data build counted it there, or when the pinned Shopping Center file has
+  // no point for it (meta.venues.notInPinnedFile): so the inside and the around never hold the same centre
+  const notPinned = new Set(A.meta.venues.notInPinnedFile);
+  for (const [v, id] of seen) {
+    const keys = new Set(readJSON(`data/records/${id}.json`).rows.map(rec => String(rec[4])));
+    assert.ok(keys.has(v) || notPinned.has(v), `${v} listed inside ${id} but not counted there`);
+  }
+  assert.equal(seen.size, 166);
+  assert.equal(Object.values(A.rows).reduce((s, x) => s + (x.v?.near.length || 0), 0), 356);
   assert.equal(A.meta.venues.n, 492);
 });
 
@@ -172,13 +188,21 @@ test('every neighbourhood renders the glance and «รอบย่านนี�
       assert.equal((html.match(/class="glance-tile /g) || []).length, 4, r.id);
       assert.equal((html.match(/class="around-ds"/g) || []).length, 16, r.id);
       assert.match(html, new RegExp(`data-around="${distance}"`));
-      assert.match(html, /data-value="in" aria-pressed="(true|false)"/);
+      if (a) assert.match(html, /data-value="in" aria-pressed="(true|false)"/);
+      // one row group per pillar (each pillar header heads its own rows)
+      assert.equal((html.match(/<tbody><tr class="pillar-row">/g) || []).length, 3, r.id);
       // out of scope: the dash and the scope words, never 0
       for (const ds of model.datasets) if (!(ds.id in r.c)) assert.match(html, new RegExp(`id="around-${ds.id}"[\\s\\S]*?— นอกขอบเขตข้อมูล`), `${r.id} ${ds.id}`);
       // the section ends with its own provenance line: dataset · source · date · boundary · method
       const section = html.slice(html.indexOf('id="nb-around"'));
       for (const part of ['dataset', 'source', 'date', 'boundary']) assert.match(section, new RegExp(`data-prov="${part}"`), `${r.id} ${part}`);
-      if (!a) assert.match(html, /data-value="400" aria-pressed="false" disabled/, 'no line to draw without the file');
+      if (!a) {
+        // without the file: no switch, no column around, no version or build date in the provenance line
+        assert.ok(!/data-action="set-around"/.test(html) && !/col-400|col-800/.test(section), r.id);
+        assert.ok(!/รอบย่าน รุ่น/.test(section), r.id);
+      } else {
+        assert.equal((section.match(/class="num col-400/g) || []).length, 1 + Object.keys(r.c).length, `${r.id}: a 400 m cell for every dataset in scope`);
+      }
     }
   }
 });

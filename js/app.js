@@ -21,7 +21,7 @@
 import {registerDataNames} from './lang.js';
 import {provinces as provinceList, provinceByCode, provinceCodeFrom, provinceName, setProvinces, decodeData, scopeRows, scopePending, KINDS, kindMatch, cell, rowsBounds, dsName, dsUnit, dsUnitN, num, PILLARS, PILLAR_SERIES} from './model.js';
 import {buildOverview, buildNeighborhood, buildCompare} from './profile.js';
-import {decodeAround, aroundDistance} from './around.js';
+import {decodeAround, aroundDistance, aroundMatches} from './around.js';
 import {renderOverview, renderNeighborhood, renderCompare, renderFilterChips, tableHeadHTML, tableRowHTML, esc, L, dens, sharePct, thaiDate} from './panel.js';
 import {loadMapLibrary} from './shell/vendors.js';
 import {installAreaLabels, installRecordLabels} from './map-layers.js';
@@ -69,7 +69,7 @@ const state = {
   kind: '',
   // «รอบย่านนี้» (0.4.0, `f.around`): data/around.json decoded (null until it arrives or if it did not), the reading
   // (in · 400 · 800: the column the table stresses and the line the map draws) and the lines, one file per neighbourhood
-  around: null, distance: 'in', rings: new Map(), ringsLoading: new Set(),
+  around: null, distance: 'in', rings: new Map(), ringsLoading: new Set(), frameOnRing: '',
   map: null, loaded: false, mapTheme: '', initialCameraDone: false, tileTemplate: '', budget: null,
   layers: null, provinceLabels: null, nbLabels: null, massing: null, buildingUnits: null,
   readerPitch: false, readerMovedAt: 0,
@@ -307,7 +307,13 @@ function setDistance(value) {
   update();
   // the switch was redrawn with the panel: the focus goes back to the button just pressed
   document.querySelector(`#panel-view [data-action="set-around"][data-value="${next}"]`)?.focus({preventScroll: true});
-  if (state.nb) { ensureRing(openRow()); if (state.loaded) fitNb(openRow()); }
+  // one camera move: with the line already known (or inside) frame now, else frame once it arrives (ensureRing)
+  if (state.nb) {
+    const r = openRow();
+    const waits = next !== 'in' && !state.rings.has(r.id);
+    ensureRing(r);
+    if (state.loaded && !waits) fitNb(r);
+  }
   announce(next === 'in' ? L('ในย่าน', 'Inside') : L(`รอบย่าน ${num(+next)} ม. · เส้นตรงจากขอบ`, `Within ${num(+next)} m around · straight line from the edge`));
 }
 
@@ -323,13 +329,19 @@ function jumpToAround(dsId) {
 function ensureRing(r) {
   if (!r || state.distance === 'in' || state.rings.has(r.id) || state.ringsLoading.has(r.id)) return;
   state.ringsLoading.add(r.id);
+  // the open neighbourhood's line is framed when it arrives, unless the reader moves the map meanwhile (movestart)
+  if (r.id === state.nb) state.frameOnRing = r.id;
   fetchJSON(`data/rings/${encodeURIComponent(r.id)}.json${V()}`)
     .then(json => { if (json?.id === r.id && json.rings) state.rings.set(r.id, json.rings); else throw new Error('Invalid ring file'); })
     .catch(e => { partial('rings'); console.warn('Surroundings line unavailable', r.id, e); state.rings.set(r.id, null); })
     .finally(() => {
       state.ringsLoading.delete(r.id);
       if (state.nb !== r.id) return;
-      if (state.loaded) { updateSpatialLayers(); fitNb(r); }
+      if (state.loaded) {
+        updateSpatialLayers();
+        if (state.frameOnRing === r.id) fitNb(r);
+      }
+      if (state.frameOnRing === r.id) state.frameOnRing = '';
       renderLegend();
     });
 }
@@ -1084,6 +1096,8 @@ function initMap() {
     state.map.on('click', onMapClick);
     state.map.on('mousemove', onMapMove);
     state.map.on('pitchstart', e => { if (e.originalEvent) state.readerPitch = true; });
+    // (0.4.0) a reader who moves the map while a line around loads keeps the view: no framing when it arrives
+    state.map.on('movestart', e => { if (e.originalEvent) state.frameOnRing = ''; });
     for (const type of ['wheel', 'touchend', 'pointerup', 'dblclick']) state.map.getCanvasContainer().addEventListener(type, () => { state.readerMovedAt = Date.now(); }, {passive: true});
     state.map.on('error', e => { watchBasemap.error(e); console.warn('Map resource', e.error?.message || e); });
     state.map.on('sourcedata', watchBasemap.data);
@@ -1321,7 +1335,9 @@ function wireEvents() {
   $('sheet-back').onclick = goBack;
   $('panel-back').onclick = goBack;
   installSheetSwipe();
-  document.querySelector('.skip').onclick = () => { openMobilePanel(); $('dataset-title').focus(); };
+  // the skip link lands on the view's own heading: the neighbourhood's name when one is open (the dataset heading is
+  // kept for screen readers only in that view, 0.4.0 D-5)
+  document.querySelector('.skip').onclick = e => { e.preventDefault(); openMobilePanel(); (state.nb && document.querySelector('#panel-view .nb-title') || $('dataset-title')).focus(); };
   $('toggle-insights').onclick = () => openInsights($('insight-content').hidden);
   $('compare-clear').onclick = () => compareSet([], {open: false});
   if (typeof ResizeObserver === 'function') new ResizeObserver(syncBottomPanel).observe($('insights')); else window.addEventListener('resize', syncBottomPanel);
@@ -1369,6 +1385,8 @@ async function init() {
     setProvinces(state.provincesGeo);
     state.locate = state.provincesGeo.features.length ? provinceLocator(state.provincesGeo) : null;
     state.model = decodeData(dataJSON);
+    // the surroundings of another data release would put figures on the wrong neighbourhoods: drop them, say so
+    if (state.around && !aroundMatches(state.around, state.model)) { partial('around'); console.warn('Surroundings belong to another data release'); state.around = null; }
     state.outlines = validFeatureCollection(outlinesJSON) ? outlinesJSON : {type: 'FeatureCollection', features: []};
     state.outlineById = new Map(state.outlines.features.map(f => [String(f.properties.id), f]));
     state.condoDs = condoDataset(state.model.meta.condo);

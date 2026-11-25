@@ -17,6 +17,7 @@ Read only, except the files it writes. Inputs:
   shoppingcenter  a clone of montri-th/shoppingcenter: data/venues.json (its venue registry) and data/locale/meta.json
                   (the release of «รอบศูนย์นี้»). The centres that have the section are the ones it ranks: countable,
                   status supply, group mall · community · outlet, with a point (js/venue-locale.js inLocaleSet).
+                  Both files are checked against SC_PINNED.
 
 Outputs:
   data/around.json      per neighbourhood: for every dataset in scope, the located records outside its outline within
@@ -57,6 +58,11 @@ PAD_DEG = 0.012             # candidate box round an outline (more than 800 m at
 RING_SIMPLIFY_M = 2.0       # the drawn ring only: simplification of the buffer line
 RING_QUAD_SEGS = 8          # buffer resolution (segments per quarter circle)
 SC_GROUPS = ('mall', 'community', 'outlet')
+# montri-th/shoppingcenter @ dfcc6cd: the files that give the centres with a «รอบศูนย์นี้» page (checked like the 16 sources)
+SC_PINNED = {
+    'data/venues.json': 'c951d31c800d9b194ab0922624ae101f9fc0d92ff130130ff3c52a4fc2e472c9',
+    'data/locale/meta.json': '275bf644341761f8b4d8b33d123a586eb588e82445933f8fc8e17f099d91cdf3',
+}
 
 
 def sha256_file(path):
@@ -180,7 +186,9 @@ def main():
 
     # ---- surroundings of every outline
     around, rings = {}, {}
-    geo_mismatch = 0     # records whose side of the line differs between the drawn outline and the build's membership
+    # records whose side of the drawn line differs from the data build's membership (the 1.5 m simplification):
+    # inside the drawn line but not counted inside (they are around, at 0 m) · counted inside but just outside the line
+    in_line_not_counted, counted_off_line = 0, 0
     for i in order:
         r = by_id[i]
         lon0, lat0 = r['ref']
@@ -203,7 +211,8 @@ def main():
             dist = shapely.distance(g, pp)
             counted = np.array([P['key'][k] in mine for k in idx])
             geo_in = shapely.covers(g, pp)
-            geo_mismatch += int(np.sum(geo_in != counted))
+            in_line_not_counted += int(np.sum(geo_in & ~counted))
+            counted_off_line += int(np.sum(counted & ~geo_in))
             outside = ~counted
             a_[d['id']] = [int(np.sum(outside & (dist <= RINGS[0]))), int(np.sum(outside & (dist <= RINGS[1])))]
         around[i] = a_
@@ -240,11 +249,21 @@ def main():
         universe[tile] = {'dataset': ds_id, 'ranked': True, 'n': len(uni)}
         for i, v in vals.items():
             if v is not None:
-                glance[i][tile] = round(mid_pct(v, uni), 1)
+                p = mid_pct(v, uni)
+                q = round(p, 6)
+                # the page reads levelOf(p) and the count sample round(p × 40 / 100) (JS rounding): never moved by the digits kept
+                if v > 0 and (min(5, math.floor(q / 20) + 1) != min(5, math.floor(p / 20) + 1)
+                              or math.floor(q * 0.4 + 0.5) != math.floor(p * 0.4 + 0.5)):
+                    sys.exit(f'{i} {tile}: storing p = {q} would move its level or colour (exact {p})')
+                glance[i][tile] = q
 
     # ---- centres with a «รอบศูนย์นี้» page, inside or near each outline (joined by id; names only to show them)
     sc_venues_path = os.path.join(a.shoppingcenter, 'data', 'venues.json')
     sc_meta_path = os.path.join(a.shoppingcenter, 'data', 'locale', 'meta.json')
+    for rel, want in SC_PINNED.items():
+        got = sha256_file(os.path.join(a.shoppingcenter, *rel.split('/')))
+        if got != want:
+            sys.exit(f'montri-th/shoppingcenter {rel} has SHA-256 {got}, this build pins {want} (dfcc6cd)')
     sc_rows = json.load(open(sc_venues_path, encoding='utf-8'))['rows']
     sc_meta = json.load(open(sc_meta_path, encoding='utf-8'))
     venues = [v for v in sc_rows if v.get('countable') and v.get('status') == 'supply' and v.get('group') in SC_GROUPS
@@ -268,15 +287,23 @@ def main():
         m = (vlon >= minx - PAD_DEG) & (vlon <= maxx + PAD_DEG) & (vlat >= miny - PAD_DEG) & (vlat <= maxy + PAD_DEG)
         for k in np.nonzero(m)[0]:
             x, y = fwd.transform(vlon[k], vlat[k])
-            dist = g.distance(Point(x, y))
+            pt = Point(x, y)
+            dist = g.distance(pt)
             if dist <= RINGS[1]:
-                hits[k].append((i, round(dist)))
+                hits[k].append((i, round(dist), g.covers(pt)))
+    # the located records of the Shopping Center file the data build pinned: a centre among them is inside an outline
+    # only when the build counted it there (data/records), so the inside and the around never hold the same centre
+    pinned_sc = {key[1] for key in pts['shoppingcenter']['key']}
+    if sum(1 for v in venues if v['id'] in pinned_sc) < 0.9 * len(venues):
+        sys.exit('the centres and the pinned Shopping Center records do not share their ids: check the record key')
+    not_pinned = sorted(v['id'] for v in venues if v['id'] not in pinned_sc)
     for k, v in enumerate(venues):
         inside = inside_by_id.get(v['id'])
-        if inside is None:  # a centre newer than the pinned Shopping Center file: placed on the drawn outline
-            zero = [i for i, dm in hits.get(k, []) if dm == 0]
-            inside = zero[0] if zero else None
-        near = sorted(((i, dm) for i, dm in hits.get(k, []) if i != inside), key=lambda x: (x[1], order.index(x[0])))
+        if inside is None and v['id'] not in pinned_sc:
+            # a centre the pinned file has no point for (newer than it): inside the outline the drawn line covers it in
+            cov = [i for i, _dm, cv in hits.get(k, []) if cv]
+            inside = cov[0] if cov else None
+        near = sorted(((i, dm) for i, dm, _cv in hits.get(k, []) if i != inside), key=lambda x: (x[1], order.index(x[0])))
         if inside:
             by_nb[inside]['in'].append(v['id'])
         for i, dm in near:
@@ -328,8 +355,11 @@ def main():
         'venues': {'repo': 'montri-th/shoppingcenter', 'commit': sc_commit, 'file': 'data/venues.json', 'sha256': sha256_file(sc_venues_path),
                    'locale': {'file': 'data/locale/meta.json', 'release': sc_meta.get('release'), 'sha256': sha256_file(sc_meta_path)},
                    'set': 'countable · status supply · group mall, community or outlet · located (js/venue-locale.js inLocaleSet)', 'n': len(venues),
-                   'rule': 'inside: the build counted it inside the outline (data/records), or — for a centre newer than the pinned Shopping Center file — its point lies in the drawn outline; near: outside, within 800 m of the edge, straight line; joined by venue id, never by name'},
-        'rings': {'dir': 'rings', 'simplifyM': RING_SIMPLIFY_M, 'quadSegs': RING_QUAD_SEGS, 'note': 'display only: the line the map draws; every count above is measured on the outline itself'},
+                   'notInPinnedFile': not_pinned,
+                   'rule': 'inside: the build counted it inside the outline (data/records), or — for a centre the pinned Shopping Center file has no point for (notInPinnedFile) — the drawn outline covers its point; near: outside, within 800 m of the edge, straight line (a centre of the pinned file the build did not count inside is near, at its distance, even under 1 m); joined by venue id, never by name'},
+        'acrossTheDrawnLine': {'insideTheLineNotCountedInside': in_line_not_counted, 'countedInsideOffTheLine': counted_off_line,
+                               'note': 'the drawn outline is the delivered one simplified at 1.5 m: a record this close to it can fall on the other side; membership follows the data build (a record it did not count inside is around, at 0 m), distance follows the drawn outline'},
+        'rings': {'dir': 'rings', 'simplifyM': RING_SIMPLIFY_M, 'quadSegs': RING_QUAD_SEGS, 'note': 'display only: the line the map draws, the outline grown by the distance and simplified at 2 m, so it can sit a few metres off the exact distance; every count above is measured on the outline itself'},
     }
     rows_out = {}
     for i in order:
@@ -350,12 +380,13 @@ def main():
 
     # ---- report
     cells = sum(len(v) for v in around.values())
-    rep = {'outlines': len(order), 'cells': cells, 'recordsOnTheOtherSideOfTheDrawnLine': geo_mismatch,
+    rep = {'outlines': len(order), 'cells': cells,
+           'acrossTheDrawnLine': {'insideTheLineNotCountedInside': in_line_not_counted, 'countedInsideOffTheLine': counted_off_line},
            'lowLocated': low, 'universe': universe,
            'venues': {'set': len(venues), 'inside': sum(len(v['in']) for v in by_nb.values()),
                       'neighbourhoodsWithInside': sum(1 for v in by_nb.values() if v['in']),
                       'nearPairs': sum(len(v['near']) for v in by_nb.values()),
-                      'linked': sum(1 for v in by_venue.values() if v['in'] or v['nearest'])}}
+                      'linked': sum(1 for v in by_venue.values() if v['in'] or v['nearest']), 'notInPinnedFile': len(not_pinned)}}
     if a.pilot:
         pilot = json.load(open(a.pilot, encoding='utf-8'))
         diff = [(i, ds) for i in order for ds, v in around[i].items() if pilot.get(i, {}).get(ds, [0, None, None])[1:] != v]
