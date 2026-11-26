@@ -446,6 +446,12 @@ def main():
         lines['lab'] = lab
         maps[i] = {'cell': {'m': CELL_M, 'x0': int(ix0), 'y1': int(iy1), 'w': int(W), 'h': int(Hh)}, 'unit': UNIT_M,
                    'mask': mask_runs, 'visit': grids['visit'], 'work': grids['work'], 'lines': lines}
+        # the residents map, from a run over 5 km of scripts/residents/ on this very frame (people per cell, modelled)
+        rg = (residents or {}).get('grid', {}).get(i)
+        if rg is not None:
+            if residents['meta'].get('frame') and residents['meta']['frame'].get(i) != maps[i]['cell']:
+                sys.exit(f'{i}: the residents grid was drawn on another frame')
+            maps[i]['res'] = rg
         maps_written += 1
 
     # ---- levels among the reference set (D-8), per scale; a figure mostly from datasets under 90 % takes none

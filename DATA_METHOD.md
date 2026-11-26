@@ -826,8 +826,11 @@ Check against the Shopping Center page (`montri-th/shoppingcenter@78cf457`, `dat
 SC-002835 15,178 against 15,132 (+0.30 %, 2,229 against 2,235). Hypothesis for the gap: the buildings in production changed
 between the two runs; not checked. The page says what the model is not: people who live here without being registered
 are not in it, and a commercial building takes people by its floor area like a house, so a commercial area can read more
-people than live there. 0.7.0 has the residents inside the outline; 1 · 3 · 5 km and the residents map come with the run
-over 5 km (V7-07) — until then the tile reads “รอข้อมูลรอบถัดไป”.
+people than live there. 0.7.0 has the residents inside the outline and within 400 m, 800 m and 1 km of it (a second run
+of 2026-11-26, `--reach 1000`: 10,697 tile × subdistrict requests over 1,063 subdistricts, 2,879,381 buildings of which
+575 from parts, the register total equal to `popCount` in all 1,062 that carry one; the figures inside equal the first
+run's for every neighbourhood); 3 and 5 km and the residents map come with the run over 5 km (V7-07) — until then those
+tiles read “รอข้อมูลรอบถัดไป”.
 
 **คนมาทำงานและเรียน (at least; D-12 amends INV-01 for this group only).** The sum of the parts the sources record, each
 shown beside it: students the school register records for 2569 · students of a university when every site of the

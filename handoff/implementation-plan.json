@@ -85,7 +85,7 @@
     "title": "น่าอยู่ · น่าเที่ยว · น่าค้าขาย ด้วยปริมาณคน แผนที่วงกลม และระยะตามทางจริง",
     "owner": "2026-11-26 14:03 (D-V6b, the request), 14:13, 14:31–14:40 (D-12 … D-15); VERBATIM in handoff/visual/decisions.json and handoff/around/decisions.json",
     "staging": {
-      "0.7.0": "done 2026-11-26: V7-01 … V7-06 (distances straight line from the edge, said on the page); residents inside the outlines only",
+      "0.7.0": "done 2026-11-26: V7-01 … V7-06 (distances straight line from the edge, said on the page); residents inside the outlines and within 400 m · 800 m · 1 km (the first part of V7-07)",
       "0.7.1": "after the night crawl of Building V4: V7-07, then V7-08",
       "0.7.2": "when the Shopping Center's OpenStreetMap file and its method are in hand: V7-09",
       "later": "V7-10, in the order the owner picks"

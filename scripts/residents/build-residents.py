@@ -52,6 +52,7 @@ def args():
     ap.add_argument('--workers', type=int, default=4)
     ap.add_argument('--built-on', default=time.strftime('%Y-%m-%d'))
     ap.add_argument('--plan-only', action='store_true', help='print the requests the run needs and how many are cached, then stop')
+    ap.add_argument('--only', default='', help='comma-separated neighbourhood ids: a trial on a few (the output says so)')
     return ap.parse_args()
 
 
@@ -85,6 +86,11 @@ def main():
     rows = nb['rows']
     if {r['id'] for r in rows} != set(outl):
         sys.exit('data/boundaries.geojson and data/neighborhoods.json do not hold the same neighbourhoods')
+    only = [x for x in a.only.split(',') if x]
+    if only:
+        rows = [r for r in rows if r['id'] in set(only)]
+        if len(rows) != len(set(only)):
+            sys.exit('--only names a neighbourhood that is not in data/neighborhoods.json')
 
     # ---- the population month and the subdistricts' tables
     tr = crawl.get(f'{crawl.API}/population/temporalRange')['value']
@@ -195,7 +201,7 @@ def main():
     print(f'buildings {len(lon)} ({n_tiles} from tiles, {len(need)} from parts) · without floors {nofloor} · subdistricts without a GFA total {len(no_total)}', flush=True)
 
     # ---- per neighbourhood
-    out, no_buildings = {}, {}
+    out, no_buildings, grid, frames = {}, {}, {}, {}
     for r in rows:
         g = outl[r['id']]
         x0, y0, x1, y1 = g.bounds
@@ -220,10 +226,35 @@ def main():
                 o[str(s)] = int(round(float(people[idx][within].sum()))) if within.any() else None
                 if not within.any():
                     no_buildings.setdefault(str(s), []).append(r['id'])
+            # the residents map (reach 5 km): people per 250 m cell of the frame the people file's maps use
+            if reach >= 5000:
+                pf = os.path.join(a.repo, 'data', 'people', f"{r['id']}.json")
+                frame = json.load(open(pf, encoding='utf-8'))['map']['cell'] if os.path.exists(pf) else None
+                if frame:
+                    frames[r['id']] = frame
+                    m_, ix0, iy1, W = frame['m'], frame['x0'], frame['y1'], frame['w']
+                    keep = d <= 5000
+                    cx = np.floor(np.asarray(bx)[keep] / m_).astype(int)
+                    cy = np.floor(np.asarray(by)[keep] / m_).astype(int)
+                    vals = people[idx][keep]
+                    cells = {}
+                    for a_, b_, v_ in zip(cx, cy, vals):
+                        k_ = int((iy1 - b_) * W + (a_ - ix0))
+                        cells[k_] = cells.get(k_, 0.0) + float(v_)
+                    ks = sorted(k_ for k_, v_ in cells.items() if round(v_, 1) > 0)
+                    if ks:
+                        ccx = (np.array([k_ % W for k_ in ks]) + ix0 + 0.5) * m_
+                        ccy = (iy1 - np.array([k_ // W for k_ in ks]) + 0.5) * m_
+                        dc = shapely.distance(gp, shapely.points(ccx, ccy))
+                        band = np.where(dc <= 0, 0, np.where(dc <= 1000, 1, np.where(dc <= 3000, 2, 3)))
+                        grid[r['id']] = [[int(k_), round(cells[k_], 1), int(b_)] for k_, b_ in zip(ks, band)]
+                    else:
+                        grid[r['id']] = []
         out[r['id']] = o
 
     meta = {
         'schema': 'citymeter-commercialdistrict-residents/1', 'builtOn': a.built_on, 'populationMonth': month,
+        **({'only': only} if only else {}),
         'reach': reach, 'scales': ['in', *[str(x) for x in SCALES if x <= reach]],
         'source': {'api': crawl.API, 'buildings': 'CityMETER Building V4 (detailMvt z15, hideWithParts; parts; detail gfaWeight)',
                    'population': 'building/info lv1 popCount per subdistrict = population/info lv1 tot of the month (checked)'},
@@ -233,12 +264,13 @@ def main():
                    'fromTiles': n_tiles, 'fromParts': len(need), 'withoutFloors': int(nofloor), 'subdistrictsWithoutTotal': no_total,
                    'noBuildings': no_buildings},
         'populationCheck': {'month': month, 'compared': compared, 'differ': differ},
+        **({'frame': frames} if frames else {}),
         'responses': hashlib.sha256('\n'.join(f'{u}\t{h}' for u, h in sorted(used.items())).encode()).hexdigest(),
         'responseCount': len(used),
     }
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     with open(a.out, 'w', encoding='utf-8', newline='\n') as f:
-        json.dump({'meta': meta, 'rows': out}, f, ensure_ascii=False, separators=(',', ':'))
+        json.dump({'meta': meta, 'rows': out, **({'grid': grid} if grid else {})}, f, ensure_ascii=False, separators=(',', ':'))
         f.write('\n')
     print(f'wrote {a.out}: {len(out)} neighbourhoods · population month {month} · {len(used)} responses', flush=True)
     if differ:
