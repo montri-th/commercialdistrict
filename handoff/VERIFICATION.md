@@ -1,5 +1,16 @@
 # CityMETER Commercial District — verification
 
+## Release 0.5.1 — 26 พ.ย. 2569
+
+Owner 2026-11-26 06:14 ICT, VERBATIM: “เช็คหน่อยว่า โลโก้ขึ้นหรือยัง ใน web demo ทุกๆ dataset รวม transit ด้วย / เรื่องโลโก้นี้ ให้แสดงใน Commercial district ในลักษณะเดียวกับ venue ด้วย โดยเฉพาะ venue และ POI สำคัญ / แก้จุดที่แก้ง่ายก่อน / ติดตรงไหนให้ข้ามก่อน แล้วทำข้อเสนอปรับปรุงมาเป็นข้อๆเป็น .md”; on merging and publishing (answered before the merges at 08:45 ICT): “Merge และ publish ทั้งสาม (Recommended)” (with Transit 0.4.0 and Office 0.6.0).
+
+- Logos beside the names (`DATA_METHOD.md` §13): pull request #30 merged as `862069c` after main's own 0.5.0 (#31) was merged into it — the logos release took 0.5.1, cache tag `20261126-r3`, and its shards were rebuilt on the 451 neighbourhoods: 3,186 of 12,975 records inside the outlines, 163 of 537 centre names around them (73 of 270 distinct centres), 452 files, 0 SHA-256 issues; `npm test` 195 / 195.
+- GitHub Pages deployment of `862069c` succeeded; publish run 45738071278 assembled the site at 01:47:33 UTC (`/release.json`: commercialdistrict `862069c` 0.5.1 `20261126-r3`, transit `76d4f83` 0.4.0, office `0cb883c` 0.6.0).
+- `npm run verify:live` (manifest 2,286 files, commit `862069c`): 2,225 ok in each of two runs; the one other file answered GitHub Pages 503 once in each run (`data/building-units/PKN.json`, then `assets/logos/5a58da17d7253e917d1c.svg`) and matched its SHA-256 on a direct retry.
+- On citymeter.pages.dev in the owner's Chrome, 26 พ.ย. 2569 08:49–08:52 ICT, desktop, light theme: ย่านสยาม opens on Luxury Brands — the 6 names on the map all carry their logo, every image loaded (Richard Mille, Greyhound, Frank., Freitag, Gentlewoman, and Rolex on “SIAM SWISS”, a Rolex point of sale of the Luxury Brands data); Grocery 10 / 10 names with a logo; Shopping Center: Siam Discovery, Siam Paragon, Siam Center and MBK Center with their logo, Siam Square without one (no venue logo in the family); «รอบย่านนี้» shows 4 centre logos. In English (`lang=en`): 6 / 6 names with a logo, 4 centre logos, `__citymeterI18n.missing` empty.
+- Seen, not fixed: the Siam Center name overlaps the neighbourhood's own name chip a little (the record labels avoid the map's controls and the pins, not the area chips); Siam Discovery's light grey logo reads faintly on its `#E5E9E6` plate (Shopping Center's venue registry; proposal P11 of `02-CityMETER__logo-coverage-audit-and-proposals__v1__2026-11-26`).
+- Not verified: 393 px on the live site (checked locally at 393 px, light and dark, before release), a real phone, browsers other than Chrome.
+
 ## Release 0.5.0 — 26 พ.ย. 2569
 
 Owner 2026-11-26 06:09 ICT, VERBATIM: “ลุยตามพี่แนะนำเลยครับทุกข้อ” — Claude's four next steps: check the names of round 9 against Google Maps (read only), draw the outlines of the 228 new codes by his rule, make the Yolk import pack, update the web and merge pull request #25 once it reads the renamed tabs. Pull request #25 merged first (`d4393a0`). This release: branch `release-0.5.0-screen-areas` from `d4393a0`.
