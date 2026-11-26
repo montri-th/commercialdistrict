@@ -187,10 +187,16 @@ window.__rule = (() => {
   /** Read the V4 footprints of every tile of bbox that meets a CityMETER unit: a building once, from the tile that holds
    * its interior point (the production tiles send every building that touches a tile whole), outer rings by the sign of
    * their area in tile units (the vector-tile rule), holes after their outer ring. */
-  async function cmFill(bbox, O) { const zones = await cmZones(O), {bu, mvt} = S.cm;
-    for (const T of tilesIn(bbox)) { if (T.cm) continue; const t = {x: T.x, y: T.y, z: 14}, b = tb(T.x, T.y, 14), here = zones.filter(z => meets(z.bbox, b)), feats = [], seen = new Set();
-      for (const z of here) for (const u of z.tileUnits) { if (!meets(u.bbox, b)) continue; const url = bu.cmTileUrl(t, u, z.tileType); if (!url) continue;
-        const L = await cmTile(url), ext = L.extent || 4096;
+  async function cmFill(bbox, O) { const zones = await cmZones(O), {bu, mvt} = S.cm, jobs = [];
+    for (const T of tilesIn(bbox)) { if (T.cm) continue; const t = {x: T.x, y: T.y, z: 14}, b = tb(T.x, T.y, 14), here = zones.filter(z => meets(z.bbox, b)), urls = [];
+      for (const z of here) for (const u of z.tileUnits) { if (!meets(u.bbox, b)) continue; const url = bu.cmTileUrl(t, u, z.tileType); if (url) urls.push(url); }
+      jobs.push({T, t, here, urls}); }
+    // (0.5.2) every tile of the box is fetched at once, 8 requests at a time; each tile is then read in the order one by
+    // one would read it, so the buildings and their order are the same (the drawing too)
+    const all = [...new Set(jobs.flatMap(j => j.urls))], got = new Map(); let next = 0;
+    await Promise.all(Array.from({length: Math.min(8, all.length)}, async () => { while (next < all.length) { const url = all[next++]; got.set(url, await cmTile(url)); } }));
+    for (const {T, t, here, urls} of jobs) { const feats = [], seen = new Set();
+      for (const url of urls) { const L = got.get(url), ext = L.extent || 4096;
         for (const f of L.features) { if (f.type !== 3) continue; const polys = [];
           for (const ring of f.rings()) { let a = 0; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) a += ring[j][0] * ring[i][1] - ring[i][0] * ring[j][1];
             if (a > 0) polys.push([ring]); else if (polys.length) polys[polys.length - 1].push(ring); }
