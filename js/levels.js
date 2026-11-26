@@ -61,7 +61,7 @@ export function levelModel(model) {
  *   zero     none inside (and, with the surroundings file, none within 800 m either: `edgeKnown`)
  *   out      the dataset has no located record in the neighbourhood's province (out of scope: never 0)
  */
-export const KINDS = Object.freeze(['ranked', 'few', 'starred', 'edge', 'zero', 'out']);
+export const CELL_KINDS = Object.freeze(['ranked', 'few', 'starred', 'edge', 'zero', 'out']);
 
 /** The cell of one dataset in one neighbourhood. `around`: decoded data/around.json, or null. */
 export function cellOf(model, row, ds, around = null) {

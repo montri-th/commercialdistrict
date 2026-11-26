@@ -45,5 +45,5 @@ export const AXES = Object.freeze([
 /** The axis a dataset sits on. */
 export const axisOf = id => AXES.find(a => a.datasets.includes(id)) || null;
 
-/** The level from which a dataset is named on its axis's “เด่น:” line (the mean of the two levels, D-V1). */
+/** The level from which a dataset is named on its axis's “ระดับสูง:” line (the mean of the two levels, D-V1). */
 export const AXIS_LEAD_MIN = 75;

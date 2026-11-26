@@ -17,7 +17,7 @@ import {join, relative} from 'node:path';
 import {ROOT, load, readJSON} from './helpers.js';
 import {highlightsOf, togetherOf, lowLocated, cell, scopeRows} from '../js/model.js';
 import {decodeAround} from '../js/around.js';
-import {levelModel, cellOf, cellsOf, cellCounts, levelFill, midPct, KINDS} from '../js/levels.js';
+import {levelModel, cellOf, cellsOf, cellCounts, levelFill, midPct, CELL_KINDS as KINDS} from '../js/levels.js';
 import {AXES, DS_ICON, axisOf, AXIS_LEAD_MIN} from '../js/axes.js';
 import {COUNT_SCALE, DENSITY_SCALE} from '../js/scales.js';
 import {buildNeighborhood, buildOverview, buildCompare} from '../js/profile.js';
@@ -51,6 +51,13 @@ test('D-V2: the build’s highlight rule, ported, gives the file’s own highlig
 });
 
 test('D-V1: one level per dataset and neighbourhood — the mean of two mid-rank levels among the neighbourhoods with ≥ 3 records', () => {
+  // mid-rank by fixed cases: the share below, plus half of the equal ones
+  assert.equal(midPct(2, [1, 2, 2, 3]), 50);
+  assert.equal(midPct(3, [1, 2, 2, 3]), 87.5);
+  assert.equal(midPct(1, [1, 2, 2, 3]), 12.5);
+  assert.equal(midPct(5, [5]), 50);
+  assert.equal(midPct(4, [1, 2, 3]), 100);
+  assert.equal(midPct(1, []), null);
   const {model} = load();
   const levels = levelModel(model);
   for (const ds of model.datasets) {
@@ -122,8 +129,18 @@ test('every neighbourhood: the fingerprint, the highlight cards, the axes and th
       const n = cellCounts(want);
       assert.equal(n.in + n.edge + n.zero + n.out, 16);
       assert.match(head, new RegExp(`ในย่าน ${n.in} ชุด`), r.id);
+      const key = text(head.slice(head.indexOf('<p class="fp-key">')));
+      assert.deepEqual(key.match(/\d+(?! ชุด)(?=\D|$)/g)?.filter(x => !['800'].includes(x)) || [], [], `${r.id}: every number of the key with its unit`);
+      const name = head.match(/<span class="fp fp-lg" role="img" aria-label="([^"]+)">/)[1];
+      for (const part of name.split(': ')[1].split(' · ')) assert.match(part, / \d+ ชุด$/, `${r.id}: the image's name, ${part}`);
+      // a counted, unranked cell keeps its dot in the head: not colour alone (the stylesheet draws it in the corner)
+      for (const m of cells) if (m[1] === 'few' || m[1] === 'starred') assert.equal(m[3], undefined);
       // every data colour of the panel's dots and cells is a sample of the count LUT; none of the density LUT (the map's)
-      for (const [, hex] of html.matchAll(/class="(?:ax-dot|fp-cell[^"]*)"[^>]*style="background:(#[0-9A-F]{6})/g)) assert.ok(COUNT.has(hex), `${r.id} ${hex}`);
+      const fills = [...html.matchAll(/class="(?:ax-dot|fp-cell[^"]*)"[^>]*style="[^"]*background:(#[0-9A-F]{6})/g)].map(m => m[1]);
+      for (const hex of fills) assert.ok(COUNT.has(hex), `${r.id} ${hex}`);
+      const dots = [...html.matchAll(/<b class="ax-dot" style="left:([\d.]+)%;background:(#[0-9A-F]{6})"/g)];
+      assert.equal(dots.length, want.filter(x => x.kind === 'ranked').length, `${r.id}: one dot per ranked dataset, each checked`);
+      for (const [, left, hex] of dots) { assert.ok(COUNT.has(hex)); assert.ok(+left > 0 && +left <= 100); }
       assert.ok(![...html.matchAll(/background:(#[0-9A-F]{6})/g)].some(([, hex]) => DENS.has(hex) && !COUNT.has(hex)), `${r.id}: no density colour without a lens`);
       // the axes: every dataset in scope once, a dot only for a ranked one, never for a starred one
       const axes = html.slice(html.indexOf('id="nb-around"'), html.indexOf('class="scope-details around-fold"'));
@@ -146,10 +163,13 @@ test('every neighbourhood: the fingerprint, the highlight cards, the axes and th
           if (row) assert.match(row[0], new RegExp(`<b class="data-number">0</b>[\\s\\S]*?class="edge-chip"[^>]*>${reach.toLocaleString('th-TH')}<`));
         }
       }
-      // “เด่น:” names exactly the datasets of the axis at level ≥ 75
+      // “ระดับสูง:” names exactly the datasets of the axis at level ≥ 75; “เด่น” is the highlights' word (D-V2), not the axes'
+      assert.ok(!/(?<!จุด)เด่น/.test(text(axes)), `${r.id}: on the axes “เด่น” only as จุดเด่น, the highlights`);
       for (const ax of AXES) {
         const card = axes.match(new RegExp(`<section class="ax-card" data-axis="${ax.id}"[\\s\\S]*?</section>`))[0];
-        const lead = card.match(/<p class="ax-lead">เด่น: ([^<]*)<\/p>/);
+        assert.match(card, new RegExp(`<section class="ax-card" data-axis="${ax.id}" aria-labelledby="ax-${ax.id}-name">`), 'the section named by the axis alone');
+        assert.match(card, new RegExp(`<b id="ax-${ax.id}-name">${ax.th}</b>`));
+        const lead = card.match(/<p class="ax-lead">ระดับสูง: ([^<]*)<\/p>/);
         const top = ax.datasets.map(id => want.find(x => x.ds.id === id)).filter(x => x.kind === 'ranked' && x.level >= AXIS_LEAD_MIN).map(x => x.ds.nameTh);
         assert.deepEqual(lead ? lead[1].split(' · ') : [], top, `${r.id} ${ax.id}`);
         assert.match(card, /<span class="ax-pend" title="ยังไม่มีข้อมูล: [^"]+"><span aria-hidden="true">\?<\/span><span class="sr-only">ตัวชี้วัดที่ยังไม่มีข้อมูล: /, 'the “?” names what has no data yet');
@@ -159,6 +179,47 @@ test('every neighbourhood: the fingerprint, the highlight cards, the axes and th
       assert.equal((html.match(/class="around-ds"/g) || []).length, 16);
     }
   }
+});
+
+test('the highlight cards: one per highlight of a complete dataset, in order, each a lens with its comparison in words', () => {
+  const {model} = load();
+  let cards = 0;
+  for (const r of model.rows) {
+    const d = buildNeighborhood(model, r);
+    const html = renderNeighborhood(d, model, {ctx: ctx(), around: A()});
+    const list = html.match(/<ul class="hl-cards">([\s\S]*?)<\/ul>/);
+    assert.equal(Boolean(list), d.highlights.length > 0, r.id);
+    if (!list) continue;
+    const found = [...list[1].matchAll(/<button type="button" class="hl-card" data-action="set-lens" data-value="([a-z]+)" title="([^"]+)">([\s\S]*?)<\/button>/g)];
+    assert.deepEqual(found.map(m => m[1]), d.highlights.map(x => x.ds.id), `${r.id}: one card per highlight, in order`);
+    found.forEach(([, id, title, body], i) => {
+      const x = d.highlights[i], ds = model.dsById.get(id), n = r.c[id] || 0;
+      assert.ok(!lowLocated(ds), `${r.id} ${id}: no card for a starred dataset (D-V2)`);
+      const rank = text(body.match(/<span class="hl-card-rank">([\s\S]*?)<\/span>/)[1]);
+      if (x.h.k === 'share') assert.ok(rank.includes(`(${n.toLocaleString('th-TH')} จาก ${ds.located.toLocaleString('th-TH')})`), `${r.id} ${id}: a share with its numerator and denominator (INV-03): ${rank}`);
+      else assert.ok(rank.includes(`จาก ${x.h.of.toLocaleString('th-TH')} ย่าน`), `${r.id} ${id}: a rank with its peers (INV-04): ${rank}`);
+      if ((x.shared || 1) > 1) assert.ok(rank.includes(`ร่วม ${x.shared.toLocaleString('th-TH')} ย่าน`), `${r.id} ${id}: a shared rank says so (NL-06)`);
+      assert.ok(title.includes(ds.nameTh), r.id);
+      assert.match(body, new RegExp(`<b class="data-number">${n.toLocaleString('th-TH')}</b>`), `${r.id} ${id}: the count inside`);
+      cards++;
+    });
+  }
+  assert.equal(cards, 529, 'the highlights of D-V2');
+});
+
+test('what comes together: a role’s evidence stays visible, ✓ by its datasets, ○ by what the data shows (DATA_METHOD §7)', () => {
+  const {model} = load();
+  let open = 0;
+  for (const r of model.rows) {
+    const html = renderNeighborhood(buildNeighborhood(model, r), model, {ctx: ctx(), around: A()});
+    for (const [, cls, body] of html.matchAll(/<li class="rl-row( is-on)?">([\s\S]*?)<\/li>/g)) {
+      const ev = body.match(/<span class="rl-ev">([\s\S]*?)<\/span>(?:<small|$)/);
+      assert.ok(ev && text(ev[1]).trim(), `${r.id}: a role with its evidence in view`);
+      if (!cls) { open++; assert.ok(/\d|ไม่มีชุดข้อมูลของบทบาทนี้ในจังหวัด/.test(text(ev[1])), `${r.id}: ○ says what the data shows`); }
+    }
+    assert.ok(!/<li class="rl-row[^"]*" title=/.test(html), `${r.id}: never only in a title`);
+  }
+  assert.ok(open > 0);
 });
 
 test('the matrix is a real table: a named header for every dataset, a header for every neighbourhood, words in every cell', () => {
@@ -173,9 +234,12 @@ test('the matrix is a real table: a named header for every dataset, a header for
       const rows = [...t.matchAll(/<tr class="mx-r[^"]*" data-nb="([^"]+)"><th scope="row" class="mx-row">([\s\S]*?)<\/th>([\s\S]*?)<\/tr>/g)];
       assert.ok(rows.length, label);
       for (const [, id, , tds] of rows) {
-        const words = [...tds.matchAll(/<td class="mx-c[^"]*"><span class="fp-cell k-[a-z]+[^"]*"[^>]*><\/span><span class="sr-only">([^<]+)<\/span><\/td>/g)];
+        const words = [...tds.matchAll(/<td class="mx-c[^"]*" tabindex="(-1|0)"><span class="fp-cell k-[a-z]+[^"]*"[^>]*><\/span><span class="sr-only">([^<]+)<\/span><\/td>/g)];
         assert.equal(words.length, 16, `${label} ${id}: every cell with its words`);
       }
+      assert.equal((t.match(/tabindex="0"/g) || []).length, 1, `${label}: one tab stop per table, the arrows move inside`);
+      // a sub-row spans the whole table from the corner: no dataset's column header names it
+      for (const m of t.matchAll(/<tr class="mx-sub">([\s\S]*?)<\/tr>/g)) assert.match(m[1], /^<td colspan="17">/, label);
     }
   };
   const siam = model.rows.find(r => r.name === 'สยาม');
@@ -189,9 +253,19 @@ test('the matrix is a real table: a named header for every dataset, a header for
   assert.equal((cmp.match(/class="cmp-chip" data-action="cmp-remove"/g) || []).length, list.length);
   for (const [, hex] of cmp.matchAll(/class="cd-m" style="fill:(#[0-9A-F]{6})"/g)) assert.ok(COUNT_SCALE.lut.includes(hex), hex);
   assert.match(cmp, /<details class="scope-details cmp-fold">[\s\S]*<table class="compare-table">/);
-  // the answer line names its peers by their number
-  const ans = renderNeighborhood(buildNeighborhood(model, siam), model, {ctx: ctx(), around}).match(/<p class="mx-answer">([\s\S]*?)<\/p>/);
-  if (ans) assert.match(text(ans[1]), /\(เทียบ \d+ ย่าน\)/);
+  // the answer line names its peers by their number, wherever it shows (the similar mixes of every neighbourhood, a compare)
+  let answers = 0;
+  const siamView = renderNeighborhood(buildNeighborhood(model, siam), model, {ctx: ctx(), around});
+  assert.match(siamView, /<p class="mx-answer">/, 'สยาม and its 3 closest mixes share a level above 50');
+  assert.match(cmp, /<p class="mx-answer">/, 'the same four, compared');
+  for (const html of [cmp, ...model.rows.map(r => renderNeighborhood(buildNeighborhood(model, r), model, {ctx: ctx(), around}))]) {
+    const ans = html.match(/<p class="mx-answer">([\s\S]*?)<\/p>/);
+    if (!ans) continue;
+    answers++;
+    const parts = text(ans[1]).split(':')[1].split(' · ');
+    for (const part of parts) assert.match(part, /\(เทียบ \d+ ย่าน\)\s*$/, part);
+  }
+  assert.ok(answers > 2, `answer lines: ${answers}`);
 });
 
 test('the axes: อยู่ · เที่ยว · ค้าขาย, one axis per dataset, no score, a pictogram per dataset in the approved subset', () => {

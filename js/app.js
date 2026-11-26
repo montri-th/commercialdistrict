@@ -410,7 +410,8 @@ function onPanelAction(event) {
 
 /**
  * (0.6.0, §4.5) The readout of a matrix cell: the neighbourhood, then the cell in full words (js/visual.js#cellWords),
- * written into the line under its table (aria-live polite). The cell's own words stay inside it for screen readers.
+ * written into the line under its table (aria-live polite) on pointing, tapping or focusing it. The cell's own words
+ * stay inside it for screen readers.
  */
 function matrixReadout(event) {
   const td = event.target.closest?.('td.mx-c');
@@ -421,6 +422,32 @@ function matrixReadout(event) {
   if (!row || !ds || !out?.classList.contains('mx-readout')) return;
   const text = `${row.name} · ${cellWords(cellOf(state.model, row, ds, state.around), {hl: (row.hl || []).some(h => h.d === ds.id)})}`;
   if (out.textContent !== text) out.textContent = text;
+}
+
+/**
+ * (0.6.0) The keyboard's way through a matrix: one tab stop per table (js/visual.js#matrix gives the first cell
+ * tabindex 0, the others −1); the arrows move one cell, Home and End to the row's first and last, Ctrl+Home and
+ * Ctrl+End to the table's; the cell that takes focus becomes the table's tab stop and writes its readout.
+ */
+function matrixKeys(event) {
+  const td = event.target.closest?.('td.mx-c');
+  const table = td?.closest('table.mx');
+  if (!table || event.altKey || event.metaKey) return;
+  const rows = [...table.querySelectorAll('tr[data-nb]')].map(tr => [...tr.querySelectorAll('td.mx-c')]);
+  const r = rows.findIndex(cells => cells.includes(td)), c = rows[r]?.indexOf(td);
+  if (r < 0 || c < 0) return;
+  const last = rows[r].length - 1;
+  const to = {
+    ArrowLeft: [r, c - 1], ArrowRight: [r, c + 1], ArrowUp: [r - 1, c], ArrowDown: [r + 1, c],
+    Home: event.ctrlKey ? [0, 0] : [r, 0], End: event.ctrlKey ? [rows.length - 1, last] : [r, last],
+  }[event.key];
+  if (!to) return;
+  const next = rows[Math.max(0, Math.min(rows.length - 1, to[0]))]?.[Math.max(0, Math.min(last, to[1]))];
+  event.preventDefault();
+  if (!next || next === td) return;
+  for (const cell of table.querySelectorAll('td.mx-c[tabindex="0"]')) cell.tabIndex = -1;
+  next.tabIndex = 0;
+  next.focus();
 }
 
 /* ---------- legend ---------- */
@@ -1371,8 +1398,12 @@ function wireEvents() {
   $('filters').addEventListener('submit', e => e.preventDefault());
   $('filters').addEventListener('reset', () => setTimeout(() => { state.search = ''; state.province = ''; state.kind = ''; state.nb = ''; update({fit: true}); }, 0));
   for (const id of ['panel-view', 'filter-chips', 'map-aha', 'crumbs', 'compare-view', 'result-rows']) $(id).addEventListener('click', onPanelAction);
-  // (0.6.0) a matrix cell's full words — its level, its peers, both ranks — under the table, on pointing or tapping it
-  for (const id of ['panel-view', 'compare-view']) for (const type of ['pointerover', 'click']) $(id).addEventListener(type, matrixReadout);
+  // (0.6.0) a matrix cell's full words — its level, its peers, both ranks — under the table, on pointing, tapping or
+  // focusing it; the arrows move the focus from cell to cell
+  for (const id of ['panel-view', 'compare-view']) {
+    for (const type of ['pointerover', 'click', 'focusin']) $(id).addEventListener(type, matrixReadout);
+    $(id).addEventListener('keydown', matrixKeys);
+  }
   $('focus-bar').addEventListener('click', e => { const b = e.target.closest('button[data-focus]'); if (b) setFocus(b.dataset.focus); });
   $('panel-view').addEventListener('toggle', e => { if (e.target.classList?.contains('records-details')) state.recordsOpen = e.target.open; }, true);
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && state.poiPopup) { closePoiCard(); state.map?.getCanvas().focus({preventScroll: true}); } });

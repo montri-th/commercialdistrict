@@ -19,7 +19,7 @@ import {LANG} from './shell/i18n.js';
 import {PILLARS, PILLAR_SERIES, num, dsName, dsUnit, dsUnitN, provinceName, rai, lowLocated} from './model.js';
 import {cellOf, cellsOf, cellCounts, levelFill, levelModel} from './levels.js';
 import {AXES, dsIcon, AXIS_LEAD_MIN} from './axes.js';
-import {COUNT_SCALE} from './scales.js';
+import {COUNT_SCALE, inkFor} from './scales.js';
 import {cueMarkup} from './cues.js';
 
 const EN = LANG === 'en';
@@ -76,35 +76,31 @@ export function stateWords(x) {
   return L('ไม่มีข้อมูลในจังหวัด', 'no data in the province');
 }
 
-/* ---------- colour and ink ---------- */
-
-const lum = hex => {
-  const c = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
-  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
-};
-const ratio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-/** The LDS foreground for a pictogram on a data colour: onLight #182327 or onDeep #FFFFFF, whichever contrasts more. */
-export const inkOn = fill => (ratio(lum(fill), lum('#182327')) >= ratio(lum(fill), lum('#FFFFFF')) ? '#182327' : '#FFFFFF');
-
 /* ---------- the fingerprint (§4.1) ---------- */
 
 function fpCell(x, {lg = false, hl = false, title = true} = {}) {
   const fill = x.kind === 'ranked' ? levelFill(x.level) : '';
-  const style = fill ? ` style="background:${fill}${lg ? `;color:${inkOn(fill)}` : ''}"` : '';
+  const style = fill ? ` style="background:${fill}${lg ? `;color:${inkFor(fill)}` : ''}"` : '';
   return `<span class="fp-cell k-${x.kind}${hl ? ' is-hl' : ''}"${style}${title ? ` title="${esc(cellWords(x, {hl}))}"` : ''}>${lg ? dsPic(x.ds) : ''}</span>`;
+}
+
+/** A number of datasets with its unit: a key counts datasets, never records (INV-01). */
+const dsCount = n => L(`${num(n)} ชุด`, `${num(n)} ${n === 1 ? 'dataset' : 'datasets'}`);
+
+/** The parts of a fingerprint's key in words, each number with its unit (the visible key and the image's name). */
+function keyWords(n, around) {
+  return [
+    {kinds: ['ranked', 'few'], words: L(`ในย่าน ${dsCount(n.in)}`, `inside: ${dsCount(n.in)}`)},
+    n.edge ? {kinds: ['edge'], words: L(`เฉพาะขอบเดินถึง 800 ม. ${dsCount(n.edge)}`, `only within the 800 m walkable edge: ${dsCount(n.edge)}`)} : null,
+    n.zero ? {kinds: ['zero'], words: around ? L(`ไม่พบ ${dsCount(n.zero)}`, `none: ${dsCount(n.zero)}`) : L(`ไม่พบในย่าน ${dsCount(n.zero)}`, `none inside: ${dsCount(n.zero)}`)} : null,
+    n.out ? {kinds: ['out'], words: L(`ไม่มีข้อมูลในจังหวัด ${dsCount(n.out)}`, `no data in the province: ${dsCount(n.out)}`)} : null,
+  ].filter(Boolean);
 }
 
 /** The key of a fingerprint: how many datasets in each state (a number of datasets, never of records: INV-01). */
 export function fingerprintKey(cells, {around = true} = {}) {
-  const n = cellCounts(cells);
   const swatch = kind => `<span class="fp-cell mini k-${kind}"${kind === 'ranked' ? ` style="background:${COUNT_SCALE.lut[30]}"` : ''} aria-hidden="true"></span>`;
-  const parts = [
-    `${swatch('ranked')}${swatch('few')}${L(`ในย่าน ${num(n.in)} ชุด`, `inside ${num(n.in)} datasets`)}`,
-    n.edge ? `${swatch('edge')}${L(`เฉพาะขอบเดินถึง 800 ม. ${num(n.edge)}`, `only within the 800 m walkable edge ${num(n.edge)}`)}` : '',
-    n.zero ? `${swatch('zero')}${around ? L(`ไม่พบ ${num(n.zero)}`, `none ${num(n.zero)}`) : L(`ไม่พบในย่าน ${num(n.zero)}`, `none inside ${num(n.zero)}`)}` : '',
-    n.out ? `${swatch('out')}${L(`ไม่มีข้อมูลในจังหวัด ${num(n.out)}`, `no data in the province ${num(n.out)}`)}` : '',
-  ].filter(Boolean);
-  return `<p class="fp-key">${parts.map(p => `<span>${p}</span>`).join('')}</p>`;
+  return `<p class="fp-key">${keyWords(cellCounts(cells), around).map(p => `<span>${p.kinds.map(swatch).join('')}${p.words}</span>`).join('')}</p>`;
 }
 
 /**
@@ -115,9 +111,7 @@ export function fingerprintKey(cells, {around = true} = {}) {
 export function fingerprint(model, row, around, {hl = new Set(), label = ''} = {}) {
   const cells = cellsOf(model, row, around);
   const groups = PILLARS.map(p => `<span class="fp-group" data-pillar="${p}">${cells.filter(x => x.ds.group === p).map(x => fpCell(x, {lg: true, hl: hl.has(x.ds.id)})).join('')}</span>`).join('');
-  const n = cellCounts(cells);
-  const name = label || L(`ลายนิ้วมือ 16 ชุดข้อมูลของย่าน: ในย่าน ${num(n.in)} ชุด${n.edge ? ` · เฉพาะขอบเดินถึง 800 ม. ${num(n.edge)}` : ''}${n.zero ? ` · ไม่พบ ${num(n.zero)}` : ''}${n.out ? ` · ไม่มีข้อมูลในจังหวัด ${num(n.out)}` : ''}`,
-    `Fingerprint of the 16 datasets: inside ${num(n.in)}${n.edge ? ` · only within the 800 m walkable edge ${num(n.edge)}` : ''}${n.zero ? ` · none ${num(n.zero)}` : ''}${n.out ? ` · no data in the province ${num(n.out)}` : ''}`);
+  const name = label || `${L('ลายนิ้วมือ 16 ชุดข้อมูลของย่าน:', 'Fingerprint of the 16 datasets:')} ${keyWords(cellCounts(cells), Boolean(around)).map(p => p.words).join(' · ')}`;
   return `<div class="fp-head"><span class="fp fp-lg" role="img" aria-label="${esc(name)}">${groups}</span>${fingerprintKey(cells, {around: Boolean(around)})}</div>`;
 }
 
@@ -149,14 +143,14 @@ export function matrix(model, around, rows, {caption = '', answer = '', sub = nu
   const ds = model.datasets;
   const gap = j => (j && ds[j].group !== ds[j - 1].group ? ' mx-gap' : '');
   const head = `<tr><td class="mx-corner"></td>${ds.map((d, j) => `<th scope="col" class="mx-h${gap(j)}" title="${esc(`${dsName(d)} · ${d.group}`)}">${dsPic(d, 'mx-ico')}<span class="sr-only">${esc(dsName(d))}</span></th>`).join('')}</tr>`;
-  const body = rows.map(x => {
+  const body = rows.map((x, i) => {
     const cells = cellsOf(model, x.row, around);
     const tds = cells.map((c, j) => {
       const hl = x.hl?.has(c.ds.id) || false;
-      return `<td class="mx-c${gap(j)}">${fpCell(c, {hl, title: false})}<span class="sr-only">${esc(cellShort(c, {hl}))}</span></td>`;
+      return `<td class="mx-c${gap(j)}" tabindex="${i === 0 && j === 0 ? 0 : -1}">${fpCell(c, {hl, title: false})}<span class="sr-only">${esc(cellShort(c, {hl}))}</span></td>`;
     }).join('');
     const extra = sub ? sub(x) : '';
-    return `<tr class="mx-r${x.self ? ' is-self' : ''}" data-nb="${esc(x.row.id)}"><th scope="row" class="mx-row">${x.head}</th>${tds}</tr>${extra ? `<tr class="mx-sub"><td></td><td colspan="${ds.length}">${extra}</td></tr>` : ''}`;
+    return `<tr class="mx-r${x.self ? ' is-self' : ''}" data-nb="${esc(x.row.id)}"><th scope="row" class="mx-row">${x.head}</th>${tds}</tr>${extra ? `<tr class="mx-sub"><td colspan="${ds.length + 1}">${extra}</td></tr>` : ''}`;
   }).join('');
   return `${answer ? `<p class="mx-answer">${answer}</p>` : ''}<div class="mx-wrap"><table class="mx">${caption ? `<caption class="sr-only">${esc(caption)}</caption>` : ''}<thead>${head}</thead><tbody>${body}</tbody></table></div>
     <p class="mx-readout hint" aria-live="polite"></p>`;
@@ -172,8 +166,8 @@ export function matrixAnswer(model, around, list) {
 }
 
 /** The scope line under a matrix or a row of dots (D-V1c: one value everywhere; D-V1d: a level, not a total). */
-export const levelScopeLine = ({touch = true} = {}) => L(`สี = ระดับ (จำนวนกับความแน่นเฉลี่ยกัน) เทียบย่านที่มีชุดนั้นตั้งแต่ 3 รายการ ไม่ใช่ผลรวม${touch ? ' · ชี้หรือแตะช่องเพื่อดูตัวเลขและอันดับ' : ''}`,
-  `Colour = level (count and density averaged) among the neighbourhoods with at least 3 records of the dataset, not a total${touch ? ' · point at or tap a cell for its figures and ranks' : ''}`);
+export const levelScopeLine = ({touch = true} = {}) => L(`สี = ระดับ (จำนวนกับความแน่นเฉลี่ยกัน) เทียบย่านที่มีชุดนั้นตั้งแต่ 3 รายการ ไม่ใช่ผลรวม${touch ? ' · ชี้หรือแตะช่อง หรือกดปุ่มลูกศรในตาราง เพื่อดูตัวเลขและอันดับ' : ''}`,
+  `Colour = level (count and density averaged) among the neighbourhoods with at least 3 records of the dataset, not a total${touch ? ' · point at or tap a cell, or use the arrow keys in the table, for its figures and ranks' : ''}`);
 
 /* ---------- the axes อยู่ · เที่ยว · ค้าขาย (§4.9, D-V7 A) ---------- */
 
@@ -205,7 +199,7 @@ function axisRow(x, {distance, hl, demo, edgeRow = false}) {
 
 /**
  * The axis cards of a neighbourhood: per axis a title, its meaning, a “?” for the indicators it has no data for yet, the
- * line “เด่น:” (datasets at level ≥ 75, only when there is one), a row per dataset present inside (and, at 400 or 800 m,
+ * line “ระดับสูง:” (datasets at level ≥ 75, only when there is one; “เด่น” stays the highlights' word, D-V2), a row per dataset present inside (and, at 400 or 800 m,
  * those found only beyond the edge), then one line of those found nowhere and one of those with no data in the province.
  * demoOf(ds) → {href, title} of the dataset's own demo at the neighbourhood's province.
  */
@@ -227,20 +221,20 @@ export function axisCards(model, row, around, {distance = 'in', hl = new Set(), 
     }
     const names = list => list.map(x => nw(`${dsPic(x.ds)}${esc(dsName(x.ds))}${x.kind !== 'out' && lowLocated(x.ds) ? '<sup aria-hidden="true">*</sup>' : ''}`)).join(' · ');
     const pend = a.pending.map(p => L(p.th, p.en)).join(' · ');
-    const title = `<h4 class="ax-title" id="ax-${a.id}">${pic(a.icon, 'ax-ico')}<b>${esc(L(a.th, a.en))}</b><span class="hint">${esc(L(...a.meaning))}</span><span class="ax-pend" title="${esc(L(`ยังไม่มีข้อมูล: ${pend}`, `No data yet: ${pend}`))}"><span aria-hidden="true">?</span><span class="sr-only">${esc(L(`ตัวชี้วัดที่ยังไม่มีข้อมูล: ${pend}`, `Indicators with no data yet: ${pend}`))}</span></span></h4>`;
-    const leadLine = lead.length ? `<p class="ax-lead">${esc(L('เด่น:', 'Stands out:'))} ${lead.map(x => esc(dsName(x.ds))).join(' · ')}</p>` : '';
-    const list = rows.length || edgeRows.length ? `<ul class="ax-rows" aria-labelledby="ax-${a.id}">${rows.join('')}${edgeRows.length ? `<li class="ax-sub">${esc(L(`พบเฉพาะนอกขอบ ไม่เกิน ${num(+distance)} ม.`, `Only beyond the edge, within ${num(+distance)} m`))}</li>${edgeRows.join('')}` : ''}</ul>` : '';
+    const title = `<h4 class="ax-title" id="ax-${a.id}">${pic(a.icon, 'ax-ico')}<b id="ax-${a.id}-name">${esc(L(a.th, a.en))}</b><span class="hint">${esc(L(...a.meaning))}</span><span class="ax-pend" title="${esc(L(`ยังไม่มีข้อมูล: ${pend}`, `No data yet: ${pend}`))}"><span aria-hidden="true">?</span><span class="sr-only">${esc(L(`ตัวชี้วัดที่ยังไม่มีข้อมูล: ${pend}`, `Indicators with no data yet: ${pend}`))}</span></span></h4>`;
+    const leadLine = lead.length ? `<p class="ax-lead">${esc(L('ระดับสูง:', 'High level:'))} ${lead.map(x => esc(dsName(x.ds))).join(' · ')}</p>` : '';
+    const list = rows.length || edgeRows.length ? `<ul class="ax-rows" aria-labelledby="ax-${a.id}-name">${rows.join('')}${edgeRows.length ? `<li class="ax-sub">${esc(L(`พบเฉพาะนอกขอบ ไม่เกิน ${num(+distance)} ม.`, `Only beyond the edge, within ${num(+distance)} m`))}</li>${edgeRows.join('')}` : ''}</ul>` : '';
     const noneLine = none.length ? `<p class="ax-line"><span class="ax-line-head">${esc(distance === 'in' ? L('ไม่พบในย่าน', 'None inside') : L(`ไม่พบในย่านและ${reachWords(distance)}`, `None inside or within ${reachWords(distance)}`))}</span> ${names(none)}</p>` : '';
     const outLine = out.length ? `<p class="ax-line"><span class="ax-line-head">${esc(L('ไม่มีข้อมูลในจังหวัด', 'No data in the province'))}</span> ${names(out)}</p>` : '';
-    return `<section class="ax-card" data-axis="${a.id}" aria-labelledby="ax-${a.id}">${title}${leadLine}${list}${noneLine}${outLine}</section>`;
+    return `<section class="ax-card" data-axis="${a.id}" aria-labelledby="ax-${a.id}-name">${title}${leadLine}${list}${noneLine}${outLine}</section>`;
   }).join('');
 }
 
 /** The key of the axis cards (symbols and what they mark; a legend, not a caveat). */
 export function axisKey({distance = 'in', hl = false, star = false} = {}) {
   const parts = [
-    `<span><b class="ax-dot key" style="background:${COUNT_SCALE.lut[30]}" aria-hidden="true"></b>${esc(L('จุด = ระดับ 0–100 (จำนวนกับความแน่นเฉลี่ยกัน) เทียบย่านที่มีตั้งแต่ 3 รายการ · k/N = อันดับจาก N ย่าน · ไม่มีจุด = ไม่จัดอันดับ · เด่น: ระดับ 75 ขึ้นไป',
-      'Dot = level 0–100 (count and density averaged) among the neighbourhoods with at least 3 records · k/N = rank of N · no dot = not ranked · Stands out: level 75 or more'))}</span>`,
+    `<span><b class="ax-dot key" style="background:${COUNT_SCALE.lut[30]}" aria-hidden="true"></b>${esc(L('จุด = ระดับ 0–100 (จำนวนกับความแน่นเฉลี่ยกัน) เทียบย่านที่มีตั้งแต่ 3 รายการ · k/N = อันดับจาก N ย่าน · ไม่มีจุด = ไม่จัดอันดับ · ระดับสูง = ระดับ 75 ขึ้นไป',
+      'Dot = level 0–100 (count and density averaged) among the neighbourhoods with at least 3 records · k/N = rank of N · no dot = not ranked · High level = 75 or more'))}</span>`,
     distance !== 'in' ? `<span><i class="edge-chip key" aria-hidden="true">n</i>${esc(L(`= นอกขอบไม่เกิน ${num(+distance)} ม. ไม่รวมกับในย่าน`, `= outside within ${num(+distance)} m, never added to the inside`))}</span>` : '',
     hl ? `<span><b class="ax-dot key is-hl-key" aria-hidden="true"></b>${esc(L('กรอบหนา = จุดเด่นของย่าน', 'thick ring = a highlight of this neighbourhood'))}</span>` : '',
     `<span><i class="ax-pend key" aria-hidden="true">?</i>${esc(L('= ตัวชี้วัดที่ยังไม่มีข้อมูล (ชื่ออยู่ในส่วนพับ)', '= indicators with no data yet (named in the closed part)'))}</span>`,

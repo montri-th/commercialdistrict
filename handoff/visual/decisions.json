@@ -296,6 +296,36 @@
       "chosen": "the matrix for the first 30 (most distinctive first), the rest as names in a closed part",
       "why": "keeps a province’s page light (Bangkok has 88 neighbourhoods)",
       "rejected": "a matrix of every neighbourhood"
+    },
+    {
+      "what": "the axis line of the datasets at level ≥ 75 (found by the independent review)",
+      "chosen": "“ระดับสูง:” / “High level:”, the rule of §4.9 unchanged (js/visual.js#axisCards)",
+      "why": "the head’s “เด่นเรื่อง” and the cards «จุดเด่น» name the highlights (D-V2), a different rule: 397 highlights of ranked datasets sit below 75, in 228 of 451 neighbourhoods, and a dataset at 75 or more need not be a highlight (สยาม: the line said “เด่น: ร้านค้าปลีกของใช้”, while its highlight สถานีราง sits at 50); in English both read “Stands out”",
+      "rejected": "“เด่น:” as the proposal wrote it (one word, two meanings on one panel); naming the highlights on the axis line (changes the approved rule)"
+    },
+    {
+      "what": "the marks of the cells (found by the independent review)",
+      "chosen": "few and starred keep their dot on the head’s cells, in the top corner beside the pictogram; a level’s cell has a hairline edge; none has a 2 px outline",
+      "why": "without them a light level, an unranked count and none differed by colour alone: 43 ranked cells sit at LUT index ≤ 6, and on the light theme the level’s edge and the outline of none were the same value (#7D877F)",
+      "rejected": "the head’s cells without the dot (0.6.0 as first built)"
+    },
+    {
+      "what": "the matrix by keyboard (found by the independent review)",
+      "chosen": "one Tab stop per table, the arrows between cells, the readout on focus (js/app.js#matrixKeys)",
+      "why": "the readout gave a cell’s level, peers and ranks to a pointer only",
+      "rejected": "a Tab stop per cell (up to 480 in a province’s list)"
+    },
+    {
+      "what": "a role’s evidence (found by the independent review)",
+      "chosen": "visible after the role: ✓ the datasets that agree, ○ what the data shows with its counts (DATA_METHOD.md §7)",
+      "why": "0.5.1 showed it; a title is read neither on touch nor by keyboard",
+      "rejected": "a title on the row only"
+    },
+    {
+      "what": "the key’s numbers (found by the independent review)",
+      "chosen": "every number with its unit, ชุด / datasets, in the visible key and in the image’s name",
+      "why": "“เฉพาะขอบเดินถึง 800 ม. 4” read as four records, the misreading INV-01 guards against",
+      "rejected": "numbers without a unit"
     }
   ],
   "release": {
@@ -308,5 +338,20 @@
       "V4: partners’ data (agreements first)",
       "the next LDS release’s scale for a level within a declared group (D-V1d C)"
     ]
-  }
+  },
+  "openForOwner": [
+    {
+      "id": "D-V1e",
+      "question": "The glance «ในย่านนี้» (0.4.0: five steps of the count percentile among the 395 of D-8, the count LUT) and the axes’ dots (D-V1: the level among the neighbourhoods with ≥ 3 records, the count LUT by D-V1d) colour the same dataset on the same LUT from two different values; one panel, one scale, two readings",
+      "measured": "ศูนย์การค้าและตลาด: 79 of the 96 neighbourhoods with a level differ by ≥ 10 LUT samples, 70 by ≥ 2 of the five steps; บางลำพู–ข้าวสาร: the tile says มากที่สุด (sample 39), the dot sits at level 68.5 (sample 27) — the independent review, 2026-11-26",
+      "options": [
+        "A keep both, each naming its peers (0.6.0 as shipped)",
+        "B the glance’s meter without a data colour (its steps by position and outline), so the count LUT means the level only",
+        "C the glance on the D-V1 level (changes the 0.4.0 glance and its reference set, D-8)"
+      ],
+      "recommendation": "B",
+      "why": "D-V1c asked for one value across the panel and listed the fingerprint, the matrix, the comparison and the axes; the glance was not among them, and D-8 and NL-04 approved it as it is, so this release does not change it",
+      "status": "open"
+    }
+  ]
 }

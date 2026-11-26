@@ -681,19 +681,24 @@ colour and a dot can differ; the map key's title says so.
 
 **Cells of the fingerprint and of the matrix (§4.1).** One per dataset, in the order of the datasets (Land 4 ·
 Location 7 · Living 5, D-V7b): *ranked* (≥ 3 records of a complete dataset) — coloured by its level · *few* (1–2
-records) and *starred* (points for under 90 %) — neutral with a centre dot · *edge* (none inside, some outside within
-800 m of the edge; only with `data/around.json`) — a dashed edge · *zero* (none inside, and with the surroundings file
-none within 800 m) — an outline in `--data-zero-outline` · *out* (no located record in the province) — a hatch in
-`--data-no-data`, never 0 · a highlight of the neighbourhood (§5, D-V2) — a thick ring. The fingerprint's key counts
-datasets in each state (they make 16), never records (INV-01). A matrix cell reads to a screen reader as its figure and
-level (or its state); pointing at it or tapping it writes its full words — level, peers, count rank, density rank —
-under its table (`js/app.js#matrixReadout`).
+records) and *starred* (points for under 90 %) — neutral with a dot (in the top corner where the head's cell carries
+the dataset's pictogram) · *edge* (none inside, some outside within 800 m of the edge; only with `data/around.json`) —
+a dashed edge · *zero* (none inside, and with the surroundings file none within 800 m) — a thick outline in
+`--data-zero-outline`, where a ranked cell has a hairline edge, so a light level never reads as none · *out* (no
+located record in the province) — a hatch in `--data-no-data`, never 0 · a highlight of the neighbourhood (§5, D-V2) —
+a thick ring. The fingerprint's key counts datasets in each state (they make 16), never records (INV-01): every number
+in it and in the image's name carries its unit (ชุด, datasets). A matrix cell reads to a screen reader as its figure and
+level (or its state); pointing at it, tapping it or focusing it writes its full words — level, peers, count rank,
+density rank — under its table (`js/app.js#matrixReadout`). A matrix is one stop of the Tab key; the arrows move from
+cell to cell, Home and End to the row's ends, Ctrl+Home and Ctrl+End to the table's (`js/app.js#matrixKeys`).
 
 **The axes อยู่ · เที่ยว · ค้าขาย (D-V6, D-V7 A; an Inference: placing a dataset on an axis is this demo's reading,
 not the source's).** อยู่ (ชีวิตประจำวัน): grocery, pharmacies, hospitals, schools, government offices, rail stations,
 fitness · เที่ยว (คนมาเยือน): lodging, shopping centres and markets, restaurants, luxury brands · ค้าขาย (คนทำงานและ
 กิจการ): offices, universities, camera shops, factories, industrial estates (`js/axes.js#AXES`). An axis has no score,
-no total and never ranks a neighbourhood; “เด่น:” names its datasets at level 75 or more. A “?” at its head marks the
+no total and never ranks a neighbourhood; “ระดับสูง:” names its datasets at level 75 or more (“เด่น” stays the word of the
+highlights, §5, which follow another rule: a highlight's level can be lower, and a level of 75 need not be a highlight).
+A “?” at its head marks the
 indicators it has no data for yet, named in the closed part with the open or CityMETER source looked at — a mark that
 says “not yet”, never a promise; no partner is named. Rows: the dataset's name (it colours the map by the dataset), a
 track with the dot at its level and a dashed line at 50, the count in its unit, the rank of the level `k/N`, and the
@@ -725,7 +730,7 @@ pharmacies, restaurants) and for industrial estates; home · luggage · payments
 beside its name, or in a title, a column key and words for screen readers.
 
 Measured on the code of 0.6.0 against 0.5.1, every neighbourhood at the default view, 400 px, dark theme, visible
-characters without spaces (screen-reader words and closed parts left out): median text 2,216 → 2,288 (+3.1 %; 139 of
-451 shorter), median panel height 2,745 → 2,662 px (−3.9 %; 364 of 451 shorter); by part (medians): the head 158 → 134,
-highlights 108 → 58, what comes together 93 → 108, the axes (the 0.4.0 table before) 897 → 902, similar mixes 132 →
-393 (`handoff/VERIFICATION.md` 0.6.0).
+characters without spaces (screen-reader words and closed parts left out): median text 2,216 → 2,321 (+4.5 %; 101 of
+451 shorter), median panel height 2,745 → 2,681 px (−2.9 %; 327 of 451 shorter); by part (medians): the head 158 → 142,
+highlights 108 → 58, what comes together 93 → 108, the axes (the 0.4.0 table before) 897 → 906, similar mixes 132 →
+415 (`handoff/VERIFICATION.md` 0.6.0).

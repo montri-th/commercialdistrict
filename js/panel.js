@@ -354,7 +354,8 @@ function togetherSection(d) {
     const on = r.evidence.length > 0;
     const seen = r.observed.filter(x => x.c.state !== 'out_of_scope').map(x => `${dsName(x.ds)} ${cellText(x.c, x.ds)}`).join(' · ');
     const why = on ? `${L('เด่นจาก', 'from')} ${r.evidenceDs.map(dsName).join(' · ')}` : seen || L('ไม่มีชุดข้อมูลของบทบาทนี้ในจังหวัด', 'no dataset of this role in the province');
-    return `<li class="rl-row${on ? ' is-on' : ''}" title="${esc(why)}"><b class="rl-mark" aria-hidden="true">${on ? '✓' : '○'}</b><span class="sr-only">${esc(on ? L('ข้อมูลชี้ตรง:', 'Data agrees:') : L('ข้อมูลยังไม่ชี้:', 'Not in the data yet:'))}</span><span class="rl-name">${esc(EN ? r.en : r.th)}</span>${on ? `<span class="rl-ev">${r.evidenceDs.map(ds => nw(`${dsPic(ds)}${esc(dsName(ds))}`)).join(' · ')}</span>` : ''}${r.proposed ? '' : `<small class="role-new">${esc(L('ข้อมูลชี้เพิ่ม', 'the data adds'))}</small>`}</li>`;
+    const ev = on ? r.evidenceDs.map(ds => nw(`${dsPic(ds)}${esc(dsName(ds))}`)).join(' · ') : esc(why);
+    return `<li class="rl-row${on ? ' is-on' : ''}"><b class="rl-mark" aria-hidden="true">${on ? '✓' : '○'}</b><span class="sr-only">${esc(on ? L('ข้อมูลชี้ตรง:', 'Data agrees:') : L('ข้อมูลยังไม่ชี้:', 'Not in the data yet:'))}</span><span class="rl-name">${esc(EN ? r.en : r.th)}</span><span class="rl-ev">${ev}</span>${r.proposed ? '' : `<small class="role-new">${esc(L('ข้อมูลชี้เพิ่ม', 'the data adds'))}</small>`}</li>`;
   };
   const roles = [...d.proposed, ...d.extra];
   const roleKey = d.proposed.length ? L('บทบาทที่ทะเบียนเสนอ: ✓ ข้อมูลชี้ตรง · ○ ยังไม่ชี้', 'Roles the registry proposes: ✓ the data agrees · ○ not yet') : L('บทบาทที่ข้อมูลชี้ ✓', 'Roles the data points to ✓');
@@ -552,7 +553,7 @@ function aroundSection(d, model, around, {distance = 'in', fillOf = () => '', ve
   const r = d.row, t = aroundTable(d, model, around, {distance, fillOf});
   const reading = t.loaded ? distance : 'in', hl = new Set(d.highlights.map(x => x.ds.id));
   const cells = cellsOf(model, r, around);
-  const hlShown = cells.some(x => hl.has(x.ds.id) && (x.kind === 'ranked' || x.kind === 'few'));
+  const hlShown = cells.some(x => hl.has(x.ds.id) && x.kind === 'ranked');
   const star = cells.some(x => x.kind !== 'out' && lowLocated(x.ds));
   const colHead = `<p class="ax-cols" aria-hidden="true"><span>${L('ชุดข้อมูล', 'Dataset')}</span><span>${L('ระดับเทียบย่านอื่น', 'Level among the others')}</span><span>${L('จำนวน · อันดับ', 'Count · rank')}</span></p>`;
   const cards = axisCards(model, r, around, {distance: reading, hl, demoOf: ds => demoTarget(ds, r.province)});

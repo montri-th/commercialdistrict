@@ -1287,8 +1287,9 @@ button.glance-tile:hover { background: var(--surface-alt); box-shadow: inset 0 0
 }
 
 /* ---------- 0.6.0 visual-first panel (owner 2026-11-26 11:43; proposal §4, js/visual.js) ----------
-   Every state has a mark that is not colour: a centre dot (counted, not ranked), a dashed edge (only beyond the edge),
-   an outline (none), a hatch (no data in the province), a thick ring (a highlight), a shape (a compared neighbourhood).
+   Every state has a mark that is not colour: a dot (counted, not ranked; in the top corner where a pictogram fills the
+   cell), a dashed edge (only beyond the edge), a thick outline (none; a level's cell has a hairline edge), a hatch (no
+   data in the province), a thick ring (a highlight), a shape (a compared neighbourhood).
    Data colours come only from the LDS LUT of js/scales.js (inline, the same HEX on both themes, never with opacity);
    every outline and ink here is a theme token. */
 .fp-head { display: grid; gap: 6px; margin-top: 10px; }
@@ -1297,10 +1298,11 @@ button.glance-tile:hover { background: var(--surface-alt); box-shadow: inset 0 0
 .fp-cell { display: inline-grid; place-items: center; box-sizing: border-box; flex: 0 0 auto; border: 1px solid var(--border-emphasis); background: transparent; color: var(--text-secondary); }
 .fp-lg .fp-cell { width: 17px; height: 17px; border-radius: 3px; }
 .fp-cell .pictogram { width: 12px; height: 12px; font-size: 12px; line-height: 12px; vertical-align: 0; color: inherit; }
+.fp-cell.k-ranked { border-color: var(--border-hairline); }
 .fp-cell.k-few, .fp-cell.k-starred { background: radial-gradient(circle, var(--text-secondary) 0 1.6px, transparent 1.9px), var(--surface-alt); border-color: var(--text-muted); }
-.fp-lg .fp-cell.k-few, .fp-lg .fp-cell.k-starred { background: var(--surface-alt); }
+.fp-lg .fp-cell.k-few, .fp-lg .fp-cell.k-starred, .fp-key .fp-cell.k-few { background: radial-gradient(circle at calc(100% - 3px) 3px, var(--text-secondary) 0 1.9px, transparent 2.2px), var(--surface-alt); }
 .fp-cell.k-edge { border: 1.5px dashed var(--text-secondary); }
-.fp-cell.k-zero { border-color: var(--data-zero-outline); }
+.fp-cell.k-zero { border: 2px solid var(--data-zero-outline); }
 .fp-cell.k-zero .pictogram, .fp-cell.k-out .pictogram { color: transparent; }
 .fp-cell.k-out { background: repeating-linear-gradient(135deg, var(--data-no-data) 0 2px, transparent 2px 5px); border-color: var(--data-no-data); }
 .fp-cell.is-hl { box-shadow: 0 0 0 1px var(--surface-raised), 0 0 0 3px var(--text-primary); }
@@ -1389,11 +1391,14 @@ a.ax-demo:focus-visible { outline: 3px solid var(--interaction-focus-ring); outl
 .mx .mx-ico { width: 12px; height: 12px; font-size: 12px; vertical-align: 0; margin: 0; }
 .mx .mx-gap { padding-left: 5px; }
 .mx .mx-c .fp-cell { display: block; width: 12px; height: 16px; border-radius: 2px; }
+.mx td.mx-c { border-radius: 3px; }
+.mx td.mx-c:focus { outline: none; }
+.mx td.mx-c:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 1px; }
 .mx .mx-c .fp-cell.k-few, .mx .mx-c .fp-cell.k-starred, .mx-legend .fp-cell.k-few { background: radial-gradient(circle, var(--text-secondary) 0 1.8px, transparent 2.1px), var(--surface-alt); }
 .mx .mx-row { text-align: left; font-weight: 400; padding-right: 4px; min-width: 84px; max-width: 120px; white-space: normal; }
 .mx-th { display: flex; align-items: center; gap: 2px; }
 .mx-rank { flex: 0 0 auto; min-width: 14px; font-size: 12px; color: var(--text-metadata); }
-.mx-who { display: inline-grid; align-content: center; gap: 1px; min-height: 44px; max-width: 104px; padding: 2px 4px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-primary); text-align: left; white-space: normal; font: inherit; vertical-align: middle; }
+.mx-who { display: inline-grid; align-content: center; gap: 1px; min-width: 44px; min-height: 44px; max-width: 104px; padding: 2px 4px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-primary); text-align: left; white-space: normal; font: inherit; vertical-align: middle; }
 button.mx-who:hover { background: var(--surface-alt); }
 button.mx-who:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 1px; }
 .mx-name { font-weight: 600; font-size: 12.5px; line-height: 1.3; overflow-wrap: anywhere; }
