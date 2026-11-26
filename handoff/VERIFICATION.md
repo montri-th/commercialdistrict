@@ -1,5 +1,52 @@
 # CityMETER Commercial District — verification
 
+## Release 0.7.3 — 27 พ.ย. 2569
+
+The night run of V7-07 (scheduled 26 Nov 21:30 ICT; the plan as told to the owner: the buildings within 5 km, then the
+residents within 1 · 3 · 5 km and the residents map). No answer from the owner on D-16, the guests per year or the
+400/800 m barriers was found in the chat or on GitHub before the run; they stay open.
+
+### Data (container, 26 Nov 21:37 – 27 Nov 01:47 ICT)
+
+- `scripts/residents/build-residents.py --reach 5000` (pace 0.25 s, 4 then 8 workers, the same requests): 469 outlines,
+  59,219 tile × subdistrict requests over 2,106 subdistricts, 62,196 responses kept by SHA-256 in the cache outside the
+  repository; population month 2026-10, the register's total equal to `popCount` in all 2,105 subdistricts that carry
+  one; 7,213,960 buildings (638 from parts), none without an estimated floor, no subdistrict without a floor-area total.
+  Output 6,259,974 bytes. The plan now takes the subdistricts' extents as one array: for 1 km it gives the 10,697
+  requests of the run of 26 Nov exactly, in 0.8 s.
+- Against the 1 km file: the figures inside and within 400 m, 800 m and 1 km equal for all 469; every map frame equals
+  `data/people/<id>.json` `map.cell`; every neighbourhood has residents within 3 and 5 km (fewest 41, median 61,603, most
+  1,010,976 within 5 km, modelled) and a residents map (no empty one).
+- People: `scripts/build-people.py` with `--residents <the 5 km file> --context <the context of 0.7.1> --built-on
+  2026-11-27`: every file equal to 0.7.2's but the residents at 3 and 5 km, their levels and `map.res` (checked file by
+  file); 469 files, 16,156,895 bytes (median 27 KB, largest 122 KB).
+
+### Local (container, 27 Nov)
+
+- `npm test`: 220 tests, 220 pass, 0 fail (new: the university wording and 36/100; the residents map's “ราว”, rounding,
+  “ไม่ถึง 10” and “ยังไม่มีข้อมูลอาคารในระยะ 5 กม.”).
+- `npm run check:lds -- --lds Landometer-Design-System-v0.9.7.md`: 145 ok, 0 failed. English harvest: 5,785 views, 0 left
+  (the legend sentence of the residents map reads “under 10” through `js/lang-en.js`).
+- Headless Chrome on the page served locally, the residents tab at 3 and 5 km: พร้อมพงษ์ Thai 1,440 px light, ป่าตอง
+  English 1,440 px dark, คลองสาน–ไอคอนสยาม Thai 393 px dark, นิมมาน–เมญ่า English 393 px light, เกาะราชาใหญ่ Thai
+  1,280 px light: the tab enabled, the lead with “ราว”, the tile with its figure and level, the provenance with the
+  register's month, Building V4 and OpenStreetMap, no name overlapping another, no page error, no Thai left in English.
+- Not checked here: the live release.
+
+## Release 0.7.2 — live (2026-11-26)
+
+- Merged on the owner's word (19:54, VERBATIM: “merge PR #41 และ publish 0.7.2”): pull request #41, merge commit `2948e16`.
+- GitHub Pages: deployment of `2948e16` success at 19:55. `npm run verify:live` against a manifest made at `2948e16`
+  (2,835 files, 43,807,001 bytes): 2,765 checks, all equal at the first fetch.
+- Cloudflare: run 45824283714 (dispatched 19:56, success 19:59) published `2948e16`; the demo family check passed on the
+  site and live; 114 / 114 live checks passed.
+- Claude in Chrome on citymeter.pages.dev, frames of the same origin, cache tag `20261126-r8` in every one:
+  หัวหิน–ตลาดโต้รุ่ง in English at a 1,280 px frame (map 325 px): 3 names, none hidden; คลองสาน–ไอคอนสยาม in Thai at
+  1,024 px (294 px): 5 shown, 2 hidden (ทางพิเศษศรีรัช, ถ.พระรามที่ 4), all 7 back at 1,600 px (407 px); พร้อมพงษ์ in Thai
+  at 820 px (247 px): 7 shown, 1 hidden (สถานีสยาม), all 8 back when widened; พร้อมพงษ์ in English at 360 px (330 px): 8
+  names; จอมเทียน in Thai at 393 px (363 px): 5 names. No visible names overlapping by more than 2 px anywhere;
+  `__citymeterI18n.missing` empty.
+
 ## Release 0.7.2 — 26 พ.ย. 2569
 
 Found on the live check of 0.7.1 (below): the panel draws the round map 250–440 px wide, the build fits the names for

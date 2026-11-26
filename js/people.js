@@ -102,14 +102,16 @@ const NONE_WORDS = {
 function partsLine(key, s, meta) {
   if (key === 'com') {
     // a part: its figure (and how many of its records carry one, when not all do); unknown when none does — never 0
-    const part = (v, N, th, en, of) => {
+    // (0.7.3) a university counts only when every site of it is located and within the distance, so one that cannot be
+    // counted is “ยังนับไม่ได้”, not a missing figure (seen on the live page of 0.7.0)
+    const part = (v, N, th, en, of, {countable = false} = {}) => {
       if (v == null && !N) return '';
-      if (v == null) return `${esc(L(th, en))}: ${nw(esc(L(`ไม่มีตัวเลข (${num(N[1])} ${of[0]})`, `no figure (${num(N[1])} ${of[1]})`)))}`;
-      const partial = N && N[0] < N[1] ? ` <small>${nw(esc(L(`มีตัวเลข ${num(N[0])} จาก ${num(N[1])} ${of[0]}`, `figures for ${num(N[0])} of ${num(N[1])} ${of[1]}`)))}</small>` : '';
+      if (v == null) return `${esc(L(th, en))}: ${nw(esc(countable ? L(`ยังนับไม่ได้ (${num(N[1])} ${of[0]})`, `not countable yet (${num(N[1])} ${of[1]})`) : L(`ไม่มีตัวเลข (${num(N[1])} ${of[0]})`, `no figure (${num(N[1])} ${of[1]})`)))}`;
+      const partial = N && N[0] < N[1] ? ` <small>${nw(esc(countable ? L(`นับได้ ${num(N[0])} จาก ${num(N[1])} ${of[0]}`, `counted ${num(N[0])} of ${num(N[1])} ${of[1]}`) : L(`มีตัวเลข ${num(N[0])} จาก ${num(N[1])} ${of[0]}`, `figures for ${num(N[0])} of ${num(N[1])} ${of[1]}`)))}</small>` : '';
       return `${nw(`${esc(L(th, en))} ${num(v)}`)}${partial}`;
     };
     const off = s.off ? `${nw(`${esc(L('คนทำงานในสำนักงาน', 'office workers'))} ${num(s.off[0])}–${num(s.off[1])}`)} <small>${esc(L('แบบจำลอง', 'modelled'))}</small>` : '';
-    return [part(s.stu, s.stuN, 'นักเรียน', 'students', ['แห่ง', 'schools']), part(s.uni, s.uniN, 'นักศึกษา', 'university students', ['มหาวิทยาลัย', 'universities']),
+    return [part(s.stu, s.stuN, 'นักเรียน', 'students', ['แห่ง', 'schools']), part(s.uni, s.uniN, 'นักศึกษา', 'university students', ['มหาวิทยาลัย', 'universities'], {countable: true}),
       part(s.fac, s.facN, 'คนงานโรงงาน', 'factory workers', ['โรงงาน', 'factories']), part(s.gov, s.govN, 'บุคลากรรัฐ', 'government staff', ['แห่ง', 'offices']), off].filter(Boolean).join(' · ');
   }
   if (key === 'gst' && s.rooms != null) {
@@ -200,8 +202,14 @@ export const DIRECTIONS = Object.freeze([['เหนือ', 'North'], ['ตะ�
 export function mapModel(map, tab) {
   const cells = (map?.[tab] || []).map(([k, v, band]) => ({k, v, band}));
   const cfg = MAP_CFG[tab];
-  const ramp = buildRamp(cells.map(c => c.v), {scale: cfg.scale, unit: L(...cfg.unit), format: x => num(x)});
+  const ramp = buildRamp(cells.map(c => c.v), {scale: cfg.scale, unit: L(...cfg.unit), format: tab === 'res' ? resFigure : (x => num(x))});
   return {cells, ramp, cfg};
+}
+
+/** (0.7.3) A modelled count of residents in a cell or a band: rounded as aboutPeople, “ไม่ถึง 10” under 10, 0 as 0. */
+function resFigure(x) {
+  if (!(x > 0)) return num(0);
+  return x >= 10 ? aboutPeople(x) : L(...UNDER_10);
 }
 
 /**
@@ -382,10 +390,16 @@ function mapKey(map) {
 }
 
 /** The map read as a table: 8 directions × 4 bands from the edge, places (or people) per band, the top direction bold. */
-function mapTable(sec, cfg) {
+function mapTable(sec, cfg, tab = '') {
+  const res = tab === 'res';
+  const fmt = v => (res ? resFigure(v || 0) : num(Math.round(v || 0)));
   const head = `<tr><th scope="col">${esc(L('ทิศ', 'Direction'))}</th>${BAND_WORDS.map(b => `<th scope="col">${esc(L(...b))}</th>`).join('')}<th scope="col">${esc(L('รวมทิศนี้', 'This direction'))}</th></tr>`;
-  const rows = sec.rows.map(r => `<tr${r === sec.top && r.total > 0 ? ' class="is-top"' : ''}><th scope="row">${esc(L(r.th, r.en))}</th>${r.v.map(v => `<td class="data-number">${num(Math.round(v || 0))}</td>`).join('')}<td class="data-number">${num(Math.round(r.total))}<small>${num(Math.round(r.share))}%</small></td></tr>`).join('');
-  return `<details class="scope-details pm-table-fold"><summary>${esc(L('อ่านแผนที่เป็นตาราง', 'Read the map as a table'))}</summary><div class="table-scroll"><table class="pm-table"><caption class="sr-only">${esc(L(`${cfg.th} แยกทิศและระยะจากขอบ`, `${cfg.en} by direction and distance from the edge`))}</caption><thead>${head}</thead><tbody>${rows}</tbody></table></div><p class="hint">${esc(L('ช่อง 250 ม. นับเข้าทิศและระยะตามจุดกึ่งกลางช่อง · 0 = ไม่พบในชุดข้อมูลที่นับ · ทิศวัดจากจุดอ้างอิงของย่าน', 'A 250 m cell goes to a direction and a band by its centre · 0 = none in the datasets counted · directions from the neighbourhood’s reference point'))}</p></details>`;
+  const rows = sec.rows.map(r => `<tr${r === sec.top && r.total > 0 ? ' class="is-top"' : ''}><th scope="row">${esc(L(r.th, r.en))}</th>${r.v.map(v => `<td class="data-number">${esc(fmt(v))}</td>`).join('')}<td class="data-number">${esc(fmt(r.total))}<small>${num(Math.round(r.share))}%</small></td></tr>`).join('');
+  const note = res
+    ? L('ช่อง 250 ม. นับเข้าทิศและระยะตามจุดกึ่งกลางช่อง · คนอยู่เป็นแบบจำลอง ปัดเป็นหลักสิบ ร้อย หรือพัน · 0 = ไม่มีคนในทะเบียนที่แบ่งลงอาคารในช่องนั้น · ทิศวัดจากจุดอ้างอิงของย่าน',
+      'A 250 m cell goes to a direction and a band by its centre · residents are modelled, rounded to tens, hundreds or thousands · 0 = no registered residents spread to a building there · directions from the neighbourhood’s reference point')
+    : L('ช่อง 250 ม. นับเข้าทิศและระยะตามจุดกึ่งกลางช่อง · 0 = ไม่พบในชุดข้อมูลที่นับ · ทิศวัดจากจุดอ้างอิงของย่าน', 'A 250 m cell goes to a direction and a band by its centre · 0 = none in the datasets counted · directions from the neighbourhood’s reference point');
+  return `<details class="scope-details pm-table-fold"><summary>${esc(L('อ่านแผนที่เป็นตาราง', 'Read the map as a table'))}</summary><div class="table-scroll"><table class="pm-table"><caption class="sr-only">${esc(L(`${cfg.th} แยกทิศและระยะจากขอบ`, `${cfg.en} by direction and distance from the edge`))}</caption><thead>${head}</thead><tbody>${rows}</tbody></table></div><p class="hint">${esc(note)}</p></details>`;
 }
 
 /** «แผนที่รอบย่าน»: three tabs, the map of the chosen one, its legend and key, the top direction and the table. */
@@ -401,16 +415,21 @@ export function mapSection(row, rec, meta, {tab = DEFAULT_MAP, prov = null, outO
   // no name in the title: the panel names the neighbourhood, and a name in an English sentence would leave Thai in it
   const found = ctxWords(map);
   const title = L(`${cfg.th}: ${cfg.what[0]} ในระยะ 5 กม. จากขอบย่าน ทิศเหนืออยู่ด้านบน${found ? ` มี${found}ให้ดูตำแหน่ง` : ''}`, `${cfg.en}: ${cfg.what[1]} within 5 km of the neighbourhood’s edge, north up${found ? `, with ${found} to find the way by` : ''}`);
+  const res = current === 'res';
+  const most = res ? (ramp.max >= 10 ? L(`ราว ${aboutPeople(ramp.max)}`, `about ${aboutPeople(ramp.max)}`) : L(...UNDER_10)) : num(ramp.max);
   const lead = cells.length
-    ? `${esc(L(`${num(cells.length)} ช่องที่มี · มากสุด`, `${num(cells.length)} cells with any · up to`))} ${nw(esc(`${num(ramp.max)} ${L(...cfg.unit)}`))}`
-    : esc(L('ไม่พบในชุดข้อมูลที่นับในระยะ 5 กม. (0)', 'None in the datasets counted within 5 km (0)'));
+    ? `${esc(L(`${num(cells.length)} ช่องที่มี · มากสุด`, `${num(cells.length)} cells with any · up to`))} ${nw(esc(`${most} ${L(...cfg.unit)}`))}`
+    : esc(res ? L('ยังไม่มีข้อมูลอาคารในระยะ 5 กม.', 'No building data within 5 km yet') : L('ไม่พบในชุดข้อมูลที่นับในระยะ 5 กม. (0)', 'None in the datasets counted within 5 km (0)'));
   const tied = sec.tops.length > 1;
   const dir = sec.total > 0 ? `<p class="pm-dir">${pic('distance')}<span>${esc(tied
     ? L(`ทิศ${sec.tops.map(t => t.th).join(' และ ')} มีมากเท่ากัน ทิศละ ${num(Math.round(sec.top.share))}% ของทั้งแผนที่`, `${sec.tops.map(t => t.en).join(' and ')} hold the most, ${num(Math.round(sec.top.share))}% of the map each`)
     : L(`ทิศ${sec.top.th}มีมากที่สุด ${num(Math.round(sec.top.share))}% ของทั้งแผนที่`, `${sec.top.en} holds the most, ${num(Math.round(sec.top.share))}% of the map`))}</span></p>` : '';
   const legend = ramp.levels.length ? `<div class="pm-legend"><span class="pm-legend-title">${esc(L(`${cfg.unit[0]} 250 × 250 ม. · สีเทียบเฉพาะในแผนที่นี้`, `${cfg.unit[1]}, 250 × 250 m · colours compare within this map only`))}</span>${rampLegendHTML(ramp)}</div>` : '';
-  const lacking = current === 'res' || !outOfScope ? [] : outOfScope(MAP_GROUP_IDS[current] || []);
-  const source = `<p class="hint pm-source">${esc(L(`${cfg.what[0]} · สถานที่ที่อยู่ห่างขอบย่านไม่เกิน 5 กม. เส้นตรง นับลงช่อง${current === 'res' ? '' : ' · ไม่ใช่จำนวนคนหรือจำนวนครั้งที่มา'}`, `${cfg.what[1]} · places within 5 km of the edge, straight line, counted in cells${current === 'res' ? '' : ' · not people or visits'}`))}${lacking.length ? `<br>${esc(L(`ไม่มีข้อมูลในจังหวัดนี้: ${lacking.join(' · ')}`, `no data in this province: ${lacking.join(' · ')}`))}` : ''}</p>${typeof prov === 'function' ? prov(current) : ''}`;
+  const lacking = res || !outOfScope ? [] : outOfScope(MAP_GROUP_IDS[current] || []);
+  const what = res
+    ? L(`${cfg.what[0]} · คนของอาคารที่อยู่ห่างขอบย่านไม่เกิน 5 กม. เส้นตรง รวมลงช่อง`, `${cfg.what[1]} · the residents of buildings within 5 km of the edge, straight line, added per cell`)
+    : L(`${cfg.what[0]} · สถานที่ที่อยู่ห่างขอบย่านไม่เกิน 5 กม. เส้นตรง นับลงช่อง · ไม่ใช่จำนวนคนหรือจำนวนครั้งที่มา`, `${cfg.what[1]} · places within 5 km of the edge, straight line, counted in cells · not people or visits`);
+  const source = `<p class="hint pm-source">${esc(what)}${lacking.length ? `<br>${esc(L(`ไม่มีข้อมูลในจังหวัดนี้: ${lacking.join(' · ')}`, `no data in this province: ${lacking.join(' · ')}`))}` : ''}</p>${typeof prov === 'function' ? prov(current) : ''}`;
   return `<section class="panel-section map-section" id="nb-map" aria-labelledby="nb-map-title"><div class="section-heading"><h3 id="nb-map-title">${pic('maps')}${esc(L('แผนที่รอบย่าน ช่อง 250 ม.', 'Around the neighbourhood, 250 m cells'))} <span class="glance-tag">${esc(current === 'res' ? L('แบบจำลอง', 'modelled') : L('อนุมาน', 'inferred'))}</span></h3></div>
-    ${tabs}<p class="pm-lead">${lead}</p>${mapSVG(row, map, current, {title})}${legend}${mapKey(map)}${dir}${mapTable(sec, cfg)}${source}</section>`;
+    ${tabs}<p class="pm-lead">${lead}</p>${mapSVG(row, map, current, {title})}${legend}${mapKey(map)}${dir}${mapTable(sec, cfg, current)}${source}</section>`;
 }

@@ -3,7 +3,7 @@
   "schemaVersion": "1.5.0",
   "documentType": "implementation-plan",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.7.2",
+  "productVersion": "0.7.3",
   "updatedOn": "2026-11-26",
   "language": "en",
   "architecture": {
@@ -88,8 +88,8 @@
       "0.7.0": "done 2026-11-26: V7-01 … V7-06 (distances straight line from the edge, said on the page); residents inside the outlines and within 400 m · 800 m · 1 km (the first part of V7-07)",
       "0.7.1": "done 2026-11-26: V7-11 (D-17, owner 17:51) roads, rail, water and the sea on the round maps from the Shopping Center page's OpenStreetMap file, which is now in hand (same SHA-256)",
       "0.7.2": "done 2026-11-26: the names of V7-11 fitted again at the width the panel draws the map (found on the live check of 0.7.1)",
-      "0.7.3": "after the night crawl of Building V4: V7-07, then V7-08",
-      "0.7.4": "V7-09 with the same OpenStreetMap file and the Shopping Center page's method along real paths",
+      "0.7.3": "done 2026-11-27: V7-07, the residents within 3 · 5 km and the residents map, from the night crawl of Building V4",
+      "0.7.4": "V7-08 (the business type and brand picker, D-15) and V7-09 (the same OpenStreetMap file and the Shopping Center page's method along real paths)",
       "later": "V7-10, in the order the owner picks"
     },
     "tasks": [
@@ -227,7 +227,7 @@
       },
       {
         "id": "V7-08",
-        "release": "0.7.3",
+        "release": "0.7.4",
         "title": "น่าค้าขาย: เลือกประเภทธุรกิจและแบรนด์ — คู่แข่ง พันธมิตร สาขาของเรา (D-15)",
         "dependsOn": [
           "V7-06"
@@ -255,7 +255,7 @@
           "scripts/build-people.py",
           "scripts/build-maps.py"
         ],
-        "status": "the file in hand since 0.7.1 (thailand-261124.osm.pbf, the same SHA-256, outside the repository); the method to adopt",
+        "status": "done 2026-11-27 (0.7.3)",
         "acceptance": [
           "the same SHA-256 as the Shopping Center's OpenStreetMap file",
           "the same rules for bridges, crossings, expressways, rivers and rail",

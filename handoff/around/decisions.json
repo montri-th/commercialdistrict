@@ -356,7 +356,8 @@
    ],
    "amends": "INV-01 (contracts.json) for the two place maps only: the listed datasets' located places are added per 250 m cell, as «รอบศูนย์นี้» does; the map, its legend, its direction line and its folded table read those cells; the page labels the map อนุมาน, names the datasets and says it is not people or visits; no other figure on the page adds places across datasets",
    "ownerCheck": "pending — reported to the owner in chat on 2026-11-26; he may ask for one map per dataset instead",
-   "where": "scripts/build-people.py (MAP_GROUPS) · js/people.js (mapSection) · DATA_METHOD.md §16"
+   "where": "scripts/build-people.py (MAP_GROUPS) · js/people.js (mapSection) · DATA_METHOD.md §16",
+   "followUp": "0.7.3 (2026-11-27): the residents map ships (registered residents, modelled, per 250 m cell on density.area, from the run over 5 km); the owner's check of D-16 is still pending"
   },
   {
    "id": "D-17",
@@ -418,5 +419,13 @@
    "D-17"
   ],
   "scope": "D-17 continued: the names fitted at the width the map is drawn"
+ },
+ "amendedIn5": {
+  "version": "0.7.3",
+  "decisions": [
+   "D-12",
+   "D-16"
+  ],
+  "scope": "the residents within 3 · 5 km and the residents map (V7-07); no decision changed"
  }
 }

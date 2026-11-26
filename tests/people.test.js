@@ -212,3 +212,46 @@ test('the rows while the people file loads and when it fails: said so, never a f
   assert.match(pick('trade', 'buyers', {people: null, peopleState: 'error'}).wait[0], /โหลดตัวเลขคนไม่สำเร็จ/);
   assert.match(pick('live', 'crowd', {people: null, peopleState: 'error'}).wait[0], /โหลดตัวเลขคนไม่สำเร็จ/);
 });
+
+test('0.7.3: a university that cannot be counted reads “ยังนับไม่ได้”, the restaurant level reads 36/100 as one figure', async () => {
+  const {peopleSection, peopleTiles} = await import('../js/people.js');
+  const {model} = load();
+  const r = model.rows.find(x => readJSON(`data/people/${x.id}.json`).s.in);
+  const base = readJSON(`data/people/${r.id}.json`);
+  const meta = readJSON('data/people/meta.json');
+  const at = s => ({...base, s: {...base.s, in: {...base.s.in, ...s}}});
+  const text = html => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+  const none = text(peopleSection(r, at({uni: null, uniN: [0, 2]}), meta, {reach: 'in'}));
+  assert.match(none, /นักศึกษา: ยังนับไม่ได้ \(2 มหาวิทยาลัย\)/);
+  assert.doesNotMatch(none, /นักศึกษา: ไม่มีตัวเลข/);
+  const part = text(peopleSection(r, at({uni: 5000, uniN: [1, 2]}), meta, {reach: 'in'}));
+  assert.match(part, /นับได้ 1 จาก 2 มหาวิทยาลัย/);
+  // other parts keep “ไม่มีตัวเลข”: their records carry no figure
+  assert.match(text(peopleSection(r, at({fac: null, facN: [0, 3]}), meta, {reach: 'in'})), /คนงานโรงงาน: ไม่มีตัวเลข \(3 โรงงาน\)/);
+  assert.ok(peopleTiles(at({}), 'in', meta).length === 4);
+  // the liveliness row: no space inside “36/100”
+  const src = (await import('node:fs')).readFileSync(join(ROOT, 'js/indicators.js'), 'utf8');
+  assert.doesNotMatch(src, /fig\(Math\.round\(rest\.level\), '\/100'\)/);
+  assert.match(src, /<\/b>\/100`\)/);
+});
+
+test('0.7.3: the residents map reads its modelled figures “ราว”, rounded, “ไม่ถึง 10” under 10, and says when 5 km holds no building', async () => {
+  const {mapSection} = await import('../js/people.js');
+  const {model} = load();
+  const r = model.rows[0];
+  const base = readJSON(`data/people/${r.id}.json`);
+  const meta = readJSON('data/people/meta.json');
+  const text = html => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+  const res = [[0, 1234.5, 0], [1, 7.2, 1], [2, 40.4, 2]];
+  const sec = text(mapSection(r, {...base, map: {...base.map, res}}, meta, {tab: 'res'}));
+  assert.match(sec, /3 ช่องที่มี · มากสุด ราว 1,200 คนต่อช่อง/);
+  assert.match(sec, /คนอยู่เป็นแบบจำลอง ปัดเป็นหลักสิบ ร้อย หรือพัน/);
+  assert.match(sec, /คนของอาคารที่อยู่ห่างขอบย่านไม่เกิน 5 กม\./);
+  assert.doesNotMatch(sec, /0 = ไม่พบในชุดข้อมูลที่นับ/);
+  const html = mapSection(r, {...base, map: {...base.map, res}}, meta, {tab: 'res'});
+  const cells = [...html.matchAll(/<td class="data-number">([^<]*)</g)].map(m => m[1]);
+  assert.ok(cells.includes('ไม่ถึง 10') && cells.includes('1,200') && cells.includes('40'), cells.join(' | '));
+  const empty = text(mapSection(r, {...base, map: {...base.map, res: []}}, meta, {tab: 'res'}));
+  assert.match(empty, /ยังไม่มีข้อมูลอาคารในระยะ 5 กม\./);
+  assert.doesNotMatch(empty, /\(0\)/);
+});
