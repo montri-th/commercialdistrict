@@ -28,6 +28,16 @@ if (LANG === 'en') {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', note, {once: true}); else note();
 }
 
+/**
+ * The names on a round map that OpenStreetMap gives only in Thai (0.7.1, map.ctx.L): names, not sentences, so they stay
+ * Thai on the English page as «รอบศูนย์นี้» keeps them.
+ */
+export function registerPlaceNames(rec) {
+  if (LANG !== 'en') return;
+  const thai = (rec?.map?.ctx?.L || []).filter(l => !l[5] && THAI.test(l[4] || '')).map(l => l[4]);
+  if (thai.length) keepThai(thai);
+}
+
 /** Register the English the data carries (model = js/model.js#decodeData, after setProvinces). */
 export function registerDataNames(model) {
   if (LANG !== 'en') return;

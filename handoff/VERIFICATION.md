@@ -1,5 +1,40 @@
 # CityMETER Commercial District — verification
 
+## Release 0.7.1 — 26 พ.ย. 2569
+
+Owner 2026-11-26 17:51 ICT (VERBATIM): “แผนที่รัศมีควรจะมี โครงร่างถนน ทะเล ลำน้ำ กายภาพ ให้ดูแบบเดียวกับ shopping center
+ด้วยได้มั้ยครับ”; on the file, “ดึงจาก Mac ของผม (แนะนำ)” (D-17 in `handoff/around/decisions.json`).
+
+### Data (container, 2026-11-26)
+
+- The file: `thailand-261124.osm.pbf` from the owner's Downloads folder, staged with his approval and kept outside the
+  repository: 330,871,226 bytes, SHA-256 `62b496bf…2d24`, MD5 `522d459b…8988`, replication timestamp
+  2026-11-24T21:21:23Z — the same SHA-256 and MD5 as `montri-th/shoppingcenter@4bb7522` `data/crossing/meta.json` `osm`
+  (D-14). The build stops on any other file.
+- Context: `python3 -I scripts/build-context-map.py --repo . --osm <the file> --cache <outside> --out <outside>`. One read of
+  the extract (21 s): 56,186 ways (47,509 roads, 4,867 rivers, 2,398 rail, 1,412 coastline) and 14,664 water areas near the
+  neighbourhoods. 469 maps: the sea on 127, water areas on 445, rivers on 428, roads on 423, rail on 234, stations on 189;
+  names: 118 sea, 330 river, 1,132 road, 352 station; no sea dropped at a reference point. Output 4,484,380 bytes,
+  SHA-256 `024b42fe…c388`; a second run from the cache and a run with a fresh read give the same bytes.
+- People: `scripts/build-people.py` as in 0.7.0 with `--context <that file>`: every file equal to 0.7.0's but `map.ctx`
+  (checked file by file), `meta.json` adds `context` (the source, the counts, no frames) and release 0.7.1. 469 files,
+  9,961,659 bytes (5,513,843 before; median 14 KB, largest 91 KB).
+
+### Local (container, 2026-11-26)
+
+- `npm test`: 217 tests, 217 pass, 0 fail (new: `tests/context.test.js`, 4 tests — the file by SHA-256, the shape and
+  name limits of every map, water under and lines over the cells with every cell unchanged and no colour but the
+  stylesheet's tokens, the key and the provenance credit; `tests/around.test.js` holds D-17 and the owner's words).
+- `npm run check:lds -- --lds Landometer-Design-System-v0.9.7.md` (SHA-256 `d3085cbc…2d96`): 145 ok, 0 failed.
+- English harvest (`tests/english-check.mjs 1`): 5,785 views, 0 Thai left but the names (a name OpenStreetMap gives only
+  in Thai is kept Thai, `js/lang.js#registerPlaceNames`).
+- Headless Chrome on the page served locally: ป่าตอง (Thai 1440 light, English 1440 dark), พร้อมพงษ์ (Thai 393 dark),
+  คลองสาน–ไอคอนสยาม (English 393 light), หัวหิน–ตลาดโต้รุ่ง (Thai 1440 light, the work map): maps 365–370 px wide, no name
+  overlapping another, a ring label or the north mark, none outside the map; the sea and water `#CFDDE7` light and
+  `#18333E` dark, roads `#F6F7F3` on both themes; the key lists only what each map draws; the provenance line ends
+  “© ผู้ร่วมให้ข้อมูล OpenStreetMap (ODbL)” and “OpenStreetMap 24 พ.ย. 2569”; `__citymeterI18n.missing` empty in English.
+- Not checked here: the live release.
+
 ## Release 0.7.0 — 26 พ.ย. 2569
 
 Owner 2026-11-26 14:03 ICT (VERBATIM in `handoff/around/decisions.json` and `handoff/visual/decisions.json`), his question

@@ -11,7 +11,7 @@ globalThis.document = {querySelector: sel => (sel.includes('citymeter:languages'
 
 const step = Math.max(1, Number(process.argv[2]) || 1);
 const {LANG, translate} = await import('../js/shell/i18n.js');
-const {registerDataNames} = await import('../js/lang.js');
+const {registerDataNames, registerPlaceNames} = await import('../js/lang.js');
 const {load, readJSON} = await import('./helpers.js');
 const {decodeAround} = await import('../js/around.js');
 const {scopeRows} = await import('../js/model.js');
@@ -49,6 +49,7 @@ model.rows.forEach((r, i) => {
   for (const [a, distance] of [[around, 'in'], [around, '400'], [around, '800'], [null, 'in']]) check(renderNeighborhood(d, model, {ctx, around: a, distance}), `${r.id} ${distance}${a ? '' : ' (no around)'}`);
   // 0.7.0: «ใครอยู่ตรงนี้» at every scale, every map, and the topic rows with the people file
   const people = readJSON(`data/people/${r.id}.json`);
+  registerPlaceNames(people);   // 0.7.1: names on the round map OpenStreetMap gives only in Thai stay Thai, as the page keeps them
   for (const reach of ['in', '1000', '3000', '5000']) for (const mapTab of ['visit', 'work', 'res']) {
     if (mapTab !== 'visit' && reach !== '1000') continue;
     check(renderNeighborhood(d, model, {ctx, around, distance: 'in', people, peopleMeta, reach, mapTab}), `${r.id} people ${reach} ${mapTab}`);

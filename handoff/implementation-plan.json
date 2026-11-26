@@ -3,7 +3,7 @@
   "schemaVersion": "1.5.0",
   "documentType": "implementation-plan",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.7.0",
+  "productVersion": "0.7.1",
   "updatedOn": "2026-11-26",
   "language": "en",
   "architecture": {
@@ -86,8 +86,9 @@
     "owner": "2026-11-26 14:03 (D-V6b, the request), 14:13, 14:31–14:40 (D-12 … D-15); VERBATIM in handoff/visual/decisions.json and handoff/around/decisions.json",
     "staging": {
       "0.7.0": "done 2026-11-26: V7-01 … V7-06 (distances straight line from the edge, said on the page); residents inside the outlines and within 400 m · 800 m · 1 km (the first part of V7-07)",
-      "0.7.1": "after the night crawl of Building V4: V7-07, then V7-08",
-      "0.7.2": "when the Shopping Center's OpenStreetMap file and its method are in hand: V7-09",
+      "0.7.1": "done 2026-11-26: V7-11 (D-17, owner 17:51) roads, rail, water and the sea on the round maps from the Shopping Center page's OpenStreetMap file, which is now in hand (same SHA-256)",
+      "0.7.2": "after the night crawl of Building V4: V7-07, then V7-08",
+      "0.7.3": "V7-09 with the same OpenStreetMap file and the Shopping Center page's method along real paths",
       "later": "V7-10, in the order the owner picks"
     },
     "tasks": [
@@ -208,7 +209,7 @@
       },
       {
         "id": "V7-07",
-        "release": "0.7.1",
+        "release": "0.7.2",
         "title": "คนอยู่ใน 1 · 3 · 5 กม. จากขอบ และแผนที่คนอยู่ (NL-08 ส่วนที่สอง)",
         "dependsOn": [
           "V7-03"
@@ -243,7 +244,7 @@
       },
       {
         "id": "V7-09",
-        "release": "0.7.2",
+        "release": "0.7.3",
         "title": "ระยะตามทางจริง 400/800 ม. และ 1 · 3 · 5 กม. ด้วยไฟล์และวิธีของหน้าศูนย์การค้า (D-13 D-14)",
         "dependsOn": [
           "the Shopping Center's file and method"
@@ -253,11 +254,35 @@
           "scripts/build-people.py",
           "scripts/build-maps.py"
         ],
-        "status": "blocked",
+        "status": "the file in hand since 0.7.1 (thailand-261124.osm.pbf, the same SHA-256, outside the repository); the method to adopt",
         "acceptance": [
           "the same SHA-256 as the Shopping Center's OpenStreetMap file",
           "the same rules for bridges, crossings, expressways, rivers and rail",
           "the page drops the words “เส้นตรง” only then"
+        ]
+      },
+      {
+        "id": "V7-11",
+        "release": "0.7.1",
+        "title": "โครงร่างถนน ราง ลำน้ำ ทะเล และแหล่งน้ำบนแผนที่รอบย่าน แบบเดียวกับหน้าศูนย์การค้า (D-17)",
+        "dependsOn": [
+          "the Shopping Center's OpenStreetMap file (owner: “ดึงจาก Mac ของผม (แนะนำ)”)"
+        ],
+        "files": [
+          "scripts/build-context-map.py",
+          "scripts/build-people.py",
+          "js/people.js",
+          "js/panel.js",
+          "js/lang.js",
+          "styles.css",
+          "tests/context.test.js"
+        ],
+        "status": "done 2026-11-26",
+        "acceptance": [
+          "the same SHA-256 as the Shopping Center's OpenStreetMap file, checked by the build; the file outside the repository",
+          "the sea and water under the cells, the lines over them, the colours of «รอบศูนย์นี้», never a data colour; no cell changes its colour",
+          "the key names only what the map draws; the provenance line credits © OpenStreetMap contributors (ODbL) with the date",
+          "never counted, never a distance, never a barrier the page measures with"
         ]
       },
       {
