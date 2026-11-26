@@ -18,6 +18,28 @@ Owner 2026-11-26 10:02 ICT, VERBATIM with line breaks shown as “ / ”: “1) 
 - The rebuild of 0.5.1's data, surroundings and logos from the same inputs (with `outline-new-2026-11-26.geojson` and the hold) reproduced every committed file byte for byte before this release's changes.
 - `npm test` 196: 196 pass, 0 fail (195 with the pinned counts of 0.6.1, and one new test of the owner's answers).
 - `node scripts/check-lds-parity.mjs --lds Landometer-Design-System-v0.9.7.md` (SHA-256 `d3085cbc…2d96`): 130 ok, 0 failed.
+
+### After main's 0.6.0
+
+- Main took 0.6.0 (#34, `39ffcbb`) while this release was on its branch, which was to ship as 0.5.2. The branch merged main (`164174b`) and ships as 0.6.1 with the cache tag `20261126-r5`; README, `llms.txt`, `PRODUCT_STATEMENT.md` and this log keep both releases' lines.
+- `npm test` 206 / 206: the tests of 0.6.0 that pinned counts on the 451 outlines now pin the 469 of this release — 639 highlights by the build's rule (599), 560 on the page (529), 271 neighbourhoods with one (255), 198 without (196), 10 peers of luxury brands (9: `CMN-TH-1A627C8E4D` แยกศาลเด็ก holds 4). LDS parity: 130 ok, 0 failed.
+
+### Preview (ICT, 2026-11-26)
+
+- citymeter-pages-deploy dispatched through the GitHub API with preview on, publish off and one override (`commercialdistrict` = `164174b`): run 200 (45770691569), 13:47:52–13:48:45, success. `/release.json` on preview.citymeter.pages.dev: commercialdistrict `164174b` 0.6.1 `20261126-r5`; `data/neighborhoods.json` 469 rows, the screen 74 drawn · 66 waiting · 88 without an outline.
+- Desktop, the owner's Chrome (1533 × 784), dark theme, Thai: the whole country reads 469 ย่าน · 233 ตร.กม. · 16 ชุดข้อมูล · 77 จังหวัด, the finding 71% of the luxury points of sale in 469 neighbourhoods, 0.045% of the country. ถนนธนะรัชต์–เดอะวินเทจ เขาใหญ่ (`CMN-TH-9F6425D0DC`, V4, 158 ไร่): the outline wraps the V4 buildings along the road; its registry line reads «ขอบร่างตามหลักที่เจ้าของกำหนด วาดจากจุดอ้างอิงของผลคัดย่านการค้า ด้วยอาคาร CityMETER (Building V4) 26 พ.ย. 2569». ย่านเซ็นทรัลพระราม 2 (`CMN-TH-7E7A5ECD6B`, one of the 13 used, 416 ไร่): 4 highlights, 9 datasets, the grocery records named on the map.
+- English, the same V4 neighbourhood: «draft outline drawn by the owner's rule from the commercial screen's reference point with CityMETER Building V4 on 26 Nov 2026»; no Thai left on the page but the neighbourhood's name and the language switch.
+- 393 px: a same-origin frame 393 × 740 in the same tab, the tab's session mark cleared first: ชุมชนตลาดน้ำบางน้อย (`CMN-TH-C913881D54`, V4, 104 ไร่) between the river bend and the canal, the fingerprint and its key under it. The sentence of the data sources: ทะเบียนย่านกลาง 677 รหัส = 358 · 37 · 74 · รอขอบ 198 · ชื่อรวมหลายย่าน 10, «นับ 469 ย่านที่มีขอบ».
+
+### Live (ICT, 2026-11-26)
+
+- Pull request #36 merged as `dcb8fc6` at 13:51:31; the GitHub Pages deployment of `dcb8fc6` succeeded (13:51:59).
+- `npm run verify:live` (manifest 2,356 files, commit `dcb8fc6`): 2,293 ok, 0 failed.
+- Publish run 201 (45771520027), 13:55:00–13:55:52, success. `/release.json` on citymeter.pages.dev: production, assembled 06:55:24 UTC, commercialdistrict `dcb8fc6` 0.6.1 `20261126-r5`.
+- On citymeter.pages.dev in the owner's Chrome, 13:56–13:58, light theme: แยกศาลเด็ก (`CMN-TH-1A627C8E4D`, Chiang Mai, one of the 13 used, 1,048 ไร่) — 4 highlights (camera shops, luxury brands, retail, government offices), 10 datasets. English, the whole country: “71% of the Luxury Brands records with a location nationwide lie in 469 neighbourhoods covering 0.045% of the country”, 245 of 345 points of sale, 233 km² of 515,416 km², the sentence of 677 codes as on the preview. 393 px, English: สันปูเลย–ตลาดอุ้ยจั๋น (`CMN-TH-922236ED75`, Lamphun, V4) with «Commercial screen · draft outline by the owner's rule» and «New in this release».
+- Seen, not this release's: at 393 px the name of a record inside («UI CHAN SAN PU LOEI MAR…») sits over the neighbourhood's own name chip — the record labels avoid the map's controls and the pins, not the area chips (as at สยาม in 0.5.1).
+- Not verified: a real phone, browsers other than Chrome, the light theme at 393 px in Thai.
+
 ## Release 0.6.0 — 26 พ.ย. 2569
 
 Owner 2026-11-26 11:43 ICT, VERBATIM: “ทำตามที่เสนอให้ครบทุกข้อพร้อม publish” — every recommended option of the proposal `02-CityMETER__commercialdistrict-visual-first-panel-proposal__v1__2026-11-26` (his earlier words of the day and Claude's reading of each decision in `handoff/visual/decisions.json`). Branch `release/0.6.0-visual-first` from `2155352` (0.5.1).
