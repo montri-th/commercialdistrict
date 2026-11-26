@@ -15,6 +15,10 @@ from one drawing). This script:
           writes the applied outlines as owner amendments the build checks (scripts/build-data.py --outline-amendments):
           the registry's own outline (its canonical geometry, by SHA-256) united with the drawn share, less every other
           outline, so an amendment only adds area and overlaps nothing.
+  new     (0.5.0) outlines for the commercial screen's codes, drawn from seeds round their reference points (§2d).
+  revise  (0.5.2) the owner's answers of 2026-11-26 10:02 on those outlines (amendments/outline-new-choices-2026-11-26.json):
+          the 17 over 1 km as he chose them, the codes without buildings drawn again with CityMETER Building V4, and the
+          codes he keeps with seeds and limits of their own; writes the next file, 0.5.0's stays as it was.
 
 Nothing here reaches a network; the drawing's inputs are named in the export and in amendments/ (DATA_METHOD.md §2c).
 """
@@ -311,6 +315,8 @@ SEED_M = 8  # (0.5.0) a new code has no outline to grow from: the drawing starts
 #             (about one grid cell of 0.0001°), so an outline is the buildings the rule reaches, never the seed's own shape
 WIDE_M = 40  # where that reaches no building, a second drawing from a 24-gon of 40 m (buildings 45 to about 85 m away) …
 WIDE_MIN = 2.5  # … is used only when its outline is at least 2.5 times that seed: never a circle with a building or two
+CM_WORDS = ('CityMETER Building V4 (Landometer production tiles, layer building-detail) inside the units of data/building-units, '
+            'where it holds at least 1.15 times the OpenStreetMap buildings; owner 2026-11-01 for the map, 2026-11-26 10:02 for the outlines')
 REVIEW_M = 1000  # owner 2026-11-24 15:00 (“ให้ผมติ๊กรายย่าน”): an outline reaching more than 1 km waits for his tick
 
 
@@ -455,6 +461,310 @@ def cmd_new(a):
     print(json.dumps(dict(tally)), f'{len(feats)} outlines', file=sys.stderr)
 
 
+
+JOIN_CELL_M = 5  # (0.5.2) cells of the walk that joins a seeded code's point to its trimmed outline
+
+
+def trim_arms_seed(drawn, lon, lat):
+    """(0.5.2) The owner's "ตัดแขนแคบ" for an outline drawn from a seed, which has no registry outline to keep: the drawing
+    opened by TRIM_M as trim_arms() opens it (arms narrower than 150 m off), the opened part nearest to the reference point
+    along the drawing, and the strip of the drawing that joins the point to that part — the 5 m cells whose walk from the
+    point to the part, inside the drawing, is at most 2 × TRIM_M longer than the shortest — so the outline holds its point.
+    Returns (geometry, the opened parts left out)."""
+    import heapq
+    import numpy as np
+    import shapely
+    from shapely.geometry import Point, Polygon, MultiPolygon, box
+    from shapely.ops import transform, unary_union
+    from shapely.validation import make_valid
+    fwd, back = utm(drawn)
+    m, s = transform(fwd, drawn), transform(fwd, Point(lon, lat))
+    opened = m.buffer(-TRIM_M, join_style=1).buffer(TRIM_M, join_style=1).intersection(m)
+    parts = [g for g in getattr(opened, 'geoms', [opened]) if isinstance(g, Polygon) and g.area > 0]
+    if not parts:
+        return drawn, 0
+    for g in parts:
+        if g.buffer(1).intersects(s):
+            return transform(back, g), len(parts) - 1
+    c = JOIN_CELL_M
+    x0, y0, x1, y1 = m.bounds
+    nx, ny = int((x1 - x0) // c) + 1, int((y1 - y0) // c) + 1
+    xs, ys = np.meshgrid(x0 + (np.arange(nx) + 0.5) * c, y0 + (np.arange(ny) + 0.5) * c)
+    inside = shapely.contains_xy(m, xs, ys)
+    label = np.full(inside.shape, -1)
+    for i, g in enumerate(parts):
+        label[shapely.contains_xy(g, xs, ys) & inside] = i
+    steps = [(dr, dq, c * (2 ** 0.5 if dr and dq else 1)) for dr in (-1, 0, 1) for dq in (-1, 0, 1) if dr or dq]
+
+    def walk(sources):
+        d = np.full(inside.shape, np.inf)
+        h = [(0.0, r, q) for r, q in sources]
+        for _, r, q in h:
+            d[r, q] = 0.0
+        heapq.heapify(h)
+        while h:
+            dd, r, q = heapq.heappop(h)
+            if dd > d[r, q]:
+                continue
+            for dr, dq, w in steps:
+                rr, qq = r + dr, q + dq
+                if 0 <= rr < ny and 0 <= qq < nx and inside[rr, qq] and dd + w < d[rr, qq]:
+                    d[rr, qq] = dd + w
+                    heapq.heappush(h, (dd + w, rr, qq))
+        return d
+    dist2 = np.where(inside, (xs - s.x) ** 2 + (ys - s.y) ** 2, np.inf)
+    r0, q0 = np.unravel_index(np.argmin(dist2), dist2.shape)
+    ds = walk([(r0, q0)])
+    near = [float(ds[label == i].min()) if (label == i).any() else np.inf for i in range(len(parts))]
+    k = int(np.argmin(near))
+    if not np.isfinite(near[k]):
+        return drawn, len(parts)
+    dt = walk(list(zip(*np.nonzero(label == k))))
+    join = inside & (ds + dt <= near[k] + 2 * TRIM_M) & (label != k)
+    cells = [box(x0 + q * c, y0 + r * c, x0 + (q + 1) * c, y0 + (r + 1) * c) for r, q in zip(*np.nonzero(join))]
+    strip = unary_union(cells).buffer(c / 2, join_style=2).intersection(m) if cells else Point(s).buffer(0)
+    out = make_valid(unary_union([parts[k], strip]))
+    polys = [g for g in getattr(out, 'geoms', [out]) if isinstance(g, Polygon) and g.area > 0]
+    body = [g for g in polys if g.intersects(parts[k])]
+    out = body[0] if len(body) == 1 else MultiPolygon(body)
+    return transform(back, out), len(parts) - 1
+
+
+
+def cmd_revise(a):
+    """(0.5.2) The owner's answers of 2026-11-26 10:02 (amendments/outline-new-choices-2026-11-26.json) on the outlines of
+    0.5.0 (--prior): the 17 that reached over 1 km as he chose them (use; trim the narrow arms, shown to him before the
+    web; no outline), the codes the basemap left without buildings, or too few, drawn again with CityMETER Building V4
+    inside its units (the drawing's option cm), and the codes he keeps with seeds and limits of their own (ย่านตลาดไท).
+    Every outline 0.5.0 applied keeps its geometry; the new outlines leave out every outline the build draws, in the
+    same order and by the same tests as `new`."""
+    import os
+    from shapely.geometry import shape, mapping, MultiPolygon, Polygon, Point
+    from shapely.ops import unary_union, transform
+    from shapely.validation import make_valid
+    ch = json.load(open(a.choices, encoding='utf-8'))
+    prior_sha = hashlib.sha256(open(a.prior, 'rb').read()).hexdigest()
+    if prior_sha != ch['reviewed']['sha256']:
+        sys.exit(f"the owner's answers are on {ch['reviewed']['file']} ({ch['reviewed']['sha256'][:8]}…), not {a.prior} ({prior_sha[:8]}…)")
+    prior = json.load(open(a.prior, encoding='utf-8'))
+    ticks = ch['ticks']
+    use, trim, reject = set(ticks['use']), set(ticks['trimArms']), set(ticks['reject'])
+    waiting = {f['properties']['canonical_id'] for f in prior['features'] if f['properties']['status'] == 'review'}
+    if use | trim | reject != waiting or len(use) + len(trim) + len(reject) != len(waiting):
+        sys.exit(f'the answers name {len(use | trim | reject)} codes, the prior file waits on {len(waiting)}: each once')
+    places, meta = load_places([a.point])
+    wide, wide_meta = load_places([a.wide]) if a.wide else ({}, {})
+    special, special_meta = load_places([a.special]) if a.special else ({}, {})
+    seeds = json.load(open(a.seeds, encoding='utf-8'))
+    seeds_sha = hashlib.sha256(json.dumps(seeds, ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
+    if not (len(a.seeds_sha) >= 16 and seeds_sha.startswith(a.seeds_sha)):
+        sys.exit(f'the seeds are not the list the page drew from: {seeds_sha} ≠ {a.seeds_sha}')
+    info = {s['code']: s for s in json.load(open(a.info, encoding='utf-8'))}
+    rows = {r['id']: r for r in json.load(open(a.rows, encoding='utf-8'))['rows']}
+    canon = json.load(open(os.path.join(a.bundle, 'national-gis', 'canonical-boundaries.geojson'), encoding='utf-8'))
+    base = {f['properties']['canonical_id']: f['geometry'] for f in canon['features'] if f['geometry']}
+    drafts = json.load(open(os.path.join(a.lodging, 'boundaries', 'current-all268-review-drafts.geojson'), encoding='utf-8'))['features']
+    for d in drafts:
+        code = 'CMN-TH-' + d['properties']['proposal_group_id'].removeprefix('LP-NEW-')
+        if code in rows and rows[code]['kind'] == 'lodging':
+            base[code] = d['geometry']
+
+    def poly(g):
+        v = make_valid(shape(g))
+        ps = [p for p in getattr(v, 'geoms', [v]) if isinstance(p, (Polygon, MultiPolygon))]
+        return v if isinstance(v, (Polygon, MultiPolygon)) else unary_union(ps)
+    cur = {k: poly(g) for k, g in base.items()}
+    for f in json.load(open(a.amendments, encoding='utf-8'))['features']:
+        cur[f['properties']['canonical_id']] = poly(f['geometry'])
+    missing = [k for k in rows if rows[k]['kind'] != 'screen' and k not in cur]  # 0.5.0's own outlines come next
+    if missing:
+        sys.exit(f'{len(missing)} outlines of the demo are not in the inputs, e.g. {missing[:3]}')
+    owner = ch['owner']
+    feats, report = [], []
+    # 1. 0.5.0's outlines: applied ones as they were; the 17 as he chose
+    for f in prior['features']:
+        p_ = dict(f['properties'])
+        code = p_['canonical_id']
+        if p_['status'] == 'apply':
+            cur[code] = poly(f['geometry'])
+            feats.append(f)
+            report.append({'id': code, 'status': 'apply', 'from': '0.5.0'})
+            continue
+        if code in reject:
+            report.append({'id': code, 'status': 'rejected', 'from': '0.5.0', 'reachM': p_['reach_m']})
+            continue
+        geom = shape(f['geometry'])
+        p_['decided'] = {'on': owner['on'], 'words_th': owner['ticks_th'], 'choice': 'use' if code in use else 'trimArms'}
+        if code in use:
+            p_['status'] = 'apply'
+        else:
+            lon, lat = p_['reference_point']
+            geom, left = trim_arms_seed(geom, lon, lat)
+            fwd = utm(geom)[0]
+            p_['reach_m'] = round(transform(fwd, geom).hausdorff_distance(transform(fwd, seed_polygon(lat, lon))))
+            p_['area_m2'] = round(utm_area(geom), 2)
+            p_['rule'] = {**p_['rule'], 'armsTrimmed': True}
+            p_['method'] += (f"; scripts/rule-outlines.py revise: narrow arms taken off (opening of {TRIM_M} m, the part nearest the "
+                             f"point and the strip joining the point to it, {JOIN_CELL_M} m cells within {2 * TRIM_M} m of the shortest walk)")
+            # shown to him before the web (the tick sheet's word): it waits for his look, as an outline over 1 km does
+            if p_['reach_m'] <= REVIEW_M:
+                sys.exit(f'{code}: trimmed within 1 km; the page has no words yet for an outline that waits for his look')
+            p_['status'] = 'review'
+            assert Point(lon, lat).within(geom), code
+        cur[code] = poly(mapping(geom))
+        feats.append({'type': 'Feature', 'geometry': mapping(geom), 'properties': p_})
+        report.append({'id': code, 'status': p_['status'], 'from': '0.5.0', 'choice': p_['decided']['choice'], 'reachM': p_['reach_m']})
+    # 2. the codes drawn again with CityMETER Building V4 (as `new`, the wide drawing for a code the point one left unchanged)
+    order = [s_[0] for s_ in seeds]
+    if set(places) != set(order) or not set(wide) <= set(order):
+        sys.exit(f'the V4 drawings hold {len(places)} and {len(wide)} places, the seeds {len(order)}')
+    for pl in list(places.values()) + list(wide.values()):
+        if (pl.get('opts') or {}).get('cm') != 'CityMETER Building V4':
+            sys.exit(f"{pl['id']}: drawn without CityMETER Building V4")
+    wide_area = utm_area(seed_polygon(13.75, 100.5, WIDE_M))
+    use_wide = {pid for pid in order if classify(places[pid]) == 'unchanged' and pid in wide
+                and classify(wide[pid]) in ('clean', 'split') and wide[pid]['check']['areaM2'] >= WIDE_MIN * wide_area}
+    assigned = {}
+    for source, pids in (('point', order), ('wide', [p_ for p_ in order if p_ in use_wide])):
+        for pid in pids:
+            pl = places[pid] if source == 'point' else wide[pid]
+            if classify(pl) not in ('clean', 'split') or pid in assigned:
+                continue
+            for k, rings in ({pid: pl['rings']} if classify(pl) == 'clean' else pl['shares']).items():
+                if k in order and (source == 'point' or k in use_wide or classify(places[k]) == 'unchanged'):
+                    assigned.setdefault(k, (pl['grid'], rings, pid, source))
+    tilesBuild = meta['tilesBuild']
+    for code, lat, lon in seeds:
+        pl, seed = places[code], seed_polygon(lat, lon)
+        c = pl['check']
+        rec = {'id': code, 'class': classify(pl), 'reachM': c['reachM'], 'fill': c['fill'], 'osmBuildings': c['osmBuildings'],
+               'cmBuildings': c.get('cmBuildings'), 'sharers': c['sharers'], 'from': 'V4'}
+        if code in wide:
+            cw = wide[code]['check']
+            rec['wide'] = {'class': classify(wide[code]), 'areaM2': round(cw['areaM2']), 'osmBuildings': cw['osmBuildings'],
+                           'cmBuildings': cw.get('cmBuildings'), 'used': code in use_wide}
+        if code not in assigned:
+            st = {'city': 'city', 'runs-on': 'runs-on'}.get(rec['class'])
+            if st is None and rec.get('wide', {}).get('class') in ('city', 'runs-on'):
+                st = rec['wide']['class']
+            if st is None and rec.get('wide', {}).get('class') in ('clean', 'split'):
+                st = 'few-buildings'
+            rec['status'] = st or 'no-buildings'
+            report.append(rec)
+            continue
+        grid, rings, by, source = assigned[code]
+        if source == 'wide':
+            seed = seed_polygon(lat, lon, WIDE_M)
+        drawn = smooth(decode_rings(rings, grid))
+        near = [cur[k] for k in cur if k != code and cur[k].intersects(drawn.buffer(0.001))]
+        new = make_valid(drawn.difference(unary_union(near)) if near else drawn)
+        parts = [p for p in getattr(new, 'geoms', [new]) if isinstance(p, Polygon) and (p.intersects(seed) or utm_area(p) >= CRUMB_M2)]
+        if not parts:
+            rec['status'] = 'covered'
+            report.append(rec)
+            continue
+        new = parts[0] if len(parts) == 1 else MultiPolygon(parts)
+        fwd = utm(new)[0]
+        reach = round(transform(fwd, new).hausdorff_distance(transform(fwd, seed_polygon(lat, lon))))
+        status = 'apply' if reach <= REVIEW_M else 'review'
+        rec.update({'status': status, 'drawnWith': by, 'seedM': WIDE_M if source == 'wide' else SEED_M, 'areaM2': round(utm_area(new), 2),
+                    'reachSeedM': reach, 'parts': len(parts)})
+        report.append(rec)
+        for g in near:
+            both = g.intersection(new)
+            assert both.is_empty or utm_area(both) < 0.1, f'{code} overlaps an outline'
+        cur[code] = new
+        x = info[code]
+        src = wide if source == 'wide' else places
+        opts = src[by].get('opts') or {}
+        words = rule_words(opts.get('lightLanduse') or [])
+        drawn_on = (wide_meta if source == 'wide' else meta)['drawnOn']
+        feats.append({'type': 'Feature', 'geometry': mapping(new), 'properties': {
+            'canonical_id': code, 'name_th': x['name'], 'province_th': x['province'], 'district_th': x['district'],
+            'reference_point': [lon, lat], 'drawn_on': drawn_on, 'outlined_on': a.on, 'by': 'owner', 'owner_words_th': OWNER_TH,
+            'decided': {'on': owner['on'], 'words_th': owner['buildings_th'], 'choice': 'buildingsV4'},
+            'status': status, 'area_m2': rec['areaM2'], 'reach_m': reach, 'metric_crs': 'EPSG:32647' if new.centroid.x < 102 else 'EPSG:32648',
+            'seed': {'shape': '24-gon', 'radius_m': WIDE_M if source == 'wide' else SEED_M, 'centre': 'the registry\'s reference point (05_REVIEW_QUEUE, column จุดอ้างอิงย่าน)'},
+            'rules': ['BUILDINGS', 'DARK-GROUND'] + (['HALFWAY'] if by != code or c['sharers'] else []),
+            'buildings': {'cm': src[by]['check'].get('cmBuildings'), 'osm': src[by]['check']['osmBuildings']},
+            'osm': f"OpenFreeMap planet {tilesBuild} (OpenMapTiles schema, zoom 14) as the demo's basemap draws it, © OpenStreetMap contributors, ODbL 1.0",
+            'cm': CM_WORDS,
+            'method': f"scripts/draw-outline-rule.browser.js in the demo on {drawn_on} (drawn with {by}, option cm), seeded at the reference point ({WIDE_M if source == 'wide' else SEED_M} m); "
+                      f"scripts/rule-outlines.py revise: steps rounded (closing {SMOOTH_M} m within {REACH_M} m), simplified {SIMPLIFY_M} m, every other outline left out",
+            'rule': {'name': RULE['name'], 'th': words[0], 'en': words[1], 'drawnWith': by, 'shared': bool(by != code or c['sharers']),
+                     'buildings': 'CityMETER Building V4 inside its units (data/building-units), OpenStreetMap elsewhere',
+                     **({'lightLanduse': opts['lightLanduse']} if opts.get('lightLanduse') else {})},
+            'status_th': 'ขอบวาดตามหลักที่เจ้าของกำหนดจากจุดอ้างอิงของผลคัดย่านการค้า ด้วยอาคาร CityMETER (Building V4) ใน อปท. ที่เดโมใช้อาคารชุดนี้ รอทะเบียนรับในรุ่นถัดไป',
+            'status_en': "drawn by the owner's rule from the commercial screen's reference point, with CityMETER Building V4 where the demo draws it, awaiting the registry's next release"}})
+    # 3. the codes he keeps with seeds and limits of their own
+    for code, k in (ch.get('keep') or {}).items():
+        pl = special.get(code)
+        if pl is None:
+            sys.exit(f'{code}: the owner keeps it, and no drawing of it was given (--special)')
+        if (pl.get('opts') or {}).get('cm') != 'CityMETER Building V4' or sorted(pl['opts'].get('limits') or []) != sorted(L['label'] for L in k['limits']):
+            sys.exit(f'{code}: the drawing was not made with CityMETER Building V4 and the limits the answers name')
+        cls = classify(pl)
+        pts = [(q['point'][0], q['point'][1]) for q in k['seeds']]
+        seed8 = unary_union([seed_polygon(la, lo) for lo, la in pts])
+        rec = {'id': code, 'class': cls, 'reachM': pl['check']['reachM'], 'fill': pl['check']['fill'], 'from': 'keep',
+               'osmBuildings': pl['check']['osmBuildings'], 'cmBuildings': pl['check'].get('cmBuildings'), 'sharers': pl['check']['sharers']}
+        if cls not in ('clean', 'split'):
+            rec['status'] = cls if cls in ('city', 'runs-on') else 'no-buildings'
+            report.append(rec)
+            continue
+        rings = pl['rings'] if cls == 'clean' else pl['shares'][code]
+        drawn = smooth(decode_rings(rings, pl['grid']))
+        near = [cur[q] for q in cur if q != code and cur[q].intersects(drawn.buffer(0.001))]
+        new = make_valid(drawn.difference(unary_union(near)) if near else drawn)
+        parts = [p for p in getattr(new, 'geoms', [new]) if isinstance(p, Polygon) and (p.intersects(seed8) or utm_area(p) >= CRUMB_M2)]
+        new = parts[0] if len(parts) == 1 else MultiPolygon(parts)
+        fwd = utm(new)[0]
+        reach = round(transform(fwd, new).hausdorff_distance(transform(fwd, seed8)))
+        status = 'apply' if reach <= REVIEW_M else 'review'
+        for g in near:
+            both = g.intersection(new)
+            assert both.is_empty or utm_area(both) < 0.1, f'{code} overlaps an outline'
+        assert all(Point(lo, la).within(new) for lo, la in pts), f'{code}: a seed point falls outside its outline'
+        cur[code] = new
+        rec.update({'status': status, 'areaM2': round(utm_area(new), 2), 'reachSeedM': reach, 'parts': len(parts)})
+        report.append(rec)
+        x = info[code]
+        feats.append({'type': 'Feature', 'geometry': mapping(new), 'properties': {
+            'canonical_id': code, 'name_th': x['name'], 'province_th': x['province'], 'district_th': x['district'],
+            'reference_point': list(pts[0]), 'reference_point_th': k['reference_th'],
+            'drawn_on': special_meta['drawnOn'], 'outlined_on': a.on, 'by': 'owner', 'owner_words_th': OWNER_TH,
+            'decided': {'on': owner['on'], 'words_th': owner['keep_th'], 'choice': 'keep'},
+            'status': status, 'area_m2': rec['areaM2'], 'reach_m': reach, 'metric_crs': 'EPSG:32647' if new.centroid.x < 102 else 'EPSG:32648',
+            'seed': {'shape': '24-gon', 'radius_m': k['seedM'], 'points': k['seeds']},
+            'rules': ['BUILDINGS', 'DARK-GROUND'] + (['HALFWAY'] if pl['check']['sharers'] else []) + ['OWNER-LIMITS'],
+            'limits': k['limits'],
+            'buildings': {'cm': pl['check'].get('cmBuildings'), 'osm': pl['check']['osmBuildings']},
+            'osm': f"OpenFreeMap planet {special_meta['tilesBuild']} (OpenMapTiles schema, zoom 14) as the demo's basemap draws it, © OpenStreetMap contributors, ODbL 1.0",
+            'cm': CM_WORDS,
+            'method': f"scripts/draw-outline-rule.browser.js in the demo on {special_meta['drawnOn']} (option cm, the limits named), seeded at "
+                      f"{len(pts)} points ({k['seedM']} m); scripts/rule-outlines.py revise: steps rounded (closing {SMOOTH_M} m within {REACH_M} m), "
+                      f"simplified {SIMPLIFY_M} m, every other outline left out; reach measured from 8 m round each point",
+            'rule': {'name': RULE['name'], 'th': RULE['th'], 'en': RULE['en'], 'drawnWith': code, 'shared': bool(pl['check']['sharers']),
+                     'buildings': 'CityMETER Building V4 inside its units (data/building-units), OpenStreetMap elsewhere', 'limits': pl['opts']['limits']},
+            'status_th': 'ขอบวาดตามคำของเจ้าของ (26 พ.ย. 2569) และหลักที่เจ้าของกำหนด ด้วยอาคาร CityMETER (Building V4) รอทะเบียนรับในรุ่นถัดไป',
+            'status_en': "drawn on the owner's word of 2026-11-26 and by his rule, with CityMETER Building V4, awaiting the registry's next release"}})
+    file_ = lambda p_: {'file': os.path.basename(p_), 'sha256': hashlib.sha256(open(p_, 'rb').read()).hexdigest()}
+    out = {'type': 'FeatureCollection', 'drawing': {
+        'prior': {**file_(a.prior), 'drawing': prior.get('drawing')},
+        'answers': file_(a.choices),
+        'buildingsV4': {'drawnOn': meta['drawnOn'], 'tilesBuild': tilesBuild, 'seedsSha256': seeds_sha, 'seedM': SEED_M,
+                        'wideSeedM': WIDE_M if a.wide else None, 'wideMin': WIDE_MIN if a.wide else None,
+                        'exports': [{**file_(a.point), 'seedM': SEED_M}] + ([{**file_(a.wide), 'seedM': WIDE_M}] if a.wide else [])},
+        **({'keep': {'drawnOn': special_meta['drawnOn'], 'exports': [file_(a.special)]}} if a.special else {})},
+        'features': feats}
+    open(a.out, 'w', encoding='utf-8').write(json.dumps(out, ensure_ascii=False, separators=(',', ':')) + '\n')
+    json.dump(report, open(a.report, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    tally = defaultdict(int)
+    for r in report:
+        tally[(r.get('from'), r['status'])] += 1
+    print(json.dumps({f'{k[0]}:{k[1]}': v for k, v in sorted(tally.items())}), f'{len(feats)} outlines', file=sys.stderr)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest='cmd', required=True)
@@ -492,10 +802,26 @@ def main():
     n.add_argument('--on', required=True)
     n.add_argument('--out', required=True)
     n.add_argument('--report', required=True)
+    v = sub.add_parser('revise', help="(0.5.2) the owner's answers of 2026-11-26 10:02 on the commercial screen's outlines")
+    v.add_argument('--prior', required=True, help="0.5.0's file: amendments/outline-new-2026-11-26.geojson")
+    v.add_argument('--choices', required=True, help="his answers: amendments/outline-new-choices-2026-11-26.json")
+    v.add_argument('--point', required=True, help='the drawing with CityMETER Building V4 from 8 m seeds')
+    v.add_argument('--wide', default='', help='the drawing with CityMETER Building V4 from 40 m seeds (codes the point one left unchanged)')
+    v.add_argument('--special', default='', help='the drawing of the codes he keeps with seeds and limits of their own')
+    v.add_argument('--seeds', required=True)
+    v.add_argument('--seeds-sha', required=True)
+    v.add_argument('--info', required=True)
+    v.add_argument('--rows', default='data/neighborhoods.json')
+    v.add_argument('--bundle', required=True)
+    v.add_argument('--lodging', required=True)
+    v.add_argument('--amendments', default='amendments/outline-amendments.geojson')
+    v.add_argument('--on', required=True)
+    v.add_argument('--out', required=True)
+    v.add_argument('--report', required=True)
     a = ap.parse_args()
     if a.cmd == 'amend' and not a.display and not (a.bundle and a.lodging):
         sys.exit('amend needs --bundle and --lodging (or --display for a preview)')
-    {'decode': cmd_decode, 'review': cmd_review, 'amend': cmd_amend, 'new': cmd_new}[a.cmd](a)
+    {'decode': cmd_decode, 'review': cmd_review, 'amend': cmd_amend, 'new': cmd_new, 'revise': cmd_revise}[a.cmd](a)
 
 
 if __name__ == '__main__':

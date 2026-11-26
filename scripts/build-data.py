@@ -667,7 +667,9 @@ def main():
                     'canonical_id': code, 'name_th': name, 'area_m2': utm_area(geom),
                     'neighbourhood_reference_point': f['properties']['reference_point'], 'source_province_codes': [],
                     'name_status': 'draft_pending_local_name_validation', 'field_verified': False, '_kind': 'screen',
-                    '_screen': {'on': f['properties']['outlined_on'], 'reachM': f['properties']['reach_m'], 'role': role_th}}})
+                    '_screen': {'on': f['properties']['outlined_on'], 'reachM': f['properties']['reach_m'], 'role': role_th,
+                                # (0.5.2) drawn with CityMETER Building V4 on the owner's word of 2026-11-26 10:02
+                                'cm': (f['properties'].get('decided') or {}).get('choice') == 'buildingsV4'}}})
                 tally['drawn'] += 1
             else:
                 why = (f['properties']['status'] if f is not None else 'none')
@@ -852,7 +854,7 @@ def main():
         if pr['_kind'] in ('lodging', 'screen') or (prev_closed and pr['canonical_id'] not in prev_closed):
             row['added'] = True  # first drawn in this data release (0.2.0; the commercial screen's 0.5.0)
         if pr['_kind'] == 'screen':
-            row['screen'] = {'on': pr['_screen']['on'], 'reachM': pr['_screen']['reachM']}
+            row['screen'] = {'on': pr['_screen']['on'], 'reachM': pr['_screen']['reachM'], **({'cm': True} if pr['_screen']['cm'] else {})}
             if not row['roles']:  # the roles the registry proposed for the code (ชื่อกลาง, “บทบาทที่เสนอจากหลักฐาน”, joined by ' · ')
                 row['roles'] = [role_th_to_id[th] for th in (s_.strip() for s_ in pr['_screen']['role'].split('·')) if th in role_th_to_id]
         if pr['canonical_id'] in lodging:
