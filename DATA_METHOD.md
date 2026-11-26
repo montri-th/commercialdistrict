@@ -330,6 +330,10 @@ the same density). A comparison is a highlight when `p ≥ 0.75`; a neighbourhoo
 dataset, strongest first (equal strength: the larger share of the dataset's located records first). “เด่นหลายด้าน”
 counts highlights with `p ≥ 0.9`. Rules and thresholds are `meta.rules`.
 
+Since 0.6.0 (D-V2, §14) a highlight stands only on a dataset with points for at least 90 % of its records: the page
+draws the highlights again by this rule over those datasets (`js/model.js#highlightsOf`), then keeps four. The file's
+own lists stay in `data/neighborhoods.json` (`hl`, `pairs` of a row; `hlBuild`, `pairsBuild` once decoded).
+
 ## 6. What comes together (Inference from a correlation)
 
 For every pair of datasets: Spearman's ρ of density over the neighbourhoods both datasets cover, kept when at least 30
@@ -651,3 +655,82 @@ python3 -I scripts/build-logos.py --root <folder of the family's checkouts> --bu
 node --test tests/logos.test.js
 ```
 
+## 14. The visual-first panel: levels, the fingerprint, the axes and the matrix (0.6.0, 2026-11-26)
+
+Owner 2026-11-26 11:43, VERBATIM: “ทำตามที่เสนอให้ครบทุกข้อพร้อม publish” — every recommended option of the proposal
+`02-CityMETER__commercialdistrict-visual-first-panel-proposal__v1__2026-11-26` (owner's words of 06:21 · 06:47 · 07:56 ·
+09:56 · 10:26 · 11:26 · 11:43, the decisions and Claude's reading in `handoff/visual/decisions.json`).
+
+**The level of a dataset in a neighbourhood (D-V1 = D, D-V1c; an Inference: this demo's own index).** Peers: the
+neighbourhoods of the release holding at least `minCount` (3) records of the dataset, nationwide — the peers of
+“แน่นอันดับ k/N” (`r[3]` of a row, the build's density rank). In those peers, the count level and the density level
+are each a mid-rank percentile, 100 × (below + ½ equal) / n; the level is their mean, 0–100, equal weights, no unit.
+The rank of the level among the peers is 1 for the highest; equal levels share a rank (`js/levels.js#levelModel`). One
+function gives the same value to every part of the panel: the fingerprint, the matrix of neighbourhoods × 16 datasets,
+the dots of the axes and of the comparison. A dataset with points for under 90 % of its records (D-4) has no level.
+Why a mean: the outlines run from about 1 ไร่ to 6,633 ไร่, so a count mostly says “a large neighbourhood” and a density
+“a small one”; their mean cancels part of each. It is a level within a declared group, never a total, a rate, footfall,
+sales or demand.
+
+**Colour (D-V1d).** The level takes the LDS 0.9.7 `count` LUT, all 41 samples (`js/levels.js#levelFill`, index
+round(level × 40 / 100)), the same HEX on both themes, with a token outline and no opacity: an exception to DATAVIZ-02
+(which keeps `count` for totals) that the owner approved for these dots and cells only (2026-11-26 11:26, VERBATIM
+“ใช้ A ใน V1 แล้วทำ C ใน LDS รุ่นถัดไป”), until the next LDS release has a scale for a level within a declared group;
+then the dots and cells move to it. The map keeps `density.area` among the neighbourhoods in view (D-V1b), so a map
+colour and a dot can differ; the map key's title says so.
+
+**Cells of the fingerprint and of the matrix (§4.1).** One per dataset, in the order of the datasets (Land 4 ·
+Location 7 · Living 5, D-V7b): *ranked* (≥ 3 records of a complete dataset) — coloured by its level · *few* (1–2
+records) and *starred* (points for under 90 %) — neutral with a dot (in the top corner where the head's cell carries
+the dataset's pictogram) · *edge* (none inside, some outside within 800 m of the edge; only with `data/around.json`) —
+a dashed edge · *zero* (none inside, and with the surroundings file none within 800 m) — a thick outline in
+`--data-zero-outline`, where a ranked cell has a hairline edge, so a light level never reads as none · *out* (no
+located record in the province) — a hatch in `--data-no-data`, never 0 · a highlight of the neighbourhood (§5, D-V2) —
+a thick ring. The fingerprint's key counts datasets in each state (they make 16), never records (INV-01): every number
+in it and in the image's name carries its unit (ชุด, datasets). A matrix cell reads to a screen reader as its figure and
+level (or its state); pointing at it, tapping it or focusing it writes its full words — level, peers, count rank,
+density rank — under its table (`js/app.js#matrixReadout`). A matrix is one stop of the Tab key; the arrows move from
+cell to cell, Home and End to the row's ends, Ctrl+Home and Ctrl+End to the table's (`js/app.js#matrixKeys`).
+
+**The axes อยู่ · เที่ยว · ค้าขาย (D-V6, D-V7 A; an Inference: placing a dataset on an axis is this demo's reading,
+not the source's).** อยู่ (ชีวิตประจำวัน): grocery, pharmacies, hospitals, schools, government offices, rail stations,
+fitness · เที่ยว (คนมาเยือน): lodging, shopping centres and markets, restaurants, luxury brands · ค้าขาย (คนทำงานและ
+กิจการ): offices, universities, camera shops, factories, industrial estates (`js/axes.js#AXES`). An axis has no score,
+no total and never ranks a neighbourhood; “ระดับสูง:” names its datasets at level 75 or more (“เด่น” stays the word of the
+highlights, §5, which follow another rule: a highlight's level can be lower, and a level of 75 need not be a highlight).
+A “?” at its head marks the
+indicators it has no data for yet, named in the closed part with the open or CityMETER source looked at — a mark that
+says “not yet”, never a promise; no partner is named. Rows: the dataset's name (it colours the map by the dataset), a
+track with the dot at its level and a dashed line at 50, the count in its unit, the rank of the level `k/N`, and the
+dataset's own demo at the province. At 400 or 800 m a dashed chip beside the count gives the records outside within
+that distance (§12), never added to the inside; datasets found only there get rows of their own. The 0.4.0 table with
+every figure at every distance stays whole in the closed part (D-V5).
+
+**The matrix (§4.5).** Wherever several neighbourhoods show together — the similar mixes, the neighbourhoods that
+stand out on several fronts, a province's or a search's list (its first 30, the most distinctive first; the rest by
+name), the comparison — a `<table>`: a column per dataset named by its pictogram, its title and its words for screen
+readers, a row header per neighbourhood. Its answer line (the similar mixes and the comparison) names the datasets
+where every neighbourhood shown stands above level 50, with its peers by their number. Under the overview's and the
+comparison's matrices a key names every dataset beside its pictogram (LDS ICON-01); under the similar mixes the axes
+above already do.
+
+**The comparison (§4.6).** One row per dataset that at least one compared neighbourhood ranks, each neighbourhood a
+shape (circle, triangle, square, diamond) in its own lane at its level, coloured by it; the shapes are on the
+neighbourhood's chip (which takes it out of the comparison) and its row of the matrix. The table of counts and
+densities (since 0.1.0) is closed under it.
+
+**The first finding (§4.7).** The most concentrated dataset's share of its located records inside the neighbourhoods
+and the neighbourhoods' share of the area as two bars, the next three datasets as bars in their pillar's colour; each
+with its numerator and denominator in words (INV-03).
+
+**Pictograms (D-V4 B).** One glyph per dataset, from the family's subset of Material Symbols Rounded (FILL 0 · wght 300
+· GRAD 0 · opsz 24; `scripts/build-pictogram-font.py`, source font SHA-256 `7e74e365…`): the glyphs Shopping Center's
+«รอบศูนย์นี้» gives the same datasets, and glyphs of their own for the five shops (camera shops, fitness, grocery,
+pharmacies, restaurants) and for industrial estates; home · luggage · payments for the axes. Every pictogram stands
+beside its name, or in a title, a column key and words for screen readers.
+
+Measured on the code of 0.6.0 against 0.5.1, every neighbourhood at the default view, 400 px, dark theme, visible
+characters without spaces (screen-reader words and closed parts left out): median text 2,216 → 2,321 (+4.5 %; 101 of
+451 shorter), median panel height 2,745 → 2,681 px (−2.9 %; 327 of 451 shorter); by part (medians): the head 158 → 142,
+highlights 108 → 58, what comes together 93 → 108, the axes (the 0.4.0 table before) 897 → 906, similar mixes 132 →
+415 (`handoff/VERIFICATION.md` 0.6.0).

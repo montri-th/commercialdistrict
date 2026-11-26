@@ -3,8 +3,8 @@
   "schemaVersion": "1.5.0",
   "documentType": "implementation-plan",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.5.1",
-  "updatedOn": "2026-11-25",
+  "productVersion": "0.6.0",
+  "updatedOn": "2026-11-26",
   "language": "en",
   "architecture": {
     "runtime": "static site, ES modules with one cache tag through the import map; MapLibre GL 5.6.2 from unpkg (SRI); OpenFreeMap tiles",

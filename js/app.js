@@ -23,6 +23,8 @@ import {provinces as provinceList, provinceByCode, provinceCodeFrom, provinceNam
 import {buildOverview, buildNeighborhood, buildCompare} from './profile.js';
 import {decodeAround, aroundDistance, aroundMatches} from './around.js';
 import {renderOverview, renderNeighborhood, renderCompare, renderFilterChips, tableHeadHTML, tableRowHTML, esc, L, dens, sharePct, thaiDate} from './panel.js';
+import {cellOf} from './levels.js';
+import {cellWords} from './visual.js';
 import {loadMapLibrary} from './shell/vendors.js';
 import {installAreaLabels, installRecordLabels} from './map-layers.js';
 import {installNeighborhoodLayers, pinCollection, poiCollection, pinScale, framePoints, OUTLINE_MIN_ZOOM, POI_MIN_ZOOM, PIN, PIN_CHOSEN, FIT_MAX_ZOOM} from './layers.js';
@@ -218,7 +220,7 @@ function renderPanel() {
   } else {
     state.overview = buildOverview(state.model, {rows: state.rows, province: state.province, ds: lensDs(), pending: state.pending});
     state.overview.searching = Boolean(state.search || state.kind);
-    html = renderOverview(state.overview, state.model, {fillOf: fillOfRow, ctx: panelCtx()});
+    html = renderOverview(state.overview, state.model, {fillOf: fillOfRow, ctx: panelCtx(), around: state.around});
     renderMapAha(state.overview);
   }
   view.innerHTML = html;
@@ -316,7 +318,14 @@ function setDistance(value) {
 
 /** A glance tile goes to its dataset's row of the table and moves the focus there (the row's own button). */
 function jumpToAround(dsId) {
-  const el = document.getElementById(`around-${dsId}`);
+  // (0.6.0) the dataset's row on the axes; a dataset with no row there (none inside, or out of scope) in the table folded
+  // under them, opened first
+  let el = document.getElementById(`axis-${dsId}`);
+  if (!el) {
+    el = document.getElementById(`around-${dsId}`);
+    const fold = el?.closest('details');
+    if (fold) fold.open = true;
+  }
   if (!el) return;
   el.scrollIntoView({block: 'center', behavior: reduced() ? 'auto' : 'smooth'});
   el.focus({preventScroll: true});
@@ -399,6 +408,48 @@ function onPanelAction(event) {
   else if (action === 'back') goBack();
 }
 
+/**
+ * (0.6.0, §4.5) The readout of a matrix cell: the neighbourhood, then the cell in full words (js/visual.js#cellWords),
+ * written into the line under its table (aria-live polite) on pointing, tapping or focusing it. The cell's own words
+ * stay inside it for screen readers.
+ */
+function matrixReadout(event) {
+  const td = event.target.closest?.('td.mx-c');
+  const tr = td?.closest('tr[data-nb]');
+  if (!tr) return;
+  const row = rowById(tr.dataset.nb), ds = state.model.datasets[td.cellIndex - 1];
+  const out = td.closest('.mx-wrap')?.nextElementSibling;
+  if (!row || !ds || !out?.classList.contains('mx-readout')) return;
+  const text = `${row.name} · ${cellWords(cellOf(state.model, row, ds, state.around), {hl: (row.hl || []).some(h => h.d === ds.id)})}`;
+  if (out.textContent !== text) out.textContent = text;
+}
+
+/**
+ * (0.6.0) The keyboard's way through a matrix: one tab stop per table (js/visual.js#matrix gives the first cell
+ * tabindex 0, the others −1); the arrows move one cell, Home and End to the row's first and last, Ctrl+Home and
+ * Ctrl+End to the table's; the cell that takes focus becomes the table's tab stop and writes its readout.
+ */
+function matrixKeys(event) {
+  const td = event.target.closest?.('td.mx-c');
+  const table = td?.closest('table.mx');
+  if (!table || event.altKey || event.metaKey) return;
+  const rows = [...table.querySelectorAll('tr[data-nb]')].map(tr => [...tr.querySelectorAll('td.mx-c')]);
+  const r = rows.findIndex(cells => cells.includes(td)), c = rows[r]?.indexOf(td);
+  if (r < 0 || c < 0) return;
+  const last = rows[r].length - 1;
+  const to = {
+    ArrowLeft: [r, c - 1], ArrowRight: [r, c + 1], ArrowUp: [r - 1, c], ArrowDown: [r + 1, c],
+    Home: event.ctrlKey ? [0, 0] : [r, 0], End: event.ctrlKey ? [rows.length - 1, last] : [r, last],
+  }[event.key];
+  if (!to) return;
+  const next = rows[Math.max(0, Math.min(rows.length - 1, to[0]))]?.[Math.max(0, Math.min(last, to[1]))];
+  event.preventDefault();
+  if (!next || next === td) return;
+  for (const cell of table.querySelectorAll('td.mx-c[tabindex="0"]')) cell.tabIndex = -1;
+  next.tabIndex = 0;
+  next.focus();
+}
+
 /* ---------- legend ---------- */
 function renderLegend() {
   const ds = lensDs(), steps = $('legend-steps');
@@ -414,7 +465,7 @@ function renderLegend() {
   }
   spaceTicks(steps);
   $('legend-areas').title = ds
-    ? L(`สีย่าน = ${ds.nameTh}ต่อ ตร.กม. ของพื้นที่ขอบย่าน · 41 ระดับตามลำดับค่า สีเข้ม = แน่น`, `Colour = ${dsName(ds)} per km² of the outline area · 41 steps by rank, darker = denser`)
+    ? L(`สีย่าน = ${ds.nameTh}ต่อ ตร.กม. ของพื้นที่ขอบย่าน · 41 ระดับตามลำดับค่า เทียบย่านในมุมมองนี้ สีเข้ม = แน่น · จุดในแผงข้อมูลเป็นอีกค่าหนึ่ง: ระดับของจำนวนกับความแน่นเฉลี่ยกัน เทียบย่านทั่วประเทศที่มีตั้งแต่ 3 รายการ`, `Colour = ${dsName(ds)} per km² of the outline area · 41 steps by rank among the neighbourhoods in view, darker = denser · the panel's dots read another value: the level of count and density averaged, among the neighbourhoods nationwide with at least 3 records`)
     : L('สีและรูปทรง = หมวดของจุดเด่นแรกของย่าน (Land · Location · Living)', 'Colour and shape = pillar of the neighbourhood’s first highlight (Land · Location · Living)');
   const poiItem = $('legend-poi');
   if (poiItem) poiItem.hidden = !state.nb;
@@ -467,7 +518,7 @@ function renderCompareTray() {
   $('compare-count').textContent = rows.length ? `${num(rows.length)}/${num(COMPARE_MAX)}` : '';
   $('compare-clear').hidden = !rows.length;
   $('chart-scope').textContent = rows.length ? rows.map(r => r.name).join(' · ') : L('ยังไม่ได้เลือกย่าน', 'No neighbourhood chosen yet');
-  $('compare-view').innerHTML = renderCompare(buildCompare(state.model, rows), state.model, {max: COMPARE_MAX});
+  $('compare-view').innerHTML = renderCompare(buildCompare(state.model, rows), state.model, {max: COMPARE_MAX, around: state.around});
   state.layers?.setCompare(rows.map(r => r.id));
 }
 
@@ -1347,6 +1398,12 @@ function wireEvents() {
   $('filters').addEventListener('submit', e => e.preventDefault());
   $('filters').addEventListener('reset', () => setTimeout(() => { state.search = ''; state.province = ''; state.kind = ''; state.nb = ''; update({fit: true}); }, 0));
   for (const id of ['panel-view', 'filter-chips', 'map-aha', 'crumbs', 'compare-view', 'result-rows']) $(id).addEventListener('click', onPanelAction);
+  // (0.6.0) a matrix cell's full words — its level, its peers, both ranks — under the table, on pointing, tapping or
+  // focusing it; the arrows move the focus from cell to cell
+  for (const id of ['panel-view', 'compare-view']) {
+    for (const type of ['pointerover', 'click', 'focusin']) $(id).addEventListener(type, matrixReadout);
+    $(id).addEventListener('keydown', matrixKeys);
+  }
   $('focus-bar').addEventListener('click', e => { const b = e.target.closest('button[data-focus]'); if (b) setFocus(b.dataset.focus); });
   $('panel-view').addEventListener('toggle', e => { if (e.target.classList?.contains('records-details')) state.recordsOpen = e.target.open; }, true);
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && state.poiPopup) { closePoiCard(); state.map?.getCanvas().focus({preventScroll: true}); } });

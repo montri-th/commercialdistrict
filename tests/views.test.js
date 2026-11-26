@@ -45,7 +45,13 @@ test('every neighbourhood renders whole: highlights with their universe, every d
     // (0.4.0) every dataset is a row of «ขอบเดินถึง» (its button sets the lens)
     assert.equal((html.match(/class="around-ds"/g) || []).length, 16, r.id);
     assert.match(html, /data-prov="boundary"/);
-    for (const x of d.highlights) if (x.h.k !== 'share') assert.match(html, /จาก [\d,]+ ย่าน/, r.id);
+    // (0.6.0) each highlight's own card names its peers (INV-04) or its numerator and denominator (INV-03)
+    const cards = html.match(/<ul class="hl-cards">([\s\S]*?)<\/ul>/)?.[1] || '';
+    assert.equal((cards.match(/class="hl-card"/g) || []).length, d.highlights.length, r.id);
+    for (const x of d.highlights) {
+      const card = cards.match(new RegExp(`data-value="${x.ds.id}"[\\s\\S]*?<span class="hl-card-rank">([^<]*)</span>`))?.[1] || '';
+      assert.match(card, x.h.k === 'share' ? /\([\d,]+ จาก [\d,]+\)/ : /จาก [\d,]+ ย่าน/, `${r.id} ${x.ds.id}`);
+    }
     assert.ok(!holes.test(tableRowHTML(r, model)), r.id);
   }
 });

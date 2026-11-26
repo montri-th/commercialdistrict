@@ -3,8 +3,8 @@
   "schemaVersion": "1.5.0",
   "documentType": "product-brief",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.5.1",
-  "updatedOn": "2026-11-25",
+  "productVersion": "0.6.0",
+  "updatedOn": "2026-11-26",
   "datasetCheckedOn": "2026-11-16",
   "language": "th",
   "productName": "CityMETER · Commercial District",
@@ -66,8 +66,8 @@
   "panel": {
     "modes": ["overview", "neighborhood"],
     "actions": ["select-nb", "select-province", "leave-province", "set-lens", "clear-lens", "cmp-add", "cmp-remove", "cmp-clear", "cmp-top", "cmp-similar", "open-table", "clear-search", "set-around", "around-jump"],
-    "models": ["js/profile.js#buildOverview", "js/profile.js#buildNeighborhood", "js/profile.js#buildCompare", "js/profile.js#similarRows", "js/around.js#glanceTiles", "js/around.js#aroundGroups", "js/around.js#venuesOf", "js/around.js#sharedBy"],
-    "order": ["detail head: name, highlights, add to comparison", "the neighbourhood figures (4)", "the glance «ในย่านนี้» (4 tiles, meter key, provenance)", "(lodging areas: the registry's lodging screen)", "highlights, with the neighbourhoods sharing a rank", "how the highlights relate", "«รอบย่านนี้»: switch, table, centres with a «รอบศูนย์นี้» page, its own provenance line", "records inside (closed)", "similar mixes", "ask bar", "registry record (closed)", "provenance"]
+    "models": ["js/profile.js#buildOverview", "js/profile.js#buildNeighborhood", "js/profile.js#buildCompare", "js/profile.js#similarRows", "js/around.js#glanceTiles", "js/around.js#aroundGroups", "js/around.js#venuesOf", "js/around.js#sharedBy", "js/model.js#highlightsOf", "js/levels.js#levelModel", "js/levels.js#cellOf", "js/axes.js#AXES", "js/visual.js#fingerprint", "js/visual.js#axisCards", "js/visual.js#matrix", "js/visual.js#compareDots"],
+    "order": ["detail head: name, highlights (chips with their pictograms), the fingerprint of the 16 datasets and its key, add to comparison", "the neighbourhood figures (4)", "the glance «ในย่านนี้» (4 tiles, meter key, provenance)", "(lodging areas: the registry's lodging screen)", "highlights as cards (each sets the map's lens), with the neighbourhoods sharing a rank", "what comes together: pairs as ρ bars, roles as ✓ / ○ rows", "อยู่ · เที่ยว · ค้าขาย: the distance switch, one card per axis (rows: level dot, count, k/N, the dataset's demo), the key, the 0.4.0 table closed under it, centres with a «รอบศูนย์นี้» page, its own provenance line", "records inside (closed)", "similar mixes: the matrix of this neighbourhood and the 3 closest, with its answer line", "ask bar", "registry record (closed)", "provenance"]
   },
   "buildingJoinContract": {
     "buildings": "OpenStreetMap or CityMETER Building V4 per data/building-units/ (js/massing.js)",
@@ -103,8 +103,8 @@
     "chips": "provinces with neighbourhoods in scope, with their count, below zoom 8.5"
   },
   "pictogramContract": {
-    "file": "assets/icons/material-pictogram-300.woff2 (sha256 0c18b9ac…)",
-    "meanings": "js/navigation.js#PICTOGRAM_CONTRACT: maps = ย่าน, area = พื้นที่/ขอบ, province, dataset, rank, compare, date, history, ai, streetview"
+    "file": "assets/icons/material-pictogram-300.woff2 (sha256 d7166a5c…)",
+    "meanings": "js/navigation.js#PICTOGRAM_CONTRACT: maps = ย่าน, area = พื้นที่/ขอบ, province, dataset, rank, compare, date, history, ai, streetview; since 0.6.0 one glyph per dataset (js/axes.js#DS_ICON, D-V4 B) and home · luggage · trade for the axes อยู่ · เที่ยว · ค้าขาย"
   },
   "contextActionsContract": "js/ask.js: ถาม Google AI with a question for the view, Google Maps, Street View at the reference point",
   "englishContract": "?lang=en: fixed words in js/lang-en.js, data sentences built in English (L(th, en)), neighbourhood names stay Thai (keepThai)",
@@ -138,7 +138,10 @@
     {"viewKey": "shares", "title": "สิ่งที่อยู่ในย่าน", "question": "ชุดไหนกระจุกในย่าน", "encoding": "bar per dataset on 0–100 %, pillar series + shape, grouped Land · Location · Living", "metric": "share of located records inside the neighbourhoods", "scope": "the overview's scope"},
     {"viewKey": "pairs", "title": "อะไรมาด้วยกัน", "question": "ชุดไหนขึ้นลงด้วยกันในย่านทั่วประเทศ", "encoding": "neutral bar of ρ (0–1) with the two datasets' cues", "metric": "Spearman ρ of density", "scope": "nationwide (neighbourhoods both datasets cover)"},
     {"viewKey": "lens", "title": "ย่านที่มี…แน่นที่สุด", "question": "ย่านไหนแน่นที่สุดในชุดนี้", "encoding": "bar per neighbourhood in the map's density.area sample", "metric": "records per km²", "scope": "the overview's scope, ranked when ≥ 3"},
-    {"viewKey": "compare", "title": "เปรียบเทียบย่าน", "question": "ย่านเหล่านี้ต่างกันตรงไหน", "encoding": "matrix datasets × neighbourhoods: count, density, bar against the densest of the row, densest ringed", "metric": "count and records per km²", "scope": "up to four neighbourhoods"}
+    {"viewKey": "compare", "title": "เปรียบเทียบย่าน", "question": "ย่านเหล่านี้ต่างกันตรงไหน", "encoding": "a shape per neighbourhood (circle, triangle, square, diamond) in its own lane on a 0–100 track per dataset, coloured by the level on the LDS count LUT; the matrix of the compared neighbourhoods; the 0.1.0 table (count, density, densest ringed) closed under it", "metric": "the level: the mean of the count level and the density level among the neighbourhoods with ≥ 3 records (0.6.0); count and records per km² in the closed table", "scope": "up to four neighbourhoods"},
+    {"viewKey": "fingerprint", "title": "ลายนิ้วมือของย่าน", "question": "ย่านนี้มีอะไร ไม่มีอะไร และอะไรเด่น", "encoding": "16 cells in Land · Location · Living order: a level's colour (count LUT) with a hairline edge · a dot (1–2 records or starred; in the top corner beside the pictogram) · dashed edge (only beyond the edge ≤ 800 m) · thick outline (none) · hatch (no data in the province) · thick ring (a highlight)", "metric": "the level (0.6.0)", "scope": "one neighbourhood; peers: the neighbourhoods with ≥ 3 records of the dataset, nationwide"},
+    {"viewKey": "axes", "title": "อยู่ · เที่ยว · ค้าขาย", "question": "ย่านนี้มีอะไรรองรับการอยู่ การเที่ยว และการค้าขาย", "encoding": "one card per axis, a row per dataset present: a dot on a 0–100 track at its level (count LUT), the count in its unit, k/N; “ระดับสูง:” for level ≥ 75 (“เด่น” stays the highlights' word); “?” for indicators with no data yet", "metric": "the level (0.6.0); counts inside and within 400/800 m of the edge", "scope": "one neighbourhood; no score or total of an axis"},
+    {"viewKey": "matrix", "title": "ย่าน × 16 ชุดข้อมูล", "question": "หลายย่านต่างกันตรงไหน", "encoding": "a table: a row per neighbourhood, a column per dataset, the fingerprint's cells; an answer line where every row stands above level 50", "metric": "the level (0.6.0)", "scope": "similar mixes · several fronts · a province's list (first 30) · the comparison"}
   ],
   "aroundContract": {
     "since": "0.4.0",
@@ -153,8 +156,17 @@
     "doneAfter040": ["NL-S1 the sheet ledger (ChatGPT, D-6): 12_LAYER_RELEASES NLR-001 … NLR-004, 2026-11-25"],
     "notYet": ["NL-03 Shopping Center reading the links", "round 2: residents, office workers, administrative areas", "round 3: reader test, roles from evidence, Yolk import"]
   },
+  "visualContract": {
+    "since": "0.6.0",
+    "decisions": "handoff/visual/decisions.json (owner 2026-11-26 06:21 … 11:43)",
+    "level": "js/levels.js: the mean of the count level and the density level, each a mid-rank percentile 0–100 among the neighbourhoods holding ≥ minCount records of the dataset nationwide (the peers of the density rank); one value everywhere in the panel; no level for a dataset with points for under 90 % (D-4); an Inference, never a total",
+    "colour": "LDS 0.9.7 count LUT, 41 samples, same HEX on both themes (D-V1d: an owner-approved exception to DATAVIZ-02 for these dots and cells only, until the next LDS release has a scale for a level within a declared group); the map keeps density.area (D-V1b)",
+    "highlights": "js/model.js#highlightsOf: the build's rule over the datasets with points for ≥ 90 %, four at most (D-V2); the file's own lists kept as hlBuild and pairsBuild",
+    "axes": "js/axes.js#AXES: อยู่ · เที่ยว · ค้าขาย, one main axis per dataset (D-V7 A), no score, no total, no rank of a neighbourhood; “?” names indicators with no data yet and open or CityMETER sources only",
+    "states": "ranked · few · starred · edge · zero · out (js/levels.js#CELL_KINDS), each with a mark that is not colour"
+  },
   "delivery": {
-    "cacheTag": "?v=20261126-r3",
+    "cacheTag": "?v=20261126-r4",
     "shell": "citymeter-shell 0.6.4 (since release 0.2.6: Shopping Center marked as a demo with English; unchanged in 0.4.0)"
   }
 }
