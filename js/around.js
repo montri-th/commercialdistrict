@@ -18,16 +18,15 @@
  * the frozen reference set (D-8). A dataset with points for under 90 % of its records is starred and has no level or
  * rank in this layer (D-4): its count is shown, never ranked.
  */
-import {PILLARS, cell} from './model.js';
+import {PILLARS, cell, lowLocated} from './model.js';
 import {COUNT_SCALE} from './scales.js';
+// D-4: the rule lives with the model since 0.6.0 (the highlights read it too, D-V2); re-exported for this layer's callers
+export {LOW_LOCATED, lowLocated} from './model.js';
 
 /** The readings of the section: inside the outline, or around it within 400 m or 800 m (`f.around`; '' = in). */
 export const DISTANCES = Object.freeze(['in', '400', '800']);
 export const RING_INDEX = Object.freeze({400: 0, 800: 1});
 export const aroundDistance = value => (DISTANCES.includes(String(value)) ? String(value) : 'in');
-/** D-4: points for under 90 % of a dataset's records. */
-export const LOW_LOCATED = 0.9;
-export const lowLocated = ds => Boolean(ds?.records) && ds.located / ds.records < LOW_LOCATED;
 
 // Verbatim from montri-th/shoppingcenter js/venue-locale.js @ dfcc6cd (handoff/around/contracts.json glance.levelRule).
 export const levelOf = (p, count = 1) => (count > 0 && p != null ? Math.min(5, Math.floor(p / 20) + 1) : 0);

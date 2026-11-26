@@ -16,11 +16,11 @@ test('the overview of Thailand: the first finding is the most concentrated datas
   const {model} = load();
   const o = buildOverview(model, {rows: model.rows});
   assert.equal(o.lead.ds.id, 'luxurybrands');
-  assert.equal(sharePct(o.lead.share), '71%'); // 0.5.2 (69% in 0.5.0)
-  assert.equal(sharePct(o.areaShare), '0.045%'); // 0.3.0: 235 outlines redrawn by the owner's rule (0.018% before); 0.5.0: 56 outlines of the commercial screen (0.04% before); 0.5.2: 74 (0.041% before)
+  assert.equal(sharePct(o.lead.share), '71%'); // 0.6.1 (69% in 0.5.0)
+  assert.equal(sharePct(o.areaShare), '0.045%'); // 0.3.0: 235 outlines redrawn by the owner's rule (0.018% before); 0.5.0: 56 outlines of the commercial screen (0.04% before); 0.6.1: 74 (0.041% before)
   const html = renderOverview(o, model, {ctx: ctx()});
   assert.ok(!holes.test(html));
-  assert.match(html, /245 จาก 345 จุดขาย/); // 0.2.4: GENTLEWOMAN at Maya inside the extended นิมมาน–เมญ่า (237 before); 0.3.0: one more inside a redrawn outline; 0.5.2: six more (239 before)
+  assert.match(html, /245 จาก 345 จุดขาย/); // 0.2.4: GENTLEWOMAN at Maya inside the extended นิมมาน–เมญ่า (237 before); 0.3.0: one more inside a redrawn outline; 0.6.1: six more (239 before)
   for (const part of ['dataset', 'source', 'date', 'boundary']) assert.match(html, new RegExp(`data-prov="${part}"`));
 });
 
@@ -45,7 +45,13 @@ test('every neighbourhood renders whole: highlights with their universe, every d
     // (0.4.0) every dataset is a row of «ขอบเดินถึง» (its button sets the lens)
     assert.equal((html.match(/class="around-ds"/g) || []).length, 16, r.id);
     assert.match(html, /data-prov="boundary"/);
-    for (const x of d.highlights) if (x.h.k !== 'share') assert.match(html, /จาก [\d,]+ ย่าน/, r.id);
+    // (0.6.0) each highlight's own card names its peers (INV-04) or its numerator and denominator (INV-03)
+    const cards = html.match(/<ul class="hl-cards">([\s\S]*?)<\/ul>/)?.[1] || '';
+    assert.equal((cards.match(/class="hl-card"/g) || []).length, d.highlights.length, r.id);
+    for (const x of d.highlights) {
+      const card = cards.match(new RegExp(`data-value="${x.ds.id}"[\\s\\S]*?<span class="hl-card-rank">([^<]*)</span>`))?.[1] || '';
+      assert.match(card, x.h.k === 'share' ? /\([\d,]+ จาก [\d,]+\)/ : /จาก [\d,]+ ย่าน/, `${r.id} ${x.ds.id}`);
+    }
     assert.ok(!holes.test(tableRowHTML(r, model)), r.id);
   }
 });

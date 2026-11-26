@@ -1,0 +1,357 @@
+{
+  "schema": "citymeter-commercialdistrict-visual-decisions/1",
+  "proposal": {
+    "id": "02-CityMETER__commercialdistrict-visual-first-panel-proposal__v1__2026-11-26",
+    "versionDecided": {
+      "sha256": "ac96dfcd42ccf23ac691db01cc52d8be0f921d454e9c0ee41d7dd50e561492c8",
+      "bytes": 160638,
+      "note": "the proposal as it stood when the owner answered at 11:43 (it lives in the owner’s Drive and Project, not in this repository)"
+    }
+  },
+  "ownerWords": [
+    {
+      "at": "2026-11-26T06:21:00+07:00",
+      "by": "owner (Montri)",
+      "channel": "Claude chat, Project 02 CityMETER",
+      "verbatim": "chart ต่างๆพวกนี้ใน venue locale insight เป็นตัวอย่างที่ดีที่ลด cognitive load ของ user ไม่ต้องอ่านข้อความยาวๆ / สำหรับ commercial district เราเรียนรู้และมาทำในลักษณะเดียวกันได้มั้ยครับ เพราะเนื้อหาคล้ายกันถ้าแสดงผลในรูปแบบเดียวกัน user น่าจะเข้าใจง่ายขึ้นมั้ย ลองศึกษาแล้วทำข้อเสนอเพื่อปรับปรุง web demo มาเป็น .md หน่อยครับ / ควรใช้ icon, charts, symbol, dataviz, etc เพื่อกระชับข้อความให้สั้นแต่ได้ใจความ ตรง User intent มากที่สุด และสร้างประโยชน์ให้ user ตรงตาม product statement สูงสุด",
+      "note": "the request; line breaks shown as “ / ”, with four screenshots of «รอบศูนย์นี้»"
+    },
+    {
+      "at": "2026-11-26T06:47:00+07:00",
+      "by": "owner (Montri)",
+      "channel": "Claude chat, Project 02 CityMETER",
+      "verbatim": "อันนี้ก็ดีมาก",
+      "note": "with a screenshot of the 7×24 grid «คึกที่สุดของสัปดาห์» of «รอบศูนย์นี้»"
+    },
+    {
+      "at": "2026-11-26T07:56:00+07:00",
+      "by": "owner (Montri)",
+      "channel": "Claude chat, Project 02 CityMETER",
+      "verbatim": "ปรับเพิ่มอีกหน่อย / แกนหลักในการอธิบายแต่ละย่าน / อยากในเริ่มอธิบายใน 3 แกน แบบนี้จะดีมั้ย / 1) น่าอยู่ / 2) น่าเที่ยว / 3) น่าค้าขาย / พี่แนะนำหน่อย จากข้อมูลที่เรามี และข้อมูลภายนอกอื่นๆ เราจะสร้าง locale insight ของ commetcial district ให้มีความลึกได้อย่างไร",
+      "note": "the three axes"
+    },
+    {
+      "at": "2026-11-26T09:56:00+07:00",
+      "by": "owner (Montri)",
+      "channel": "Claude chat, Project 02 CityMETER",
+      "verbatim": "D-V1 = ใช้จำนวนนับดีกว่ามั้ย / D-V6 = ตามพี่แนะนำ แต่คำว่า \"ค้า\" เฉยๆมันไม่ธรรมชาติในภาษาไทย ควรใช้คำว่า \"ค้าขาย\"",
+      "note": "D-V1 a question; D-V6 decided"
+    },
+    {
+      "at": "2026-11-26T10:26:00+07:00",
+      "by": "owner (Montri)",
+      "channel": "Claude chat, Project 02 CityMETER",
+      "verbatim": "ดูดีนะ  ลุยเลยครับ ตามที่พี่แนะนำ",
+      "note": "answers whether to use option D for D-V1 and one value across the panel (D-V1c)"
+    },
+    {
+      "at": "2026-11-26T11:26:00+07:00",
+      "by": "owner (Montri)",
+      "channel": "Claude chat, Project 02 CityMETER",
+      "verbatim": "ใช้ A ใน V1 แล้วทำ C ใน LDS รุ่นถัดไป",
+      "note": "D-V1d"
+    },
+    {
+      "at": "2026-11-26T11:43:00+07:00",
+      "by": "owner (Montri)",
+      "channel": "Claude chat, Project 02 CityMETER",
+      "verbatim": "ทำตามที่เสนอให้ครบทุกข้อพร้อม publish",
+      "note": "D-V2 … D-V5, D-V7, D-V8 and the open sub-questions as recommended; build V1 and publish"
+    }
+  ],
+  "reading": {
+    "th": "“ทำตามที่เสนอให้ครบทุกข้อพร้อม publish” อ่านว่าเจ้าของรับทางที่ข้อเสนอแนะนำของ D-V2 ถึง D-V5, D-V7 และ D-V8 รวมคำถามย่อย D-V1b และ D-V7b ตามที่เสนอ และสั่งให้ทำ V1 แล้วเผยแพร่ · V2 ถึง V4 ยังทำไม่ได้: V2 รอข้อมูลคนในพื้นที่ให้บริการ V3 รองานนำเข้าและตรวจสิทธิ์ V4 รอข้อตกลงกับเจ้าของข้อมูล",
+    "en": "Read as the owner taking every recommended option of D-V2 to D-V5, D-V7 and D-V8, with the sub-questions D-V1b and D-V7b as proposed, and asking for V1 built and published; V2 to V4 cannot start yet (V2 waits for people in the service area, V3 for the import and the rights checks, V4 for agreements with data owners)",
+    "label": "Inference (Claude) · the owner can correct it"
+  },
+  "decisions": [
+    {
+      "id": "D-V1",
+      "question": "จุดบนแถวชุดข้อมูลวางตามอะไร",
+      "status": "decided",
+      "decision": "D",
+      "option": "D) จำนวนกับความแน่นเฉลี่ยกัน: ระดับจำนวนกับระดับความแน่น แบบ mid-rank 0–100 เทียบย่านที่มีชุดนั้นตั้งแต่ 3 รายการ",
+      "decidedAt": "2026-11-26T10:26:00+07:00",
+      "decidedBy": "owner",
+      "ownerWords": "ดูดีนะ  ลุยเลยครับ ตามที่พี่แนะนำ",
+      "delegatedToAuthor": false,
+      "rejectedAlternatives": [
+        "A ความหนาแน่นต่อ ตร.กม.",
+        "B จำนวนรายการ",
+        "C สองเครื่องหมายต่อแถว"
+      ],
+      "meaning": "ขอบย่านกว้างต่างกันหลายพันเท่า จำนวนตอบว่าย่านใหญ่ไหม ความแน่นตอบว่าย่านเล็กไหม ค่าเฉลี่ยหักล้างสองทางนี้ได้บางส่วน",
+      "appliedAs": "js/levels.js#levelModel · ระดับ = (ระดับจำนวน + ระดับความแน่น) / 2 · อันดับของระดับ 1 = สูงสุด ค่าเท่ากันได้อันดับเดียวกัน",
+      "where": "js/levels.js · DATA_METHOD.md §14"
+    },
+    {
+      "id": "D-V1b",
+      "question": "ปรับแผนที่ให้ใช้กลุ่มเทียบเดียวกับจุดไหม",
+      "status": "decided",
+      "decision": "ยังไม่ปรับใน V1",
+      "option": "ข้อเสนอ: แผนที่คงความหนาแน่น (density.area) เทียบย่านในมุมมองปัจจุบัน และคำอธิบายของแผนที่บอกว่าจุดในแผงเป็นอีกค่าหนึ่ง",
+      "decidedAt": "2026-11-26T11:43:00+07:00",
+      "decidedBy": "owner",
+      "ownerWords": "ทำตามที่เสนอให้ครบทุกข้อพร้อม publish",
+      "delegatedToAuthor": false,
+      "meaning": "จุดกับแผนที่วัดคนละค่าและใช้คนละ LUT",
+      "appliedAs": "ข้อความ title ของคีย์แผนที่ใต้ชุดข้อมูล (js/app.js#renderLegend) และส่วนพับของแกน",
+      "where": "js/app.js · js/visual.js#axisFoldIntro"
+    },
+    {
+      "id": "D-V1c",
+      "question": "ใช้ค่าเดียวกันทั้งแผงไหม",
+      "status": "decided",
+      "decision": "ใช่",
+      "option": "ค่าเดียวกันในลายนิ้วมือ ตารางย่าน × 16 ชุด กราฟเปรียบเทียบ และแถวจุดของแกน",
+      "decidedAt": "2026-11-26T10:26:00+07:00",
+      "decidedBy": "owner",
+      "ownerWords": "ดูดีนะ  ลุยเลยครับ ตามที่พี่แนะนำ",
+      "delegatedToAuthor": false,
+      "meaning": "ไม่ให้ช่องกับจุดของชุดเดียวกันขัดกัน",
+      "appliedAs": "js/levels.js#cellOf เป็นฟังก์ชันเดียวของทุกส่วน",
+      "where": "js/levels.js · js/visual.js"
+    },
+    {
+      "id": "D-V1d",
+      "question": "สีของค่าเฉลี่ย",
+      "status": "decided",
+      "decision": "A ใน V1 · C ใน LDS รุ่นถัดไป",
+      "option": "A) LUT count ของ LDS 0.9.7 (41 ค่า) เป็นข้อยกเว้นของ DATAVIZ-02 เฉพาะจุดและช่องระดับในแผงย่าน · C) สเกลระดับเทียบกลุ่มใน LDS รุ่นถัดไป",
+      "decidedAt": "2026-11-26T11:26:00+07:00",
+      "decidedBy": "owner",
+      "ownerWords": "ใช้ A ใน V1 แล้วทำ C ใน LDS รุ่นถัดไป",
+      "delegatedToAuthor": false,
+      "rejectedAlternatives": [
+        "B density.area แบบแผนที่"
+      ],
+      "meaning": "LDS 0.9.7 ไม่มีสเกลของค่าเฉลี่ยจากสองระดับ",
+      "appliedAs": "js/levels.js#levelFill · คำอธิบายบอกว่าเป็นระดับเทียบกลุ่ม ไม่ใช่ผลรวม · แผนที่คง density.area",
+      "where": "js/levels.js · DATA_METHOD.md §14"
+    },
+    {
+      "id": "D-V2",
+      "question": "จุดเด่นนับชุดที่มีพิกัดไม่ถึง 90% ด้วยไหม",
+      "status": "decided",
+      "decision": "A",
+      "option": "A) นับเฉพาะชุดที่มีพิกัดตั้งแต่ 90% แบบ ahaRows ของ «รอบศูนย์นี้»",
+      "decidedAt": "2026-11-26T11:43:00+07:00",
+      "decidedBy": "owner",
+      "ownerWords": "ทำตามที่เสนอให้ครบทุกข้อพร้อม publish",
+      "delegatedToAuthor": false,
+      "rejectedAlternatives": [
+        "B คงแบบเดิม"
+      ],
+      "meaning": "ตารางไม่จัดอันดับชุดติดดาวมาตั้งแต่ 0.4.0 แต่จุดเด่นยังจัด",
+      "appliedAs": "js/model.js#highlightsOf: กติกาจุดเด่นของ scripts/build-data.py ที่ port มา (ผลเท่าไฟล์ทุกแถว) ใช้กับชุดที่มีพิกัดตั้งแต่ 90% แล้วตัดที่ 4 · คู่ของแถวคิดใหม่จากจุดเด่นชุดนี้ · คู่ระดับประเทศคงไว้และติดดาวที่ชื่อชุด",
+      "where": "js/model.js#decodeData · DATA_METHOD.md §14"
+    },
+    {
+      "id": "D-V3",
+      "question": "ตัวเลขรวมข้ามชุด",
+      "status": "decided",
+      "decision": "ไม่ทำ",
+      "option": "แถวจุดในการ์ดแกนแสดงทุกชุดเรียงกันแทน",
+      "decidedAt": "2026-11-26T11:43:00+07:00",
+      "decidedBy": "owner",
+      "ownerWords": "ทำตามที่เสนอให้ครบทุกข้อพร้อม publish",
+      "delegatedToAuthor": false,
+      "meaning": "INV-01",
+      "appliedAs": "ไม่มีตัวเลขรวมในแผง (tests/visual.test.js)",
+      "where": "tests/visual.test.js"
+    },
+    {
+      "id": "D-V4",
+      "question": "ไอคอนของ 16 ชุด",
+      "status": "decided",
+      "decision": "B",
+      "option": "B) ไอคอนของร้านค้า 5 ชุดจากตระกูลเดียวกัน (FILL 0 · wght 300 · GRAD 0 · opsz 24) เมื่อตรวจกับ LDS ผ่าน",
+      "decidedAt": "2026-11-26T11:43:00+07:00",
+      "decidedBy": "owner",
+      "ownerWords": "ทำตามที่เสนอให้ครบทุกข้อพร้อม publish",
+      "delegatedToAuthor": false,
+      "rejectedAlternatives": [
+        "A 11 บทบาทจากชุดของ Shopping Center (ร้านค้า 5 ชุดใช้ไอคอนเดียวกัน)"
+      ],
+      "meaning": "ถ้ายก RING_ICON ของ «รอบศูนย์นี้» มาตรง ๆ ร้านค้า 5 ชุดได้ไอคอนเดียวกัน",
+      "appliedAs": "assets/icons/material-pictogram-300.woff2 (scripts/build-pictogram-font.py, แหล่ง sha256 7e74e365…): ชุดละหนึ่ง glyph — ร้านกล้อง photo_camera · ฟิตเนส fitness_center · ร้านค้าปลีกของใช้ local_grocery_store · ร้านยา local_pharmacy · ร้านอาหาร restaurant และนิคมอุตสาหกรรม warehouse (โรงงานใช้ factory อยู่แล้ว) · แกน home · luggage · payments",
+      "where": "js/axes.js#DS_ICON · js/navigation.js#PICTOGRAM_CONTRACT"
+    },
+    {
+      "id": "D-V5",
+      "question": "ตาราง 16 แถวเดิม",
+      "status": "decided",
+      "decision": "พับไว้",
+      "option": "พับใต้การ์ดแกนในชื่อ “วิธีอ่าน แหล่งที่ตรวจไว้ และตัวเลขทุกระยะ (16 ชุด)”",
+      "decidedAt": "2026-11-26T11:43:00+07:00",
+      "decidedBy": "owner",
+      "ownerWords": "ทำตามที่เสนอให้ครบทุกข้อพร้อม publish",
+      "delegatedToAuthor": false,
+      "meaning": "ตัวเลขครบเหมือนเดิมและเป็นทางอ่านที่ไม่ใช่ภาพ",
+      "appliedAs": "js/panel.js#aroundTable ใน <details class=\"around-fold\">",
+      "where": "js/panel.js"
+    },
+    {
+      "id": "D-V6",
+      "question": "ชื่อแกนบนหน้าจอ",
+      "status": "decided",
+      "decision": "อยู่ · เที่ยว · ค้าขาย",
+      "option": "A) อยู่ · เที่ยว · ค้า โดยใช้ “ค้าขาย” แทน “ค้า”",
+      "decidedAt": "2026-11-26T09:56:00+07:00",
+      "decidedBy": "owner",
+      "ownerWords": "D-V1 = ใช้จำนวนนับดีกว่ามั้ย / D-V6 = ตามพี่แนะนำ แต่คำว่า \"ค้า\" เฉยๆมันไม่ธรรมชาติในภาษาไทย ควรใช้คำว่า \"ค้าขาย\"",
+      "delegatedToAuthor": false,
+      "rejectedAlternatives": [
+        "B น่าอยู่ · น่าเที่ยว · น่าค้าขาย"
+      ],
+      "meaning": "ข้อมูลบอกได้ว่ามีอะไรรองรับ แต่ตัดสินไม่ได้ว่าน่าหรือไม่น่า",
+      "appliedAs": "js/axes.js#AXES · ไม่มีคำ “น่า…”",
+      "where": "js/axes.js"
+    },
+    {
+      "id": "D-V7",
+      "question": "วางชุดลงแกนอย่างไร และใช้การ์ดแกนแทนแถบไหม",
+      "status": "decided",
+      "decision": "A · A",
+      "option": "วางชุดละหนึ่งแกนตามตาราง §4.9 · การ์ดแกนแทนตาราง ตัวชี้วัดที่ยังไม่มีข้อมูลเป็น ? ที่หัวแกน ชื่ออยู่ในส่วนพับ",
+      "decidedAt": "2026-11-26T11:43:00+07:00",
+      "decidedBy": "owner",
+      "ownerWords": "ทำตามที่เสนอให้ครบทุกข้อพร้อม publish",
+      "delegatedToAuthor": false,
+      "rejectedAlternatives": [
+        "B ตามการจับคู่บทบาท (roles) · A′ แถวชื่อตัวชี้วัดในทุกการ์ด · B แถบ Land · Location · Living"
+      ],
+      "meaning": "คำตอบรายแกนตามที่เจ้าของขอ และแผงสั้นลง",
+      "appliedAs": "js/axes.js#AXES · js/visual.js#axisCards",
+      "where": "js/axes.js · js/visual.js"
+    },
+    {
+      "id": "D-V7b",
+      "question": "ลำดับของลายนิ้วมือ",
+      "status": "decided",
+      "decision": "คง Land · Location · Living",
+      "option": "ข้อเสนอ: คงลำดับของครอบครัว CityMETER แล้วดูใน preview",
+      "decidedAt": "2026-11-26T11:43:00+07:00",
+      "decidedBy": "owner",
+      "ownerWords": "ทำตามที่เสนอให้ครบทุกข้อพร้อม publish",
+      "delegatedToAuthor": false,
+      "meaning": "ตรงกับเว็บอื่นในครอบครัว",
+      "appliedAs": "js/visual.js#fingerprint และตารางย่าน × 16 ชุด",
+      "where": "js/visual.js"
+    },
+    {
+      "id": "D-V8",
+      "question": "ข้อมูลภายนอกชุดแรก",
+      "status": "decided",
+      "decision": "3 ชุดตามข้อเสนอ (รอบ V3)",
+      "option": "ผู้โดยสารรายสถานี (กรมการขนส่งทางราง) · น้ำท่วมซ้ำซาก (GISTDA) · นิติบุคคลตั้งใหม่และเลิกกิจการ (กรมพัฒนาธุรกิจการค้า)",
+      "decidedAt": "2026-11-26T11:43:00+07:00",
+      "decidedBy": "owner",
+      "ownerWords": "ทำตามที่เสนอให้ครบทุกข้อพร้อม publish",
+      "delegatedToAuthor": false,
+      "meaning": "ข้อมูลเปิดที่น่าจะระบุตำแหน่งได้",
+      "appliedAs": "ยังไม่นำเข้าใน 0.6.0: ต้องตรวจความครอบคลุม ที่อยู่ key และสิทธิ์แสดงบนเว็บก่อน (V3)",
+      "where": "ไม่มีใน 0.6.0"
+    }
+  ],
+  "authorJudgements": [
+    {
+      "what": "D-V2 by the rule, not by a filter",
+      "chosen": "the build’s highlight rule over the datasets with points for ≥ 90 %, then the cap of four (js/model.js#highlightsOf)",
+      "why": "the decision says “นับเฉพาะชุดที่มีพิกัดตั้งแต่ 90%”: a complete dataset the cap had cut comes back. The proposal’s figures filtered the file’s list after the cap: 459 highlights; by the rule 529 (599 in the file), and สยาม keeps four (สถานีราง comes back)",
+      "rejected": "filtering the file’s top four"
+    },
+    {
+      "what": "a glyph of its own for industrial estates",
+      "chosen": "warehouse",
+      "why": "factory registrations already take factory; sixteen distinct glyphs keep the column key unambiguous",
+      "rejected": "factory for both, as «รอบศูนย์นี้» does"
+    },
+    {
+      "what": "the matrix’s column key",
+      "chosen": "a visible key of every dataset’s pictogram and name under the matrices of the overview and the comparison; none under the neighbourhood’s similar matrix, where the axes above name all 16 beside their pictograms",
+      "why": "LDS ICON-01: an icon never stands in for a category’s label; the proposal had the names only in titles and for screen readers",
+      "rejected": "names only in title and screen-reader text"
+    },
+    {
+      "what": "row height of the axes and the matrix",
+      "chosen": "44 px rows (the dataset’s name sets the map’s lens; a neighbourhood’s name opens it)",
+      "why": "LDS CTRL-01: a direct control is at least 44 CSS px; the mockups’ rows were 30 px",
+      "rejected": "30 px rows"
+    },
+    {
+      "what": "the dataset’s demo link",
+      "chosen": "an outbound icon link (nav-7 open_in_new, 44 × 44) at the end of each row of the axes",
+      "why": "§4.2: the link moves from the highlight to the dataset’s row",
+      "rejected": "a text link under the name"
+    },
+    {
+      "what": "the neighbourhoods that stand out on several fronts",
+      "chosen": "the matrix (§4.5) with the datasets of the top tenth under each row",
+      "why": "§4.5 names it among the four places of the matrix, and the matrix is a real table for screen readers",
+      "rejected": "the list of f8 (a fingerprint per row inside a button)"
+    },
+    {
+      "what": "the province’s list",
+      "chosen": "the matrix for the first 30 (most distinctive first), the rest as names in a closed part",
+      "why": "keeps a province’s page light (Bangkok has 88 neighbourhoods)",
+      "rejected": "a matrix of every neighbourhood"
+    },
+    {
+      "what": "the axis line of the datasets at level ≥ 75 (found by the independent review)",
+      "chosen": "“ระดับสูง:” / “High level:”, the rule of §4.9 unchanged (js/visual.js#axisCards)",
+      "why": "the head’s “เด่นเรื่อง” and the cards «จุดเด่น» name the highlights (D-V2), a different rule: 397 highlights of ranked datasets sit below 75, in 228 of 451 neighbourhoods, and a dataset at 75 or more need not be a highlight (สยาม: the line said “เด่น: ร้านค้าปลีกของใช้”, while its highlight สถานีราง sits at 50); in English both read “Stands out”",
+      "rejected": "“เด่น:” as the proposal wrote it (one word, two meanings on one panel); naming the highlights on the axis line (changes the approved rule)"
+    },
+    {
+      "what": "the marks of the cells (found by the independent review)",
+      "chosen": "few and starred keep their dot on the head’s cells, in the top corner beside the pictogram; a level’s cell has a hairline edge; none has a 2 px outline",
+      "why": "without them a light level, an unranked count and none differed by colour alone: 43 ranked cells sit at LUT index ≤ 6, and on the light theme the level’s edge and the outline of none were the same value (#7D877F)",
+      "rejected": "the head’s cells without the dot (0.6.0 as first built)"
+    },
+    {
+      "what": "the matrix by keyboard (found by the independent review)",
+      "chosen": "one Tab stop per table, the arrows between cells, the readout on focus (js/app.js#matrixKeys)",
+      "why": "the readout gave a cell’s level, peers and ranks to a pointer only",
+      "rejected": "a Tab stop per cell (up to 480 in a province’s list)"
+    },
+    {
+      "what": "a role’s evidence (found by the independent review)",
+      "chosen": "visible after the role: ✓ the datasets that agree, ○ what the data shows with its counts (DATA_METHOD.md §7)",
+      "why": "0.5.1 showed it; a title is read neither on touch nor by keyboard",
+      "rejected": "a title on the row only"
+    },
+    {
+      "what": "the key’s numbers (found by the independent review)",
+      "chosen": "every number with its unit, ชุด / datasets, in the visible key and in the image’s name",
+      "why": "“เฉพาะขอบเดินถึง 800 ม. 4” read as four records, the misreading INV-01 guards against",
+      "rejected": "numbers without a unit"
+    }
+  ],
+  "release": {
+    "version": "0.6.0",
+    "cacheTag": "20261126-r4",
+    "scope": "V1 of the proposal: the dataset pictograms, the fingerprint, the highlight cards, what comes together, the axes อยู่ · เที่ยว · ค้าขาย with the 0.4.0 table folded, the matrix of neighbourhoods × 16 datasets (similar mixes, several fronts, a province’s list, the comparison), the comparison’s dots, the first finding’s bars, Thai and English, tests",
+    "notInThisRelease": [
+      "V2: «คนในย่าน» (needs people within 1 · 3 · 5 km)",
+      "V3: the external data of D-V8 (import and rights checks first)",
+      "V4: partners’ data (agreements first)",
+      "the next LDS release’s scale for a level within a declared group (D-V1d C)"
+    ]
+  },
+  "openForOwner": [
+    {
+      "id": "D-V1e",
+      "question": "The glance «ในย่านนี้» (0.4.0: five steps of the count percentile among the 395 of D-8, the count LUT) and the axes’ dots (D-V1: the level among the neighbourhoods with ≥ 3 records, the count LUT by D-V1d) colour the same dataset on the same LUT from two different values; one panel, one scale, two readings",
+      "measured": "ศูนย์การค้าและตลาด: 79 of the 96 neighbourhoods with a level differ by ≥ 10 LUT samples, 70 by ≥ 2 of the five steps; บางลำพู–ข้าวสาร: the tile says มากที่สุด (sample 39), the dot sits at level 68.5 (sample 27) — the independent review, 2026-11-26",
+      "options": [
+        "A keep both, each naming its peers (0.6.0 as shipped)",
+        "B the glance’s meter without a data colour (its steps by position and outline), so the count LUT means the level only",
+        "C the glance on the D-V1 level (changes the 0.4.0 glance and its reference set, D-8)"
+      ],
+      "recommendation": "B",
+      "why": "D-V1c asked for one value across the panel and listed the fingerprint, the matrix, the comparison and the axes; the glance was not among them, and D-8 and NL-04 approved it as it is, so this release does not change it",
+      "status": "open"
+    }
+  ]
+}

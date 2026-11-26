@@ -51,9 +51,9 @@ test('one shard per records shard; every link points at a record of that neighbo
     venues += Object.keys(shard.venues).length;
   }
   // snapshot of the 2026-11-26 build (fixtures, never UI constants)
-  assert.equal(report.shards, 469); // 0.5.2 (451 in 0.5.1)
+  assert.equal(report.shards, 469); // 0.6.1 (451 in 0.5.1)
   assert.equal(report.counts.grocery.own, report.counts.grocery.records, 'every grocery record is a brand with a logo');
-  assert.equal(report.counts.shoppingcenter.venue_specific + report.counts.shoppingcenter.parent_complex, 58); // 0.5.2 (56 in 0.5.1)
+  assert.equal(report.counts.shoppingcenter.venue_specific + report.counts.shoppingcenter.parent_complex, 58); // 0.6.1 (56 in 0.5.1)
   assert.ok(!report.counts.shoppingcenter.shared_chain_banner && !report.counts.shoppingcenter.shared_department_store_banner, 'a shared banner is never a centre\'s logo here');
   const linked = c => Object.entries(c).filter(([k]) => k !== 'records' && k !== 'venues' && !k.startsWith('none')).reduce((n, [, v]) => n + v, 0);
   assert.equal(records, Object.entries(report.counts).filter(([k]) => k !== 'around venues').reduce((n, [, c]) => n + linked(c), 0), 'the shards hold the links the report counts');

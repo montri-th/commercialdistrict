@@ -1,8 +1,8 @@
 {
   "family": "LDS Material Symbols Rounded Pictogram",
   "file": "material-pictogram-300.woff2",
-  "bytes": 4892,
-  "sha256": "0c18b9ac3583748ff54cc3f5370edf47b3c0331b92629a26d3a2748cc65ea060",
+  "bytes": 6568,
+  "sha256": "d7166a5ced4aaad7a50fd1c22ebccb3b6bc329b6389a0464a101ae0783edb86e",
   "source": "google/material-design-icons variablefont/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].ttf",
   "sourceSha256": "7e74e36533ccee12c2b81e75bfcf3ccf123d3bb7e7e46d65d94445f23db0c97c",
   "license": "Apache-2.0 (assets/icons/material-symbols-Apache-2.0.txt)",
@@ -148,7 +148,75 @@
     "child": {
       "name": "child_care",
       "codepoint": "U+EB41"
+    },
+    "hotel": {
+      "name": "bed",
+      "codepoint": "U+EFDF"
+    },
+    "estate": {
+      "name": "warehouse",
+      "codepoint": "U+EBB8"
+    },
+    "office": {
+      "name": "corporate_fare",
+      "codepoint": "U+F1D0"
+    },
+    "venue": {
+      "name": "local_mall",
+      "codepoint": "U+E54C"
+    },
+    "camera": {
+      "name": "photo_camera",
+      "codepoint": "U+E412"
+    },
+    "factory": {
+      "name": "factory",
+      "codepoint": "U+EBBC"
+    },
+    "fitness": {
+      "name": "fitness_center",
+      "codepoint": "U+EB43"
+    },
+    "grocery": {
+      "name": "local_grocery_store",
+      "codepoint": "U+E8CC"
+    },
+    "brand": {
+      "name": "diamond",
+      "codepoint": "U+EAD5"
+    },
+    "pharmacy": {
+      "name": "local_pharmacy",
+      "codepoint": "U+E550"
+    },
+    "restaurant": {
+      "name": "restaurant",
+      "codepoint": "U+E56C"
+    },
+    "gov": {
+      "name": "account_balance",
+      "codepoint": "U+E84F"
+    },
+    "hospital": {
+      "name": "local_hospital",
+      "codepoint": "U+E548"
+    },
+    "university": {
+      "name": "history_edu",
+      "codepoint": "U+EA3E"
+    },
+    "home": {
+      "name": "home",
+      "codepoint": "U+E9B2"
+    },
+    "luggage": {
+      "name": "luggage",
+      "codepoint": "U+F235"
+    },
+    "trade": {
+      "name": "payments",
+      "codepoint": "U+EF63"
     }
   },
-  "status": "test exception to LDS nav-7 (owner 2026-10-22; actions and building added 2026-10-29; terrain glyphs 2026-11-01 for the map labels; rank, date, distance, construction and dataset 2026-11-01 for short copy; school glyphs 2026-11-05; learning glyphs 2026-11-06); nav-7 subset unchanged"
+  "status": "test exception to LDS nav-7 (owner 2026-10-22; actions and building added 2026-10-29; terrain glyphs 2026-11-01 for the map labels; rank, date, distance, construction and dataset 2026-11-01 for short copy; school glyphs 2026-11-05; learning glyphs 2026-11-06; dataset and axis glyphs 2026-11-26, D-V4 B); nav-7 subset unchanged"
 }

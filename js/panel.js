@@ -24,6 +24,9 @@ import {cueMarkup} from './cues.js';
 import {actionBar} from './ask.js';
 import {logoPlate} from './logos.js';
 import {glanceTiles, aroundGroups, venuesOf, sharedBy, LEVEL_WORDS, pctFill, RING_INDEX} from './around.js';
+import {lowLocated} from './model.js';
+import {cellsOf} from './levels.js';
+import {dsPic, fingerprint, matrix, matrixAnswer, matrixHead, matrixLegend, levelScopeLine, axisCards, axisKey, axisFoldIntro, compareDots, shapeMark, areaWords, provinceWords} from './visual.js';
 
 const EN = LANG === 'en';
 /** The sentence in the page's language. */
@@ -126,11 +129,18 @@ function ahaOverview(o) {
   if (!lead) {
     return `<section class="aha" aria-label="${L('ข้อค้นพบ', 'Finding')}"><p class="eyebrow">${L('ข้อค้นพบ', 'Finding')}</p><h2><span class="aha-number data-number">${num(o.count)}</span><span class="aha-headline">${esc(L(`ย่าน${placeWord(o.province)}`, `neighbourhoods${placeWord(o.province)}`))}</span></h2></section>`;
   }
-  const others = o.next.map(s => `<span class="aha-chip" title="${esc(L(`${num(s.inside)} จาก ${num(s.located)} ${s.ds.unitTh}ที่มีพิกัด${placeWord(o.province)}`, `${num(s.inside)} of ${num(s.located)} ${s.ds.unitEn} with a location${placeWord(o.province)}`))}">${dsLabel(s.ds)} <strong class="data-number">${sharePct(s.share)}</strong></span>`).join('');
+  // (0.6.0, §4.7) the share against the neighbourhoods' share of the area as two bars, so the concentration reads at a
+  // glance; the next datasets as bars in their pillar's colour; the numerator and denominator stay in words (INV-03)
+  const bar = (share, fill) => `<span class="ov-bar" aria-hidden="true"><i style="width:${share > 0 ? `max(2px, ${(share * 100).toFixed(3)}%)` : '0'}${fill ? `;background:${fill}` : ''}"></i></span>`;
+  const seriesFill = ds => `var(--series-${PILLAR_SERIES[ds.group] || 9}-fill)`;
+  const shareRow = (s, big = false) => `<li class="ov-row${big ? ' big' : ''}" title="${esc(L(`${num(s.inside)} จาก ${num(s.located)} ${s.ds.unitTh}ที่มีพิกัด${placeWord(o.province)}`, `${num(s.inside)} of ${num(s.located)} ${s.ds.unitEn} with a location${placeWord(o.province)}`))}">${dsPic(s.ds)}<span class="ov-name">${esc(dsName(s.ds))}</span>${bar(s.share, seriesFill(s.ds))}<b class="data-number">${sharePct(s.share)}</b><span class="sr-only">${esc(L(`${num(s.inside)} จาก ${num(s.located)}`, `${num(s.inside)} of ${num(s.located)}`))}</span></li>`;
+  const areaRow = `<li class="ov-row big is-area">${pic('area')}<span class="ov-name">${esc(L('พื้นที่ของย่าน', 'Neighbourhood area'))}</span>${bar(o.areaShare)}<b class="data-number">${sharePct(o.areaShare)}</b><span class="sr-only">${esc(L(`ของพื้นที่${o.province ? 'จังหวัด' : 'ประเทศ'}`, `of ${o.province ? 'the province' : 'the country'}`))}</span></li>`;
+  const others = o.next.map(s => shareRow(s)).join('');
   return `<section class="aha is-auto" aria-label="${L('ข้อค้นพบ', 'Finding')}"><p class="eyebrow">${L('ข้อค้นพบ', 'Finding')}</p>
     <h2><span class="aha-number data-number">${sharePct(lead.share)}</span><span class="aha-headline">${esc(L(`ของ${lead.ds.nameTh}ที่มีพิกัด${placeWord(o.province)} อยู่ในย่าน ${num(o.count)} แห่ง ที่กินพื้นที่ ${sharePct(o.areaShare)} ของ${o.province ? 'จังหวัด' : 'ประเทศ'}`, `of the ${dsName(lead.ds)} records with a location${placeWord(o.province)} lie in ${num(o.count)} neighbourhoods covering ${sharePct(o.areaShare)} of ${o.province ? 'the province' : 'the country'}`))}</span></h2>
+    <ul class="ov-vs" aria-label="${esc(L(`${dsName(lead.ds)} เทียบพื้นที่ของย่าน`, `${dsName(lead.ds)} against the neighbourhoods' area`))}">${shareRow(lead, true)}${areaRow}</ul>
     <p class="aha-copy">${nw(`<strong class="data-number">${num(lead.inside)}</strong> ${L('จาก', 'of')} ${num(lead.located)} ${esc(dsUnit(lead.ds))}`)} · ${L('ย่านรวม', 'neighbourhoods total')} ${nw(`${one(o.km2)} ${L('ตร.กม.', 'km²')}`)} ${L('จาก', 'of')} ${nw(`${num(Math.round(o.baseKm2))} ${L('ตร.กม.', 'km²')}`)}</p>
-    ${others ? `<p class="aha-chips" aria-label="${L('ชุดอื่นที่กระจุกในย่าน', 'Other datasets concentrated in the neighbourhoods')}">${others}</p>` : ''}
+    ${others ? `<p class="pillar-label">${L('ชุดอื่นที่กระจุกในย่าน', 'Other datasets concentrated in the neighbourhoods')}</p><ul class="ov-vs">${others}</ul>` : ''}
     <div class="aha-actions"><button type="button" class="btn quiet" data-action="cmp-top">${L('เทียบ 3 ย่านที่เด่นหลายด้าน', 'Compare the 3 most distinctive')}</button><button type="button" class="btn quiet" data-action="open-table">${L('รายชื่อย่าน', 'Neighbourhood list')}</button></div></section>`;
 }
 
@@ -157,26 +167,35 @@ function outOfScopeLine(model, o) {
 
 /** A neighbourhood's highlights as compact chips (cue + dataset name). */
 export const highlightChips = (r, model, limit = 4) => (r.hl || []).slice(0, limit).map(h => model.dsById.get(h.d)).filter(Boolean)
-  .map(ds => `<span class="hl-chip">${dsLabel(ds)}</span>`).join('');
+  .map(ds => `<span class="hl-chip">${dsPic(ds)}${dsLabel(ds)}</span>`).join('');
+/** The datasets a row stands out for (D-V2: datasets with points for at least 90 % of their records). */
+const hlSet = r => new Set((r.hl || []).map(h => h.d));
+const kindSmall = r => [r.kind === 'lodging' ? L('ย่านที่พัก', 'lodging area') : r.kind === 'screen' ? L('ผลคัดย่านการค้า', 'commercial screen') : '', r.added ? L('ใหม่', 'new') : ''].filter(Boolean).map(esc).join(' · ');
 
-function multiSection(o, model) {
+function multiSection(o, model, around) {
   if (!o.multi.length) return '';
-  const rows = o.multi.map((r, i) => `<li><button type="button" class="rank-row nb-row" data-action="select-nb" data-id="${esc(r.id)}" aria-label="${esc(`${r.name} · ${provinceName(r.province)}`)}">
-    <span class="rank-index data-number" aria-hidden="true">${i + 1}</span>
-    <span class="rank-name">${esc(r.name)}${o.province ? '' : `<small>${esc(provinceName(r.province))}</small>`}<span class="hl-chips">${highlightChips(r, model)}</span></span></button></li>`).join('');
-  return section('rank', L('ย่านที่เด่นหลายด้าน', 'Neighbourhoods that stand out on several fronts'), esc(L('ติดกลุ่มบนสุด 10%', 'top tenth')), `<ol class="rank-list">${rows}</ol>`);
+  const rows = o.multi.map((r, i) => ({row: r, hl: hlSet(r), head: matrixHead(r, {rank: i + 1, small: o.province ? '' : provinceWords(r)})}));
+  const sub = x => {
+    const top = (x.row.hl || []).filter(h => h.p >= 0.9).map(h => model.dsById.get(h.d)).filter(Boolean);
+    return top.length ? `<span class="mx-chips"><span class="hint">${esc(L('กลุ่มบนสุด 10%:', 'Top tenth:'))}</span> ${top.map(ds => nw(`${dsPic(ds)}${esc(dsName(ds))}`)).join(' · ')}</span>` : '';
+  };
+  const caption = L(`ย่านที่เด่นหลายด้าน${placeWord(o.province)} กับ 16 ชุดข้อมูล`, `Neighbourhoods that stand out on several fronts${placeWord(o.province)}, by the 16 datasets`);
+  return section('rank', L('ย่านที่เด่นหลายด้าน', 'Neighbourhoods that stand out on several fronts'), esc(L('ติดกลุ่มบนสุด 10%', 'top tenth')),
+    `${matrix(model, around, rows, {caption, sub})}${matrixLegend(model)}<p class="hint">${esc(levelScopeLine())}</p>`, 'mx-section');
 }
 
 function pairsSection(o) {
   if (!o.pairs.length) return '';
+  const star = ds => (lowLocated(ds) ? `<sup aria-hidden="true">*</sup><span class="sr-only">${esc(L('ชุดที่มีพิกัดไม่ถึง 90% ของรายการ', 'a dataset with points for under 90% of its records'))}</span>` : '');
+  const starred = o.pairs.some(p => lowLocated(p.A) || lowLocated(p.B));
   const rows = o.pairs.map(p => {
     const ex = p.rows.slice(0, 3).map(r => nbButton(r)).join(' · ');
-    return `<li class="pair-row"><span class="pair-names">${dsLabel(p.A)}<span class="pair-plus" aria-hidden="true">+</span>${dsLabel(p.B)}</span>
+    return `<li class="pair-row"><span class="pair-names">${dsLabel(p.A)}${star(p.A)}<span class="pair-plus" aria-hidden="true">+</span>${dsLabel(p.B)}${star(p.B)}</span>
       <span class="pair-strength" title="${esc(L(`สหสัมพันธ์อันดับของความหนาแน่น ρ ${p.rho} จาก ${num(p.n)} ย่านที่มีข้อมูลทั้งสองชุด · มีทั้งสองอย่าง ${num(p.both)} ย่าน`, `Rank correlation of density ρ ${p.rho} across ${num(p.n)} neighbourhoods with both datasets · ${num(p.both)} hold both`))}"><span class="mix-track" aria-hidden="true"><span class="mix-fill pair-fill" style="width:${Math.round(p.rho * 100)}%"></span></span><span class="data-number">ρ ${esc(p.rho.toFixed(2))}</span></span>
       ${ex ? `<span class="pair-examples hint">${L('เด่นทั้งคู่', 'Both stand out')}: ${ex}${p.rows.length > 3 ? ` ${L(`และอีก ${num(p.rows.length - 3)}`, `and ${num(p.rows.length - 3)} more`)}` : ''}</span>` : ''}</li>`;
   }).join('');
   return section('compare', L('อะไรมาด้วยกัน', 'What comes together'), esc(L('ทั่วประเทศ', 'nationwide')),
-    `<p class="section-lead">${esc(L('ย่านที่มีอย่างหนึ่งแน่น มักมีอีกอย่างแน่นด้วย', 'Where one is dense, the other tends to be dense too'))}</p><ul class="pair-list">${rows}</ul>`);
+    `<p class="section-lead">${esc(L('ย่านที่มีอย่างหนึ่งแน่น มักมีอีกอย่างแน่นด้วย', 'Where one is dense, the other tends to be dense too'))}</p><ul class="pair-list">${rows}</ul>${starred ? `<p class="hint">${esc(L('* = ชุดที่มีพิกัดไม่ถึง 90% ของรายการ: คู่ยังแสดง แต่ไม่เป็นจุดเด่นของย่าน', '* = a dataset with points for under 90% of its records: the pair stays, but it is never a neighbourhood’s highlight'))}</p>` : ''}`);
 }
 
 function provincesSection(o) {
@@ -191,13 +210,16 @@ function provincesSection(o) {
 const kindWords = r => [r.kind === 'lodging' ? L('ย่านที่พัก', 'lodging area') : r.kind === 'screen' ? L('ผลคัดย่านการค้า', 'commercial screen') : '', r.added ? L('ใหม่', 'new') : ''].filter(Boolean).map(w => ` <small class="kind-word">${esc(w)}</small>`).join('');
 
 /** All neighbourhoods of a province (or of a search), the most distinctive first. */
-function listSection(o, model) {
+function listSection(o, model, around) {
   if (!o.province && !o.searching) return '';
   const rows = [...o.rows].sort((a, b) => b.strong - a.strong || (b.hl?.length || 0) - (a.hl?.length || 0) || a.name.localeCompare(b.name, 'th'));
   const item = r => `<li><button type="button" class="nb-item" data-action="select-nb" data-id="${esc(r.id)}"><span class="nb-name">${esc(r.name)}${o.province ? '' : ` <small>${esc(provinceName(r.province))}</small>`}${kindWords(r)}</span><span class="nb-meta">${nw(`${rai(r.areaM2)} ${L('ไร่', 'rai')}`)}</span><span class="hl-chips">${highlightChips(r, model, 3) || `<span class="hint">${L('ยังไม่มีอะไรเด่นเกินเกณฑ์', 'Nothing above the threshold')}</span>`}</span></button></li>`;
   const shown = rows.slice(0, 30), rest = rows.slice(30);
+  const small = r => [o.province ? '' : provinceWords(r), areaWords(r), kindSmall(r)].filter(Boolean).join(' · ');
+  const caption = o.province ? L(`ย่านใน${provinceName(o.province)} กับ 16 ชุดข้อมูล`, `Neighbourhoods in ${provinceName(o.province)}, by the 16 datasets`) : L('ย่านที่ตรงคำค้น กับ 16 ชุดข้อมูล', 'Matching neighbourhoods, by the 16 datasets');
+  const table = matrix(model, around, shown.map(r => ({row: r, hl: hlSet(r), head: matrixHead(r, {small: small(r)})})), {caption});
   return section('maps', o.province ? L(`ย่านใน${provinceName(o.province)}`, `Neighbourhoods in ${provinceName(o.province)}`) : L('ย่านที่ตรงคำค้น', 'Matching neighbourhoods'), esc(L(`${num(rows.length)} ย่าน`, `${num(rows.length)}`)),
-    `<ul class="nb-list">${shown.map(item).join('')}</ul>${rest.length ? `<details><summary>${L(`อีก ${num(rest.length)} ย่าน`, `${num(rest.length)} more`)}</summary><ul class="nb-list">${rest.map(item).join('')}</ul></details>` : ''}`);
+    `${table}${matrixLegend(model)}<p class="hint">${esc(levelScopeLine())}</p>${rest.length ? `<details><summary>${L(`อีก ${num(rest.length)} ย่าน`, `${num(rest.length)} more`)}</summary><ul class="nb-list">${rest.map(item).join('')}</ul></details>` : ''}`, 'mx-section');
 }
 
 /**
@@ -248,7 +270,7 @@ function scopeDetails(model) {
  * The overview of Thailand or of one province. o = js/profile.js#buildOverview (+ searching); fillOf(row) = the map's
  * ramp colour of a row under the lens.
  */
-export function renderOverview(o, model, {fillOf = () => '', ctx = {}} = {}) {
+export function renderOverview(o, model, {fillOf = () => '', ctx = {}, around = null} = {}) {
   const metrics = o.count ? `<section class="metrics compact" aria-label="${L('ตัวเลขรวม', 'Totals')}">
     ${metricTile(o.count, L('ย่าน', 'neighbourhoods'), 'maps', model.meta.screen ? L('ย่านที่มีขอบในทะเบียนย่านกลาง: ขอบปิดตามหลักเกณฑ์ทะเบียน ขอบร่างจากผลคัดย่านที่พัก และขอบร่างจากผลคัดย่านการค้า', 'Outlined neighbourhoods of the central registry: outlines closed by its rules and the draft outlines of the lodging and commercial screens') : L('ย่านที่มีขอบในทะเบียนย่านกลาง: ขอบปิดตามหลักเกณฑ์ทะเบียน และขอบร่างจากผลคัดย่านที่พัก', 'Outlined neighbourhoods of the central registry: outlines closed by its rules and the lodging screen\'s draft outlines'))}
     ${metricTile(one(o.km2), L('ตร.กม.', 'km²'), 'area', L(`พื้นที่รวมของขอบย่าน = ${sharePct(o.areaShare)} ของ${o.province ? 'จังหวัด' : 'ประเทศ'}`, `Outline area = ${sharePct(o.areaShare)} of ${o.province ? 'the province' : 'the country'}`))}
@@ -257,7 +279,7 @@ export function renderOverview(o, model, {fillOf = () => '', ctx = {}} = {}) {
   </section>` : '';
   const lensFirst = o.lens ? lensSection(o, fillOf) : '';
   const place = o.province ? provinceName(o.province) : L('ประเทศไทย', 'Thailand');
-  return `${ahaOverview(o)}${metrics}${lensFirst}${o.lens ? '' : addedSection(o, model)}${o.count ? `${o.lens ? '' : multiSection(o, model)}${sharesSection(o)}${outOfScopeLine(model, o)}${pairsSection(o)}${listSection(o, model)}${provincesSection(o)}` : ''}${pendingSection(o, model)}
+  return `${ahaOverview(o)}${metrics}${lensFirst}${o.lens ? '' : addedSection(o, model)}${o.count ? `${o.lens ? '' : multiSection(o, model, around)}${sharesSection(o)}${outOfScopeLine(model, o)}${pairsSection(o)}${listSection(o, model, around)}${provincesSection(o)}` : ''}${pendingSection(o, model)}
     ${actionBar({kind: 'overview', province: o.province ? provinceName(o.province) : ''})}
     ${scopeDetails(model)}
     ${provenance(ctx, {datasets: o.lens ? [o.lens.ds] : [], boundary: L(`${place} · ขอบย่านฉบับร่าง`, `${place} · draft neighbourhood outlines`)})}`;
@@ -291,35 +313,55 @@ export function highlightWords(h, ds, row, minCount = 3, shared = 1) {
 }
 const highlightWordsL = (x, row) => highlightWords(x.h, x.ds, row, 3, x.shared || 1);
 
+/**
+ * (0.6.0, §4.2) A highlight in its short words: the comparison with its universe and number in one line — “19% ของทั้ง
+ * ประเทศ (64 จาก 345)”, “มากอันดับ 4 จาก 395 ย่าน (ร่วม 5 ย่าน)” (INV-03, INV-04, NL-06).
+ */
+export function highlightShort(h, ds, row, shared = 1) {
+  const n = row.c?.[ds.id] || 0;
+  const tie = shared > 1 ? L(` (ร่วม ${num(shared)} ย่าน)`, ` (shared by ${num(shared)})`) : '';
+  if (h.k === 'share') return L(`${sharePct(h.v)} ของทั้งประเทศ (${num(n)} จาก ${num(ds.located)})`, `${sharePct(h.v)} of the national total (${num(n)} of ${num(ds.located)})`);
+  if (h.k === 'count') return L(`${h.v === 1 ? 'มากที่สุด' : `มากอันดับ ${num(h.v)}`} จาก ${num(h.of)} ย่าน${tie}`, `${h.v === 1 ? 'Most' : `Count rank ${num(h.v)}`} of ${num(h.of)} neighbourhoods${tie}`);
+  if (h.k === 'density') return L(`${h.v === 1 ? 'แน่นที่สุด' : `แน่นอันดับ ${num(h.v)}`} จาก ${num(h.of)} ย่าน${tie}`, `${h.v === 1 ? 'Densest' : `Density rank ${num(h.v)}`} of ${num(h.of)} neighbourhoods${tie}`);
+  if (h.k === 'rare') return L(`1 ใน ${num(h.v)} ย่านที่มี${ds.nameTh} จาก ${num(h.of)} ย่าน`, `1 of the ${num(h.v)} neighbourhoods holding any, of ${num(h.of)}`);
+  return '';
+}
+
+/** (0.6.0, §4.2) One card per highlight; the whole card sets the map's lens (what «เทียบทุกย่าน» did). */
 function highlightsSection(d) {
   if (!d.highlights.length) return '';
-  const rows = d.highlights.map(x => {
-    const w = highlightWordsL(x, d.row);
-    return `<li class="hl-row"><span class="hl-head">${cueMarkup(PILLAR_SERIES[x.ds.group] || 9)}<span>${esc(w.head)}</span></span>
-      <span class="hl-value data-number">${esc(w.value)}</span><span class="hl-detail hint">${esc(w.detail)}</span>
-      <span class="hl-links"><button type="button" class="link-button" data-action="set-lens" data-value="${esc(x.ds.id)}">${L('เทียบทุกย่าน', 'Compare all')}</button>${demoLink(x.ds, d.row.province)}</span></li>`;
+  const cards = d.highlights.map(x => {
+    const w = highlightWordsL(x, d.row), n = d.row.c?.[x.ds.id] || 0;
+    const full = `${w.head} — ${w.value} ${w.detail}`;
+    return `<li><button type="button" class="hl-card" data-action="set-lens" data-value="${esc(x.ds.id)}" title="${esc(L(`${full} · กดเพื่อระบายสีทุกย่านตาม${x.ds.nameTh}`, `${full} · colour every neighbourhood by ${dsName(x.ds)}`))}">
+      ${dsPic(x.ds, 'hl-card-icon')}<span class="hl-card-name">${cueMarkup(PILLAR_SERIES[x.ds.group] || 9)}<span>${esc(dsName(x.ds))}</span></span>
+      <span class="hl-card-fig">${nw(`<b class="data-number">${num(n)}</b> <span class="hl-card-unit">${esc(dsUnitN(x.ds, n))}</span>`)}</span>
+      <span class="hl-card-rank">${esc(highlightShort(x.h, x.ds, d.row, x.shared || 1))}</span><span class="sr-only">${esc(w.detail)}</span></button></li>`;
   }).join('');
-  return section('rank', L('จุดเด่น', 'Highlights'), esc(L('เทียบกับย่านอื่น', 'against other neighbourhoods')), `<ul class="hl-list">${rows}</ul>`);
+  return section('rank', L('จุดเด่น', 'Highlights'), esc(L('เทียบกับย่านอื่น', 'against other neighbourhoods')), `<ul class="hl-cards">${cards}</ul>`);
 }
 
 function togetherSection(d) {
   const parts = [];
   if (d.pairs.length) {
-    parts.push(`<ul class="pair-list">${d.pairs.map(p => `<li class="pair-row"><span class="pair-names">${dsLabel(p.A)}<span class="pair-plus" aria-hidden="true">+</span>${dsLabel(p.B)}</span>
-      <span class="pair-examples hint" title="${esc(L(`ρ ${p.rho} จาก ${num(p.n)} ย่านที่มีข้อมูลทั้งสองชุด`, `ρ ${p.rho} across ${num(p.n)} neighbourhoods with both datasets`))}">${esc(L(`เด่นทั้งคู่ที่นี่ และทั่วประเทศมักมาด้วยกัน (ρ ${p.rho.toFixed(2)} · ${num(p.n)} ย่าน)`, `Both stand out here, and they tend to come together nationwide (ρ ${p.rho.toFixed(2)} · ${num(p.n)} neighbourhoods)`))}</span></li>`).join('')}</ul>`);
+    const named = ds => nw(`${dsPic(ds)}${esc(dsName(ds))}`);
+    parts.push(`<ul class="pr-list">${d.pairs.map(p => `<li class="pr-row" title="${esc(L(`เด่นทั้งคู่ที่นี่ และทั่วประเทศมักมาด้วยกัน: ρ ${p.rho.toFixed(2)} จาก ${num(p.n)} ย่านที่มีข้อมูลทั้งสองชุด`, `Both stand out here, and they tend to come together nationwide: ρ ${p.rho.toFixed(2)} across ${num(p.n)} neighbourhoods with both datasets`))}">
+      <span class="pr-names">${named(p.A)}<b class="pr-plus" aria-hidden="true">+</b>${named(p.B)}</span><span class="pr-bar" aria-hidden="true"><i style="width:${Math.round(p.rho * 100)}%"></i></span>
+      <span class="pr-val data-number">${nw(`ρ ${esc(p.rho.toFixed(2))} · ${num(p.n)} ${L('ย่าน', 'neighbourhoods')}`)}</span></li>`).join('')}</ul>`);
   }
+  // ✓ the data agrees (a highlight speaks to the role) · ○ not in the data yet; the words of the mark for screen readers
   const roleRow = r => {
-    const ev = r.evidenceDs.map(ds => esc(dsName(ds))).join(' · ');
-    const seen = r.observed.filter(x => x.c.state !== 'out_of_scope').map(x => `${esc(dsName(x.ds))} ${esc(cellText(x.c, x.ds))}`).join(' · ');
-    const status = r.evidence.length
-      ? `<span class="role-tag is-evidenced">${L('ข้อมูลชี้ตรง', 'Data agrees')}</span>`
-      : `<span class="role-tag">${L('ข้อมูลยังไม่ชี้', 'Not in the data yet')}</span>`;
-    return `<li class="role-row">${status}<strong>${esc(EN ? r.en : r.th)}</strong><span class="hint">${r.evidence.length ? `${L('เด่นจาก', 'from')} ${ev}` : seen || L('ไม่มีชุดข้อมูลของบทบาทนี้ในจังหวัด', 'no dataset of this role in the province')}</span></li>`;
+    const on = r.evidence.length > 0;
+    const seen = r.observed.filter(x => x.c.state !== 'out_of_scope').map(x => `${dsName(x.ds)} ${cellText(x.c, x.ds)}`).join(' · ');
+    const why = on ? `${L('เด่นจาก', 'from')} ${r.evidenceDs.map(dsName).join(' · ')}` : seen || L('ไม่มีชุดข้อมูลของบทบาทนี้ในจังหวัด', 'no dataset of this role in the province');
+    const ev = on ? r.evidenceDs.map(ds => nw(`${dsPic(ds)}${esc(dsName(ds))}`)).join(' · ') : esc(why);
+    return `<li class="rl-row${on ? ' is-on' : ''}"><b class="rl-mark" aria-hidden="true">${on ? '✓' : '○'}</b><span class="sr-only">${esc(on ? L('ข้อมูลชี้ตรง:', 'Data agrees:') : L('ข้อมูลยังไม่ชี้:', 'Not in the data yet:'))}</span><span class="rl-name">${esc(EN ? r.en : r.th)}</span><span class="rl-ev">${ev}</span>${r.proposed ? '' : `<small class="role-new">${esc(L('ข้อมูลชี้เพิ่ม', 'the data adds'))}</small>`}</li>`;
   };
-  if (d.proposed.length) parts.push(`<p class="section-lead">${esc(L('บทบาทที่ทะเบียนย่านเสนอ เทียบกับสิ่งที่ข้อมูลเห็น', 'Roles the registry proposes, against what the data shows'))}</p><ul class="role-list">${d.proposed.map(roleRow).join('')}</ul>`);
-  if (d.extra.length) parts.push(`<p class="section-lead">${esc(L('ข้อมูลชี้บทบาทเพิ่ม', 'The data points to more'))}</p><ul class="role-list">${d.extra.map(roleRow).join('')}</ul>`);
+  const roles = [...d.proposed, ...d.extra];
+  const roleKey = d.proposed.length ? L('บทบาทที่ทะเบียนเสนอ: ✓ ข้อมูลชี้ตรง · ○ ยังไม่ชี้', 'Roles the registry proposes: ✓ the data agrees · ○ not yet') : L('บทบาทที่ข้อมูลชี้ ✓', 'Roles the data points to ✓');
+  if (roles.length) parts.push(`<p class="pillar-label">${esc(roleKey)}</p><ul class="rl-list">${roles.map(roleRow).join('')}</ul>`);
   if (!parts.length) return '';
-  return section('compare', L('จุดเด่นที่สัมพันธ์กัน', 'How the highlights relate'), '', parts.join(''));
+  return section('compare', L('อะไรมาด้วยกัน', 'What comes together'), esc(L('ทั่วประเทศ · ρ = สหสัมพันธ์อันดับ', 'nationwide · ρ = rank correlation')), parts.join(''));
 }
 
 /* ---------- 0.4.0: the glance «ในย่านนี้» and the section «ขอบเดินถึง» (js/around.js, DATA_METHOD.md §12) ---------- */
@@ -385,7 +427,7 @@ function glanceSection(r, model, around) {
       if (t.figure !== 'count') sub = t.known < t.records ? L(`${ds.nameTh} ${unitDs(t.records)} · มีตัวเลข ${unitDs(t.known)}`, `${unitDs(t.records)} · ${unitDs(t.known)} with a figure`) : L(`${ds.nameTh} ${unitDs(t.records)}`, unitDs(t.records));
     }
     const meter = t.level == null ? '' : `${levelMeter(t.level, t.value > 0 ? t.p : null)}<span class="sr-only">${esc(L(`${LEVEL_WORDS[t.level][0]} ระดับ ${num(t.level)} จาก 5 เทียบ ${num(uni(t.id))} ย่าน`, `${LEVEL_WORDS[t.level][1]}, level ${num(t.level)} of 5 among ${num(uni(t.id))} neighbourhoods`))}</span>`;
-    const title = L(`${th}: ${ds.nameTh} · กดเพื่อดูแถวของชุดนี้ในตารางขอบเดินถึง`, `${en}: ${dsName(ds)} · go to its row in the table below`);
+    const title = L(`${th}: ${ds.nameTh} · กดเพื่อไปที่แถวของชุดนี้ในแกน อยู่ · เที่ยว · ค้าขาย`, `${en}: ${dsName(ds)} · go to its row on the axes below`);
     return `<li><button type="button" class="glance-tile is-${t.state}" data-action="around-jump" data-value="${esc(ds.id)}" title="${esc(title)}">${icon}${label}${figure}${sub ? `<small class="glance-sub">${esc(sub)}</small>` : ''}${meter}</button></li>`;
   };
   const starred = tiles.some(t => t.star && t.state === 'measured');
@@ -401,22 +443,6 @@ function glanceSection(r, model, around) {
   const source = `<p class="hint glance-source">${esc(L(`ชุดข้อมูล CityMETER ${dates.length ? daySpan(dates[0], dates.at(-1)) : ''} · ในขอบร่างของย่าน`, `CityMETER datasets, ${dates.length ? daySpan(dates[0], dates.at(-1)) : ''} · inside the draft outline`))}</p>`;
   return `<section class="panel-section nb-glance" aria-labelledby="nb-glance-title"><div class="section-heading">${heading('area', L('ในย่านนี้', 'Inside this neighbourhood'), 'nb-glance-title')}</div>
     <ul class="glance-grid" aria-labelledby="nb-glance-title">${tiles.map(tile).join('')}</ul>${key}${source}</section>`;
-}
-
-/**
- * (0.4.0, proposal §5.8) The lead of a neighbourhood with no highlight says what there is instead of “nothing stands
- * out”: how many of the datasets in scope have records inside, then how many have records within 800 m around — a
- * number of datasets, so no dataset is ranked against another and no unit is mixed; the table below has the figures.
- */
-function thinLead(r, model, around) {
-  const scope = model.datasets.filter(ds => ds.id in (r.c || {})), present = scope.filter(ds => r.c[ds.id] > 0);
-  const inside = present.length
-    ? L(`ในย่านพบรายการ ${num(present.length)} จาก ${num(scope.length)} ชุดที่มีข้อมูลในจังหวัด แต่ยังไม่เด่นเกินเกณฑ์`, `${num(present.length)} of the ${num(scope.length)} datasets with data in the province have records inside, none above the threshold`)
-    : L(`ในย่านไม่พบรายการของ ${num(scope.length)} ชุดที่มีข้อมูลในจังหวัด`, `None of the ${num(scope.length)} datasets with data in the province has a record inside`);
-  const a = around?.rows.get(r.id)?.a;
-  if (!a) return esc(inside);
-  const near = scope.filter(ds => (a[ds.id]?.[1] || 0) > 0).length;
-  return `${esc(inside)} · ${esc(near ? L(`ขอบเดินถึง 800 ม. พบรายการ ${num(near)} จาก ${num(scope.length)} ชุด`, `walkable edge 800 m: records of ${num(near)} of the ${num(scope.length)} datasets`) : L('ขอบเดินถึง 800 ม. ก็ไม่พบ', 'none in the 800 m walkable edge either'))}`;
 }
 
 /** A centre's «รอบศูนย์นี้» in the Shopping Center demo (`?e=venue:<id>`, citymeter-shell grammar). */
@@ -440,12 +466,12 @@ function aroundProvenance(r, model, around, distance) {
 }
 
 /**
- * «ขอบเดินถึง» (NL-04, NL-05): every dataset of the neighbourhood in one table — inside, within 400 m and within 800 m
- * around, each in the dataset's own unit, never a total — with the switch of the distance the map draws, the centres
- * with a «รอบศูนย์นี้» page, and the section's own provenance line. A starred dataset (points for under 90 % of its
- * records, D-4) shows its count and density, never a rank.
+ * The table of 0.4.0 (NL-04, NL-05), folded under the axes since 0.6.0 (D-V5): every dataset of the neighbourhood —
+ * inside, within 400 m and within 800 m around, each in the dataset's own unit, never a total — with the switch of the
+ * distance the map draws. A starred dataset (points for under 90 % of its records, D-4) shows its count and density,
+ * never a rank.
  */
-function aroundSection(d, model, around, {distance = 'in', fillOf = () => '', venueLogo = () => null} = {}) {
+function aroundTable(d, model, around, {distance = 'in', fillOf = () => ''} = {}) {
   const r = d.row, groups = aroundGroups(r, model, around);
   const items = groups.flatMap(g => g.items);
   const scope = items.filter(x => x.c.state !== 'out_of_scope').length, present = items.filter(x => x.c.state === 'measured').length;
@@ -494,6 +520,11 @@ function aroundSection(d, model, around, {distance = 'in', fillOf = () => '', ve
     <thead><tr><th scope="col">${L('ชุดข้อมูล', 'Dataset')}</th>${cols.map(colHead).join('')}</tr></thead>${body}</table></div>`;
   const starred = items.some(x => x.star && x.c.state !== 'out_of_scope');
   const note = starred ? `<p class="hint">${esc(STAR_KEY('rank'))}</p>` : '';
+  return {table, note, switcher, scope, present, starred, loaded};
+}
+
+/** The centres with a «รอบศูนย์นี้» page inside and near the neighbourhood (0.4.0, kept as it was). */
+function aroundVenues(r, around, distance, venueLogo) {
   const vs = venuesOf(r, around, distance);
   const count = n => nw(esc(L(`${num(n)} แห่ง`, `${num(n)} ${n === 1 ? 'center' : 'centers'}`)));
   const metres = m => nw(esc(m < 1 ? L('ไม่ถึง 1 ม.', 'under 1 m') : L(`${num(m)} ม.`, `${num(m)} m`)));
@@ -502,16 +533,47 @@ function aroundSection(d, model, around, {distance = 'in', fillOf = () => '', ve
     ${vs.inside.length ? `<li><span class="hint">${esc(distanceWords('in'))} ${count(vs.inside.length)}</span> ${vs.inside.map(vlink).join(' · ')}</li>` : ''}
     ${vs.near.length ? `<li><span class="hint">${esc(distanceWords(distance))} ${count(vs.near.length)}</span> ${vs.near.map(v => `${vlink(v)} <small class="hint">${metres(v.m)}</small>`).join(' · ')}</li>` : ''}
   </ul></div>` : '';
-  const hint = L(`ในย่านมีรายการ ${num(present)} จาก ${num(scope)} ชุด`, `${num(present)} of ${num(scope)} datasets inside`);
-  return `<section class="panel-section around-section" id="nb-around" aria-labelledby="nb-around-title"><div class="section-heading">${heading('distance', L('ขอบเดินถึง', 'The walkable edge'), 'nb-around-title')}<span class="hint">${esc(hint)}</span></div>
-    ${switcher}${table}${note}${venues}${aroundProvenance(r, model, around, loaded ? distance : 'in')}</section>`;
+  return venues;
 }
 
-function similarSection(d) {
+/** The dataset's own demo at the neighbourhood's province (the link of the dataset's row, §4.2). */
+function demoTarget(ds, province) {
+  const demo = DEMOS.find(x => x.path === ds.path);
+  if (!demo) return null;
+  return {href: demoHref(demo, province ? `?at=${province}` : '', LANG), title: L(`เปิดเดโม ${demo.name}${province ? ` ที่${provinceName(province)}` : ''}`, `Open the ${demo.name} demo${province ? ` at ${provinceName(province)}` : ''}`)};
+}
+
+/**
+ * (0.6.0, §4.9; D-V5, D-V6, D-V7 A) อยู่ · เที่ยว · ค้าขาย: the datasets of the neighbourhood on three axes, each a row
+ * with its level, count and rank, the switch of the distance the map draws (0.4.0), a key, and closed under them the way
+ * to read them, the indicators each axis has no data for yet, and the table of 0.4.0 with every figure at every distance;
+ * then the centres with a «รอบศูนย์นี้» page and the section's own provenance line.
+ */
+function aroundSection(d, model, around, {distance = 'in', fillOf = () => '', venueLogo = () => null} = {}) {
+  const r = d.row, t = aroundTable(d, model, around, {distance, fillOf});
+  const reading = t.loaded ? distance : 'in', hl = new Set(d.highlights.map(x => x.ds.id));
+  const cells = cellsOf(model, r, around);
+  const hlShown = cells.some(x => hl.has(x.ds.id) && x.kind === 'ranked');
+  const star = cells.some(x => x.kind !== 'out' && lowLocated(x.ds));
+  const colHead = `<p class="ax-cols" aria-hidden="true"><span>${L('ชุดข้อมูล', 'Dataset')}</span><span>${L('ระดับเทียบย่านอื่น', 'Level among the others')}</span><span>${L('จำนวน · อันดับ', 'Count · rank')}</span></p>`;
+  const cards = axisCards(model, r, around, {distance: reading, hl, demoOf: ds => demoTarget(ds, r.province)});
+  const fold = `<details class="scope-details around-fold"><summary>${L('วิธีอ่าน แหล่งที่ตรวจไว้ และตัวเลขทุกระยะ (16 ชุด)', 'How to read, sources looked at, and every figure (16 datasets)')}</summary>${axisFoldIntro(model)}${t.table}${t.note}</details>`;
+  const hint = L(`${num(model.datasets.length)} ชุดข้อมูล`, `${num(model.datasets.length)} datasets`);
+  return `<section class="panel-section around-section axes-section" id="nb-around" aria-labelledby="nb-around-title"><div class="section-heading">${heading('dataset', L('อยู่ · เที่ยว · ค้าขาย', 'Live · Visit · Trade'), 'nb-around-title')}<span class="hint">${esc(hint)}</span></div>
+    ${t.switcher}${colHead}${cards}${axisKey({distance: reading, hl: hlShown, star})}${fold}${aroundVenues(r, around, distance, venueLogo)}${aroundProvenance(r, model, around, reading)}</section>`;
+}
+
+function similarSection(d, model, around) {
   if (!d.similar.length) return '';
-  const rows = d.similar.map(x => `<li><span class="sim-name">${nbButton(x.row, {province: true})}</span><span class="sim-value data-number" title="${esc(L(`ความคล้ายของส่วนผสม (cosine) จาก ${num(x.shared)} ชุดข้อมูลที่มีในทั้งสองย่าน`, `Mix similarity (cosine) over ${num(x.shared)} datasets both neighbourhoods have`))}">${num(Math.round(x.sim * 100))}%</span></li>`).join('');
+  const sim = x => `<span class="data-number" title="${esc(L(`ความคล้ายของส่วนผสม (cosine) จาก ${num(x.shared)} ชุดข้อมูลที่มีในทั้งสองย่าน`, `Mix similarity (cosine) over ${num(x.shared)} datasets both neighbourhoods have`))}">${esc(L(`คล้าย ${num(Math.round(x.sim * 100))}%`, `${num(Math.round(x.sim * 100))}% alike`))}</span>`;
+  const rows = [{row: d.row, self: true, hl: hlSet(d.row), head: matrixHead(d.row, {self: true, small: esc(L('ย่านนี้', 'this one'))})},
+    ...d.similar.map(x => ({row: x.row, hl: hlSet(x.row), head: matrixHead(x.row, {small: `${provinceWords(x.row)} · ${sim(x)}`})}))];
+  // (the neighbourhood's name between separators: an English page keeps Thai names, never Thai sentences)
+  const caption = L(`16 ชุดข้อมูลของ${d.row.name} และ ${num(d.similar.length)} ย่านที่ส่วนผสมคล้ายที่สุด`, `${d.row.name} · the 16 datasets, with the ${num(d.similar.length)} neighbourhoods of the closest mix`);
   return section('compare', L('ย่านที่ส่วนผสมคล้ายกัน', 'Neighbourhoods with a similar mix'), esc(L('ทั่วประเทศ', 'nationwide')),
-    `<ul class="sim-list">${rows}</ul><div class="aha-actions"><button type="button" class="btn quiet" data-action="cmp-similar" data-id="${esc(d.row.id)}">${L('เทียบกับย่านเหล่านี้', 'Compare with these')}</button></div>`);
+    // the column key stays out here: the axes above name every dataset beside its pictogram (LDS ICON-01)
+    `${matrix(model, around, rows, {caption, answer: matrixAnswer(model, around, rows.map(x => x.row))})}${matrixLegend(model, {columns: false})}<p class="hint">${esc(levelScopeLine())}</p>
+    <div class="aha-actions"><button type="button" class="btn quiet" data-action="cmp-similar" data-id="${esc(d.row.id)}">${L('เทียบกับย่านเหล่านี้', 'Compare with these')}</button></div>`, 'mx-section');
 }
 
 /* ---------- 0.2.0: kinds of neighbourhood, what is new, the lodging screen ---------- */
@@ -624,16 +686,14 @@ function registryDetails(d, model) {
 export function renderNeighborhood(d, model, {inCompare = false, compareFull = false, fillOf = () => '', ctx = {}, recordsHTML = '', around = null, distance = 'in', venueLogo = () => null} = {}) {
   const r = d.row, province = provinceName(r.province), am = amendmentOf(r, model);
   const top = d.highlights[0];
-  const tw = top ? highlightWordsL(top, r) : null;
-  const names = d.highlights.map(x => `<span class="hl-chip">${dsLabel(x.ds)}</span>`).join('');
+  const names = d.highlights.map(x => `<span class="hl-chip">${dsPic(x.ds)}${dsLabel(x.ds)}</span>`).join('');
   const cmp = inCompare
     ? `<button type="button" class="btn" data-action="cmp-remove" data-id="${esc(r.id)}" aria-pressed="true">${L('อยู่ในการเปรียบเทียบ', 'In the comparison')}</button>`
     : `<button type="button" class="btn primary" data-action="cmp-add" data-id="${esc(r.id)}"${compareFull ? ' disabled' : ''}>${L('เพิ่มในการเปรียบเทียบ', 'Add to the comparison')}</button>`;
   const aha = `<section class="aha is-auto detail-head" aria-label="${L('ข้อค้นพบ', 'Finding')}"><p class="eyebrow">${esc(r.kind === 'lodging' ? L(`ย่านที่พัก · ${province}`, `Lodging area · ${province}`) : r.kind === 'screen' ? L(`ย่านจากผลคัดย่านการค้า · ${province}`, `Commercial screen · ${province}`) : L(`ย่าน · ${province}`, `Neighbourhood · ${province}`))}</p>
     <h2 class="nb-title" tabindex="-1">${esc(r.name)}</h2>${kindBadges(r)}
-    ${top ? `<p class="aha-lead">${L('เด่นเรื่อง', 'Stands out for')}</p><p class="hl-chips is-large">${names}</p>
-      <p class="aha-copy"><strong>${esc(tw.head)}</strong> — ${nw(`<strong class="data-number">${esc(tw.value)}</strong>`)} ${esc(tw.detail)}</p>`
-    : `<p class="aha-copy">${thinLead(r, model, around)}</p>`}
+    ${top ? `<p class="aha-lead">${L('เด่นเรื่อง', 'Stands out for')}</p><p class="hl-chips is-large">${names}</p>` : ''}
+    ${fingerprint(model, r, around, {hl: new Set(d.highlights.map(x => x.ds.id))})}
     <div class="aha-actions">${cmp}</div></section>`;
   const metrics = `<section class="metrics compact" aria-label="${L('ตัวเลขของย่าน', 'Neighbourhood figures')}">
     ${metricTile(rai(r.areaM2), L('ไร่', 'rai'), 'area', r.kind === 'lodging' && !am ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบร่างของผลคัดย่านที่พัก`, `${km2Text(r.km2)} km² per the lodging screen's draft outline`) : r.kind === 'screen' ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบร่างที่วาดตามหลักของเจ้าของ`, `${km2Text(r.km2)} km² per the draft outline drawn by the owner's rule`) : am ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบที่ปรับเพิ่ม ${thaiDate(am.on)}`, `${km2Text(r.km2)} km² per the outline extended on ${thaiDate(am.on)}`) : L(`${km2Text(r.km2)} ตร.กม. ตามทะเบียน`, `${km2Text(r.km2)} km² per the registry`))}
@@ -643,7 +703,7 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
   </section>`;
   const lodging = lodgingSection(r, model);
   // (0.4.0, D-5) the glance follows the neighbourhood's figures; «ขอบเดินถึง» takes the place of the dataset list
-  return `${aha}${metrics}${glanceSection(r, model, around)}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${aroundSection(d, model, around, {distance, fillOf, venueLogo})}${recordsHTML}${similarSection(d)}
+  return `${aha}${metrics}${glanceSection(r, model, around)}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${aroundSection(d, model, around, {distance, fillOf, venueLogo})}${recordsHTML}${similarSection(d, model, around)}
     ${actionBar({kind: 'neighborhood', name: r.name, province, point: {lat: r.ref[1], lon: r.ref[0]}})}
     ${registryDetails(d, model)}
     ${provenance(ctx, {boundary: r.kind === 'lodging' && !am ? L(`${r.name} · ขอบร่างของผลคัดย่านที่พัก ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline of the lodging screen ${rai(r.areaM2)} rai`) : r.kind === 'screen' ? L(`${r.name} · ขอบร่างตามหลักของเจ้าของ ${thaiDate(r.screen?.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline by the owner's rule, ${thaiDate(r.screen?.on)}, from OpenStreetMap ${rai(r.areaM2)} rai`) : am ? L(`${r.name} · ขอบย่านฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline extended on ${thaiDate(am.on)} from OpenStreetMap ${rai(r.areaM2)} rai`) : L(`${r.name} · ขอบย่านฉบับร่าง ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline ${rai(r.areaM2)} rai`)})}`;
@@ -655,7 +715,7 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
  * The compare matrix for the tray: datasets by pillar × neighbourhoods; a bar per cell (density against the densest of
  * the row), the densest cell marked in words for screen readers and with a ring.
  */
-export function renderCompare(c, model, {max = 4} = {}) {
+export function renderCompare(c, model, {max = 4, around = null} = {}) {
   if (!c.rows.length) {
     return `<div class="compare-empty"><p>${esc(L('เลือกย่านแล้วกด “เพิ่มในการเปรียบเทียบ” เพื่อวางเทียบกันได้ถึง 4 ย่าน', 'Open a neighbourhood and choose “Add to the comparison” to set up to 4 side by side'))}</p>
       <div class="aha-actions"><button type="button" class="btn quiet" data-action="cmp-top">${L('เทียบ 3 ย่านที่เด่นหลายด้าน', 'Compare the 3 most distinctive')}</button></div></div>`;
@@ -668,10 +728,18 @@ export function renderCompare(c, model, {max = 4} = {}) {
     const w = x.max > 0 && cell.state === 'measured' ? Math.max(4, Math.round((cell.density / x.max) * 100)) : 0;
     return `<td class="${best ? 'is-best' : ''}${cell.state === 'measured_zero' ? ' is-zero' : ''}"><span class="cmp-count data-number">${num(cell.count)}</span><span class="cmp-density data-number">${cell.state === 'measured' ? dens(cell.density) : '0'}</span><span class="cmp-bar" aria-hidden="true"><span class="category-${PILLAR_SERIES[x.ds.group]}" style="width:${w}%"></span></span>${best && c.rows.length > 1 ? `<span class="sr-only">${L('แน่นที่สุดในกลุ่มที่เทียบ', 'densest of the compared')}</span>` : ''}</td>`;
   }).join('')}</tr>`).join('')}`).join('');
-  return `<div class="table-scroll compare-scroll"><table class="compare-table"><caption class="sr-only">${L('เปรียบเทียบย่าน: จำนวนและความหนาแน่นต่อ ตร.กม. ของแต่ละชุดข้อมูล', 'Neighbourhood comparison: count and density per km² of each dataset')}</caption>
+  const table = `<div class="table-scroll compare-scroll"><table class="compare-table"><caption class="sr-only">${L('เปรียบเทียบย่าน: จำนวนและความหนาแน่นต่อ ตร.กม. ของแต่ละชุดข้อมูล', 'Neighbourhood comparison: count and density per km² of each dataset')}</caption>
     <thead><tr><th scope="col" class="cmp-corner">${L('ชุดข้อมูล', 'Dataset')}<small>${L('จำนวน · ต่อ ตร.กม.', 'count · per km²')}</small></th>${head}</tr></thead>
     <tbody>${hlRow}${body}</tbody></table></div>
-    ${c.rows.length < max ? `<p class="hint">${esc(L(`เพิ่มได้อีก ${num(max - c.rows.length)} ย่าน · วงกรอบ = แน่นที่สุดในกลุ่มที่เทียบ`, `${num(max - c.rows.length)} more can be added · ringed = densest of the compared`))}</p>` : `<p class="hint">${esc(L('วงกรอบ = แน่นที่สุดในกลุ่มที่เทียบ', 'Ringed = densest of the compared'))}</p>`}
+    <p class="hint">${esc(L('วงกรอบ = แน่นที่สุดในกลุ่มที่เทียบ', 'Ringed = densest of the compared'))}</p>`;
+  // (0.6.0, §4.6) each neighbourhood keeps one shape: on its chip (which also takes it out), its row and its dots
+  const chips = c.rows.map((r, k) => `<button type="button" class="cmp-chip" data-action="cmp-remove" data-id="${esc(r.id)}" aria-label="${esc(`${L('เอาออกจากการเปรียบเทียบ', 'Remove from the comparison')} · ${r.name}`)}">${shapeMark(k)}${esc(r.name)}<i aria-hidden="true">×</i></button>`).join('');
+  const rows = c.rows.map((r, k) => ({row: r, hl: new Set((r.hl || []).map(h => h.d)), head: matrixHead(r, {small: `${provinceWords(r)} · ${areaWords(r)}`}).replace('<span class="mx-th">', `<span class="mx-th">${shapeMark(k)}`)}));
+  const caption = L(`16 ชุดข้อมูลของ ${c.rows.map(r => r.name).join(' · ')}`, `${c.rows.map(r => r.name).join(' · ')} · the 16 datasets`);
+  return `<div class="cmp-chips">${chips}</div>
+    <div class="cmp-visual"><div class="cmp-matrix">${matrix(model, around, rows, {caption, answer: matrixAnswer(model, around, c.rows)})}${matrixLegend(model)}<p class="hint">${esc(levelScopeLine())}</p></div>${compareDots(model, c.rows)}</div>
+    <details class="scope-details cmp-fold"><summary>${L('ตารางจำนวนและต่อ ตร.กม.', 'Counts and per km²')}</summary>${table}</details>
+    ${c.rows.length < max ? `<p class="hint">${esc(L(`เพิ่มได้อีก ${num(max - c.rows.length)} ย่าน`, `${num(max - c.rows.length)} more can be added`))}</p>` : ''}
     ${actionBar({kind: 'compare', names: c.rows.map(r => r.name)})}`;
 }
 

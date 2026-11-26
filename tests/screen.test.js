@@ -4,7 +4,7 @@
  * “อัปเดตเว็บ”): the codes the registry admitted from the screen are neighbourhoods of this demo where the owner's rule of
  * 2026-11-24 drew them an outline from their reference point within 1 km; the others are searchable names. One code is
  * held until the owner decides (its name does not match the place its point marks) and is not on the page at all.
- * 0.5.2 — the owner's answers of 2026-11-26 10:02 (“1) ตามที่พี่แนะนำ” · “2) ใช้ Building v4” · “3) … อยากคงไว้ …”): the
+ * 0.6.1 — the owner's answers of 2026-11-26 10:02 (“1) ตามที่พี่แนะนำ” · “2) ใช้ Building v4” · “3) … อยากคงไว้ …”): the
  * outlines over 1 km he chose to use are neighbourhoods too, the codes without buildings were drawn again with CityMETER
  * Building V4, and ย่านตลาดไท is kept (no longer held); amendments/outline-new-2026-11-26-r2.geojson.
  */
@@ -18,7 +18,7 @@ import {renderOverview, renderNeighborhood, tableRowHTML, thaiDates} from '../js
 const holes = /undefined|NaN|\[object Object\]|Infinity/;
 const ctx = model => ({meta: model.meta, datasetCount: 16});
 const TALAD = 'CMN-TH-BAFFB5235F'; // ย่านตลาดไท: held in 0.5.0; kept by the owner on 2026-11-26 10:02 (“อยากคงไว้”)
-const SCREEN = {admitted: 228, drawn: 74, review: 66, undrawn: 88, heldOwner: 0}; // 0.5.2 (0.5.0: 56, 17, 154, 1)
+const SCREEN = {admitted: 228, drawn: 74, review: 66, undrawn: 88, heldOwner: 0}; // 0.6.1 (0.5.0: 56, 17, 154, 1)
 
 test('the screen\'s codes add up: drawn, waiting for the owner\'s tick, without an outline, held until he decides', () => {
   const {model} = load();
@@ -81,7 +81,7 @@ test('a drawn code of the screen is a neighbourhood like the others: its row, pr
   assert.ok(model.rows.slice(0, model.meta.totals.closed).every(r => r.kind === 'registry'), 'the registry\'s outlines stay first');
 });
 
-test('ย่านตลาดไท is kept (0.5.2): no code is held; the codes without an outline on the map are searchable names that say why', () => {
+test('ย่านตลาดไท is kept (0.6.1): no code is held; the codes without an outline on the map are searchable names that say why', () => {
   const {model} = load();
   assert.equal(model.meta.screen.heldOwner, 0);
   assert.equal(model.meta.totals.screenHeld, 0);
@@ -152,7 +152,7 @@ test('D-8: the glance ranks the screen\'s neighbourhoods against the reference s
   for (const r of model.rows.filter(x => x.kind === 'screen')) assert.ok(around.rows[r.id], r.id);
 });
 
-test('0.5.2: the owner\'s answers of 26 Nov 10:02 — the outlines he chose to use are neighbourhoods, the ones he set aside are names, V4 says so', () => {
+test('0.6.1: the owner\'s answers of 26 Nov 10:02 — the outlines he chose to use are neighbourhoods, the ones he set aside are names, V4 says so', () => {
   const {model} = load();
   const answers = readJSON('amendments/outline-new-choices-2026-11-26.json');
   assert.equal(answers.owner.ticks_th, '1) ตามที่พี่แนะนำ');

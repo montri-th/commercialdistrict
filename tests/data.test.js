@@ -8,14 +8,14 @@ import {load} from './helpers.js';
 import {readFileSync} from 'node:fs';
 import {cell, rai, km2Text} from '../js/model.js';
 
-test('one row per outline: the registry\'s 358 closed outlines, the 37 lodging areas with a draft and the outlines of the commercial screen (0.5.0: 56; 0.5.2: 74), unique codes, a display outline and a province each', () => {
+test('one row per outline: the registry\'s 358 closed outlines, the 37 lodging areas with a draft and the outlines of the commercial screen (0.5.0: 56; 0.6.1: 74), unique codes, a display outline and a province each', () => {
   const {model, outlines} = load();
   const ids = model.rows.map(r => r.id);
   const t = model.meta.totals;
   assert.equal(t.closed, 358);
   assert.equal(t.lodgingDrawn, 37);
   assert.equal(model.rows.length, t.outlined);
-  assert.equal(t.screenDrawn, 74); // 0.5.2: the 56 of 0.5.0, 13 over 1 km the owner chose to use, 5 drawn with CityMETER Building V4
+  assert.equal(t.screenDrawn, 74); // 0.6.1: the 56 of 0.5.0, 13 over 1 km the owner chose to use, 5 drawn with CityMETER Building V4
   assert.equal(t.outlined, t.closed + t.lodgingDrawn + t.screenDrawn);
   assert.equal(model.rows.filter(r => r.kind === 'registry').length, t.closed);
   assert.equal(model.rows.filter(r => r.kind === 'lodging').length, t.lodgingDrawn);

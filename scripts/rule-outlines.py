@@ -16,7 +16,7 @@ from one drawing). This script:
           the registry's own outline (its canonical geometry, by SHA-256) united with the drawn share, less every other
           outline, so an amendment only adds area and overlaps nothing.
   new     (0.5.0) outlines for the commercial screen's codes, drawn from seeds round their reference points (§2d).
-  revise  (0.5.2) the owner's answers of 2026-11-26 10:02 on those outlines (amendments/outline-new-choices-2026-11-26.json):
+  revise  (0.6.1) the owner's answers of 2026-11-26 10:02 on those outlines (amendments/outline-new-choices-2026-11-26.json):
           the 17 over 1 km as he chose them, the codes without buildings drawn again with CityMETER Building V4, and the
           codes he keeps with seeds and limits of their own; writes the next file, 0.5.0's stays as it was.
 
@@ -462,11 +462,11 @@ def cmd_new(a):
 
 
 
-JOIN_CELL_M = 5  # (0.5.2) cells of the walk that joins a seeded code's point to its trimmed outline
+JOIN_CELL_M = 5  # (0.6.1) cells of the walk that joins a seeded code's point to its trimmed outline
 
 
 def trim_arms_seed(drawn, lon, lat):
-    """(0.5.2) The owner's "ตัดแขนแคบ" for an outline drawn from a seed, which has no registry outline to keep: the drawing
+    """(0.6.1) The owner's "ตัดแขนแคบ" for an outline drawn from a seed, which has no registry outline to keep: the drawing
     opened by TRIM_M as trim_arms() opens it (arms narrower than 150 m off), the opened part nearest to the reference point
     along the drawing, and the strip of the drawing that joins the point to that part — the 5 m cells whose walk from the
     point to the part, inside the drawing, is at most 2 × TRIM_M longer than the shortest — so the outline holds its point.
@@ -532,7 +532,7 @@ def trim_arms_seed(drawn, lon, lat):
 
 
 def cmd_revise(a):
-    """(0.5.2) The owner's answers of 2026-11-26 10:02 (amendments/outline-new-choices-2026-11-26.json) on the outlines of
+    """(0.6.1) The owner's answers of 2026-11-26 10:02 (amendments/outline-new-choices-2026-11-26.json) on the outlines of
     0.5.0 (--prior): the 17 that reached over 1 km as he chose them (use; trim the narrow arms, shown to him before the
     web; no outline), the codes the basemap left without buildings, or too few, drawn again with CityMETER Building V4
     inside its units (the drawing's option cm), and the codes he keeps with seeds and limits of their own (ย่านตลาดไท).
@@ -664,7 +664,7 @@ def cmd_revise(a):
             report.append(rec)
             continue
         new = parts[0] if len(parts) == 1 else MultiPolygon(parts)
-        if not new.contains(Point(lon, lat)):  # (0.5.2) the rounding can pass a few metres off the point: the seed joins
+        if not new.contains(Point(lon, lat)):  # (0.6.1) the rounding can pass a few metres off the point: the seed joins
             new = make_valid(new.union(seed.difference(unary_union(near)) if near else seed))
             new = new if isinstance(new, (Polygon, MultiPolygon)) else unary_union([g for g in new.geoms if isinstance(g, (Polygon, MultiPolygon))])
             rec['seedJoined'] = True
@@ -807,7 +807,7 @@ def main():
     n.add_argument('--on', required=True)
     n.add_argument('--out', required=True)
     n.add_argument('--report', required=True)
-    v = sub.add_parser('revise', help="(0.5.2) the owner's answers of 2026-11-26 10:02 on the commercial screen's outlines")
+    v = sub.add_parser('revise', help="(0.6.1) the owner's answers of 2026-11-26 10:02 on the commercial screen's outlines")
     v.add_argument('--prior', required=True, help="0.5.0's file: amendments/outline-new-2026-11-26.geojson")
     v.add_argument('--choices', required=True, help="his answers: amendments/outline-new-choices-2026-11-26.json")
     v.add_argument('--point', required=True, help='the drawing with CityMETER Building V4 from 8 m seeds')

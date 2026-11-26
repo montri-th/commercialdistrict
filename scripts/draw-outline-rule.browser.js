@@ -13,7 +13,7 @@
  * 'take' (a ring): an area the owner names as part of the place, e.g. the strip between a beach and the road behind it —
  * its land joins the area whatever the buildings, still inside his other limits.
  * redo — draw again places already drawn in this page (otherwise a place drawn once is kept).
- * cm — (0.5.2, owner 2026-11-26 10:02 “ใช้ Building v4”) inside a CityMETER unit of the demo's map (an อปท., in Bangkok a
+ * cm — (0.6.1, owner 2026-11-26 10:02 “ใช้ Building v4”) inside a CityMETER unit of the demo's map (an อปท., in Bangkok a
  * เขต, where CityMETER Building V4 holds at least 1.15 × the OpenStreetMap buildings; data/building-units) the buildings
  * are CityMETER Building V4's, read from the production tiles the map reads (js/shell/building-units.js), in place of
  * the OpenStreetMap buildings whose interior point stands in the unit — the buildings the map draws there. Ground (A)
@@ -191,7 +191,7 @@ window.__rule = (() => {
     for (const T of tilesIn(bbox)) { if (T.cm) continue; const t = {x: T.x, y: T.y, z: 14}, b = tb(T.x, T.y, 14), here = zones.filter(z => meets(z.bbox, b)), urls = [];
       for (const z of here) for (const u of z.tileUnits) { if (!meets(u.bbox, b)) continue; const url = bu.cmTileUrl(t, u, z.tileType); if (url) urls.push(url); }
       jobs.push({T, t, here, urls}); }
-    // (0.5.2) every tile of the box is fetched at once, 8 requests at a time; each tile is then read in the order one by
+    // (0.6.1) every tile of the box is fetched at once, 8 requests at a time; each tile is then read in the order one by
     // one would read it, so the buildings and their order are the same (the drawing too)
     const all = [...new Set(jobs.flatMap(j => j.urls))], got = new Map(); let next = 0;
     await Promise.all(Array.from({length: Math.min(8, all.length)}, async () => { while (next < all.length) { const url = all[next++]; got.set(url, await cmTile(url)); } }));
@@ -226,7 +226,7 @@ window.__rule = (() => {
     const P = {bbox, G: grid(bbox)}; const G = P.G, M = morph(G);
     P.base = base(G, bbox, {light: new Set(O.lightLanduse || []), limits: (O.limits || {})[F.properties.id] || []});
     const ras = gg => { const ctx = cv(G); fillG(G, ctx, gg); return maskOf(G, ctx); };
-    // (0.5.2) a seed covers about one cell and can fall between cells (none half covered): it keeps the cell of its point
+    // (0.6.1) a seed covers about one cell and can fall between cells (none half covered): it keeps the cell of its point
     // (in 0.5.0, 18 of the 228 seeds of 8 m vanished so, and their codes were drawn from the 40 m seed)
     const rasSeed = (gg, kind) => { const mk = ras(gg); if (kind !== 'seed' || mk.some(v => v)) return mk;
       for (const p of (gg.type === 'Polygon' ? [gg.coordinates] : gg.coordinates)) { const q = p[0].slice(0, -1); const c = cellOf(G, q.reduce((s, v) => s + v[0], 0) / q.length, q.reduce((s, v) => s + v[1], 0) / q.length); if (c >= 0) mk[c] = 1; }

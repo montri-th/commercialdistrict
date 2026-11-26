@@ -44,7 +44,7 @@ in §9 are published.
 
 ## 2. Neighbourhoods
 
-**Observed fact.** 469 outlines in 77 provinces since 0.5.2, 233.03 km² as the page draws them (§2d and §2e: 74 of the registry's commercial screen, 26.39 km²; in 0.5.0, 451 and 212.11 km² with 56 of them, 5.48 km²). The 395 before it, 95.03 km²: the registry's 358 closed outlines (80.86 km², registry
+**Observed fact.** 469 outlines in 77 provinces since 0.6.1, 233.03 km² as the page draws them (§2d and §2e: 74 of the registry's commercial screen, 26.39 km²; in 0.5.0, 451 and 212.11 km² with 56 of them, 5.48 km²). The 395 before it, 95.03 km²: the registry's 358 closed outlines (80.86 km², registry
 `area_m2` in its metric CRS, 473 m² to 2.17 km² — 0.3 to 1,358 ไร่ as the page writes it since 0.2.5; since 0.2.4 one of them extended on the owner's word, §2b) and, since
 0.2.0, 37 lodging areas of its lodging screen (14.18 km², §2a). Since 0.3.0, 235 of the 395 (220 of the registry's, 15 lodging
 areas) are redrawn by the owner's rule (§2c): as drawn, 206.63 km² (the registry's 182.83, the lodging areas 23.80), 1,592 m² to
@@ -269,9 +269,9 @@ change of the rule and waits for the owner's word.
 provinces); the counts inside the 395 earlier outlines do not change (their outlines are as before). The glance of §12
 still ranks against the 395 of release 0.4.0 (D-8); a neighbourhood of the screen takes a level against them without
 joining them. The registry sheet is not written: the outline status of these codes there stays “ยังพักไว้ … รอวาดขอบตาม
-หลักเกณฑ์ของเจ้าของ” until the owner's word. Release 0.5.2 applies his answers on these outlines (§2e).
+หลักเกณฑ์ของเจ้าของ” until the owner's word. Release 0.6.1 applies his answers on these outlines (§2e).
 
-## 2e. The owner's answers on those outlines (0.5.2)
+## 2e. The owner's answers on those outlines (0.6.1)
 
 Owner 2026-11-26 10:02, VERBATIM, as he numbered them: “1) ตามที่พี่แนะนำ” · “2) ใช้ Building v4” · “3) ผมไม่เห็นรูปร่าง
 พื้นที่ แต่อยากคงไว้ ควรรวมร้านค้าต่างรอบๆตลาดด้วย และควรเชื่อมโยงไปถึงตลาดไอยรา” — on Claude's questions of about 08:10: the 17
@@ -297,7 +297,7 @@ already draws V4 there) the buildings are CityMETER Building V4's, read from the
 OpenStreetMap's. The ground (line A), the seeds, the options (`lightLanduse: ['industrial']`), the 1 km tick and the
 order are those of §2d; every outline of the demo is in place, with the 13 now used and the trimmed one before its trim,
 and the screen's codes without an outline as seeds of 8 m. A seed of 8 m covers about one cell and can fall between cells:
-in 0.5.0, 18 of the 228 covered no cell by half and vanished, so those codes were drawn from the 40 m seed only; since 0.5.2
+in 0.5.0, 18 of the 228 covered no cell by half and vanished, so those codes were drawn from the 40 m seed only; since 0.6.1
 the script keeps the cell of the point. Result (Observed fact): 5 take an outline within 1 km (4
 from the 8 m seed, 1 from the 40 m one), 64 reach further and wait for his tick, 47 run into a
 city's fabric or on beyond 5 km, 25 still reach no building or too few (21 of these lie outside every V4
@@ -369,6 +369,10 @@ Ties share the better rank; since 0.4.0 the page says how many share it (“ม�
 the same density). A comparison is a highlight when `p ≥ 0.75`; a neighbourhood keeps at most four, one per
 dataset, strongest first (equal strength: the larger share of the dataset's located records first). “เด่นหลายด้าน”
 counts highlights with `p ≥ 0.9`. Rules and thresholds are `meta.rules`.
+
+Since 0.6.0 (D-V2, §14) a highlight stands only on a dataset with points for at least 90 % of its records: the page
+draws the highlights again by this rule over those datasets (`js/model.js#highlightsOf`), then keeps four. The file's
+own lists stay in `data/neighborhoods.json` (`hl`, `pairs` of a row; `hlBuild`, `pairsBuild` once decoded).
 
 ## 6. What comes together (Inference from a correlation)
 
@@ -571,7 +575,7 @@ python3 -I scripts/rule-outlines.py new amendments/outline-new-2026-11-26-point.
   --bundle <outlines dir> --lodging <lodging folder> --hold CMN-TH-BAFFB5235F --on 2026-11-26 \
   --out amendments/outline-new-2026-11-26.geojson --report <report.json>
 #    and step 5 takes --screen amendments/outline-new-2026-11-26.geojson --screen-on 2026-11-26 --screen-hold CMN-TH-BAFFB5235F
-# 8b. (0.5.2) the owner's answers of 2026-11-26 10:02 (§2e): the codes without buildings drawn again in the live demo with the
+# 8b. (0.6.1) the owner's answers of 2026-11-26 10:02 (§2e): the codes without buildings drawn again in the live demo with the
 #    option cm (8 m seeds, then 40 m for the ones that drawing left unchanged) and ย่านตลาดไท with its own seeds and limits; the
 #    two V4 drawings stay private (they locate codes the registry has not outlined; their SHA-256 are in the r2 file), the
 #    market's is in amendments/; then
@@ -690,7 +694,7 @@ Owner 2026-11-26 06:14, VERBATIM: “เช็คหน่อยว่า โล
 - Joined by ids only (`scripts/build-logos.py`): a record's key in its own demo → the brand id that demo gives it → the logo that demo's registry gives that id (the kit's own id or the same id in another dataset; never a name rewrite, never fuzzy) for Hotel, Fitness, Restaurants, Grocery, Camera Shops, Luxury Brands, Pharmacy and University; a shopping centre — and every centre «รอบย่านนี้» names — by its Shopping Center venue id through the kit's venue pool, roles `venue_specific` and `parent_complex` only (a shared department-store or chain banner is not a centre's own mark, so it is left out); an office by its Office ID (montri-th/office `data/office-logos.json`, 0.6.0); a station record by its line → the line's mark (montri-th/transit `data/operator-logos.json`, 0.4.0: a line in service whose GTFS names its operator). The source files are read at the commits recorded in `data/logos-report.json` (`inputs`); a brand file that differs from the one the records were built from (`neighborhoods.json` → `source.sha256`) is joined only where the key reads the same name (none differed on 2026-11-26).
 - Build of 2026-11-26 (on the 451 neighbourhoods of 0.5.0): 3,186 of the 12,975 records inside the outlines carry a logo — every Grocery, Luxury Brands and Fitness record, 108 of 109 Camera Shops, 88 of 94 station records, 519 of 3,403 restaurants, 139 of 5,053 accommodation records (most have no brand), 135 of 278 pharmacies, 56 of 691 centres and markets, 29 of 189 offices; Factory, Government Office, Hospital, School and University records have no logo source yet (University's 13 sites belong to universities without a collected logo). 163 of the 537 centre names «รอบย่านนี้» lists carry one, counted per neighbourhood (73 of the 270 distinct centres). 452 files, 5.1 MB in all, 329 of 451 neighbourhoods with at least one.
 - Display (the family rule): SVG and rasters ≤ 512 px and ≤ 64 KB keep their bytes; larger rasters are scaled uniformly to 384 px on the longest side as WebP (119 files; `sourceSha256` keeps the original's). Plates: the family's (`#FFFFFF`, `#E5E9E6`, `#182327`) as the source registry chose them, the same in both themes; never recoloured.
-- Build of 2026-11-26 for 0.5.2 (on its 469 neighbourhoods, the family's checkouts at the commits of the 0.5.1 build, `data/logos-report.json` `inputs`): 3,353 of the 13,407 records inside the outlines carry a logo, 166 of the 543 centre names around them, 458 files, no SHA-256 issue; the shards of the 451 earlier neighbourhoods are byte for byte those of 0.5.1. Since 0.5.2 a raster still over 64 KB once scaled and saved lossless is saved at the first WebP quality of 90, 80, 70 that fits, alpha kept (one University mark, 76 KB lossless); no file of 0.5.1 changes by it.
+- Build of 2026-11-26 for 0.6.1 (on its 469 neighbourhoods, the family's checkouts at the commits of the 0.5.1 build, `data/logos-report.json` `inputs`): 3,353 of the 13,407 records inside the outlines carry a logo, 166 of the 543 centre names around them, 458 files, no SHA-256 issue; the shards of the 451 earlier neighbourhoods are byte for byte those of 0.5.1. Since 0.6.1 a raster still over 64 KB once scaled and saved lossless is saved at the first WebP quality of 90, 80, 70 that fits, alpha kept (one University mark, 76 KB lossless); no file of 0.5.1 changes by it.
 - Where: the card's head (32 px), the tip of one record (20 px), the names at a point and the panel's names (16 px), a spot's name on the map (14 px, only when every record of the spot has the same logo), and the centres «รอบย่านนี้» names (16 px). Decorative (`alt=""`): the name beside it is the identity. One shard per neighbourhood (`data/logos/<id>.json`, empty maps where none), loaded when the neighbourhood opens; a shard that fails to load is said (`partial('logos')`) and the names show alone.
 - A logo identifies a brand or a place. It counts nothing, ranks nothing and is never evidence of a tenancy, an operator or a status beyond what its own demo says. The marks belong to their owners; showing one is not a trademark licence.
 
@@ -701,3 +705,82 @@ python3 -I scripts/build-logos.py --root <folder of the family's checkouts> --bu
 node --test tests/logos.test.js
 ```
 
+## 14. The visual-first panel: levels, the fingerprint, the axes and the matrix (0.6.0, 2026-11-26)
+
+Owner 2026-11-26 11:43, VERBATIM: “ทำตามที่เสนอให้ครบทุกข้อพร้อม publish” — every recommended option of the proposal
+`02-CityMETER__commercialdistrict-visual-first-panel-proposal__v1__2026-11-26` (owner's words of 06:21 · 06:47 · 07:56 ·
+09:56 · 10:26 · 11:26 · 11:43, the decisions and Claude's reading in `handoff/visual/decisions.json`).
+
+**The level of a dataset in a neighbourhood (D-V1 = D, D-V1c; an Inference: this demo's own index).** Peers: the
+neighbourhoods of the release holding at least `minCount` (3) records of the dataset, nationwide — the peers of
+“แน่นอันดับ k/N” (`r[3]` of a row, the build's density rank). In those peers, the count level and the density level
+are each a mid-rank percentile, 100 × (below + ½ equal) / n; the level is their mean, 0–100, equal weights, no unit.
+The rank of the level among the peers is 1 for the highest; equal levels share a rank (`js/levels.js#levelModel`). One
+function gives the same value to every part of the panel: the fingerprint, the matrix of neighbourhoods × 16 datasets,
+the dots of the axes and of the comparison. A dataset with points for under 90 % of its records (D-4) has no level.
+Why a mean: the outlines run from about 1 ไร่ to 6,633 ไร่, so a count mostly says “a large neighbourhood” and a density
+“a small one”; their mean cancels part of each. It is a level within a declared group, never a total, a rate, footfall,
+sales or demand.
+
+**Colour (D-V1d).** The level takes the LDS 0.9.7 `count` LUT, all 41 samples (`js/levels.js#levelFill`, index
+round(level × 40 / 100)), the same HEX on both themes, with a token outline and no opacity: an exception to DATAVIZ-02
+(which keeps `count` for totals) that the owner approved for these dots and cells only (2026-11-26 11:26, VERBATIM
+“ใช้ A ใน V1 แล้วทำ C ใน LDS รุ่นถัดไป”), until the next LDS release has a scale for a level within a declared group;
+then the dots and cells move to it. The map keeps `density.area` among the neighbourhoods in view (D-V1b), so a map
+colour and a dot can differ; the map key's title says so.
+
+**Cells of the fingerprint and of the matrix (§4.1).** One per dataset, in the order of the datasets (Land 4 ·
+Location 7 · Living 5, D-V7b): *ranked* (≥ 3 records of a complete dataset) — coloured by its level · *few* (1–2
+records) and *starred* (points for under 90 %) — neutral with a dot (in the top corner where the head's cell carries
+the dataset's pictogram) · *edge* (none inside, some outside within 800 m of the edge; only with `data/around.json`) —
+a dashed edge · *zero* (none inside, and with the surroundings file none within 800 m) — a thick outline in
+`--data-zero-outline`, where a ranked cell has a hairline edge, so a light level never reads as none · *out* (no
+located record in the province) — a hatch in `--data-no-data`, never 0 · a highlight of the neighbourhood (§5, D-V2) —
+a thick ring. The fingerprint's key counts datasets in each state (they make 16), never records (INV-01): every number
+in it and in the image's name carries its unit (ชุด, datasets). A matrix cell reads to a screen reader as its figure and
+level (or its state); pointing at it, tapping it or focusing it writes its full words — level, peers, count rank,
+density rank — under its table (`js/app.js#matrixReadout`). A matrix is one stop of the Tab key; the arrows move from
+cell to cell, Home and End to the row's ends, Ctrl+Home and Ctrl+End to the table's (`js/app.js#matrixKeys`).
+
+**The axes อยู่ · เที่ยว · ค้าขาย (D-V6, D-V7 A; an Inference: placing a dataset on an axis is this demo's reading,
+not the source's).** อยู่ (ชีวิตประจำวัน): grocery, pharmacies, hospitals, schools, government offices, rail stations,
+fitness · เที่ยว (คนมาเยือน): lodging, shopping centres and markets, restaurants, luxury brands · ค้าขาย (คนทำงานและ
+กิจการ): offices, universities, camera shops, factories, industrial estates (`js/axes.js#AXES`). An axis has no score,
+no total and never ranks a neighbourhood; “ระดับสูง:” names its datasets at level 75 or more (“เด่น” stays the word of the
+highlights, §5, which follow another rule: a highlight's level can be lower, and a level of 75 need not be a highlight).
+A “?” at its head marks the
+indicators it has no data for yet, named in the closed part with the open or CityMETER source looked at — a mark that
+says “not yet”, never a promise; no partner is named. Rows: the dataset's name (it colours the map by the dataset), a
+track with the dot at its level and a dashed line at 50, the count in its unit, the rank of the level `k/N`, and the
+dataset's own demo at the province. At 400 or 800 m a dashed chip beside the count gives the records outside within
+that distance (§12), never added to the inside; datasets found only there get rows of their own. The 0.4.0 table with
+every figure at every distance stays whole in the closed part (D-V5).
+
+**The matrix (§4.5).** Wherever several neighbourhoods show together — the similar mixes, the neighbourhoods that
+stand out on several fronts, a province's or a search's list (its first 30, the most distinctive first; the rest by
+name), the comparison — a `<table>`: a column per dataset named by its pictogram, its title and its words for screen
+readers, a row header per neighbourhood. Its answer line (the similar mixes and the comparison) names the datasets
+where every neighbourhood shown stands above level 50, with its peers by their number. Under the overview's and the
+comparison's matrices a key names every dataset beside its pictogram (LDS ICON-01); under the similar mixes the axes
+above already do.
+
+**The comparison (§4.6).** One row per dataset that at least one compared neighbourhood ranks, each neighbourhood a
+shape (circle, triangle, square, diamond) in its own lane at its level, coloured by it; the shapes are on the
+neighbourhood's chip (which takes it out of the comparison) and its row of the matrix. The table of counts and
+densities (since 0.1.0) is closed under it.
+
+**The first finding (§4.7).** The most concentrated dataset's share of its located records inside the neighbourhoods
+and the neighbourhoods' share of the area as two bars, the next three datasets as bars in their pillar's colour; each
+with its numerator and denominator in words (INV-03).
+
+**Pictograms (D-V4 B).** One glyph per dataset, from the family's subset of Material Symbols Rounded (FILL 0 · wght 300
+· GRAD 0 · opsz 24; `scripts/build-pictogram-font.py`, source font SHA-256 `7e74e365…`): the glyphs Shopping Center's
+«รอบศูนย์นี้» gives the same datasets, and glyphs of their own for the five shops (camera shops, fitness, grocery,
+pharmacies, restaurants) and for industrial estates; home · luggage · payments for the axes. Every pictogram stands
+beside its name, or in a title, a column key and words for screen readers.
+
+Measured on the code of 0.6.0 against 0.5.1, every neighbourhood at the default view, 400 px, dark theme, visible
+characters without spaces (screen-reader words and closed parts left out): median text 2,216 → 2,321 (+4.5 %; 101 of
+451 shorter), median panel height 2,745 → 2,681 px (−2.9 %; 327 of 451 shorter); by part (medians): the head 158 → 142,
+highlights 108 → 58, what comes together 93 → 108, the axes (the 0.4.0 table before) 897 → 906, similar mixes 132 →
+415 (`handoff/VERIFICATION.md` 0.6.0).
