@@ -220,8 +220,13 @@ window.__rule = (() => {
     const P = {bbox, G: grid(bbox)}; const G = P.G, M = morph(G);
     P.base = base(G, bbox, {light: new Set(O.lightLanduse || []), limits: (O.limits || {})[F.properties.id] || []});
     const ras = gg => { const ctx = cv(G); fillG(G, ctx, gg); return maskOf(G, ctx); };
-    P.seed = ras(g);
-    P.coreMasks = []; for (const C of S.cores) { const b = C.bbox; if (b[2] < bbox[0] || b[0] > bbox[2] || b[3] < bbox[1] || b[1] > bbox[3]) continue; P.coreMasks.push({id: C.id, kind: C.kind, own: C.id === F.properties.id, mask: C.id === F.properties.id ? P.seed : ras(C.g)}); }
+    // (0.5.2) a seed covers about one cell and can fall between cells (none half covered): it keeps the cell of its point
+    // (in 0.5.0, 18 of the 228 seeds of 8 m vanished so, and their codes were drawn from the 40 m seed)
+    const rasSeed = (gg, kind) => { const mk = ras(gg); if (kind !== 'seed' || mk.some(v => v)) return mk;
+      for (const p of (gg.type === 'Polygon' ? [gg.coordinates] : gg.coordinates)) { const q = p[0].slice(0, -1); const c = cellOf(G, q.reduce((s, v) => s + v[0], 0) / q.length, q.reduce((s, v) => s + v[1], 0) / q.length); if (c >= 0) mk[c] = 1; }
+      return mk; };
+    P.seed = rasSeed(g, F.properties.kind);
+    P.coreMasks = []; for (const C of S.cores) { const b = C.bbox; if (b[2] < bbox[0] || b[0] > bbox[2] || b[3] < bbox[1] || b[1] > bbox[3]) continue; P.coreMasks.push({id: C.id, kind: C.kind, own: C.id === F.properties.id, mask: C.id === F.properties.id ? P.seed : rasSeed(C.g, C.kind)}); }
     const r = draw(P);
     const cents = [], cmCents = []; for (const T of tilesIn(bbox)) { const b = tb(T.x, T.y, 14); for (const f of T.building) { const polys = f.g.type === 'MultiPolygon' ? f.g.coordinates : [f.g.coordinates]; for (const p of polys) { const q = p[0]; let sx = 0, sy = 0; for (const v of q) { sx += v[0]; sy += v[1]; } const cx = sx / q.length, cy = sy / q.length; if (cx < b[0] || cx >= b[2] || cy < b[1] || cy >= b[3]) continue; (f.cm ? cmCents : cents).push(cellOf(G, cx, cy)); } } }
     const count = (mk, cs = cents) => { let k = 0; for (const c of cs) if (c >= 0 && mk[c]) k++; return k; };
