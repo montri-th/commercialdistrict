@@ -800,8 +800,10 @@ figure reads “ราว” (about), rounded — 10 000 or more to the thousand
 under 10 it reads “ไม่ถึง 10”. The at-least figure is rounded down by the same steps and never says ราว (under 10 it is
 exact). A measured 0 reads 0 and has no level beside it. A part whose records within the distance carry no figure at all
 is unknown — “ไม่มีตัวเลข (n แห่ง)”, never 0 — and a part some of whose records carry one says how many (“มีตัวเลข k จาก n”):
-government staff are unknown at 1 km for 123 neighbourhoods, university students for 35 (a university with a site in reach
-that cannot be counted). Lodging without any room figure leaves rooms and guests unknown in the same way. None is
+government staff are unknown at 1 km for 123 neighbourhoods. A university counts only when every site of it is located and
+within the distance (its students are never split between campuses), so one with a site in reach that cannot be counted
+reads “ยังนับไม่ได้ (n มหาวิทยาลัย)” and a partial part “นับได้ k จาก n มหาวิทยาลัย” (0.7.3; before it, “ไม่มีตัวเลข”): at
+1 km for 35 neighbourhoods, at 3 km for 56, at 5 km for 70. Lodging without any room figure leaves rooms and guests unknown in the same way. None is
 footfall, a number of customers or sales.
 
 **Where (D-13; straight line for now).** ในย่าน = inside the outline the map draws (for a dataset, the records the data
@@ -829,8 +831,13 @@ are not in it, and a commercial building takes people by its floor area like a h
 people than live there. 0.7.0 has the residents inside the outline and within 400 m, 800 m and 1 km of it (a second run
 of 2026-11-26, `--reach 1000`: 10,697 tile × subdistrict requests over 1,063 subdistricts, 2,879,381 buildings of which
 575 from parts, the register total equal to `popCount` in all 1,062 that carry one; the figures inside equal the first
-run's for every neighbourhood); 3 and 5 km and the residents map come with the run over 5 km (V7-07) — until then those
-tiles read “รอข้อมูลรอบถัดไป”.
+run's for every neighbourhood). 0.7.3 adds 3 and 5 km and the residents map (V7-07; a run of 26–27 November 2026,
+`--reach 5000`: 59,219 tile × subdistrict requests over 2,106 subdistricts, 7,213,960 buildings of which 638 from parts,
+none without an estimated floor, the register's total equal to `popCount` in all 2,105 that carry one; the figures inside
+and within 400 m, 800 m and 1 km equal the 1 km run's for every neighbourhood). Every neighbourhood has residents within
+3 and 5 km (the fewest, 41 within 5 km on an island; the median 61,603; the most 1,010,976 in central Bangkok, all
+modelled); the tiles round them as above. The run's plan takes the subdistricts' extents as one array (0.7.3): the same
+requests, in seconds rather than minutes.
 
 **คนมาทำงานและเรียน (at least; D-12 amends INV-01 for this group only).** The sum of the parts the sources record, each
 shown beside it: students the school register records for 2569 · students of a university when every site of the
@@ -873,8 +880,11 @@ D59 of the Shopping Center page): the places within 5 km of the edge, straight l
 the neighbourhood's local projection (a cell on the 5 km line can have its centre a little beyond it). ที่ผู้มาเยือนใช้ = located places of eight datasets per cell (lodging, centres and
 markets, groceries, restaurants, pharmacies, fitness, luxury brands, camera shops) on the LDS `activity` scale ·
 ที่ทำงานและที่เรียน = places of seven (offices, government offices, factories, industrial estates, universities,
-hospitals, schools) on `count` · คนอยู่ = registered residents (modelled) per cell on `density.area`, with the run over 5 km
-(the tab says “รอบถัดไป” until then). Adding places of the listed datasets per cell amends INV-01 for these two maps only:
+hospitals, schools) on `count` · คนอยู่ = registered residents (modelled) per cell on `density.area` (0.7.3, the run over
+5 km): the residents of every building of Building V4 within 5 km of the edge added in the cell its footprint's centre
+falls in; modelled, so the lead reads “ราว”, the table rounds by the steps of «ใครอยู่ตรงนี้» and reads “ไม่ถึง 10” under
+ten, the legend's ends too, and a map whose 5 km holds no building of Building V4 reads “ยังไม่มีข้อมูลอาคารในระยะ 5 กม.”,
+never 0; its provenance names the register's month and Building V4, its boundary the buildings within 5 km. Adding places of the listed datasets per cell amends INV-01 for these two maps only:
 the map, its legend, its direction line and its table read those cells; the heading says อนุมาน (an inference of where
 people go, not people or visits); no other figure on the page adds places across datasets. Colours: all 41 samples of
 the map's scale, ranked within that one map, the same HEX on both themes; a pale cell keeps a hairline edge. Over the

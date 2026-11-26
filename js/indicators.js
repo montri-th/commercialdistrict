@@ -90,7 +90,7 @@ export function topicsOf(axisId, {row, model, around, people = null, peopleMeta 
       perKm2 > 0 ? nw(esc(L(aboutPeople(perKm2) ? `ราว ${aboutPeople(perKm2)} คน/ตร.กม.` : 'ไม่ถึง 10 คน/ตร.กม.', aboutPeople(perKm2) ? `about ${aboutPeople(perKm2)} per km²` : 'under 10 per km²'))) : ''])} ${modelled}` : '';
     const rest = cells.get('restaurant');
     // the level of §14 (count and density among the neighbourhoods with 3 or more), said neutrally at any level
-    const lively = rest?.kind === 'ranked' ? `${esc(L('ระดับร้านอาหาร (จำนวนและความแน่น)', 'restaurant level (count and density)'))} ${fig(Math.round(rest.level), '/100')} ${esc(L('เทียบ', 'among'))} ${fig(rest.n, L('ย่าน', 'neighbourhoods'))}` : '';
+    const lively = rest?.kind === 'ranked' ? `${esc(L('ระดับร้านอาหาร (จำนวนและความแน่น)', 'restaurant level (count and density)'))} ${nw(`<b class="data-number">${num(Math.round(rest.level))}</b>/100`)} ${esc(L('เทียบ', 'among'))} ${fig(rest.n, L('ย่าน', 'neighbourhoods'))}` : '';
     return [
       T('eat', 'restaurant', 'กิน', 'Eating', eat ? `${eat} ${esc(where)}${small([eatQ, gap(['restaurant', 'grocery'])])}` : '', ['ยังไม่มีข้อมูลในจังหวัดนี้: ร้านอาหาร · ร้านของชำ', 'no data in this province yet: restaurants · groceries']),
       T('needs', 'grocery', 'ของจำเป็นใกล้ตัว', 'Everyday needs', needText, ['ยังไม่มีข้อมูลในจังหวัดนี้', 'no data in this province yet']),

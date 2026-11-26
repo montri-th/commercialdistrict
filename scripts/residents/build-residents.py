@@ -110,6 +110,10 @@ def main():
     # ---- plan: (tile, subdistrict) pairs over every outline's reach
     reach = a.reach
     pairs = set()
+    # the subdistricts' extents as one array (0.7.3): the same test as before, per tile at once, so the plan of a 5 km run
+    # takes seconds instead of minutes in every chunk
+    sid_list = list(sds)
+    ext = np.array([sds[s]['extent'] for s in sid_list], dtype='f8').reshape(-1, 4)
     for r in rows:
         g = outl[r['id']]
         x0, y0, x1, y1 = g.bounds
@@ -124,11 +128,10 @@ def main():
                 tb = box(*crawl.tile_merc_bounds(x, y)).intersection(mb)
                 if tb.is_empty:
                     continue
-                for sid, s in sds.items():
-                    e = s['extent']
-                    if e[0] > tb.bounds[2] or e[2] < tb.bounds[0] or e[1] > tb.bounds[3] or e[3] < tb.bounds[1]:
-                        continue
-                    pairs.add((x, y, sid))
+                bx0, by0, bx1, by1 = tb.bounds
+                keep = ~((ext[:, 0] > bx1) | (ext[:, 2] < bx0) | (ext[:, 1] > by1) | (ext[:, 3] < by0))
+                for k in np.nonzero(keep)[0]:
+                    pairs.add((x, y, sid_list[k]))
     pairs = sorted(pairs)
     touched = sorted({p[2] for p in pairs})
     print(f'{len(rows)} outlines · reach {reach} m · {len(pairs)} tile × subdistrict requests · {len(touched)} subdistricts', flush=True)

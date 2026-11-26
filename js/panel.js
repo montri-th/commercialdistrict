@@ -452,7 +452,9 @@ function mapProvenance(r, model, meta, tab, {context = false} = {}) {
     dataset: L(`CityMETER Commercial District · แผนที่รอบย่าน รุ่น ${meta?.release || ''}`.trim(), `CityMETER Commercial District · round map ${meta?.release || ''}`.trim()),
     source: osm ? `${base} · ${L('ถนน ราง และแหล่งน้ำ © ผู้ร่วมให้ข้อมูล OpenStreetMap (ODbL)', 'roads, rail and water © OpenStreetMap contributors (ODbL)')}` : base,
     date: osmDay ? [day, `OpenStreetMap ${thaiDate(osmDay)}`].filter(Boolean).join(' · ') : day,
-    boundary: L(`${r.name} · สถานที่ที่อยู่ห่างขอบไม่เกิน 5 กม. วัดเส้นตรง นับลงช่อง 250 × 250 ม.`, `${r.name} · places within 5 km of the edge, straight line, counted in 250 × 250 m cells`), anchor: 'maps-and-topics'});
+    boundary: tab === 'res'
+      ? L(`${r.name} · อาคารที่อยู่ห่างขอบไม่เกิน 5 กม. วัดเส้นตรง รวมลงช่อง 250 × 250 ม.`, `${r.name} · buildings within 5 km of the edge, straight line, added per 250 × 250 m cell`)
+      : L(`${r.name} · สถานที่ที่อยู่ห่างขอบไม่เกิน 5 กม. วัดเส้นตรง นับลงช่อง 250 × 250 ม.`, `${r.name} · places within 5 km of the edge, straight line, counted in 250 × 250 m cells`), anchor: 'maps-and-topics'});
 }
 
 /**

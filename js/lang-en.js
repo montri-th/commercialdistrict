@@ -106,7 +106,8 @@ export default {
   },
   patterns: [
     // The ramp's accessible name (js/scales.js#rampLegendHTML): the unit after it is already English.
-    [/^41 ระดับสีตามลำดับค่า ต่ำสุด ([\d,.]+) สูงสุด ([\d,.]+) (.+)$/, '41 colour steps by rank, lowest $1, highest $2 $3'],
+    // (0.7.3) the residents map's modelled ends read “ไม่ถึง 10” / “under 10” below ten people a cell
+    [/^41 ระดับสีตามลำดับค่า ต่ำสุด ([\d,.]+|ไม่ถึง 10|under 10) สูงสุด ([\d,.]+|ไม่ถึง 10|under 10) (.+)$/, m => `41 colour steps by rank, lowest ${m[1].replace('ไม่ถึง 10', 'under 10')}, highest ${m[2].replace('ไม่ถึง 10', 'under 10')} ${m[3]}`],
     // The reader's own search text, quoted: kept as typed.
     [/^(Clear )?“([^”]+)”$/, m => m[0]],
   ],
