@@ -23,6 +23,7 @@ import {provinces as provinceList, provinceByCode, provinceCodeFrom, provinceNam
 import {buildOverview, buildNeighborhood, buildCompare} from './profile.js';
 import {decodeAround, aroundDistance, aroundMatches} from './around.js';
 import {renderOverview, renderNeighborhood, renderCompare, renderFilterChips, tableHeadHTML, tableRowHTML, esc, L, dens, sharePct, thaiDate} from './panel.js';
+import {decodePeople, validReach, validMap, DEFAULT_REACH, DEFAULT_MAP, reachWords} from './people.js';
 import {cellOf} from './levels.js';
 import {cellWords} from './visual.js';
 import {loadMapLibrary} from './shell/vendors.js';
@@ -73,6 +74,9 @@ const state = {
   // «ขอบเดินถึง» (0.4.0, `f.around`): data/around.json decoded (null until it arrives or if it did not), the reading
   // (in · 400 · 800: the column the table stresses and the line the map draws) and the lines, one file per neighbourhood
   around: null, distance: 'in', rings: new Map(), ringsLoading: new Set(), frameOnRing: '',
+  // «ใครอยู่ตรงนี้» and the round maps (0.7.0): data/people/<id>.json by neighbourhood, its meta once, the scale (`f.reach`:
+  // in · 1000 · 3000 · 5000, 1 km by default) and the map's tab (`f.map`: visit · work · res)
+  people: new Map(), peopleLoading: new Set(), peopleErr: new Set(), peopleMeta: null, reach: DEFAULT_REACH, mapTab: DEFAULT_MAP,
   map: null, loaded: false, mapTheme: '', initialCameraDone: false, tileTemplate: '', budget: null,
   layers: null, provinceLabels: null, nbLabels: null, massing: null, buildingUnits: null,
   readerPitch: false, readerMovedAt: 0,
@@ -80,7 +84,7 @@ const state = {
 
 /* ---------- address (citymeter-shell, js/shell/url.js) ---------- */
 const nav = createNavigator(createCodec({
-  dataset: DATASET, levels: ['P'], place: {}, items: {}, filters: ['search', 'neighborhood', 'show', 'kind', 'around'], levelFilters: ['neighborhood'],
+  dataset: DATASET, levels: ['P'], place: {}, items: {}, filters: ['search', 'neighborhood', 'show', 'kind', 'around', 'reach', 'map'], levelFilters: ['neighborhood'],
   rename: {metric: 'm', compare: 'cmp', view3d: 'v3d'},
 }), {onPop: restoreFromHistory});
 
@@ -93,6 +97,9 @@ function saveURL() {
   if (state.focus) p.set('show', state.focus);
   // the reading of «ขอบเดินถึง» belongs to an open neighbourhood; inside (the default) is never written
   if (state.nb && state.distance !== 'in') p.set('around', state.distance);
+  // the scale and the map of «ใครอยู่ตรงนี้» belong to an open neighbourhood too; their defaults are never written
+  if (state.nb && state.reach !== DEFAULT_REACH) p.set('reach', state.reach);
+  if (state.nb && state.mapTab !== DEFAULT_MAP) p.set('map', state.mapTab);
   if (state.lens) p.set('metric', state.lens);
   if (state.compare.length) p.set('compare', state.compare.join(','));
   if (!state.view3d) p.set('view3d', '0');
@@ -215,7 +222,8 @@ function renderPanel() {
   if (r) {
     html = renderNeighborhood(buildNeighborhood(state.model, r), state.model, {inCompare: state.compare.includes(r.id), compareFull: state.compare.length >= COMPARE_MAX,
       fillOf: ds => (state.lens === ds.id ? fillOfRow(r) : ''), ctx: panelCtx(), recordsHTML: panelListHTML(state.records.get(r.id) ?? null, {open: state.recordsOpen}),
-      around: state.around, distance: state.distance, venueLogo: id => state.logoShards.get(r.id)?.venues.get(id) || null});
+      around: state.around, distance: state.distance, venueLogo: id => state.logoShards.get(r.id)?.venues.get(id) || null,
+      people: state.people.get(r.id) || null, peopleMeta: state.peopleMeta, peopleState: state.peopleErr.has(r.id) ? 'error' : 'loading', reach: state.reach, mapTab: state.mapTab});
     $('map-aha').hidden = true;
   } else {
     state.overview = buildOverview(state.model, {rows: state.rows, province: state.province, ds: lensDs(), pending: state.pending});
@@ -223,8 +231,13 @@ function renderPanel() {
     html = renderOverview(state.overview, state.model, {fillOf: fillOfRow, ctx: panelCtx(), around: state.around});
     renderMapAha(state.overview);
   }
+  // (0.7.0) a re-render of the same view (a file arriving, a switch pressed) keeps the folds the reader opened and the
+  // control that had the focus; a new view starts closed at the top
+  const same = renderPanel.lastKey === `${r ? 'neighborhood' : 'overview'}:${state.nb}:${state.province}:${state.lens}`;
+  const kept = same ? keepPlace(view) : null;
   view.innerHTML = html;
-  if (r) ensureLogos(r);
+  if (kept) restorePlace(view, kept);
+  if (r) { ensureLogos(r); ensurePeople(r); }
   const mode = r ? 'neighborhood' : 'overview';
   view.dataset.mode = mode;
   $('panel').dataset.mode = mode;
@@ -235,6 +248,28 @@ function renderPanel() {
   const key = `${mode}:${state.nb}:${state.province}:${state.lens}`;
   if (key !== renderPanel.lastKey) { $('panel').scrollTop = 0; setSheet(restSheet()); state.readerPitch = false; state.readerMovedAt = 0; }
   renderPanel.lastKey = key;
+}
+
+/** The open folds (by class and order) and the focused control (by id or action and value) of the panel. */
+function keepPlace(view) {
+  const foldKey = el => { const same = [...view.querySelectorAll('details')].filter(x => x.className === el.className); return `${el.className}|${same.indexOf(el)}`; };
+  const open = [...view.querySelectorAll('details[open]')].map(foldKey);
+  const a = document.activeElement;
+  let focus = null;
+  if (a && view.contains(a)) {
+    if (a.id) focus = `#${CSS.escape(a.id)}`;
+    else if (a.dataset.action) focus = `[data-action="${CSS.escape(a.dataset.action)}"]${a.dataset.value != null ? `[data-value="${CSS.escape(a.dataset.value)}"]` : ''}`;
+    else if (a.tagName === 'SUMMARY' && a.parentElement?.tagName === 'DETAILS') focus = {fold: foldKey(a.parentElement)};
+  }
+  return {open, focus};
+}
+function restorePlace(view, {open, focus}) {
+  const folds = [...view.querySelectorAll('details')];
+  const byKey = new Map(folds.map(el => [`${el.className}|${folds.filter(x => x.className === el.className).indexOf(el)}`, el]));
+  for (const k of open) { const el = byKey.get(k); if (el) el.open = true; }
+  if (!focus) return;
+  const el = typeof focus === 'string' ? view.querySelector(focus) : byKey.get(focus.fold)?.querySelector('summary');
+  el?.focus({preventScroll: true});
 }
 
 /** The phone's first finding on the map (the dock): the overview's Aha in one line. */
@@ -332,6 +367,45 @@ function jumpToAround(dsId) {
 }
 
 /** The line of the open neighbourhood at the chosen distance (data/rings/<id>.json, once per neighbourhood). */
+/**
+ * «ใครอยู่ตรงนี้» of a neighbourhood (0.7.0): its file and, once, the meta beside it; the panel says it is loading, and on
+ * failure says so with a button to try again (the rest of the panel stays whole).
+ */
+function ensurePeople(r) {
+  if (!r || state.people.has(r.id) || state.peopleLoading.has(r.id) || state.peopleErr.has(r.id)) return;
+  state.peopleLoading.add(r.id);
+  const meta = state.peopleMeta ? Promise.resolve(state.peopleMeta) : fetchJSON(`data/people/meta.json${V()}`);
+  Promise.all([meta, fetchJSON(`data/people/${encodeURIComponent(r.id)}.json${V()}`)])
+    .then(([m, json]) => {
+      const rec = decodePeople(json, r.id);
+      if (!rec || !m?.schema) throw new Error('Invalid people file');
+      state.peopleMeta = m;
+      state.people.set(r.id, rec);
+      if (state.nb === r.id && state.mapTab === 'res' && !Array.isArray(rec.map?.res)) { state.mapTab = DEFAULT_MAP; saveURL(); }
+    })
+    .catch(e => { partial('people'); console.warn('People figures unavailable', r.id, e); state.peopleErr.add(r.id); })
+    .finally(() => { state.peopleLoading.delete(r.id); if (state.nb === r.id) renderPanel(); });
+}
+/** The scale of «ใครอยู่ตรงนี้» (in · 1 · 3 · 5 km from the edge); the focus goes back to the button pressed. */
+function setReach(value) {
+  const next = validReach(value);
+  if (next === state.reach) return;
+  state.reach = next;
+  renderPanel();
+  saveURL();
+  document.querySelector(`#panel-view [data-action="set-reach"][data-value="${next}"]`)?.focus({preventScroll: true});
+  announce(reachWords(next));
+}
+/** The tab of the round map (visit · work · res). */
+function setMapTab(value) {
+  const next = validMap(value);
+  if (next === state.mapTab) return;
+  state.mapTab = next;
+  renderPanel();
+  saveURL();
+  document.querySelector(`#panel-view [data-action="set-map"][data-value="${next}"]`)?.focus({preventScroll: true});
+}
+
 function ensureRing(r) {
   if (!r || state.distance === 'in' || state.rings.has(r.id) || state.ringsLoading.has(r.id)) return;
   state.ringsLoading.add(r.id);
@@ -391,6 +465,9 @@ function onPanelAction(event) {
   else if (action === 'crumb-zone') { if (state.nb) fitMap(); }
   else if (action === 'set-lens') { setLens(state.lens === value && el.closest('.share-list') ? '' : value); }
   else if (action === 'set-around') setDistance(value);
+  else if (action === 'set-reach') setReach(value);
+  else if (action === 'set-map') setMapTab(value);
+  else if (action === 'people-retry') { const r = openRow(); if (r) { state.peopleErr.delete(r.id); renderPanel(); $('nb-people')?.focus({preventScroll: true}); } }
   else if (action === 'around-jump') jumpToAround(value);
   else if (action === 'clear-lens') setLens('');
   else if (action === 'clear-search') { state.search = ''; update({fit: true}); }
@@ -1374,6 +1451,8 @@ function restoreFromURL() {
   state.focus = show === CONDO || show === ALL || state.model.dsById.has(show) ? show : '';
   state.lens = state.model.dsById.has(p.get('metric')) ? p.get('metric') : '';
   state.distance = state.nb && state.around ? aroundDistance(p.get('around')) : 'in';
+  state.reach = validReach(p.get('reach'));
+  state.mapTab = validMap(p.get('map'));
   state.compare = (p.get('compare') || '').split(',').map(id => state.model.canonicalId(id)).filter(id => rowById(id)).slice(0, COMPARE_MAX);
   state.view3d = p.get('view3d') !== '0';
   const r = openRow();
@@ -1443,6 +1522,7 @@ const PARTIAL = {
   'basemap': ['แผนที่ฐาน', 'ถนน แหล่งน้ำ และอาคารพื้นหลังอาจไม่แสดง ข้อมูลในแผงและตารางยังใช้ได้', 'Basemap', 'Roads, water and background buildings may be missing; the panel and the table still work'],
   'rail': ['ระบบราง', 'แผนที่ไม่แสดงแนวรถไฟฟ้าและสถานี ตัวเลขในแผงยังครบ', 'Rail', 'The map shows no rail lines or stations; the panel figures are complete'],
   'around': ['ตัวเลขขอบเดินถึง', 'แผงแสดงเฉพาะตัวเลขในย่าน ยังไม่มีตัวเลขขอบเดินถึงและระดับเทียบ', 'Walkable-edge figures', 'The panel shows the figures inside only, without the walkable edge or the levels'],
+  'people': ['ตัวเลขคนและแผนที่รอบย่าน', 'แผงไม่แสดงตัวเลขคนและแผนที่รอบย่านของบางย่าน ตัวเลขอื่นยังครบ', 'People figures and round maps', 'The panel shows no people figures or round maps for some neighbourhoods; the other figures are complete'],
   'rings': ['แนวขอบเดินถึง', 'แผนที่ไม่แสดงแนวขอบเดินถึง ตัวเลขในแผงยังครบ', 'The walkable-edge line', 'The map does not draw the walkable-edge line; the panel figures are complete'],
 };
 function partial(key) {

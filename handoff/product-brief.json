@@ -3,7 +3,7 @@
   "schemaVersion": "1.5.0",
   "documentType": "product-brief",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.6.1",
+  "productVersion": "0.7.0",
   "updatedOn": "2026-11-26",
   "datasetCheckedOn": "2026-11-16",
   "language": "th",
@@ -65,9 +65,9 @@
   },
   "panel": {
     "modes": ["overview", "neighborhood"],
-    "actions": ["select-nb", "select-province", "leave-province", "set-lens", "clear-lens", "cmp-add", "cmp-remove", "cmp-clear", "cmp-top", "cmp-similar", "open-table", "clear-search", "set-around", "around-jump"],
-    "models": ["js/profile.js#buildOverview", "js/profile.js#buildNeighborhood", "js/profile.js#buildCompare", "js/profile.js#similarRows", "js/around.js#glanceTiles", "js/around.js#aroundGroups", "js/around.js#venuesOf", "js/around.js#sharedBy", "js/model.js#highlightsOf", "js/levels.js#levelModel", "js/levels.js#cellOf", "js/axes.js#AXES", "js/visual.js#fingerprint", "js/visual.js#axisCards", "js/visual.js#matrix", "js/visual.js#compareDots"],
-    "order": ["detail head: name, highlights (chips with their pictograms), the fingerprint of the 16 datasets and its key, add to comparison", "the neighbourhood figures (4)", "the glance «ในย่านนี้» (4 tiles, meter key, provenance)", "(lodging areas: the registry's lodging screen)", "highlights as cards (each sets the map's lens), with the neighbourhoods sharing a rank", "what comes together: pairs as ρ bars, roles as ✓ / ○ rows", "อยู่ · เที่ยว · ค้าขาย: the distance switch, one card per axis (rows: level dot, count, k/N, the dataset's demo), the key, the 0.4.0 table closed under it, centres with a «รอบศูนย์นี้» page, its own provenance line", "records inside (closed)", "similar mixes: the matrix of this neighbourhood and the 3 closest, with its answer line", "ask bar", "registry record (closed)", "provenance"]
+    "actions": ["select-nb", "select-province", "leave-province", "set-lens", "clear-lens", "cmp-add", "cmp-remove", "cmp-clear", "cmp-top", "cmp-similar", "open-table", "clear-search", "set-around", "around-jump", "set-reach", "set-map", "people-retry"],
+    "models": ["js/profile.js#buildOverview", "js/profile.js#buildNeighborhood", "js/profile.js#buildCompare", "js/profile.js#similarRows", "js/people.js#peopleTiles", "js/people.js#mapModel", "js/indicators.js#topicsOf", "js/around.js#aroundGroups", "js/around.js#venuesOf", "js/around.js#sharedBy", "js/model.js#highlightsOf", "js/levels.js#levelModel", "js/levels.js#cellOf", "js/axes.js#AXES", "js/visual.js#fingerprint", "js/visual.js#axisCards", "js/visual.js#matrix", "js/visual.js#compareDots"],
+    "order": ["detail head: name, highlights (chips with their pictograms), the fingerprint of the 16 datasets and its key, add to comparison", "the neighbourhood figures (4)", "«ใครอยู่ตรงนี้» (0.7.0, D-12: the scale switch in · 1 · 3 · 5 km, four tiles — residents (modelled), people who come to work and study (at least, parts beside), overnight visitors (a year, modelled), centres and markets — the meter key, one provenance line, the method folded)", "the round map (0.7.0, D-16: tabs places visitors use · work and study · residents, 250 m cells within 5 km, the 1 · 3 · 5 km lines, legend of 41 samples, the direction line, the table folded)", "(lodging areas: the registry's lodging screen)", "highlights as cards (each sets the map's lens), with the neighbourhoods sharing a rank", "what comes together: pairs as ρ bars, roles as ✓ / ○ rows", "น่าอยู่ · น่าเที่ยว · น่าค้าขาย (0.7.0, D-V6b): the distance switch, one card per axis (topic rows: number, unit, meaning, label; the datasets' levels folded under them), the key, the 0.4.0 table closed under it, centres with a «รอบศูนย์นี้» page, its own provenance line", "records inside (closed)", "similar mixes: the matrix of this neighbourhood and the 3 closest, with its answer line", "ask bar", "registry record (closed)", "provenance"]
   },
   "buildingJoinContract": {
     "buildings": "OpenStreetMap or CityMETER Building V4 per data/building-units/ (js/massing.js)",
@@ -120,7 +120,7 @@
     "parity": "scripts/check-lds-parity.mjs (130 checks)"
   },
   "invariants": [
-    {"id": "INV-01", "rule": "Counts of two datasets are never added; no total of POIs is shown."},
+    {"id": "INV-01", "rule": "Counts of two datasets are never added; no total of POIs is shown.", "amendedBy": ["D-12 (0.7.0, owner 2026-11-26 14:31): คนมาทำงานและเรียน is the sum of its parts, read “อย่างน้อย”, each part beside it", "D-16 (0.7.0, author judgement, the owner’s check pending): the two place maps add the listed datasets’ places per 250 m cell, labelled อนุมาน"]},
     {"id": "INV-02", "rule": "A dataset with no located record in the neighbourhood's province is out of scope there: “—”, never 0."},
     {"id": "INV-03", "rule": "Every share shows its numerator and denominator (visible or in its title and accessible name)."},
     {"id": "INV-04", "rule": "Every rank names its peers with their number (“จาก N ย่าน …”)."},
@@ -150,9 +150,9 @@
     "data": "data/around.json (scripts/build-around.py) · data/rings/<id>.json (display only)",
     "around": "records outside the outline within 400 m and 800 m of its edge, straight line; 800 m holds 400 m; a record counted inside is never around; never added to the inside, across datasets or across neighbourhoods",
     "states": "out_of_scope “— นอกขอบเขตข้อมูล” · measured_zero 0 / “ไม่พบ” · no_data “— ไม่มีข้อมูล” + how many lack the figure · not_yet “ยังไม่ถึงรอบข้อมูล” + what it awaits (LDS EVID-05)",
-    "glance": "คนอยู่ (modelled, round 2: not yet) · นักเรียน (school dataset, starred) · ห้องพัก (lodging dataset) · ศูนย์และตลาด (Shopping Center dataset); level = levelOf of «รอบศูนย์นี้» from the mid-rank percentile among the frozen reference set (meta.referenceSet, 395)",
+    "people": "0.7.0 (D-12 … D-16): data/people/<id>.json — residents (modelled; inside and up to 1 km so far, 3 and 5 km to come), people who come to work and study (at least), overnight visitors (a year) and centres, in · 400 · 800 · 1 · 3 · 5 km from the edge, straight line until the Shopping Center page's method along real paths (D-13, D-14); levels against the reference set; DATA_METHOD.md §15–§16", "glance": "until 0.7.0 (replaced by «ใครอยู่ตรงนี้»): คนอยู่ (modelled, round 2: not yet) · นักเรียน (school dataset, starred) · ห้องพัก (lodging dataset) · ศูนย์และตลาด (Shopping Center dataset); level = levelOf of «รอบศูนย์นี้» from the mid-rank percentile among the frozen reference set (meta.referenceSet, 395)",
     "lowLocated": "factory, fitness, hospital, industrialestate, office, pharmacy, school: starred, count and density, never a rank or a level in the new layer (D-4)",
-    "address": "f.around = in · 400 · 800 (inside is never written); the map draws the line of the chosen distance and frames it",
+    "address": "f.around = in · 400 · 800 (inside is never written); the map draws the line of the chosen distance and frames it · 0.7.0: f.reach = in · 3000 · 5000 (1 km never written), f.map = work · res (visit never written)",
     "doneAfter040": ["NL-S1 the sheet ledger (ChatGPT, D-6): 12_LAYER_RELEASES NLR-001 … NLR-004, 2026-11-25"],
     "notYet": ["NL-03 Shopping Center reading the links", "round 2: residents, office workers, administrative areas", "round 3: reader test, roles from evidence, Yolk import"]
   },
@@ -166,7 +166,7 @@
     "states": "ranked · few · starred · edge · zero · out (js/levels.js#CELL_KINDS), each with a mark that is not colour"
   },
   "delivery": {
-    "cacheTag": "?v=20261126-r5",
+    "cacheTag": "?v=20261126-r6",
     "shell": "citymeter-shell 0.6.4 (since release 0.2.6: Shopping Center marked as a demo with English; unchanged in 0.4.0)"
   }
 }

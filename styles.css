@@ -1442,3 +1442,89 @@ button.mx-who .mx-name { text-decoration: underline; text-underline-offset: 3px;
 .ov-row b { text-align: right; white-space: nowrap; }
 .ov-name { min-width: 0; overflow-wrap: anywhere; line-height: 1.3; }
 .ov-row .pictogram { width: 18px; height: 18px; font-size: 18px; vertical-align: 0; }
+
+/* ---------- «ใครอยู่ตรงนี้» and the round maps (0.7.0; owner 2026-11-26 14:03, 2.4: “ตัวเล็ก ตัวเลขต่างไม่รู้ว่ามีความหมายอย่างไร”):
+   sentences and numbers at 14 px or more, the figures at 24 px, the words of «รอบศูนย์นี้» ---------- */
+.people-section, .map-section { gap: 10px; }
+.people-switch, .pm-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.people-switch .seg, .pm-tabs .seg { min-height: 44px; padding: 6px 14px; font-size: 14px; font-weight: 600; color: var(--text-secondary); background: transparent; }
+.people-switch .seg[aria-pressed="true"], .pm-tabs .seg[aria-pressed="true"] { background: var(--surface-alt); border-color: var(--border-emphasis); color: var(--text-primary); }
+.people-switch .seg:focus-visible, .pm-tabs .seg:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; }
+.pm-tabs .seg[disabled] { opacity: 1; color: var(--text-metadata); border-style: dashed; cursor: default; }
+.pm-tabs .seg small { font-size: 13px; font-weight: 400; }
+.people-lead, .pm-lead { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; font-weight: 600; line-height: 1.45; }
+.people-lead .pictogram { width: 20px; height: 20px; font-size: 20px; color: var(--text-secondary); }
+/* one tile per row: a long figure (3,221,000) and its parts never break inside a tile of half the panel */
+.people-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.people-tile { display: grid; grid-template-columns: 28px minmax(0, 1fr); column-gap: 8px; row-gap: 4px; align-content: start; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--surface-alt); color: var(--text-primary); overflow-wrap: break-word; }
+.people-tile > .pictogram { grid-row: 1 / span 5; width: 28px; height: 28px; font-size: 28px; color: var(--text-primary); }
+.people-tile > :not(.pictogram) { grid-column: 2; }
+.people-label { font-size: 14px; line-height: 1.4; font-weight: 600; color: var(--text-secondary); }
+.people-tile .glance-tag { font-size: 13px; font-weight: 400; }
+.people-fig { font-size: 14px; line-height: 1.25; color: var(--text-secondary); white-space: nowrap; }
+.people-fig small { font-size: 14px; }
+.people-fig b { font-size: 24px; font-weight: 600; color: var(--text-primary); }
+.people-fig.is-state { font-size: 14px; font-weight: 600; line-height: 1.4; }
+.people-unit { font-size: 14px; white-space: nowrap; }
+.people-unit sup, .people-section sup { font-size: 13px; line-height: 0; }
+.people-level { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 14px; line-height: 1.4; }
+.people-parts { font-size: 13px; line-height: 1.45; color: var(--text-secondary); }
+.people-parts small { font-size: 13px; color: var(--text-metadata); }
+.people-key { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 0; font-size: 14px; }
+.people-source, .pm-source { margin: 0; font-size: 13px; line-height: 1.45; }
+.people-wait { margin: 0; font-size: 14px; color: var(--text-secondary); }
+.people-method dl { margin: 8px 0 0; display: grid; gap: 6px; font-size: 14px; line-height: 1.55; }
+.people-method dt { font-weight: 600; }
+.people-method dd { margin: 0; color: var(--text-secondary); }
+.pm-wrap { position: relative; width: 100%; max-width: 440px; }
+.pm-map { display: block; width: 100%; height: auto; }
+.pm-map .pm-bg, .pm-key-cell .pm-bg { fill: var(--surface-alt); }
+.pm-key-cell .pm-bg { stroke: var(--border-default); stroke-width: 1px; }
+.pm-map .pm-pale { stroke: var(--border-default); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.pm-map path.pm-line, .pm-map path.pm-edge, .pm-map path.pm-walk, .pm-map path.pm-outline, .pm-map path.pm-outline-case { fill: none; vector-effect: non-scaling-stroke; }
+.pm-map .pm-line, .pm-map .pm-edge, .pm-key-line .pm-line { stroke: var(--text-secondary); stroke-width: 1px; stroke-dasharray: 4 3; }
+.pm-map .pm-edge { stroke-dasharray: none; }
+.pm-map .pm-walk, .pm-key-line .pm-walk { stroke: var(--text-primary); stroke-width: 1.25px; stroke-dasharray: 2 2; }
+.pm-map .pm-outline-case, .pm-key-line .pm-outline-case { stroke: var(--map-marker-halo, #fff); stroke-width: 4px; }
+.pm-map .pm-outline, .pm-key-line .pm-outline { stroke: var(--map-selected-stroke); stroke-width: 2.25px; }
+.pm-key-line path { fill: none; stroke-linecap: round; }
+.pm-ring-label { position: absolute; transform: translate(-50%, -110%); padding: 0 4px; border-radius: 6px; background: var(--surface-card); font-size: 13px; line-height: 1.35; color: var(--text-secondary); white-space: nowrap; pointer-events: none; }
+.pm-north { position: absolute; left: 0; top: 0; padding: 0 4px; border-radius: 6px; background: var(--surface-card); font-size: 13px; line-height: 1.35; color: var(--text-secondary); }
+.pm-legend { display: grid; gap: 4px; }
+.pm-legend-title { font-size: 14px; color: var(--text-secondary); }
+.pm-legend .legend-ramp { width: 100%; max-width: 440px; }
+.pm-legend .ramp-tick { font-size: 13px; }
+.pm-key { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; font-size: 13px; line-height: 1.45; color: var(--text-secondary); }
+.pm-key-item { display: inline-flex; align-items: center; gap: 5px; }
+.pm-key-line { width: 24px; height: 8px; flex: 0 0 24px; overflow: visible; }
+.pm-key-cell { width: 12px; height: 12px; flex: 0 0 12px; }
+.pm-dir { display: flex; align-items: flex-start; gap: 6px; margin: 0; font-size: 14px; line-height: 1.45; }
+.pm-dir .pictogram { width: 18px; height: 18px; font-size: 18px; flex: 0 0 18px; color: var(--text-secondary); }
+/* the map as a table: the panel's width (the page's generic table is the 820 px list of neighbourhoods) */
+.pm-table { width: 100%; min-width: 0; border-collapse: collapse; font-size: 14px; }
+.pm-table th, .pm-table td { position: static; padding: 5px 6px; border-bottom: 1px solid var(--border-hairline); vertical-align: middle; background: transparent; }
+.pm-table thead th { font-size: 13px; font-weight: 600; color: var(--text-secondary); white-space: normal; text-align: right; }
+.pm-table thead th:first-child { text-align: left; }
+.pm-table th[scope="row"] { text-align: left; font-weight: 400; color: var(--text-primary); white-space: normal; font-size: 14px; }
+.pm-table td { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pm-table td small { margin-left: 4px; font-size: 13px; color: var(--text-secondary); }
+.pm-table tr.is-top th[scope="row"] { font-weight: 600; }
+/* the topics of น่าอยู่ · น่าเที่ยว · น่าค้าขาย (0.7.0, D-V6b): one row per topic, the sentence at 14 px, the numbers bold */
+.tp-rows { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 2px; }
+.tp-row { display: grid; grid-template-columns: 24px minmax(0, 7.5em) minmax(0, 1fr); column-gap: 8px; align-items: start; padding: 7px 0; border-top: 1px solid var(--border-hairline); font-size: 14px; line-height: 1.5; }
+.tp-row:first-child { border-top: 0; }
+.tp-row > .pictogram { width: 22px; height: 22px; font-size: 22px; color: var(--text-secondary); }
+.tp-name { font-weight: 600; }
+.tp-text .data-number { font-size: 15px; font-weight: 600; }
+.tp-text small { font-size: 13px; color: var(--text-secondary); }
+.tp-row.is-wait .tp-text { color: var(--text-metadata); }
+.tp-row.is-wait > .pictogram { color: var(--text-metadata); }
+.ax-ds-fold { margin-top: 6px; }
+.ax-ds-fold > summary { min-height: 44px; display: flex; align-items: center; font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer; }
+.ax-ds-fold > summary:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; }
+@media (max-width: 420px) { .tp-row { grid-template-columns: 22px minmax(0, 1fr); } .tp-row .tp-text { grid-column: 2; } }
+/* navigation.css sets every <small> in #panel to 12 px (.75rem); the sentences of the 0.7.0 blocks stay at 14 px, their
+   tags at 13 px (V7-05: text ≥ 14 px in the panel at 393 px and on the desktop) */
+#panel .people-fig small, #panel .people-parts, #panel .tp-text small { font-size: 14px; }
+#panel .people-parts small, #panel .pm-tabs .seg small, #panel .pm-table td small { font-size: 13px; }
+#panel .people-method > summary, #panel .pm-table-fold > summary { min-height: 44px; display: flex; align-items: center; font-size: 14px; }

@@ -42,10 +42,18 @@ const check = (html, where) => {
   }
 };
 
+const peopleMeta = readJSON('data/people/meta.json');
 model.rows.forEach((r, i) => {
   if (i % step) return;
   const d = buildNeighborhood(model, r);
   for (const [a, distance] of [[around, 'in'], [around, '400'], [around, '800'], [null, 'in']]) check(renderNeighborhood(d, model, {ctx, around: a, distance}), `${r.id} ${distance}${a ? '' : ' (no around)'}`);
+  // 0.7.0: «ใครอยู่ตรงนี้» at every scale, every map, and the topic rows with the people file
+  const people = readJSON(`data/people/${r.id}.json`);
+  for (const reach of ['in', '1000', '3000', '5000']) for (const mapTab of ['visit', 'work', 'res']) {
+    if (mapTab !== 'visit' && reach !== '1000') continue;
+    check(renderNeighborhood(d, model, {ctx, around, distance: 'in', people, peopleMeta, reach, mapTab}), `${r.id} people ${reach} ${mapTab}`);
+  }
+  for (const distance of ['400', '800']) check(renderNeighborhood(d, model, {ctx, around, distance, people, peopleMeta}), `${r.id} people ${distance}`);
 });
 for (const province of ['', ...new Set(model.rows.map(r => r.province))]) {
   for (const ds of [null, model.dsById.get('luxurybrands')]) check(renderOverview(buildOverview(model, {rows: scopeRows(model, {province}), province, ds}), model, {ctx, around}), `overview ${province || 'TH'} ${ds?.id || ''}`);

@@ -11,6 +11,8 @@ What one figure means:
 - highlight = near the top among named peers: ≥ 5% of the dataset's located records nationwide, a count or density rank in the top quarter (with the number of peers), or one of the few neighbourhoods holding any.
 - comes together = Spearman's ρ of density across the neighbourhoods both datasets cover (a correlation, not a cause).
 - similar mix = correlation of centred log density across the datasets two neighbourhoods share (an inference, a starting point for a comparison).
+- people (0.7.0, data/people/<id>.json) = three figures never added together: residents (modelled: the civil register of 2026-10 per subdistrict spread over CityMETER Building V4 by floor area; inside and within 1 km so far; 3 and 5 km to come), people who come to work and study (at least: recorded students, factory workers, government staff and modelled office workers, parts beside the sum), overnight visitors (guests a year: the province’s guests of the Ministry of Tourism and Sports, Table 17.1 of 2024, shared by recorded rooms) — inside and within 1 · 3 · 5 km of the edge, straight line; never footfall, customers or sales.
+- round map (0.7.0) = places of the listed datasets per 250 m cell within 5 km of the edge (an inference of where people go), colours ranked within one map.
 
 Snapshot (release 0.3.0; fixtures, recompute from data):
 - 469 neighbourhoods = 0.045% of the area of the 77 provinces, but 71% of the located luxury points of sale (245 of 345), 48% of the fitness branches (72 of 149), 48% of the camera shops (114 of 236), 44% of the offices (189 of 427), 31% of the rail station-line records (94 of 301); 0 of 69 industrial estates (release 0.6.1).

@@ -21,7 +21,7 @@ import {createHash} from 'node:crypto';
 import {readFileSync, writeFileSync, mkdirSync} from 'node:fs';
 import {join, resolve, dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {COUNT_SCALE, DENSITY_SCALE, classColors} from '../js/scales.js';
+import {COUNT_SCALE, DENSITY_SCALE, ACTIVITY_SCALE, classColors} from '../js/scales.js';
 import {CUES} from '../js/cues.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -47,7 +47,7 @@ const machine = JSON.parse(text.slice(open, text.indexOf('\n```', open)));
 check('lds.machine.release', ['0.9.7', 'v0.9.7-owner.1', 'color-srgb-10'], [machine.release.dsVersion, machine.analyticalScales.releaseRef, machine.analyticalScales.colorSetId]);
 
 // Analytical families: both theme records, compared with the shipped constants.
-for (const shipped of [COUNT_SCALE, DENSITY_SCALE]) {
+for (const shipped of [COUNT_SCALE, DENSITY_SCALE, ACTIVITY_SCALE]) {
   for (const theme of ['light', 'dark']) {
     const rec = machine.analyticalScales.scales.find(s => s.scaleId === shipped.scaleId && s.theme === theme);
     const id = `${shipped.scaleId}.${theme}`;

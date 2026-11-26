@@ -9,7 +9,9 @@
  *                    map when a dataset is chosen, its legend and the ranking bars. Warm by denominator (owner
  *                    2026-09-29: area orange). Values of the same family as CityMETER · Restaurants
  *                    (montri-th/restaurant js/scales.js, parity-checked there against the same file).
- *   `count`        — totals with no denominator: neighbourhoods per province.
+ *   `count`        — totals with no denominator: neighbourhoods per province; (0.7.0) places of work and study per 250 m cell.
+ *   `activity`     — (0.7.0) places visitors use per 250 m cell, as «รอบศูนย์นี้» (below).
+ * (0.7.0) The round map of registered residents takes `density.area` (people per 250 m cell), as «รอบศูนย์นี้».
  * The EVID-05 treatments (zero outline, no-data ground) are the base `dataState` values.
  *
  * All 41 samples (owner standing rule “Color scale ขอให้ใช้ 41 scales ตาม LDS เสมอ”, the CityMETER · Shopping centers
@@ -41,6 +43,24 @@ export const DENSITY_SCALE = freeze({
     '#DE7F1C', '#DD7B1A', '#DC7818', '#DB7417', '#DA7015', '#D96C13', '#D86811', '#D7640E', '#D6600C']),
   noData: '#D5DAD6', zeroOutline: '#7D877F',
   scaleVersion: '554812a7c19107b3a9b8658ba541fc8e13519cb19708e885a425f32d5b30f101',
+  themePolicy: 'identical-light-values-on-both-themes',
+});
+
+/**
+ * `activity` (0.7.0) — the round map of the places visitors use, as «รอบศูนย์นี้» draws it (montri-th/shoppingcenter
+ * js/scales.js ACTIVITY_SCALE, D60 there: “เปลี่ยนเป็นฟ้า-เขียว (activity) เลย”), so the two pages read alike (owner
+ * 2026-11-26 14:03, 2.4: “ยังไม่ consistent กับ venue locale insight เท่าที่ควร”). LDS gives the family to activity or use
+ * over a time; here it is listed places per 250 m cell, the legend says so.
+ */
+export const ACTIVITY_SCALE = freeze({
+  scaleId: 'activity', kind: 'sequential', labelTh: 'กิจกรรม',
+  anchors: freeze(['#F1F5E5', '#60C9AD', '#25659A']),
+  lut: freeze(['#F1F5E5', '#EAF3E2', '#E4F1DF', '#DDEFDC', '#D7ECDA', '#D0EAD7', '#C9E8D4', '#C3E6D1', '#BCE4CE', '#B5E2CB',
+    '#AEDFC9', '#A7DDC6', '#A0DBC3', '#99D9C0', '#91D7BD', '#8AD4BB', '#82D2B8', '#7AD0B5', '#72CEB2', '#69CBB0', '#60C9AD',
+    '#5DC4AC', '#59BFAC', '#56BAAB', '#53B5AB', '#4FB0AA', '#4CABA9', '#49A6A8', '#46A1A7', '#439CA7', '#4097A6', '#3D92A5',
+    '#3A8DA4', '#3788A3', '#3483A1', '#317EA0', '#2F799F', '#2C749E', '#2A6F9D', '#276A9B', '#25659A']),
+  noData: '#D5DAD6', zeroOutline: '#7D877F',
+  scaleVersion: 'b1cf83edb8a7a0ad787c032feae9d65fa3a1674daf419412c7e6db78cddfb485',
   themePolicy: 'identical-light-values-on-both-themes',
 });
 
