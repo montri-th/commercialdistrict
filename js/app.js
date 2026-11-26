@@ -23,7 +23,7 @@ import {provinces as provinceList, provinceByCode, provinceCodeFrom, provinceNam
 import {buildOverview, buildNeighborhood, buildCompare} from './profile.js';
 import {decodeAround, aroundDistance, aroundMatches} from './around.js';
 import {renderOverview, renderNeighborhood, renderCompare, renderFilterChips, tableHeadHTML, tableRowHTML, esc, L, dens, sharePct, thaiDate} from './panel.js';
-import {decodePeople, validReach, validMap, DEFAULT_REACH, DEFAULT_MAP, reachWords} from './people.js';
+import {decodePeople, validReach, validMap, DEFAULT_REACH, DEFAULT_MAP, reachWords, watchMapNames} from './people.js';
 import {cellOf} from './levels.js';
 import {cellWords} from './visual.js';
 import {loadMapLibrary} from './shell/vendors.js';
@@ -237,6 +237,7 @@ function renderPanel() {
   const kept = same ? keepPlace(view) : null;
   view.innerHTML = html;
   if (kept) restorePlace(view, kept);
+  watchMapNames(view);   // (0.7.2) the names over the round map, fitted at the width the panel draws it
   if (r) { ensureLogos(r); ensurePeople(r); }
   const mode = r ? 'neighborhood' : 'overview';
   view.dataset.mode = mode;

@@ -1,5 +1,39 @@
 # CityMETER Commercial District — verification
 
+## Release 0.7.2 — 26 พ.ย. 2569
+
+Found on the live check of 0.7.1 (below): the panel draws the round map 250–440 px wide, the build fits the names for
+360 px. The page now fits them again at the width it draws (`js/people.js#fitMapNames`, through `watchMapNames` after
+every panel render, on every change of the map's size and once the fonts load): a name that would cover an earlier one,
+a ring label, the north mark or the outline, or leave the map, is hidden; 2 px of touching is allowed. Data unchanged:
+`data/people/` equal to 0.7.1 file by file but the release in `meta.json`.
+
+### Local (container, 2026-11-26)
+
+- `npm test`: 218 tests, 218 pass, 0 fail (new: the fitting, with stand-in elements: a name covering an earlier one, one
+  touching by 1 px, one off the map, one on a ring label, one on the outline, one only on a hidden name).
+- `npm run check:lds -- --lds Landometer-Design-System-v0.9.7.md`: 145 ok, 0 failed. English harvest: 5,785 views, 0 left.
+- Headless Chrome on the page served locally, 7 cases at windows 360–1440 px (maps 247–370 px): no visible names
+  overlapping by more than 2 px; หัวหิน–ตลาดโต้รุ่ง keeps its three names at 316 and 325 px; คลองสาน–ไอคอนสยาม hides 2 of
+  7 at 295 px, พร้อมพงษ์ 1 of 8 at 247 px; after widening the window to 1,600 px (map 407 px) every name is back.
+- Not checked here: the live release.
+
+## Release 0.7.1 — live (2026-11-26)
+
+- Merged on the owner's word (18:46, VERBATIM: “Merge and publish”): pull request #40, merge commit `ed11410`.
+- GitHub Pages: deployment of `ed11410` success at 18:47. `npm run verify:live` against a manifest made at `ed11410`
+  (2,835 files): 2,765 checks, 2,759 equal at the first fetch; the other 6 answered 503 and were equal byte for byte on a
+  second fetch.
+- Cloudflare: run 45813787175 (dispatched 18:47, success 18:54) published `ed11410`; the demo family check passed on the
+  site and live; 114 / 114 live checks passed.
+- Claude in Chrome on citymeter.pages.dev: ป่าตอง in Thai at 1,710 px (light): cache tag `20261126-r7`, the sea, water,
+  roads and 5 names drawn, the key and the provenance line with “© ผู้ร่วมให้ข้อมูล OpenStreetMap (ODbL)” and “OpenStreetMap
+  24 พ.ย. 2569”; คลองสาน–ไอคอนสยาม in English in a 393 × 740 frame of the same origin (dark): 7 names, the water
+  `#18333E`, the provenance in English, `__citymeterI18n.missing` empty; พร้อมพงษ์ in Thai at 393 px: 8 names, none
+  overlapping; หัวหิน–ตลาดโต้รุ่ง in English at a 1,280 px window: the map 325 px wide and “Sea” touching “Phetkasem Rd” —
+  fixed in 0.7.2 (above). An estimate from the build's character widths (not a browser measurement) put names
+  overlapping by more than 2 px on 56 maps at 340 px, 85 at 325 px and 257 at 300 px.
+
 ## Release 0.7.1 — 26 พ.ย. 2569
 
 Owner 2026-11-26 17:51 ICT (VERBATIM): “แผนที่รัศมีควรจะมี โครงร่างถนน ทะเล ลำน้ำ กายภาพ ให้ดูแบบเดียวกับ shopping center
