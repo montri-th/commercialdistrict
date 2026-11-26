@@ -1,6 +1,6 @@
 {
   "name": "citymeter-commercialdistrict",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "type": "module",
   "description": "CityMETER · Commercial District — 3D map of the central neighbourhood registry's closed draft outlines against the located records of 16 CityMETER demo datasets (Land · Location · Living): highlights against named peers, what comes together, similar mixes, side-by-side comparison, and (0.4.0) what lies inside and within 400 m and 800 m around each neighbourhood",

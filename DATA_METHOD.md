@@ -633,3 +633,21 @@ not load; a file of another data release (its neighbourhoods differ) is dropped 
 its own provenance line: dataset · source · the data's dates · boundary (the outline and up to 800 m beyond it) ·
 method.
 
+## 13. Logos of the records and of the centres (0.5.1, 2026-11-26)
+
+Owner 2026-11-26 06:14, VERBATIM: “เช็คหน่อยว่า โลโก้ขึ้นหรือยัง ใน web demo ทุกๆ dataset รวม transit ด้วย / เรื่องโลโก้นี้ ให้แสดงใน Commercial district ในลักษณะเดียวกับ venue ด้วย โดยเฉพาะ venue และ POI สำคัญ / แก้จุดที่แก้ง่ายก่อน / ติดตรงไหนให้ข้ามก่อน แล้วทำข้อเสนอปรับปรุงมาเป็นข้อๆเป็น .md”
+
+- No logo is collected here. Every file is one a demo of the family already ships, checked against the SHA-256 of the record that ships it, through the family's logo kit (`scripts/logo-kit`, citymeter-logos 1.1.0, the same bytes as in Shopping Center, Pharmacy, Fitness and Luxury Brands; `tests/test_logo_kit.py` comes with it).
+- Joined by ids only (`scripts/build-logos.py`): a record's key in its own demo → the brand id that demo gives it → the logo that demo's registry gives that id (the kit's own id or the same id in another dataset; never a name rewrite, never fuzzy) for Hotel, Fitness, Restaurants, Grocery, Camera Shops, Luxury Brands, Pharmacy and University; a shopping centre — and every centre «รอบย่านนี้» names — by its Shopping Center venue id through the kit's venue pool, roles `venue_specific` and `parent_complex` only (a shared department-store or chain banner is not a centre's own mark, so it is left out); an office by its Office ID (montri-th/office `data/office-logos.json`, 0.6.0); a station record by its line → the line's mark (montri-th/transit `data/operator-logos.json`, 0.4.0: a line in service whose GTFS names its operator). The source files are read at the commits recorded in `data/logos-report.json` (`inputs`); a brand file that differs from the one the records were built from (`neighborhoods.json` → `source.sha256`) is joined only where the key reads the same name (none differed on 2026-11-26).
+- Build of 2026-11-26 (on the 451 neighbourhoods of 0.5.0): 3,186 of the 12,975 records inside the outlines carry a logo — every Grocery, Luxury Brands and Fitness record, 108 of 109 Camera Shops, 88 of 94 station records, 519 of 3,403 restaurants, 139 of 5,053 accommodation records (most have no brand), 135 of 278 pharmacies, 56 of 691 centres and markets, 29 of 189 offices; Factory, Government Office, Hospital, School and University records have no logo source yet (University's 13 sites belong to universities without a collected logo). 163 of the 537 centre names «รอบย่านนี้» lists carry one, counted per neighbourhood (73 of the 270 distinct centres). 452 files, 5.1 MB in all, 329 of 451 neighbourhoods with at least one.
+- Display (the family rule): SVG and rasters ≤ 512 px and ≤ 64 KB keep their bytes; larger rasters are scaled uniformly to 384 px on the longest side as WebP (119 files; `sourceSha256` keeps the original's). Plates: the family's (`#FFFFFF`, `#E5E9E6`, `#182327`) as the source registry chose them, the same in both themes; never recoloured.
+- Where: the card's head (32 px), the tip of one record (20 px), the names at a point and the panel's names (16 px), a spot's name on the map (14 px, only when every record of the spot has the same logo), and the centres «รอบย่านนี้» names (16 px). Decorative (`alt=""`): the name beside it is the identity. One shard per neighbourhood (`data/logos/<id>.json`, empty maps where none), loaded when the neighbourhood opens; a shard that fails to load is said (`partial('logos')`) and the names show alone.
+- A logo identifies a brand or a place. It counts nothing, ranks nothing and is never evidence of a tenancy, an operator or a status beyond what its own demo says. The marks belong to their owners; showing one is not a trademark licence.
+
+Rebuild (after `scripts/build-data.py` and `scripts/build-around.py`, with the family's checkouts side by side under one folder):
+
+```sh
+python3 -I scripts/build-logos.py --root <folder of the family's checkouts> --built-on YYYY-MM-DD
+node --test tests/logos.test.js
+```
+

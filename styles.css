@@ -552,7 +552,6 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
      wait in the open sheet), the overview at 42 %. */
   .panel[data-sheet="peek"] { max-height: 34dvh; }
   .panel[data-sheet="half"] { max-height: 42dvh; }
-  .panel[data-sheet="peek"] .identity .logo-plate { display: none; }
   /* Open, the sheet stops under the map's toolbar (top bar 48 + toolbar 48 + 8): at 88 % of a short screen it cut the
      toolbar's buttons in half. */
   .panel[data-sheet="full"] { max-height: min(88dvh, calc(100dvh - 104px)); }
@@ -860,15 +859,7 @@ td.num, th.num { text-align: right; }
 }
 
 /* ---------- CityMETER · University 0.1.0 ---------- */
-/* A university logo keeps the surface it was drawn for (LOGO_LIBRARY.recommended_surface) on both themes: the LDS
-   light surface.raised and text.primary values, fixed — a logo is never recoloured or placed on a surface it was not
-   made for. */
-:root { --logo-plate-light: #FFFFFF; --logo-plate-dark: #182327; }
-.identity .logo-plate { margin-top: 8px; }
-.logo-plate { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; max-width: 132px; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border-hairline); }
-.logo-plate.is-light { background: var(--logo-plate-light); }
-.logo-plate.is-dark { background: var(--logo-plate-dark); }
-.logo-plate img { display: block; height: 32px; width: auto; max-width: 112px; object-fit: contain; }
+/* (0.5.1) the University code base's logo plate rules are replaced by the logo rules of 0.5.1 (search “(0.5.1) logos”). */
 /* The linked unit's figure (named as the unit's): one card under the site's heading. */
 .unit-card { display: grid; gap: 2px; width: 100%; margin: 10px 0 4px; padding: 10px 12px; border: 1px solid var(--border-default); border-radius: 12px; background: var(--surface-raised); color: var(--text-primary); text-align: left; cursor: pointer; font: inherit; white-space: normal; }
 .unit-card:hover { background: var(--surface-alt); }
@@ -1111,6 +1102,19 @@ td.num, th.num { text-align: right; }
 .poi-card .poi-back { justify-self: start; min-height: 36px; padding: 4px 12px; font-size: 12px; }
 .poi-head { display: flex; gap: 10px; align-items: flex-start; margin-right: 30px; }
 .poi-head .cue-shape { width: 18px; height: 18px; flex: 0 0 18px; margin-top: 4px; }
+/* (0.5.1) logos: each on its family plate (data/logos/<id>.json `plate`), the same in both themes; never recoloured, decorative. */
+.logo-plate { display: inline-flex; flex: none; align-items: center; justify-content: center; padding: 2px 5px; border-radius: 6px; border: 1px solid var(--border-hairline); line-height: 0; vertical-align: middle; }
+.logo-plate img { display: block; width: auto; object-fit: contain; }
+.poi-head .head-logo { margin-left: auto; padding: 4px 8px; }
+.poi-head .head-logo img { max-width: 112px; }
+.poi-tip-row .tip-logo { margin-left: auto; align-self: center; }
+.poi-tip-row .tip-logo img { max-width: 70px; }
+.row-logo, .inline-logo { margin-right: 6px; padding: 1px 4px; border-radius: 4px; }
+.row-logo img, .inline-logo img { max-width: 56px; }
+.record-label.has-logo { display: inline-flex; align-items: center; gap: 5px; padding-left: 3px; }
+.record-label .label-logo { padding: 1px 3px; border-radius: 3px; }
+.record-label .label-logo img { max-width: 49px; }
+.record-label .label-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .map-panel .maplibregl-popup-content .poi-eyebrow { margin: 0; font-size: 12px; color: var(--text-metadata); }
 .map-panel .maplibregl-popup-content .poi-card h3 { margin-right: 0; overflow-wrap: anywhere; }
 .map-panel .maplibregl-popup-content .poi-line { margin-top: 2px; font-size: 12px; color: var(--text-secondary); }

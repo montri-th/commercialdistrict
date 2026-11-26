@@ -22,6 +22,7 @@ import {demoHref} from './shell/header.js';
 import {PILLARS, PILLAR_SERIES, num, one, rai, km2Text, provinceName, dsName, dsUnit, dsUnitN} from './model.js';
 import {cueMarkup} from './cues.js';
 import {actionBar} from './ask.js';
+import {logoPlate} from './logos.js';
 import {glanceTiles, aroundGroups, venuesOf, sharedBy, LEVEL_WORDS, pctFill, RING_INDEX} from './around.js';
 
 const EN = LANG === 'en';
@@ -444,7 +445,7 @@ function aroundProvenance(r, model, around, distance) {
  * with a «รอบศูนย์นี้» page, and the section's own provenance line. A starred dataset (points for under 90 % of its
  * records, D-4) shows its count and density, never a rank.
  */
-function aroundSection(d, model, around, {distance = 'in', fillOf = () => ''} = {}) {
+function aroundSection(d, model, around, {distance = 'in', fillOf = () => '', venueLogo = () => null} = {}) {
   const r = d.row, groups = aroundGroups(r, model, around);
   const items = groups.flatMap(g => g.items);
   const scope = items.filter(x => x.c.state !== 'out_of_scope').length, present = items.filter(x => x.c.state === 'measured').length;
@@ -496,7 +497,7 @@ function aroundSection(d, model, around, {distance = 'in', fillOf = () => ''} = 
   const vs = venuesOf(r, around, distance);
   const count = n => nw(esc(L(`${num(n)} แห่ง`, `${num(n)} ${n === 1 ? 'center' : 'centers'}`)));
   const metres = m => nw(esc(m < 1 ? L('ไม่ถึง 1 ม.', 'under 1 m') : L(`${num(m)} ม.`, `${num(m)} m`)));
-  const vlink = v => `<a class="source-link" href="${esc(venueHref(v.id))}" title="${esc(L(`เปิด «รอบศูนย์นี้» ของ${v.name} ในเดโม Shopping Center`, `Open “Around this center” of ${v.nameEn || v.name} in the Shopping Center demo`))}">${esc(EN && v.nameEn ? v.nameEn : v.name)}</a>`;
+  const vlink = v => `<a class="source-link" data-venue="${esc(v.id)}" href="${esc(venueHref(v.id))}" title="${esc(L(`เปิด «รอบศูนย์นี้» ของ${v.name} ในเดโม Shopping Center`, `Open “Around this center” of ${v.nameEn || v.name} in the Shopping Center demo`))}">${logoPlate(venueLogo(v.id), {height: 16, cls: 'inline-logo'})}${esc(EN && v.nameEn ? v.nameEn : v.name)}</a>`;
   const venues = vs.inside.length || vs.near.length ? `<div class="around-venues"><p class="pillar-label">${esc(L('ศูนย์การค้าที่มีหน้า «รอบศูนย์นี้»', 'Shopping centers with an “Around this center” page'))}</p><ul class="plain-list venue-links">
     ${vs.inside.length ? `<li><span class="hint">${esc(distanceWords('in'))} ${count(vs.inside.length)}</span> ${vs.inside.map(vlink).join(' · ')}</li>` : ''}
     ${vs.near.length ? `<li><span class="hint">${esc(distanceWords(distance))} ${count(vs.near.length)}</span> ${vs.near.map(v => `${vlink(v)} <small class="hint">${metres(v.m)}</small>`).join(' · ')}</li>` : ''}
@@ -620,7 +621,7 @@ function registryDetails(d, model) {
  * d = js/profile.js#buildNeighborhood. inCompare: the row is in the compare set. around: decoded data/around.json (null
  * while it loads or when it did not load); distance: the reading of «ขอบเดินถึง» (`f.around`: in · 400 · 800).
  */
-export function renderNeighborhood(d, model, {inCompare = false, compareFull = false, fillOf = () => '', ctx = {}, recordsHTML = '', around = null, distance = 'in'} = {}) {
+export function renderNeighborhood(d, model, {inCompare = false, compareFull = false, fillOf = () => '', ctx = {}, recordsHTML = '', around = null, distance = 'in', venueLogo = () => null} = {}) {
   const r = d.row, province = provinceName(r.province), am = amendmentOf(r, model);
   const top = d.highlights[0];
   const tw = top ? highlightWordsL(top, r) : null;
@@ -642,7 +643,7 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
   </section>`;
   const lodging = lodgingSection(r, model);
   // (0.4.0, D-5) the glance follows the neighbourhood's figures; «ขอบเดินถึง» takes the place of the dataset list
-  return `${aha}${metrics}${glanceSection(r, model, around)}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${aroundSection(d, model, around, {distance, fillOf})}${recordsHTML}${similarSection(d)}
+  return `${aha}${metrics}${glanceSection(r, model, around)}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${aroundSection(d, model, around, {distance, fillOf, venueLogo})}${recordsHTML}${similarSection(d)}
     ${actionBar({kind: 'neighborhood', name: r.name, province, point: {lat: r.ref[1], lon: r.ref[0]}})}
     ${registryDetails(d, model)}
     ${provenance(ctx, {boundary: r.kind === 'lodging' && !am ? L(`${r.name} · ขอบร่างของผลคัดย่านที่พัก ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline of the lodging screen ${rai(r.areaM2)} rai`) : r.kind === 'screen' ? L(`${r.name} · ขอบร่างตามหลักของเจ้าของ ${thaiDate(r.screen?.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline by the owner's rule, ${thaiDate(r.screen?.on)}, from OpenStreetMap ${rai(r.areaM2)} rai`) : am ? L(`${r.name} · ขอบย่านฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline extended on ${thaiDate(am.on)} from OpenStreetMap ${rai(r.areaM2)} rai`) : L(`${r.name} · ขอบย่านฉบับร่าง ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline ${rai(r.areaM2)} rai`)})}`;

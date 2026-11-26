@@ -28,6 +28,7 @@ import {PILLARS, PILLAR_SERIES, num, dsName} from './model.js';
 import {L, esc, thaiDate, dsDate} from './panel.js';
 import {cueMarkup} from './cues.js';
 import {mapsSearchURL, streetViewURL} from './ask.js';
+import {logoPlate} from './logos.js';
 
 const EN = LANG === 'en';
 export const CONDO = 'condo';
@@ -39,7 +40,8 @@ export const TIP_NAMES = 3;
 /* ---------- decode ---------- */
 
 /** data/records/<id>.json → records (dataset objects from the model). */
-export function decodeRecords(json, model) {
+/** `logos`: the neighbourhood's decoded logo shard (js/logos.js), or null — a record then has no logo. */
+export function decodeRecords(json, model, logos = null) {
   const F = Object.fromEntries((json?.fields || []).map((f, i) => [f, i]));
   if (!('dataset' in F) || !Array.isArray(json.rows)) return [];
   const out = [];
@@ -49,7 +51,7 @@ export function decodeRecords(json, model) {
     const [lineTh = '', lineEn = ''] = String(r[F.sub] || '').split('|');
     out.push(Object.freeze({i, kind: 'record', ds, lon: r[F.lon], lat: r[F.lat], sub: r[F.subgroup], key: String(r[F.key] ?? ''),
       name: r[F.name] || '', nameEn: r[F.nameEn] || '', measure: Number.isFinite(r[F.measure]) ? r[F.measure] : null,
-      line: EN ? lineEn || lineTh : lineTh}));
+      line: EN ? lineEn || lineTh : lineTh, logo: logos?.records.get(`${ds.id}:${r[F.key] ?? ''}`) || null}));
   });
   return out;
 }
@@ -189,7 +191,8 @@ export function labelItems(spots, chosen) {
     if (chosen ? g.ds.id !== chosen : g.ds?.item !== 'venue') return;
     const first = nameOrNone(g.items[0]);
     const name = g.items.length > 1 ? `${first} ${L('ฯลฯ', '& more')}` : first;
-    out.push({id: i, name, title: `${dsName(g.ds)} · ${g.items.map(nameOrNone).slice(0, 6).join(' · ')}`, center: [g.lon, g.lat],
+    const logo = g.items[0].logo && g.items.every(x => x.logo === g.items[0].logo) ? g.items[0].logo : null;
+    out.push({id: i, name, logo, title: `${dsName(g.ds)} · ${g.items.map(nameOrNone).slice(0, 6).join(' · ')}`, center: [g.lon, g.lat],
       rank: (g.items[0].measure || 0) + (g.items.length > 1 ? 1e6 : 0)});
   });
   return out.sort((a, b) => b.rank - a.rank);
@@ -204,7 +207,7 @@ export function tipHTML(spots) {
   if (list.length === 1 && list[0].items.length === 1) {
     const r = list[0].items[0];
     const meta = [dsName(r.ds), subgroupLabel(r)].filter(Boolean).join(' · ');
-    return `<div class="poi-tip-row">${dsCue(r.ds)}<span class="poi-tip-text"><strong translate="no">${esc(nameOrNone(r))}</strong><small>${esc(meta)}</small></span></div>`;
+    return `<div class="poi-tip-row">${dsCue(r.ds)}<span class="poi-tip-text"><strong translate="no">${esc(nameOrNone(r))}</strong><small>${esc(meta)}</small></span>${logoPlate(r.logo, {height: 20, cls: 'tip-logo'})}</div>`;
   }
   const groups = byDataset(list.flatMap(s => s.items));
   const rows = groups.slice(0, 4).map(({ds, items}) => {
@@ -282,7 +285,7 @@ export function detailHTML(r, {row = null, back = false} = {}) {
   const facts = factsOf(r);
   return `<article class="poi-card" data-kind="${r.kind}" data-dataset="${esc(r.ds.id)}">
     ${back ? `<button type="button" class="btn quiet back poi-back" data-poi="list">${esc(L('ทั้งหมดที่จุดนี้', 'Everything here'))}</button>` : ''}
-    <div class="poi-head">${dsCue(r.ds)}<div class="poi-title"><p class="poi-eyebrow">${esc(meta)}</p><h3 translate="no">${esc(nameOrNone(r))}</h3>${r.line ? `<p class="poi-line" translate="no">${esc(r.line)}</p>` : ''}</div></div>
+    <div class="poi-head">${dsCue(r.ds)}<div class="poi-title"><p class="poi-eyebrow">${esc(meta)}</p><h3 translate="no">${esc(nameOrNone(r))}</h3>${r.line ? `<p class="poi-line" translate="no">${esc(r.line)}</p>` : ''}</div>${logoPlate(r.logo, {height: 32, cls: 'head-logo'})}</div>
     ${facts.length ? `<dl class="poi-facts">${facts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd class="data-number">${esc(v)}</dd></div>`).join('')}</dl>` : ''}
     ${actionsOf(r)}
     ${recordProvenance(r, {row})}
@@ -304,7 +307,7 @@ export function byDataset(records) {
 export function listHTML(records, {row = null} = {}) {
   const groups = byDataset(records);
   const body = groups.map(({ds, items}) => `<section class="poi-group"><h3>${dsCue(ds)}<span>${esc(dsName(ds))}</span></h3>
-    <ul>${items.map(r => `<li><button type="button" class="poi-item" data-poi="${records.indexOf(r)}"><span translate="no">${esc(nameOrNone(r))}</span>${subgroupLabel(r) ? `<small>${esc(subgroupLabel(r))}</small>` : ''}</button></li>`).join('')}</ul></section>`).join('');
+    <ul>${items.map(r => `<li><button type="button" class="poi-item" data-poi="${records.indexOf(r)}"><span translate="no">${logoPlate(r.logo, {height: 16, cls: 'row-logo'})}${esc(nameOrNone(r))}</span>${subgroupLabel(r) ? `<small>${esc(subgroupLabel(r))}</small>` : ''}</button></li>`).join('')}</ul></section>`).join('');
   const dates = groups.map(({ds}) => (ds.id === CONDO ? `${dsName(ds)} ${L('ตรวจแหล่ง', 'checked')} ${thaiDate(ds.meta?.checkedOn)}` : `${dsName(ds)} ${thaiDate(dsDate(ds))}`)).join(' · ');
   return `<article class="poi-card" data-kind="list">
     <p class="poi-eyebrow">${esc(L('ที่จุดนี้', 'At this point'))}</p>
@@ -324,6 +327,6 @@ export function panelListHTML(records, {open = false} = {}) {
   if (records == null) return `<details class="scope-details records-details" data-records="loading"${open ? ' open' : ''}>${summary}<p class="hint">${esc(L('กำลังโหลดรายชื่อ', 'Loading the names'))}</p></details>`;
   if (!records.length) return '';
   const groups = byDataset(records).map(({ds, items}) => `<section class="records-group"><h4>${dsCue(ds)}<span>${esc(dsName(ds))}</span></h4>
-    <ul>${items.map(r => `<li><button type="button" class="link-button" data-action="open-record" data-value="${r.i}"><span translate="no">${esc(nameOrNone(r))}</span></button>${subgroupLabel(r) ? ` <span class="hint">${esc(subgroupLabel(r))}</span>` : ''}</li>`).join('')}</ul></section>`).join('');
+    <ul>${items.map(r => `<li><button type="button" class="link-button" data-action="open-record" data-value="${r.i}">${logoPlate(r.logo, {height: 16, cls: 'inline-logo'})}<span translate="no">${esc(nameOrNone(r))}</span></button>${subgroupLabel(r) ? ` <span class="hint">${esc(subgroupLabel(r))}</span>` : ''}</li>`).join('')}</ul></section>`).join('');
   return `<details class="scope-details records-details" data-records="ready"${open ? ' open' : ''}>${summary}<p class="hint">${esc(L('กดชื่อเพื่อดูบนแผนที่', 'Choose a name to see it on the map'))}</p>${groups}</details>`;
 }
