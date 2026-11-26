@@ -3,7 +3,7 @@
   "schemaVersion": "1.5.0",
   "documentType": "product-brief",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.4.1",
+  "productVersion": "0.5.0",
   "updatedOn": "2026-11-25",
   "datasetCheckedOn": "2026-11-16",
   "language": "th",
@@ -154,7 +154,7 @@
     "notYet": ["NL-03 Shopping Center reading the links", "round 2: residents, office workers, administrative areas", "round 3: reader test, roles from evidence, Yolk import"]
   },
   "delivery": {
-    "cacheTag": "?v=20261125-r2",
+    "cacheTag": "?v=20261126-r2",
     "shell": "citymeter-shell 0.6.4 (since release 0.2.6: Shopping Center marked as a demo with English; unchanged in 0.4.0)"
   }
 }

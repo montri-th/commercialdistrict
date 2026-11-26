@@ -8,24 +8,26 @@ import {load} from './helpers.js';
 import {readFileSync} from 'node:fs';
 import {cell, rai, km2Text} from '../js/model.js';
 
-test('one row per outline: the registry\'s 358 closed outlines and the 37 lodging areas with a draft, unique codes, a display outline and a province each', () => {
+test('one row per outline: the registry\'s 358 closed outlines, the 37 lodging areas with a draft and (0.5.0) the 56 outlines of the commercial screen, unique codes, a display outline and a province each', () => {
   const {model, outlines} = load();
   const ids = model.rows.map(r => r.id);
   const t = model.meta.totals;
   assert.equal(t.closed, 358);
   assert.equal(t.lodgingDrawn, 37);
   assert.equal(model.rows.length, t.outlined);
-  assert.equal(t.outlined, t.closed + t.lodgingDrawn);
+  assert.equal(t.screenDrawn, 56);
+  assert.equal(t.outlined, t.closed + t.lodgingDrawn + t.screenDrawn);
   assert.equal(model.rows.filter(r => r.kind === 'registry').length, t.closed);
   assert.equal(model.rows.filter(r => r.kind === 'lodging').length, t.lodgingDrawn);
-  // the registry's outlines first, in canonical order; the lodging areas after them
+  assert.equal(model.rows.filter(r => r.kind === 'screen').length, t.screenDrawn);
+  // the registry's outlines first, in canonical order; the lodging areas after them, then the commercial screen's
   assert.ok(model.rows.slice(0, t.closed).every(r => r.kind === 'registry'));
   assert.equal(new Set(ids).size, ids.length);
   assert.deepEqual(outlines.features.map(f => String(f.properties.id)).sort(), [...ids].sort());
   for (const f of outlines.features) assert.equal(f.properties.kind, model.byId.get(String(f.properties.id)).kind);
   for (const r of model.rows) {
     // (0.2.1) the registry admitted the lodging areas: central codes CMN-TH-<hex of the screen's LP-NEW-<hex>>
-    assert.match(r.id, r.kind === 'lodging' ? /^CMN-TH-[0-9A-F]{10}$/ : /^CMN-TH-[0-9A-Z]+$/);
+    assert.match(r.id, r.kind === 'registry' ? /^CMN-TH-[0-9A-Z]+$/ : /^CMN-TH-[0-9A-F]{10}$/);
     assert.ok(r.areaM2 > 0 && r.km2 > 0, r.id);
     assert.ok(r.province && /^[A-Z]{3}$/.test(r.province), r.id);
     const [w, s, e, n] = r.bbox;
@@ -117,9 +119,10 @@ test('metadata names the registry read, its export and the bundle by SHA-256, an
   assert.match(m.bundle.sha256, /^[0-9a-f]{64}$/);
   assert.match(m.bundle.boundariesSha256, /^[0-9a-f]{64}$/);
   // (0.2.1) every code of the registry: closed outlines, the admitted lodging areas with a draft outline, held codes
-  // (the registry's 2 and the 42 admitted lodging areas without an outline) and collection names
-  assert.equal(m.totals.closed + m.totals.lodgingDrawn + m.totals.held + m.totals.collections, m.totals.codes);
-  assert.equal(m.totals.codes, 449);
+  // (the registry's 2 and the 42 admitted lodging areas without an outline) and collection names; (0.5.0) the commercial
+  // screen's outlines, its codes without one (held) and the one held until the owner decides (not on the page)
+  assert.equal(m.totals.closed + m.totals.lodgingDrawn + m.totals.screenDrawn + m.totals.held + m.totals.collections + m.totals.screenHeld, m.totals.codes);
+  assert.equal(m.totals.codes, 677);
   assert.equal(m.totals.admitted, 79);
   assert.equal(m.registry.admitted.codes, 79);
   assert.equal(m.registry.admitted.on, '2026-11-18');
