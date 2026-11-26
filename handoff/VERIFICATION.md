@@ -57,18 +57,6 @@ Owner 2026-11-26 06:09 ICT, VERBATIM: “ลุยตามพี่แนะน
 - 393 px: a same-origin frame 393 × 740 in the same tab. The first frame opened the light map: the page it replaced never ended (no pagehide), so the shell read a page stopped on screen; with the tab's session mark cleared the frame opens the full map. The harness, not the release. Thai with the screen filter and ท่าน้ำนนท์'s sheet, English ท่าน้ำนนท์: scroll width 393, `missing` 0.
 - Seen, not this release's: the hotel dataset names one record «Bed by Boat Hotel & Apartment 2.5 จากทั้งหมด 5.0» (a rating in the name as the source has it); it is listed in ท่าน้ำนนท์.
 
-### Live (ICT, 2026-11-26)
-
-- Pull request #31 merged 07:41 as `f3be72b`, a merge commit whose tree is the tree of `5e9e6ac` (the head the preview checked, `3bf5b51`, plus the preview record). GitHub Pages run 45730546073 for `f3be72b` from 07:41:42, success. `npm run verify:live` 07:43:58 against a manifest built at `f3be72b`: 1321 ok, 0 failed.
-- citymeter.pages.dev: run 196 (45730840590), dispatched through the GitHub API with publish on, preview off, no overrides, 07:44:09–07:45:00, success: 18 sources from the latest GitHub Pages deployments, Commercial District `f3be72b`, 114 / 114 live checks; release assembled 00:44:33 UTC.
-- The live walk, the owner's Chrome: `release.json` names `f3be72b`, 0.5.0, cache tag `20261126-r2`, static key `f6e4b1566f7dbd3b`; the page loads `r/f6e4b1566f7dbd3b/…` with `?v=20261126-r2`; 451 rows, 56 of the screen, the held code in neither rows nor names; the sentence of the data sources ends «· พักไว้รอเจ้าของตัดสิน 1». In the light theme (the setting this browser keeps for the site): the filter of the screen 56 ย่าน · 5.5 ตร.กม. · 29 จังหวัด; ชุมชนตลาดโบราณบางพลี (`CMN-TH-66162B679E`, drawn from the 40 m seed) 13 ไร่ «0.021 ตร.กม. ตามขอบร่างที่วาดตามหลักของเจ้าของ» with the outline words of the preview. English: `window.__citymeterI18n.missing` 0. 393 px, same-origin frames: Thai ชุมชนตลาดโบราณบางพลี and English with the screen filter, scroll width 393, `missing` 0. Two frames opened together share the tab's session mark, so the second to start reads the first as a page stopped on screen and opens the light map; one frame at a time opens the full map. The harness, not the release.
-
-### Not done
-
-- Not walked on a phone itself.
-- The Dataset Registry row of this demo still names its last check; the registry is the owner's to edit unless he hands an edit over.
-- The 17 outlines that reach beyond 1 km wait for the owner's tick; the 141 codes the basemap left without buildings and the 13 in a city's fabric have no outline; ย่านตลาดไท waits for his decision.
-
 ## Release 0.4.1 — 25 พ.ย. 2569
 
 Owner 2026-11-25 23:01 ICT, VERBATIM: “ทำตามที่พี่เสนอเลยครับ” — Claude's table of 22:21: centre pins on top (D-11), «ขอบเดินถึง» and the service area for round 2 (D-10), pull request #27 first. Pull request #28, head `4088074`, stacked on pull request #27.
