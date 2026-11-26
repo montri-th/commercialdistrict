@@ -3,7 +3,7 @@
   "schemaVersion": "1.5.0",
   "documentType": "implementation-plan",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.6.1",
+  "productVersion": "0.7.0",
   "updatedOn": "2026-11-26",
   "language": "en",
   "architecture": {
@@ -85,7 +85,7 @@
     "title": "น่าอยู่ · น่าเที่ยว · น่าค้าขาย ด้วยปริมาณคน แผนที่วงกลม และระยะตามทางจริง",
     "owner": "2026-11-26 14:03 (D-V6b, the request), 14:13, 14:31–14:40 (D-12 … D-15); VERBATIM in handoff/visual/decisions.json and handoff/around/decisions.json",
     "staging": {
-      "0.7.0": "today: V7-01 … V7-06 (distances straight line from the edge, said on the page)",
+      "0.7.0": "done 2026-11-26: V7-01 … V7-06 (distances straight line from the edge, said on the page); residents inside the outlines only",
       "0.7.1": "after the night crawl of Building V4: V7-07, then V7-08",
       "0.7.2": "when the Shopping Center's OpenStreetMap file and its method are in hand: V7-09",
       "later": "V7-10, in the order the owner picks"
@@ -106,7 +106,9 @@
           "every axis row: number + unit + meaning + evidence label",
           "no score, total or rank per axis",
           "missing reads ยังไม่มีข้อมูล"
-        ]
+        ],
+        "status": "done (0.7.0)",
+        "deliveredAs": "js/axes.js (names), js/indicators.js (rows), tests/visual.test.js, tests/people.test.js"
       },
       {
         "id": "V7-02",
@@ -124,7 +126,9 @@
           "overnight visitors: the province's guests per the Ministry of Tourism and Sports allocated by the share of recorded rooms",
           "dataset · source · date · boundary on every figure",
           "level = mid-rank among the reference set, «ระดับเทียบ N/100»"
-        ]
+        ],
+        "status": "done (0.7.0)",
+        "deliveredAs": "scripts/build-people.py → data/people/<id>.json and data/people/meta.json (one file per neighbourhood instead of data/people.json); js/people.js; tests/people.test.js"
       },
       {
         "id": "V7-03",
@@ -139,7 +143,9 @@
           "the crawler reproduces data/residents of montri-th/shoppingcenter for sample venues",
           "production API about 700 requests, paced",
           "registered ≠ living there: said in the method"
-        ]
+        ],
+        "status": "done (0.7.0)",
+        "deliveredAs": "scripts/residents/crawl.py and build-residents.py; inside the outlines: 3,665 tile × subdistrict requests and 4,952 responses in all (the plan said about 700: the outlines touch 791 subdistricts and the population check reads every province); checked against the Shopping Center page at +0.30 % and +0.32 %"
       },
       {
         "id": "V7-04",
@@ -155,7 +161,9 @@
           "the LUTs of «รอบศูนย์นี้» (activity · count) with 41 samples, legend with real values, ranked within the map",
           "the outline, the walk edges and the 1 · 3 · 5 km lines over the cells",
           "a table by direction and distance that reads instead of the map"
-        ]
+        ],
+        "status": "done (0.7.0)",
+        "deliveredAs": "in scripts/build-people.py (map of each file) and js/people.js#mapSection instead of build-maps.py, data/maps/ and js/circle-map.js; D-16 records the reading of item 2.4"
       },
       {
         "id": "V7-05",
@@ -174,7 +182,9 @@
           "text ≥ 14 px in the panel at 393 px and desktop",
           "the words and meters of «รอบศูนย์นี้» (ระดับเทียบ N/100, 5 steps)",
           "Thai and English"
-        ]
+        ],
+        "status": "done (0.7.0)",
+        "deliveredAs": "js/panel.js, styles.css (the #panel small override), js/app.js (f.reach, f.map)"
       },
       {
         "id": "V7-06",
@@ -192,7 +202,9 @@
           "น่าเที่ยว: ที่พัก · ช้อปปิ้ง · แหล่งเรียนรู้/ศิลปะ/ประวัติศาสตร์/กลางคืน/ธรรมชาติ · ความหลากหลาย",
           "น่าค้าขาย: ผู้ซื้อ (สามกลุ่ม ไม่รวมกัน) · ระดับราคาแถวนี้",
           "a topic without data is a row that says so and what would fill it"
-        ]
+        ],
+        "status": "done (0.7.0)",
+        "deliveredAs": "js/indicators.js; tests in tests/people.test.js (D-V6b rows for every neighbourhood at in · 400 · 800)"
       },
       {
         "id": "V7-07",

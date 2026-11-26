@@ -784,3 +784,109 @@ characters without spaces (screen-reader words and closed parts left out): media
 451 shorter), median panel height 2,745 → 2,681 px (−2.9 %; 327 of 451 shorter); by part (medians): the head 158 → 142,
 highlights 108 → 58, what comes together 93 → 108, the axes (the 0.4.0 table before) 897 → 906, similar mixes 132 →
 415 (`handoff/VERIFICATION.md` 0.6.0).
+
+<a id="people"></a>
+
+## 15. «ใครอยู่ตรงนี้»: residents, people who come to work and study, overnight visitors (0.7.0, 2026-11-26)
+
+Owner 2026-11-26 14:03, VERBATIM (item 1): “คนอยู่ แบบจำลองยังไม่ถึงรอบข้อมูลรอรุ่นแบบจำลองผู้อยู่อาศัย (รอบ 2)
+ทำยังไงถึงจะเห็นปริมาณคน residents, visitors, commuters ได้ อยากได้วิธีง่ายๆตรงไปตรงมาไม่ซับซ้อนมาก ช่วยนำเสนอมาให้เลือกหน่อย”;
+his answers 14:31–14:40 (D-12 “A ตัวเลขทางการแบ่งลงย่าน (แนะนำ)”, D-13, D-14; every word in `handoff/around/decisions.json`).
+Files: `data/people/<id>.json` and `data/people/meta.json` from `scripts/build-people.py`; the residents from
+`scripts/residents/build-residents.py`, whose output (`--out`) and cache (`--cache`) stay outside the repository.
+
+**Three groups, three figures, never added together (INV-01).** Each is a model or a sum of recorded people, read
+“ราว” (about) and rounded — 10 000 or more to the thousand, 1 000 or more to the hundred, 10 or more to the ten; under 10
+reads “ไม่ถึง 10”; a measured 0 reads 0. None is footfall, a number of customers or sales.
+
+**Where (D-13; straight line for now).** ในย่าน = inside the outline the map draws (for a dataset, the records the data
+build counted inside); 1 · 3 · 5 km = inside and within that distance of the edge (`f.reach`, 1 km by default); the axis
+rows read the same file at 400 and 800 m («ขอบเดินถึง», §12), whose counts equal `data/around.json` record for record
+(`tests/people.test.js`). Distances are straight lines in an azimuthal equidistant projection centred on the
+neighbourhood's reference point, measured from the edge, so a figure does not compare one to one with a centre's circle
+of «รอบศูนย์นี้». Distances along real paths — bridges, crossings, expressways, rivers and rail — come with the
+OpenStreetMap file and method of the Shopping Center page, the same file by its SHA-256 (D-14, V7-09); until then the page
+says “วัดเส้นตรงจากขอบย่าน (รอระยะตามทางจริง)”.
+
+**คนอยู่ (modelled).** The method of «รอบศูนย์นี้» (variant A): production's `popCount` of each subdistrict, the civil
+register's total of the latest month, spread over every building of CityMETER Building V4 in it by floor area —
+footprint × estimated floors from production's vector tiles (z15, `hideWithParts`), or production's own GFA weight for a
+building drawn from OpenStreetMap parts — over production's GFA total of the subdistrict; a building counts where the
+centre of its footprint (of the union of its parts) lies. Run of 2026-11-26 (Observed): population month 2026-10, the
+register's total equal to `popCount` in all 791 subdistricts the outlines touch; 1,318,420 buildings read in 3,665 tile ×
+subdistrict requests, 262 of them drawn from parts; none without an estimated floor. Seven outlines hold no building of
+Building V4 (islands and hill villages among them): their figure is unknown — “ยังไม่มีข้อมูลอาคารในขอบนี้”, never 0.
+Check against the Shopping Center page (`montri-th/shoppingcenter@78cf457`, `data/residents/049.json` and `100.json`,
+`n[0]`, 1 km round the centre's point): SC-000337 8,887 against 8,858 (+0.32 %, 1,765 buildings against 1,778) ·
+SC-002835 15,178 against 15,132 (+0.30 %, 2,229 against 2,235). Hypothesis for the gap: the buildings in production changed
+between the two runs; not checked. The page says what the model is not: people who live here without being registered
+are not in it, and a commercial building takes people by its floor area like a house, so a commercial area can read more
+people than live there. 0.7.0 has the residents inside the outline; 1 · 3 · 5 km and the residents map come with the run
+over 5 km (V7-07) — until then the tile reads “รอข้อมูลรอบถัดไป”.
+
+**คนมาทำงานและเรียน (at least; D-12 amends INV-01 for this group only).** The sum of the parts the sources record, each
+shown beside it: students the school register records for 2569 · students of a university when every site of the
+university is located and within the distance (a university's students are never split between campuses) · workers on
+the factory register · staff the government offices record (some kinds only) · office workers by the model of the
+Shopping Center page (§26 there): the building's area (leasable, else the source's, unless the two conflict) × its
+occupancy (its own, else 0.764) ÷ 12 or 10 m² a person, rounded outward, from `montri-th/office` `data/offices.json` at
+`8e8d8be` (SHA-256 `4d225abb…`, `meta.parts.off.model`) — the low end in the sum, the range in the parts. Only records with
+a point count. Shop, hotel and hospital workers are not in it, so the figure is a floor. When half or more of it comes
+from datasets with points for under 90 % of their records (`meta.levels.lowLocated`: factory, fitness, hospital,
+industrialestate, office, pharmacy, school) it carries a star and no level (the rule of «รอบศูนย์นี้» §30) — at 1 km that is
+400 of the 469 neighbourhoods (Observed, this build).
+
+**ผู้มาเยือนค้างคืน (guests a year, modelled).** The province's guests of the year (Ministry of Tourism and Sports, Table
+17.1, 2024, published by the National Statistical Office; `scripts/people/mots-t17.1-2567.tsv`, its SHA-256 in the meta)
+shared by recorded rooms: rooms of the Hotel dataset's lodging within the distance × the province's guests ÷ the
+province's recorded rooms. A lodging place takes the province whose outline holds it, else the nearest within 0.05°; 6
+places outside every province are left out. Day visitors are not counted; the map of places visitors use (§16) stands
+for them as an inference.
+
+**ศูนย์และตลาด.** The Shopping Center dataset's located records within the distance (places, not people).
+
+**Levels.** Per figure and distance, the mid-rank percentile among the reference set of 0.4.0 (395, D-8), “ระดับเทียบ
+N/100” with the five steps of «รอบศูนย์นี้» (`levelOf`); a starred figure or a figure without data has none.
+
+<a id="maps-and-topics"></a>
+
+## 16. The round maps and the topic rows of น่าอยู่ · น่าเที่ยว · น่าค้าขาย (0.7.0, 2026-11-26)
+
+Owner 2026-11-26 14:03, VERBATIM (items 2 and 2.4): “น่าอยู่ น่าเที่ยว น่าค้าขาย ผมว่าน่าจะคงคำไว้แบบนี้แล้วเรามาพยายามทำ
+ข้อมูลให้สามารถตอบความ "น่า" ให้ได้จริง เพิ่มเติมจากข้อมูลที่พี่ทำขึ้นมาแล้ว ให้เห็นทั้ง เชิงปริมาณ และ คุณภาพ” ·
+“charts ใน sidebar ตอนนี้ยังดูยากอยู่มาก ตัวเล็ก ตัวเลขต่างไม่รู้ว่ามีความหมายอย่างไร ยังไม่ consistent กับ venue locale
+insight เท่าที่ควร พวก heatmap กลมๆก็ไม่มี ทำยังไงจะมีได้และ relevant กับ case ของ commercial district นี้ด้วย”
+(D-V6b in `handoff/visual/decisions.json`; D-16 in `handoff/around/decisions.json`).
+
+**The round maps (D-16, Claude's reading under his 14:03 words; his check pending).** As «รอบศูนย์นี้» draws them (D55,
+D59 of the Shopping Center page): cells of 250 × 250 m in the neighbourhood's local projection, those whose centre lies
+within 5 km of the edge, straight line. ที่ผู้มาเยือนใช้ = located places of eight datasets per cell (lodging, centres and
+markets, groceries, restaurants, pharmacies, fitness, luxury brands, camera shops) on the LDS `activity` scale ·
+ที่ทำงานและที่เรียน = places of seven (offices, government offices, factories, industrial estates, universities,
+hospitals, schools) on `count` · คนอยู่ = registered residents (modelled) per cell on `density.area`, with the run over 5 km
+(the tab says “รอบถัดไป” until then). Adding places of the listed datasets per cell amends INV-01 for these two maps only:
+the map, its legend, its direction line and its table read those cells; the heading says อนุมาน (an inference of where
+people go, not people or visits); no other figure on the page adds places across datasets. Colours: all 41 samples of
+the map's scale, ranked within that one map, the same HEX on both themes; a pale cell keeps a hairline edge. Over the
+cells: the outline, the walk edges 400 · 800 m and the 1 · 3 · 5 km lines with their labels, north up. The line under the
+map names the direction holding the most (eight directions from the reference point); “อ่านแผนที่เป็นตาราง” gives every
+direction by distance band (inside · to 1 km · 1–3 km · 3–5 km) as the reading without the map.
+
+**The topic rows (D-V6b, binding; supersedes D-V6).** The axes keep the owner's words น่าอยู่ · น่าเที่ยว · น่าค้าขาย; the
+guard D-V6 kept by leaving “น่า” off the screen moves into the rows (`js/indicators.js`): (1) every row is one sentence with
+its number, its unit and what it means, and its label (แบบจำลอง · อย่างน้อย · a star); (2) no score, no total and no rank of
+a neighbourhood per axis (D-V7 A stays); (3) a topic without data reads “ยังไม่มีข้อมูล” and what would fill it, never 0, and
+a dataset that does not reach the province says so beside the one that does; (4) placing a topic on an axis is this
+demo's reading (an Inference), not a verdict on the neighbourhood. Rows (counts at the axis distance: inside, or inside and
+within 400 / 800 m): **น่าอยู่** — กิน (restaurants and groceries, the kinds of restaurant inside) · ของจำเป็นใกล้ตัว (how
+many of seven everyday datasets are present, the ones not found by name) · การเดินทาง (rail stations; buses and boats: no
+data yet) · คนและความแน่น (registered residents inside and per km²) · ความคึกคัก (the restaurant level of §14) · ออกกำลังกาย
+และสีเขียว (fitness; parks: no data yet) · อากาศและความสงบ (no data yet: PM2.5, noise). **น่าเที่ยว** — ที่พัก (rooms inside,
+kinds of lodging, guests a year) · ช้อปปิ้งและแฟชั่น (centres and markets, luxury brands and their product groups) ·
+ความหลากหลาย (how many of the counted kinds are present) · พิพิธภัณฑ์ ศิลปะ แหล่งเรียนรู้ · ประวัติศาสตร์ · กลางคืน คอนเสิร์ต
+โรงภาพยนตร์ · ธรรมชาติ หาด ภูเขา น้ำตก (no data yet, each with the open or CityMETER source looked at). **น่าค้าขาย** — ผู้ซื้อ
+(the three groups of §15 side by side, “สามกลุ่มไม่รวมกัน · ไม่ใช่จำนวนลูกค้า”) · กำลังจ่าย (luxury points of sale; land prices
+and rents not in this demo, never the income of the people here) · คนทำงาน (offices and office workers, modelled) ·
+กิจการรอบตัว (factories, industrial estates, camera shops) · คู่แข่ง พันธมิตร สาขาของเรา (the business type and brand
+picker of D-15, 0.7.1). The datasets' levels of §14 fold under the rows of each axis. Text of the people block, the
+maps and the rows is 14 px or more, their tags 13 px (V7-05).

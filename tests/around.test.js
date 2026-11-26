@@ -184,7 +184,7 @@ test('ties: a count highlight says how many neighbourhoods share its rank (363 o
   assert.equal(highlightWords(fit, model.dsById.get('fitness'), siam).value, `มากอันดับ ${fit.v}`, 'without the count, the old words');
 });
 
-test('every neighbourhood renders the glance and «ขอบเดินถึง» whole, with the file and without it', () => {
+test('every neighbourhood renders «ใครอยู่ตรงนี้» and «ขอบเดินถึง» whole, with the file and without it', () => {
   const {model} = load();
   const A = around();
   for (const r of model.rows) {
@@ -192,7 +192,10 @@ test('every neighbourhood renders the glance and «ขอบเดินถึ�
     for (const [a, distance] of [[A, 'in'], [A, '400'], [A, '800'], [null, 'in']]) {
       const html = renderNeighborhood(d, model, {ctx: ctx(), around: a, distance});
       assert.ok(!holes.test(html), `${r.id} ${distance} ${a ? '' : 'no file'}`);
-      assert.equal((html.match(/class="glance-tile /g) || []).length, 4, r.id);
+      // 0.7.0: the glance gave way to «ใครอยู่ตรงนี้» (D-12); without its file the section says it is loading, never a 0
+      assert.equal((html.match(/id="nb-people"/g) || []).length, 1, r.id);
+      assert.match(html, /class="people-wait">กำลังโหลดตัวเลขคน…/, r.id);
+      assert.ok(!/class="glance-tile /.test(html), r.id);
       assert.equal((html.match(/class="around-ds"/g) || []).length, 16, r.id);
       assert.match(html, new RegExp(`data-around="${distance}"`));
       if (a) assert.match(html, /data-value="in" aria-pressed="(true|false)"/);
@@ -219,7 +222,7 @@ test('the reading of the address: in · 400 · 800, anything else reads inside',
   for (const v of ['400', '800', 'in']) assert.equal(aroundDistance(v), v);
   for (const v of ['', '500', null, undefined, '1000']) assert.equal(aroundDistance(v), 'in');
   const app = readFileSync(join(ROOT, 'js/app.js'), 'utf8');
-  assert.match(app, /filters: \['search', 'neighborhood', 'show', 'kind', 'around'\]/, 'f.around in the shared grammar');
+  assert.match(app, /filters: \['search', 'neighborhood', 'show', 'kind', 'around', 'reach', 'map'\]/, 'f.around (0.7.0: and f.reach, f.map) in the shared grammar');
   assert.match(app, /if \(state\.nb && state\.distance !== 'in'\) p\.set\('around', state\.distance\);/, 'inside is never written');
 });
 
@@ -227,8 +230,14 @@ test('handoff/around: the plan byte for byte, the owner’s words verbatim, the 
   assert.equal(sha256(readBytes('handoff/around/plan.json')), 'd5d37c7c3cbea3ddefb72f14e27cd989fe758f7a2e83ac2fa33de62a51f54f94');
   const dec = readJSON('handoff/around/decisions.json');
   assert.equal(dec.ownerWords[0].verbatim, 'พี่ช่วยปรับ web demo ตามที่แนะนำเลยครับ');
-  assert.deepEqual(dec.decisions.map(d => [d.id, d.status, d.decision]), ['D-1', 'D-2', 'D-3', 'D-4', 'D-5', 'D-6', 'D-7', 'D-8', 'D-9', 'D-10', 'D-11'].map(id => [id, 'decided', 'ก']));
-  assert.equal(dec.ownerWords.at(-1).verbatim, 'ทำตามที่พี่เสนอเลยครับ', 'D-10 and D-11 (2026-11-25 23:01)');
+  assert.deepEqual(dec.decisions.slice(0, 11).map(d => [d.id, d.status, d.decision]), ['D-1', 'D-2', 'D-3', 'D-4', 'D-5', 'D-6', 'D-7', 'D-8', 'D-9', 'D-10', 'D-11'].map(id => [id, 'decided', 'ก']));
+  assert.ok(dec.ownerWords.some(w => w.verbatim === 'ทำตามที่พี่เสนอเลยครับ'), 'D-10 and D-11 (2026-11-25 23:01)');
+  // 0.7.0 (2026-11-26 14:03–14:40): D-12 people figures, D-13 distances, D-14 the shared OSM file, D-15 business type and brand
+  assert.deepEqual(dec.decisions.slice(11).map(d => [d.id, d.status]), [...['D-12', 'D-13', 'D-14', 'D-15'].map(id => [id, 'decided']), ['D-16', 'authorJudgement']]);
+  // D-16 is Claude's reading under the owner's 14:03 words until he checks it: it says so and names what it amends
+  const d16 = dec.decisions.find(d => d.id === 'D-16');
+  assert.ok(d16.delegatedToAuthor && /pending/.test(d16.ownerCheck) && /INV-01/.test(d16.amends));
+  assert.ok(dec.ownerWords.some(w => w.verbatim === 'A ตัวเลขทางการแบ่งลงย่าน (แนะนำ)'), 'D-12 in the owner’s words');
   const inv = readJSON('handoff/around/contracts.json').invariants.items;
   assert.deepEqual(inv, readJSON('handoff/product-brief.json').invariants);
 });

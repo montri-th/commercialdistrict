@@ -23,10 +23,13 @@ import {PILLARS, PILLAR_SERIES, num, one, rai, km2Text, provinceName, dsName, ds
 import {cueMarkup} from './cues.js';
 import {actionBar} from './ask.js';
 import {logoPlate} from './logos.js';
-import {glanceTiles, aroundGroups, venuesOf, sharedBy, LEVEL_WORDS, pctFill, RING_INDEX} from './around.js';
+import {aroundGroups, venuesOf, sharedBy, LEVEL_WORDS, pctFill, RING_INDEX} from './around.js';
 import {lowLocated} from './model.js';
 import {cellsOf} from './levels.js';
 import {dsPic, fingerprint, matrix, matrixAnswer, matrixHead, matrixLegend, levelScopeLine, axisCards, axisKey, axisFoldIntro, compareDots, shapeMark, areaWords, provinceWords} from './visual.js';
+import {peopleSection, mapSection, DEFAULT_REACH, DEFAULT_MAP} from './people.js';
+import {topicsHTML} from './indicators.js';
+import {AXES} from './axes.js';
 
 const EN = LANG === 'en';
 /** The sentence in the page's language. */
@@ -369,12 +372,6 @@ function togetherSection(d) {
 /** The words of a distance: in · ขอบเดินถึง 400 ม. / Inside · Walkable edge 400 m (0.4.1, D-10; 0.4.0 said รอบย่าน). */
 export const distanceWords = (d, {short = false} = {}) => (d === 'in' ? L('ในย่าน', 'Inside')
   : short ? L(`ขอบ ${num(+d)} ม.`, `${num(+d)} m edge`) : L(`ขอบเดินถึง ${num(+d)} ม.`, `Walkable edge ${num(+d)} m`));
-/** Kinds of evidence as the page says them (handoff/around/contracts.json evidenceClasses). */
-const EVIDENCE_WORDS = {derived_count: ['นับ', 'counted'], publisher_listed: ['แหล่งรายงาน', 'source-listed'], modelled_estimate: ['แบบจำลอง', 'modelled']};
-const evidenceTag = id => (EVIDENCE_WORDS[id] ? `<span class="glance-tag">${esc(L(...EVIDENCE_WORDS[id]))}</span>` : '');
-const GLANCE_ICON = {residents: 'building', students: 'school', rooms: 'classroom', centers: 'province'};
-const GLANCE_LABEL = {residents: ['คนอยู่', 'Living here'], students: ['นักเรียน', 'Students'], rooms: ['ห้องพัก', 'Rooms'], centers: ['ศูนย์และตลาด', 'Centers and markets']};
-const STAR_NOTE = () => L('พิกัดไม่ถึง 90% ของรายการ จึงไม่จัดระดับ', 'points for under 90% of the records, so no level');
 /** The keys of the star, written as keys (a symbol and what it marks), as «รอบศูนย์นี้» keys its meter. */
 const STAR_KEY = kind => (kind === 'level'
   ? L('* = ชุดที่มีพิกัดไม่ถึง 90% ของรายการ: แสดงค่า ไม่จัดระดับ', '* = a dataset with points for under 90% of its records: value shown, no level')
@@ -396,53 +393,6 @@ export function daySpan(a, b) {
   // the same year: “31 ต.ค. – 8 พ.ย. 2569” (the year once)
   if (a.slice(0, 4) === b.slice(0, 4)) return `${thaiDate(a).replace(/ \d{4}$/, '')} – ${thaiDate(b)}`;
   return `${thaiDate(a)} – ${thaiDate(b)}`;
-}
-
-/** The glance «ในย่านนี้»: four tiles of one dataset each, a meter key, one short provenance line (NL-04). */
-function glanceSection(r, model, around) {
-  const tiles = glanceTiles(r, model, around);
-  const n = around?.meta.referenceSet?.n;
-  const uni = id => around?.meta.glance?.universe?.[id]?.n ?? n;
-  const tile = t => {
-    const [th, en] = GLANCE_LABEL[t.id];
-    const label = `<span class="glance-label">${esc(L(th, en))} ${evidenceTag(t.evidence)}</span>`;
-    const icon = pic(GLANCE_ICON[t.id]);
-    if (t.state === 'not_yet') {
-      return `<li><div class="glance-tile is-not_yet">${icon}${label}<span class="glance-wait">${esc(L('ยังไม่ถึงรอบข้อมูล', 'Not yet in this release'))}</span><small class="glance-sub">${esc(L('รอรุ่นแบบจำลองผู้อยู่อาศัย (รอบ 2)', 'awaiting the residents model (round 2)'))}</small></div></li>`;
-    }
-    const ds = t.ds, unitDs = n_ => `${num(n_)} ${dsUnitN(ds, n_)}`;
-    let figure, sub = '';
-    if (t.state === 'out_of_scope') {
-      figure = `<span class="glance-fig is-state">— ${esc(L('นอกขอบเขตข้อมูล', 'Out of scope'))}</span>`;
-      sub = L(`${ds.nameTh}ไม่มีข้อมูลในจังหวัดนี้`, `no ${dsName(ds)} data in this province`);
-    } else if (t.state === 'measured_zero') {
-      figure = `<span class="glance-fig is-state">${esc(L('ไม่พบ', 'None found'))}</span>`;
-      sub = L(`${ds.nameTh} 0 ${dsUnit(ds)}`, `0 ${dsUnit(ds)}`);
-    } else if (t.state === 'no_data') {
-      figure = `<span class="glance-fig is-state">— ${esc(L('ไม่มีข้อมูล', 'No data'))}</span>`;
-      sub = L(`${ds.nameTh} ${unitDs(t.records)} ไม่มีตัวเลข`, `${unitDs(t.records)}, no figure`);
-    } else {
-      const star = t.star ? `<sup aria-hidden="true">*</sup><span class="sr-only">${esc(STAR_NOTE())}</span>` : '';
-      figure = `<span class="glance-fig">${nw(`<b class="data-number">${num(t.value)}</b>&nbsp;<span class="glance-unit">${esc(L(...t.unit))}${star}</span>`)}</span>`;
-      if (t.figure !== 'count') sub = t.known < t.records ? L(`${ds.nameTh} ${unitDs(t.records)} · มีตัวเลข ${unitDs(t.known)}`, `${unitDs(t.records)} · ${unitDs(t.known)} with a figure`) : L(`${ds.nameTh} ${unitDs(t.records)}`, unitDs(t.records));
-    }
-    const meter = t.level == null ? '' : `${levelMeter(t.level, t.value > 0 ? t.p : null)}<span class="sr-only">${esc(L(`${LEVEL_WORDS[t.level][0]} ระดับ ${num(t.level)} จาก 5 เทียบ ${num(uni(t.id))} ย่าน`, `${LEVEL_WORDS[t.level][1]}, level ${num(t.level)} of 5 among ${num(uni(t.id))} neighbourhoods`))}</span>`;
-    const title = L(`${th}: ${ds.nameTh} · กดเพื่อไปที่แถวของชุดนี้ในแกน อยู่ · เที่ยว · ค้าขาย`, `${en}: ${dsName(ds)} · go to its row on the axes below`);
-    return `<li><button type="button" class="glance-tile is-${t.state}" data-action="around-jump" data-value="${esc(ds.id)}" title="${esc(title)}">${icon}${label}${figure}${sub ? `<small class="glance-sub">${esc(sub)}</small>` : ''}${meter}</button></li>`;
-  };
-  const starred = tiles.some(t => t.star && t.state === 'measured');
-  const ready = tiles.filter(t => t.ds && t.state !== 'out_of_scope');
-  const dates = ready.map(t => dsDate(t.ds)).filter(Boolean).sort();
-  // the key names the peers of every level shown, by their number (rooms are levelled among the 394 with a figure)
-  const levelled = tiles.filter(t => t.ds && t.level != null), unis = [...new Set(levelled.map(t => uni(t.id)))];
-  // each peer group and the direction kept whole on a line (a number and its unit never split)
-  const among = (unis.length === 1 ? [nw(esc(L(`ระดับเทียบ ${num(unis[0])} ย่าน`, `Level among ${num(unis[0])} neighbourhoods`)))]
-    : [esc(L('ระดับเทียบย่านที่มีค่า:', 'Level among the neighbourhoods with a value:')), ...levelled.map(t => nw(esc(L(`${GLANCE_LABEL[t.id][0]} ${num(uni(t.id))} ย่าน`, `${GLANCE_LABEL[t.id][1].toLowerCase()} ${num(uni(t.id))} neighbourhoods`))))])
-    .concat(nw(esc(L('น้อย → มาก', 'low → high')))).join(' · ').replace(': · ', ': ');
-  const key = n && (levelled.length || starred) ? `<p class="hint glance-key">${levelled.length ? `${levelMeter(3)}<span>${among}</span>` : ''}${starred ? `<span>${esc(STAR_KEY('level'))}</span>` : ''}</p>` : '';
-  const source = `<p class="hint glance-source">${esc(L(`ชุดข้อมูล CityMETER ${dates.length ? daySpan(dates[0], dates.at(-1)) : ''} · ในขอบร่างของย่าน`, `CityMETER datasets, ${dates.length ? daySpan(dates[0], dates.at(-1)) : ''} · inside the draft outline`))}</p>`;
-  return `<section class="panel-section nb-glance" aria-labelledby="nb-glance-title"><div class="section-heading">${heading('area', L('ในย่านนี้', 'Inside this neighbourhood'), 'nb-glance-title')}</div>
-    <ul class="glance-grid" aria-labelledby="nb-glance-title">${tiles.map(tile).join('')}</ul>${key}${source}</section>`;
 }
 
 /** A centre's «รอบศูนย์นี้» in the Shopping Center demo (`?e=venue:<id>`, citymeter-shell grammar). */
@@ -544,23 +494,23 @@ function demoTarget(ds, province) {
 }
 
 /**
- * (0.6.0, §4.9; D-V5, D-V6, D-V7 A) อยู่ · เที่ยว · ค้าขาย: the datasets of the neighbourhood on three axes, each a row
+ * (0.6.0, §4.9; D-V5, D-V6, D-V7 A; names D-V6b 0.7.0) น่าอยู่ · น่าเที่ยว · น่าค้าขาย: the datasets of the neighbourhood on three axes, each a row
  * with its level, count and rank, the switch of the distance the map draws (0.4.0), a key, and closed under them the way
  * to read them, the indicators each axis has no data for yet, and the table of 0.4.0 with every figure at every distance;
  * then the centres with a «รอบศูนย์นี้» page and the section's own provenance line.
  */
-function aroundSection(d, model, around, {distance = 'in', fillOf = () => '', venueLogo = () => null} = {}) {
+function aroundSection(d, model, around, {distance = 'in', fillOf = () => '', venueLogo = () => null, people = null, peopleMeta = null, reach = DEFAULT_REACH} = {}) {
   const r = d.row, t = aroundTable(d, model, around, {distance, fillOf});
   const reading = t.loaded ? distance : 'in', hl = new Set(d.highlights.map(x => x.ds.id));
   const cells = cellsOf(model, r, around);
   const hlShown = cells.some(x => hl.has(x.ds.id) && x.kind === 'ranked');
   const star = cells.some(x => x.kind !== 'out' && lowLocated(x.ds));
-  const colHead = `<p class="ax-cols" aria-hidden="true"><span>${L('ชุดข้อมูล', 'Dataset')}</span><span>${L('ระดับเทียบย่านอื่น', 'Level among the others')}</span><span>${L('จำนวน · อันดับ', 'Count · rank')}</span></p>`;
-  const cards = axisCards(model, r, around, {distance: reading, hl, demoOf: ds => demoTarget(ds, r.province)});
+  const cards = axisCards(model, r, around, {distance: reading, hl, demoOf: ds => demoTarget(ds, r.province),
+    topics: axisId => topicsHTML(axisId, {row: r, model, around, people, peopleMeta, reach, distance: reading})});
   const fold = `<details class="scope-details around-fold"><summary>${L('วิธีอ่าน แหล่งที่ตรวจไว้ และตัวเลขทุกระยะ (16 ชุด)', 'How to read, sources looked at, and every figure (16 datasets)')}</summary>${axisFoldIntro(model)}${t.table}${t.note}</details>`;
   const hint = L(`${num(model.datasets.length)} ชุดข้อมูล`, `${num(model.datasets.length)} datasets`);
-  return `<section class="panel-section around-section axes-section" id="nb-around" aria-labelledby="nb-around-title"><div class="section-heading">${heading('dataset', L('อยู่ · เที่ยว · ค้าขาย', 'Live · Visit · Trade'), 'nb-around-title')}<span class="hint">${esc(hint)}</span></div>
-    ${t.switcher}${colHead}${cards}${axisKey({distance: reading, hl: hlShown, star})}${fold}${aroundVenues(r, around, distance, venueLogo)}${aroundProvenance(r, model, around, reading)}</section>`;
+  return `<section class="panel-section around-section axes-section" id="nb-around" aria-labelledby="nb-around-title"><div class="section-heading">${heading('dataset', AXES.map(a => L(a.th, a.en)).join(' · '), 'nb-around-title')}<span class="hint">${esc(hint)}</span></div>
+    ${t.switcher}${cards}${axisKey({distance: reading, hl: hlShown, star})}${fold}${aroundVenues(r, around, distance, venueLogo)}${aroundProvenance(r, model, around, reading)}</section>`;
 }
 
 function similarSection(d, model, around) {
@@ -683,7 +633,8 @@ function registryDetails(d, model) {
  * d = js/profile.js#buildNeighborhood. inCompare: the row is in the compare set. around: decoded data/around.json (null
  * while it loads or when it did not load); distance: the reading of «ขอบเดินถึง» (`f.around`: in · 400 · 800).
  */
-export function renderNeighborhood(d, model, {inCompare = false, compareFull = false, fillOf = () => '', ctx = {}, recordsHTML = '', around = null, distance = 'in', venueLogo = () => null} = {}) {
+export function renderNeighborhood(d, model, {inCompare = false, compareFull = false, fillOf = () => '', ctx = {}, recordsHTML = '', around = null, distance = 'in', venueLogo = () => null,
+  people = null, peopleMeta = null, peopleState = 'idle', reach = DEFAULT_REACH, mapTab = DEFAULT_MAP} = {}) {
   const r = d.row, province = provinceName(r.province), am = amendmentOf(r, model);
   const top = d.highlights[0];
   const names = d.highlights.map(x => `<span class="hl-chip">${dsPic(x.ds)}${dsLabel(x.ds)}</span>`).join('');
@@ -702,8 +653,11 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
     ${metricTile(d.inProvince, L(`ย่านใน${province}`, `in ${province}`), 'province')}
   </section>`;
   const lodging = lodgingSection(r, model);
-  // (0.4.0, D-5) the glance follows the neighbourhood's figures; «ขอบเดินถึง» takes the place of the dataset list
-  return `${aha}${metrics}${glanceSection(r, model, around)}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${aroundSection(d, model, around, {distance, fillOf, venueLogo})}${recordsHTML}${similarSection(d, model, around)}
+  // (0.7.0, D-12 and 2.4 of 2026-11-26) «ใครอยู่ตรงนี้» and the round maps follow the neighbourhood's figures, in the place of
+  // the 0.4.0 glance (its students and rooms are parts of the people tiles now); «ขอบเดินถึง» keeps the place of the list
+  const refN = around?.meta.referenceSet?.n || 395;
+  const peopleHTML = peopleSection(r, people, peopleMeta, {reach, refN, state: people ? 'ready' : peopleState === 'error' ? 'error' : 'loading'});
+  return `${aha}${metrics}${peopleHTML}${people ? mapSection(r, people, peopleMeta, {tab: mapTab}) : ''}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${aroundSection(d, model, around, {distance, fillOf, venueLogo, people, peopleMeta, reach})}${recordsHTML}${similarSection(d, model, around)}
     ${actionBar({kind: 'neighborhood', name: r.name, province, point: {lat: r.ref[1], lon: r.ref[0]}})}
     ${registryDetails(d, model)}
     ${provenance(ctx, {boundary: r.kind === 'lodging' && !am ? L(`${r.name} · ขอบร่างของผลคัดย่านที่พัก ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline of the lodging screen ${rai(r.areaM2)} rai`) : r.kind === 'screen' ? L(`${r.name} · ขอบร่างตามหลักของเจ้าของ ${thaiDate(r.screen?.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline by the owner's rule, ${thaiDate(r.screen?.on)}, from OpenStreetMap ${rai(r.areaM2)} rai`) : am ? L(`${r.name} · ขอบย่านฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline extended on ${thaiDate(am.on)} from OpenStreetMap ${rai(r.areaM2)} rai`) : L(`${r.name} · ขอบย่านฉบับร่าง ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline ${rai(r.areaM2)} rai`)})}`;

@@ -326,6 +326,22 @@
    "delegatedToAuthor": false,
    "meaning": "คู่แข่ง พันธมิตร และสาขาของเรานับตามประเภทที่ผู้อ่านเลือก ไม่ใช่คำแนะนำให้เปิดสาขา · แบรนด์ที่ไม่อยู่ในชุดข้อมูลบอกว่ายังไม่มีข้อมูล ไม่บอกว่าไม่มีสาขา",
    "where": "js/trade.js · ?biz=&brand= in the address"
+  },
+  {
+   "id": "D-16",
+   "question": "แผนที่วงกลมของย่านนับอะไรต่อช่อง (เจ้าของ 14:03 ข้อ 2.4: “พวก heatmap กลมๆก็ไม่มี ทำยังไงจะมีได้และ relevant กับ case ของ commercial district นี้ด้วย” และให้ consistent กับ venue locale insight)",
+   "status": "authorJudgement",
+   "decision": "แบบเดียวกับ «รอบศูนย์นี้» (หน้าศูนย์การค้า D55 · D59): ที่ผู้มาเยือนใช้ = สถานที่ที่มีพิกัดของ 8 ชุด (ที่พัก ศูนย์การค้าและตลาด ร้านของชำ ร้านอาหาร ร้านยา ฟิตเนส แบรนด์หรู ร้านกล้อง) ต่อช่อง 250 × 250 ม. · ที่ทำงานและที่เรียน = สถานที่ของ 7 ชุด (สำนักงาน หน่วยงานรัฐ โรงงาน นิคมอุตสาหกรรม มหาวิทยาลัย สถานพยาบาล สถานศึกษา) ต่อช่อง · คนอยู่ = คนในทะเบียนบ้าน (แบบจำลอง) ต่อช่อง เมื่อข้อมูลรอบ 5 กม. พร้อม",
+   "decidedAt": "2026-11-26T15:30:00+07:00",
+   "decidedBy": "author (Claude), under the owner's 14:03 “ขอปรึกษา แล้วพี่ปรับ brief และแผน และลงมือปรับเลย”",
+   "delegatedToAuthor": true,
+   "rejectedAlternatives": [
+    "แผนที่ทีละชุดข้อมูล: ไม่ต้องรวมข้ามชุด แต่ไม่สอดคล้องกับ «รอบศูนย์นี้» ที่เจ้าของขอ และแผนที่หลักอ่านทีละชุดได้อยู่แล้ว",
+    "ไม่มีแผนที่วงกลม: ไม่ตอบข้อ 2.4"
+   ],
+   "amends": "INV-01 (contracts.json) for the two place maps only: the listed datasets' located places are added per 250 m cell, as «รอบศูนย์นี้» does; the map, its legend, its direction line and its folded table read those cells; the page labels the map อนุมาน, names the datasets and says it is not people or visits; no other figure on the page adds places across datasets",
+   "ownerCheck": "pending — reported to the owner in chat on 2026-11-26; he may ask for one map per dataset instead",
+   "where": "scripts/build-people.py (MAP_GROUPS) · js/people.js (mapSection) · DATA_METHOD.md §16"
   }
  ],
  "release": {
@@ -352,8 +368,9 @@
    "D-12",
    "D-13",
    "D-14",
-   "D-15"
+   "D-15",
+   "D-16"
   ],
-  "scope": "D-12 commuters, overnight visitors and residents inside the outline (residents in 1 · 3 · 5 km in 0.7.1); D-13 and D-14 wait for the Shopping Center's file and method (straight line meanwhile, said on the page); D-15 in full"
+  "scope": "D-12 commuters, overnight visitors and residents inside the outline (residents in 1 · 3 · 5 km in 0.7.1); D-13 and D-14 wait for the Shopping Center's file and method (straight line meanwhile, said on the page); D-15 in full; D-16 the round maps as «รอบศูนย์นี้» (author judgement, the owner’s check pending)"
  }
 }

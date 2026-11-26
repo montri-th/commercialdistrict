@@ -180,7 +180,7 @@
   "items": [
    {
     "id": "INV-01",
-    "rule": "Counts of two datasets are never added; no total of POIs is shown."
+    "rule": "Counts of two datasets are never added; no total of POIs is shown.", "amendedBy": ["D-12 (0.7.0, owner 2026-11-26 14:31): คนมาทำงานและเรียน is the sum of its parts, read “อย่างน้อย”, each part beside it", "D-16 (0.7.0, author judgement, the owner’s check pending): the two place maps add the listed datasets’ places per 250 m cell, labelled อนุมาน"]
    },
    {
     "id": "INV-02",

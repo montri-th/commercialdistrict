@@ -1,5 +1,41 @@
 # CityMETER Commercial District — verification
 
+## Release 0.7.0 — 26 พ.ย. 2569
+
+Owner 2026-11-26 14:03 ICT (VERBATIM in `handoff/around/decisions.json` and `handoff/visual/decisions.json`), his question
+of 14:13 and his answers of 14:31–14:40 (D-12 … D-15); D-16 is Claude's reading of item 2.4 and waits for his check.
+
+### Data (container, 2026-11-26)
+
+- Residents: `python3 -I scripts/residents/build-residents.py --repo . --cache <outside> --out <outside> --built-on 2026-11-26`
+  (reach 0: inside the outlines). Production API read only, paced at 4 requests a second: population month 2026-10, its
+  register total equal to `popCount` in all 791 subdistricts touched (0 differ); 3,665 tile × subdistrict requests,
+  1,318,420 buildings (262 drawn from parts, with production's GFA weight), none without floors; 7 outlines hold no
+  building (“ยังไม่มีข้อมูลอาคารในขอบนี้”). 4,952 responses, the SHA-256 of their list `86006747…` (`meta.residents.responses`);
+  output SHA-256 `b2d72d04…b3b5` (kept outside the repository).
+- Check of the method against the Shopping Center page (`montri-th/shoppingcenter@78cf457`, `data/residents`, 1 km):
+  SC-000337 8,887 against 8,858 (+0.32 %) · SC-002835 15,178 against 15,132 (+0.30 %); 13 and 6 buildings fewer. Hypothesis:
+  production's buildings changed between the runs (not checked).
+- People: `python3 -I scripts/build-people.py --sources <16 pinned demo files> --office <office 8e8d8be> --shoppingcenter
+  <montri-th/shoppingcenter@78cf457> --residents <the file above> --built-on 2026-11-26`: 469 files (5.1 MB, the largest
+  42 KB) and `meta.json`; the inside figures equal `rows[].m` for every row (the script stops otherwise); the counts at
+  400 and 800 m equal `data/around.json` for all 5,747 neighbourhood × dataset pairs; 6 lodging places outside every
+  province left out.
+
+### Local (container, 2026-11-26)
+
+- `npm test`: 212 tests, 212 pass, 0 fail (new: `tests/people.test.js`; the glance, the axes' names, the decisions and the
+  English harvest updated for 0.7.0).
+- `npm run check:lds -- --lds Landometer-Design-System-v0.9.7.md` (SHA-256 `d3085cbc…2d96`): 145 ok, 0 failed (`activity`
+  added for the visitors' map).
+- English harvest (`tests/english-check.mjs 1`, now with the people files at every scale and map): 5,785 views, 0 Thai left
+  but the names.
+- Headless Chrome on the page served locally (the map library cannot load here, the panel can): พร้อมพงษ์ in Thai and
+  English, 1440 × 900 and 393 × 852, light and dark: the people block, the scale switch and the map tabs write
+  `f.reach=3000&f.map=work` and keep the focus on the button pressed; no text in the people block or the axis rows under
+  13 px after the `#panel small` override; the map's table fits the panel (365 px at 393 px wide).
+- Not checked here: the map on the page (WebGL and the basemap need the live site), the live release.
+
 ## Release 0.6.1 — 26 พ.ย. 2569
 
 Owner 2026-11-26 10:02 ICT, VERBATIM with line breaks shown as “ / ”: “1) ตามที่พี่แนะนำ / 2) ใช้ Building v4 / 3) ผมไม่เห็นรูปร่างพื้นที่ แต่อยากคงไว้ ควรรวมร้านค้าต่างรอบๆตลาดด้วย และควรเชื่อมโยงไปถึงตลาดไอยรา / 4) ผมไม่เห็นว่าต้องกดตรงไหน” — his answers to Claude's questions of about 08:10 (the fourth is about the Yolk session, not this release). `DATA_METHOD.md` §2e.

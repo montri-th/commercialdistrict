@@ -169,7 +169,7 @@ export function matrixAnswer(model, around, list) {
 export const levelScopeLine = ({touch = true} = {}) => L(`สี = ระดับ (จำนวนกับความแน่นเฉลี่ยกัน) เทียบย่านที่มีชุดนั้นตั้งแต่ 3 รายการ ไม่ใช่ผลรวม${touch ? ' · ชี้หรือแตะช่อง หรือกดปุ่มลูกศรในตาราง เพื่อดูตัวเลขและอันดับ' : ''}`,
   `Colour = level (count and density averaged) among the neighbourhoods with at least 3 records of the dataset, not a total${touch ? ' · point at or tap a cell, or use the arrow keys in the table, for its figures and ranks' : ''}`);
 
-/* ---------- the axes อยู่ · เที่ยว · ค้าขาย (§4.9, D-V7 A) ---------- */
+/* ---------- the axes น่าอยู่ · น่าเที่ยว · น่าค้าขาย (§4.9, D-V7 A, D-V6b) ---------- */
 
 const reachOf = (x, distance) => (distance === '400' ? x.r400 : distance === '800' ? x.r800 : null);
 
@@ -203,7 +203,7 @@ function axisRow(x, {distance, hl, demo, edgeRow = false}) {
  * those found only beyond the edge), then one line of those found nowhere and one of those with no data in the province.
  * demoOf(ds) → {href, title} of the dataset's own demo at the neighbourhood's province.
  */
-export function axisCards(model, row, around, {distance = 'in', hl = new Set(), demoOf = () => null} = {}) {
+export function axisCards(model, row, around, {distance = 'in', hl = new Set(), demoOf = () => null, topics = null} = {}) {
   const byId = new Map(cellsOf(model, row, around).map(x => [x.ds.id, x]));
   return AXES.map(a => {
     const rows = [], edgeRows = [], none = [], out = [], lead = [];
@@ -226,6 +226,13 @@ export function axisCards(model, row, around, {distance = 'in', hl = new Set(), 
     const list = rows.length || edgeRows.length ? `<ul class="ax-rows" aria-labelledby="ax-${a.id}-name">${rows.join('')}${edgeRows.length ? `<li class="ax-sub">${esc(L(`พบเฉพาะนอกขอบ ไม่เกิน ${num(+distance)} ม.`, `Only beyond the edge, within ${num(+distance)} m`))}</li>${edgeRows.join('')}` : ''}</ul>` : '';
     const noneLine = none.length ? `<p class="ax-line"><span class="ax-line-head">${esc(distance === 'in' ? L('ไม่พบในย่าน', 'None inside') : L(`ไม่พบในย่านและ${reachWords(distance)}`, `None inside or within ${reachWords(distance)}`))}</span> ${names(none)}</p>` : '';
     const outLine = out.length ? `<p class="ax-line"><span class="ax-line-head">${esc(L('ไม่มีข้อมูลในจังหวัด', 'No data in the province'))}</span> ${names(out)}</p>` : '';
+    // (0.7.0, D-V6b) the topics answer the axis's “น่า” first; the datasets with their levels fold beneath them
+    if (topics) {
+      const count = rows.length + edgeRows.length;
+      const cols = `<p class="ax-cols" aria-hidden="true"><span>${L('ชุดข้อมูล', 'Dataset')}</span><span>${L('ระดับเทียบย่านอื่น', 'Level among the others')}</span><span>${L('จำนวน · อันดับ', 'Count · rank')}</span></p>`;
+      const fold = `<details class="ax-ds-fold"><summary>${esc(L(`ระดับของชุดข้อมูลในแกนนี้ (${num(count)} ชุด)`, `Levels of this axis’s datasets (${num(count)})`))}</summary>${leadLine}${list ? cols + list : ''}${noneLine}${outLine}</details>`;
+      return `<section class="ax-card" data-axis="${a.id}" aria-labelledby="ax-${a.id}-name">${title}${topics(a.id)}${fold}</section>`;
+    }
     return `<section class="ax-card" data-axis="${a.id}" aria-labelledby="ax-${a.id}-name">${title}${leadLine}${list}${noneLine}${outLine}</section>`;
   }).join('');
 }

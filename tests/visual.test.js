@@ -8,7 +8,7 @@
  *   EVID-05 the cell states look different; out of scope is never 0
  *   INV-01 nothing is added across datasets, neighbourhoods or distances: a key counts datasets, never records
  *   the matrix is a real table; every cell has its words; every pictogram has its name beside it, in a title or a key
- *   D-V6, D-V7 A the axes อยู่ · เที่ยว · ค้าขาย, one axis per dataset, no score, “?” for what has no data yet
+ *   D-V6b, D-V7 A the axes น่าอยู่ · น่าเที่ยว · น่าค้าขาย (0.7.0), one axis per dataset, no score, “?” for what has no data yet
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -268,16 +268,17 @@ test('the matrix is a real table: a named header for every dataset, a header for
   assert.ok(answers > 2, `answer lines: ${answers}`);
 });
 
-test('the axes: อยู่ · เที่ยว · ค้าขาย, one axis per dataset, no score, a pictogram per dataset in the approved subset', () => {
+test('the axes: น่าอยู่ · น่าเที่ยว · น่าค้าขาย, one axis per dataset, no score, a pictogram per dataset in the approved subset', () => {
   const {model} = load();
-  assert.deepEqual(AXES.map(a => a.th), ['อยู่', 'เที่ยว', 'ค้าขาย'], 'D-V6');
+  // D-V6b (owner 2026-11-26 14:03) supersedes D-V6: the words “น่า…” return; the guard moves into the topic rows (tests/people.test.js)
+  assert.deepEqual(AXES.map(a => a.th), ['น่าอยู่', 'น่าเที่ยว', 'น่าค้าขาย'], 'D-V6b');
+  assert.deepEqual(AXES.map(a => a.en), ['Liveable', 'Worth visiting', 'Good for trade']);
   const placed = AXES.flatMap(a => a.datasets);
   assert.deepEqual([...placed].sort(), model.datasets.map(d => d.id).sort(), 'every dataset on exactly one axis (D-V7 A)');
   assert.equal(new Set(placed).size, placed.length);
   for (const d of model.datasets) assert.ok(axisOf(d.id));
-  assert.ok(!AXES.some(a => /น่า/.test(a.th)), 'no “น่า…” on screen');
   // the sources named for what has no data yet are open data or CityMETER's own
-  const OPEN = ['CityMETER', 'GISTDA', 'กรมควบคุมมลพิษ', 'กรุงเทพมหานคร', 'Inside Airbnb', 'Thailand Tourism Directory', 'กรมพัฒนาธุรกิจการค้า', 'กรมการขนส่งทางราง', 'กรมธนารักษ์'];
+  const OPEN = ['CityMETER', 'GISTDA', 'กรมควบคุมมลพิษ', 'กรุงเทพมหานคร', 'Inside Airbnb', 'Thailand Tourism Directory', 'กรมพัฒนาธุรกิจการค้า', 'กรมการขนส่งทางราง', 'กรมธนารักษ์', 'GTFS', 'กรมศิลปากร'];
   for (const a of AXES) for (const p of a.pending) assert.ok(OPEN.some(o => p.source[0].includes(o)), p.source[0]);
   // each dataset's pictogram is a role of the shipped subset; the five shops and the two industrial datasets differ (D-V4 B)
   for (const role of Object.values(DS_ICON)) assert.ok(PICTOGRAM_CONTRACT.glyphs[role], role);
