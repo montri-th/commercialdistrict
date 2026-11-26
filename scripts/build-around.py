@@ -51,7 +51,11 @@ from shapely.ops import unary_union
 warnings.simplefilter('ignore')
 
 SCHEMA = 'citymeter-commercialdistrict-around/1'
-RELEASE = '0.4.0'
+RELEASE = '0.5.0'
+# D-8: the reference set stays until a release names the one it replaces; a neighbourhood added later is ranked against
+# it. 0.5.0 adds the outlines of the registry's commercial screen (rows[].kind 'screen') and keeps the set of 0.4.0.
+REFERENCE = {'id': 'commercialdistrict-0.4.0-outlined', 'n': 395,
+             'codesSha256': 'd9ae2a5b33ebfdddb4b384014894d9ae57896675b4e6e37d6ca473f6a32d4f6f'}
 RINGS = (400, 800)
 LOW_LOCATED = 0.9           # D-4: a dataset with points for under 90 % of its records is starred and never ranked here
 PAD_DEG = 0.012             # candidate box round an outline (more than 800 m at every latitude of Thailand)
@@ -149,6 +153,9 @@ def main():
     outl = {str(f['properties']['id']): shape(f['geometry']) for f in json.load(open(outl_path, encoding='utf-8'))['features']}
     if set(outl) != set(order):
         sys.exit('data/boundaries.geojson and data/neighborhoods.json do not hold the same neighbourhoods')
+    ref_order = [r['id'] for r in rows if r.get('kind') != 'screen']
+    if len(ref_order) != REFERENCE['n'] or sha256_text('\n'.join(ref_order)) != REFERENCE['codesSha256']:
+        sys.exit(f"the outlines of the reference set {REFERENCE['id']} changed ({len(ref_order)} codes): a release must name the set it replaces (D-8)")
 
     # ---- which records the data build counted inside each outline (data/records/<id>.json)
     inside_keys = {}
@@ -245,7 +252,7 @@ def main():
             universe[tile] = {'dataset': ds_id, 'ranked': False, 'why': 'located under 90% of its records (D-4)'}
             continue
         vals = {i: measured_value(by_id[i], ds_id)[0] for i in order}
-        uni = [v for v in vals.values() if v is not None]
+        uni = [vals[i] for i in ref_order if vals[i] is not None]  # D-8: levels among the reference set only
         universe[tile] = {'dataset': ds_id, 'ranked': True, 'n': len(uni)}
         for i, v in vals.items():
             if v is not None:
@@ -316,7 +323,6 @@ def main():
         by_nb[i]['near'].sort(key=lambda x: (x[1], names[x[0]][0]))
 
     # ---- the reference set (D-8: frozen with the release) and the output
-    codes = '\n'.join(order)
     nb_sha = sha256_file(nb_path)
     outl_sha = sha256_file(outl_path)
     try:
@@ -338,8 +344,8 @@ def main():
         'inside': {'file': 'data/neighborhoods.json', 'sha256': nb_sha, 'records': 'data/records/<id>.json',
                    'note': 'a record the data build counted inside an outline is never around it'},
         'sources': sources,
-        'referenceSet': {'id': f'commercialdistrict-{RELEASE}-outlined', 'n': len(order), 'codesSha256': sha256_text(codes),
-                         'rule': 'the neighbourhoods with an outline in this release, in the order of data/neighborhoods.json, codes joined by a line feed; frozen with the release (D-8)'},
+        'referenceSet': {**REFERENCE, 'added': len(order) - len(ref_order),
+                         'rule': 'the 395 outlined neighbourhoods of release 0.4.0, in the order of data/neighborhoods.json, codes joined by a line feed; it stays until a release names the one it replaces, and a neighbourhood added later (0.5.0: the commercial screen, rows[].kind screen) is ranked against it without joining it (D-8)'},
         'lowLocated': {'threshold': LOW_LOCATED, 'datasets': low,
                        'rule': 'a dataset with points for under 90% of its records is starred and has no rank or level in «รอบย่านนี้» (D-4)'},
         'glance': {

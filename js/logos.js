@@ -1,5 +1,5 @@
 /**
- * CityMETER · Commercial District — logos of the records and of the centres (0.5.0; owner 2026-11-26 06:14, VERBATIM:
+ * CityMETER · Commercial District — logos of the records and of the centres (0.5.1; owner 2026-11-26 06:14, VERBATIM:
  * “เรื่องโลโก้นี้ ให้แสดงใน Commercial district ในลักษณะเดียวกับ venue ด้วย โดยเฉพาะ venue และ POI สำคัญ”).
  * data/logos/<neighbourhood id>.json is written only by scripts/build-logos.py: files the family's demos already ship,
  * joined by ids (DATA_METHOD.md §13). `records` maps "<dataset id>:<record key>" to a logo, `venues` a Shopping Center

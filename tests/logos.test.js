@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 import {decodeLogoShard, logoPlate, PLATES} from '../js/logos.js';
 import {decodeRecords, labelItems, detailHTML, panelListHTML, spotsOf} from '../js/records.js';
 
-// (0.5.0) Logos of the records and of the centres: data/logos/<id>.json, assets/logos/ and data/logos-report.json are
+// (0.5.1) Logos of the records and of the centres: data/logos/<id>.json, assets/logos/ and data/logos-report.json are
 // written only by scripts/build-logos.py from files the family's demos already ship, joined by ids (DATA_METHOD.md §13).
 const root = new URL('../', import.meta.url);
 const read = p => JSON.parse(readFileSync(new URL(p, root), 'utf8'));
@@ -51,9 +51,9 @@ test('one shard per records shard; every link points at a record of that neighbo
     venues += Object.keys(shard.venues).length;
   }
   // snapshot of the 2026-11-26 build (fixtures, never UI constants)
-  assert.equal(report.shards, 395);
+  assert.equal(report.shards, 451);
   assert.equal(report.counts.grocery.own, report.counts.grocery.records, 'every grocery record is a brand with a logo');
-  assert.equal(report.counts.shoppingcenter.venue_specific + report.counts.shoppingcenter.parent_complex, 54);
+  assert.equal(report.counts.shoppingcenter.venue_specific + report.counts.shoppingcenter.parent_complex, 56);
   assert.ok(!report.counts.shoppingcenter.shared_chain_banner && !report.counts.shoppingcenter.shared_department_store_banner, 'a shared banner is never a centre\'s logo here');
   const linked = c => Object.entries(c).filter(([k]) => k !== 'records' && k !== 'venues' && !k.startsWith('none')).reduce((n, [, v]) => n + v, 0);
   assert.equal(records, Object.entries(report.counts).filter(([k]) => k !== 'around venues').reduce((n, [, c]) => n + linked(c), 0), 'the shards hold the links the report counts');

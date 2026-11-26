@@ -171,9 +171,11 @@ export function installNeighborhoodLayers(map, {provinces, outlines, rows, iconO
   // under the outlines: below the data-coloured edges (from zoom 14) and every outline line drawn after them
   map.addLayer({id: LAYERS.around, type: 'line', source: SRC.around, layout: {'line-join': 'round'},
     paint: {'line-color': cssVar('--text-secondary', '#4E5B52'), 'line-width': AROUND_WIDTH, 'line-dasharray': AROUND_DASH}}, LAYERS.edge);
-  map.addLayer({id: LAYERS.line, type: 'line', source: SRC.outlines, minzoom: OUTLINE_MIN_ZOOM, filter: ['!=', ['get', 'kind'], 'lodging'],
+  // (0.5.0) the commercial screen's outlines are drafts too (drawn by the owner's rule, not yet confirmed on site): dotted alike
+  const drafted = ['in', ['get', 'kind'], ['literal', ['lodging', 'screen']]];
+  map.addLayer({id: LAYERS.line, type: 'line', source: SRC.outlines, minzoom: OUTLINE_MIN_ZOOM, filter: ['!', drafted],
     paint: {'line-color': lineColor, 'line-width': ['interpolate', ['linear'], ['zoom'], 9, 0.6, 13, 1.1, 16, 1.6]}});
-  map.addLayer({id: LAYERS.lodging, type: 'line', source: SRC.outlines, minzoom: OUTLINE_MIN_ZOOM, filter: ['==', ['get', 'kind'], 'lodging'],
+  map.addLayer({id: LAYERS.lodging, type: 'line', source: SRC.outlines, minzoom: OUTLINE_MIN_ZOOM, filter: drafted,
     layout: {'line-cap': 'round'},
     paint: {'line-color': lineColor, 'line-width': ['interpolate', ['linear'], ['zoom'], 9, 1, 13, 1.6, 16, 2.2], 'line-dasharray': [0.1, 2]}});
   map.addLayer({id: LAYERS.compare, type: 'line', source: SRC.outlines,

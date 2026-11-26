@@ -158,49 +158,49 @@
   }
  },
  "issues": [],
- "shards": 395,
- "shardsWithLogo": 289,
- "files": 448,
+ "shards": 451,
+ "shardsWithLogo": 329,
+ "files": 452,
  "counts": {
   "around venues": {
-   "none: none": 337,
+   "none: none": 348,
    "none: role shared_chain_banner": 12,
    "none: role shared_department_store_banner": 4,
    "none: role-conflict": 10,
    "parent_complex": 1,
-   "venue_specific": 158,
-   "venues": 522
+   "venue_specific": 162,
+   "venues": 537
   },
   "camera": {
    "none: brand without logo": 1,
-   "own": 107,
-   "records": 108
+   "own": 108,
+   "records": 109
   },
   "factory": {
-   "none: no logo source": 114,
-   "records": 114
+   "none: no logo source": 117,
+   "records": 117
   },
   "fitness": {
-   "own": 68,
-   "records": 68
+   "own": 70,
+   "records": 70
   },
   "governmentoffice": {
-   "none: no logo source": 413,
-   "records": 413
+   "none: no logo source": 435,
+   "records": 435
   },
   "grocery": {
-   "own": 1701,
-   "records": 1701
+   "own": 1803,
+   "records": 1803
   },
   "hospital": {
-   "none: no logo source": 168,
-   "records": 168
+   "none: no logo source": 172,
+   "records": 172
   },
   "hotel": {
    "none: brand without logo": 2,
-   "none: no brand": 4881,
+   "none: no brand": 4912,
    "own": 139,
-   "records": 5022
+   "records": 5053
   },
   "luxurybrands": {
    "own": 239,
@@ -212,37 +212,37 @@
    "records": 189
   },
   "pharmacy": {
-   "none: no brand": 131,
-   "own": 130,
-   "records": 261
+   "none: no brand": 143,
+   "own": 135,
+   "records": 278
   },
   "restaurant": {
-   "none: brand without logo": 11,
-   "none: no brand": 2677,
-   "own": 480,
-   "records": 3168
+   "none: brand without logo": 14,
+   "none: no brand": 2870,
+   "own": 519,
+   "records": 3403
   },
   "school": {
-   "none: no logo source": 289,
-   "records": 289
+   "none: no logo source": 309,
+   "records": 309
   },
   "shoppingcenter": {
-   "none: none": 563,
+   "none: none": 625,
    "none: role shared_chain_banner": 7,
    "none: role shared_department_store_banner": 1,
    "none: role-conflict": 2,
    "parent_complex": 1,
-   "records": 627,
-   "venue_specific": 53
+   "records": 691,
+   "venue_specific": 55
   },
   "transit": {
    "none: no operator": 6,
-   "own": 86,
-   "records": 92
+   "own": 88,
+   "records": 94
   },
   "university": {
-   "none: brand without logo": 12,
-   "records": 12
+   "none: brand without logo": 13,
+   "records": 13
   }
  },
  "logos": {
@@ -2157,6 +2157,19 @@
    "sourceSha256": "55fce1f379742c8ef08c412c8fe9343f345dcd58fc5baaa7ab8fa7a42dec6d36",
    "transformation": "none"
   },
+  "LG-56522d3492459d44": {
+   "file": "assets/logos/56522d3492459d4419df.webp",
+   "sha256": "56522d3492459d4419dfe839ac1873b3889ed2ec167edda38ad1c9f2097d3251",
+   "mime": "image/webp",
+   "bytes": 8500,
+   "width": 384.0,
+   "height": 132.0,
+   "plate": "#182327",
+   "label": "",
+   "origin": "montri-th/camera venue logo (venue_specific)",
+   "sourceSha256": "9470ddb5eb888f04584a7f54f99773db0ff1b080c5f41ca6f041b62e951488f0",
+   "transformation": "uniform scale to 384 px longest side, WebP lossless"
+  },
   "LG-573215800a2ef27f": {
    "file": "assets/logos/573215800a2ef27fb646.png",
    "sha256": "573215800a2ef27fb6463ce63d2233cbbe610a2651e1fea7717978fc9cd15b25",
@@ -2832,6 +2845,19 @@
    "origin": "montri-th/shoppingcenter venue logo (venue_specific)",
    "sourceSha256": "6229fc0e08b3146f0dfb66a14d19021dc6f054be855a419aedfd8c50d3216745",
    "transformation": "uniform scale to 384 px longest side, WebP lossless"
+  },
+  "LG-79aa248f101e61f9": {
+   "file": "assets/logos/79aa248f101e61f9d904.webp",
+   "sha256": "79aa248f101e61f9d90423f94e3b1582371215472c1873b55449d7878605cbb8",
+   "mime": "image/webp",
+   "bytes": 5276,
+   "width": 384.0,
+   "height": 384.0,
+   "plate": "#FFFFFF",
+   "label": "",
+   "origin": "montri-th/shoppingcenter venue logo (venue_specific)",
+   "sourceSha256": "61f00012c1b25606bc8d90ed735e538f2bb458d8ba93cc3494cd3f655d5605b6",
+   "transformation": "uniform scale to 384 px longest side, WebP quality 90"
   },
   "LG-7c5827fcae06648c": {
    "file": "assets/logos/7c5827fcae06648c61c9.svg",
@@ -4445,6 +4471,19 @@
    "sourceSha256": "bf90f7f1cb1bdc94cd91af69685554c53d0f697d3af0d01fc6320bfa6da86e82",
    "transformation": "none"
   },
+  "LG-bf939ba6ef74a2e4": {
+   "file": "assets/logos/bf939ba6ef74a2e4cb1f.webp",
+   "sha256": "bf939ba6ef74a2e4cb1f5fc86a6046aa6bbf6fcd31863bf796a70b90cf7af272",
+   "mime": "image/webp",
+   "bytes": 9980,
+   "width": 384.0,
+   "height": 384.0,
+   "plate": "#FFFFFF",
+   "label": "",
+   "origin": "montri-th/shoppingcenter venue logo (venue_specific)",
+   "sourceSha256": "e5a1daa40afc724d11efff53ced7eb51a34367af66c03e14db8a9426d01b079c",
+   "transformation": "uniform scale to 384 px longest side, WebP quality 90"
+  },
   "LG-c0936a6587a01506": {
    "file": "assets/logos/c0936a6587a01506fbc8.webp",
    "sha256": "c0936a6587a01506fbc8378c79f9df3c43355e2b1d0f20a8443b6b4feea257cf",
@@ -5756,6 +5795,19 @@
    "label": "",
    "origin": "montri-th/luxurybrands brand logo",
    "sourceSha256": "3adbc27d51f880826abf3f47be08ca339a50742f6a32a6979b6d28be6a11381f",
+   "transformation": "uniform scale to 384 px longest side, WebP lossless"
+  },
+  "LG-ef31d38f51a7189a": {
+   "file": "assets/logos/ef31d38f51a7189a26fd.webp",
+   "sha256": "ef31d38f51a7189a26fd5980ba18fb175ce864a7981898a561370c736b316c76",
+   "mime": "image/webp",
+   "bytes": 7410,
+   "width": 384.0,
+   "height": 120.0,
+   "plate": "#182327",
+   "label": "",
+   "origin": "montri-th/shoppingcenter venue logo (venue_specific)",
+   "sourceSha256": "6de57f80a77409ee930379ef453b26db11bda6c816d631d7f0e9eaec48774e5f",
    "transformation": "uniform scale to 384 px longest side, WebP lossless"
   },
   "LG-ef5835a4b81a8696": {

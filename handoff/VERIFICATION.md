@@ -1,5 +1,32 @@
 # CityMETER Commercial District — verification
 
+## Release 0.5.0 — 26 พ.ย. 2569
+
+Owner 2026-11-26 06:09 ICT, VERBATIM: “ลุยตามพี่แนะนำเลยครับทุกข้อ” — Claude's four next steps: check the names of round 9 against Google Maps (read only), draw the outlines of the 228 new codes by his rule, make the Yolk import pack, update the web and merge pull request #25 once it reads the renamed tabs. Pull request #25 merged first (`d4393a0`). This release: branch `release-0.5.0-screen-areas` from `d4393a0`.
+
+### Drawing (2026-11-26)
+
+- Where: the live demo on montri-th.github.io in the owner's Chrome through Claude in Chrome, with the rule script of §2c (`scripts/draw-outline-rule.browser.js`, OpenFreeMap tiles of build `20261122_124456_pt`) and every other outline of the demo in place, seeded from the list of 228 codes (SHA-256 `51e04360…693f`; the page reported the same first 16 digits).
+- From 40 m seeds: 228 places, 0 errors; export 118,493 bytes, SHA-256 `759ad29a…18fb`, carried out 06:53–06:57 ICT (the page stamps `drawnOn` with the UTC date: 2026-11-25 for a drawing before 07:00 ICT). From 8 m seeds: 228 places, 0 errors; export 111,748 bytes, SHA-256 `2dc47d3f…0cbd`, carried out 07:14–07:17 ICT. Each came out of the page byte for byte (gzip and base64 in 3,000-character slices, each slice checked against the page's SHA-256 prefix); both are in `amendments/`.
+- Basemap check: at ตลาดแม่กลอง, one of the places left without buildings, the z14 tile had loaded in the page and holds 4 building features; the tile at สยาม holds 149. The places left without an outline lack OpenStreetMap buildings; their tiles did load.
+- `scripts/rule-outlines.py new`: 56 apply (44 from the 8 m seed, 12 from the 40 m one), 17 review (over 1 km), 134 without a building (ย่านตลาดไท among them, held), 8 with too few (the 40 m outline under 2.5 times its circle), 8 city, 5 run on. All 73 drawn outlines hold their reference point; the build stops on any overlap and found none.
+
+### Local
+
+- Build: `scripts/build-data.py` with the registry export of 2026-11-26 (SHA-256 in `meta.registry`), the bundle as before, `--screen amendments/outline-new-2026-11-26.geojson`: 451 outlines; the counts inside the 395 earlier outlines are unchanged (`c`, `m`, `s` and areas equal to 0.4.1 row by row); ranks and highlights move with the larger universe. `scripts/build-around.py`: the reference set of 0.4.0 kept (its SHA-256 checked), 5,533 cells. The same script run on 0.4.1's data (`d4393a0`, built-on 2026-11-25) gave its 395 ring files byte for byte and its `data/around.json` equal apart from `meta.release` and the reference-set note (`meta.referenceSet.rule`, `.added`).
+- `npm test` 191: 191 pass, 0 fail (184 + 7 in `tests/screen.test.js`).
+- `node scripts/check-lds-parity.mjs --lds Landometer-Design-System-v0.9.7.md` (SHA-256 `d3085cbc…2d96`): 130 ok, 0 failed.
+
+### Preview (ICT, 2026-11-26)
+
+- citymeter-pages-deploy, dispatched through the GitHub API with preview on, publish off and one override: run 194 (45729126461) at `89bb10e`, 07:29:42–07:30:42, success; the walk found the count sentence below. Run 195 (45729969879) at `3bf5b51`, 07:36:45–07:37:45, success: 18 sources (17 from GitHub Pages, `commercialdistrict` by hand), 114 / 114 live checks. `preview.citymeter.pages.dev/release.json`: Commercial District `3bf5b51`, 0.5.0, cache tag `20261126-r2`, shell 0.6.4.
+- Desktop, Thai, the owner's Chrome (1710 × 819): the whole country reads 451 ย่าน · 212.1 ตร.กม. · 16 ชุดข้อมูล · 77 จังหวัด, the finding 69% of the luxury points of sale (239 of 345) in 0.041% of the country. The filter «ขอบร่างจากผลคัดย่านการค้า»: 56 ย่าน · 5.5 ตร.กม. · 29 จังหวัด; its list 56 rows, each marked «ผลคัดย่านการค้า» and «ใหม่». ท่าน้ำนนท์ (`CMN-TH-A901D04498`): «ย่านจากผลคัดย่านการค้า · นนทบุรี», the badge «ผลคัดย่านการค้า · ขอบร่างตามหลักของเจ้าของ», 77 ไร่ «0.12 ตร.กม. ตามขอบร่างที่วาดตามหลักของเจ้าของ», «ในย่านนี้» levels against 394 and 395 neighbourhoods (D-8), the outline «ขอบร่างตามหลักที่เจ้าของกำหนด วาดจากจุดอ้างอิงของผลคัดย่านการค้า 26 พ.ย. 2569 ทะเบียนยังไม่รับขอบนี้ ยังไม่ตรวจภาคสนาม», the name a draft. Unselected, the outline is dotted; selected, it takes the solid selection line as every outline does.
+- Search: ตลาดแม่กลอง finds no outline and the name «ตลาดแม่กลอง สมุทรสงคราม · รหัสกลางจากผลคัดย่านการค้า ยังไม่มีขอบ»; เซ็นทรัลพระราม 2 «… ขอบที่วาดไกลจากจุดอ้างอิงเกิน 1 กม. รอเจ้าของตรวจ»; ตลาดไท only ตลาดไทยศิริ 1 (บ้านโนนขมิ้น), อุดรธานี. ย่านตลาดไท (`CMN-TH-BAFFB5235F`, held) is in neither the rows nor the names. No console error on load.
+- Found at run 194 and fixed: the sentence of the data sources listed the registry's 677 codes by parts that added to 676 (the held code unnamed), with a double space. `3bf5b51` names it («· พักไว้รอเจ้าของตัดสิน 1», «1 awaiting the owner's decision») and the test reads the whole sentence; seen in Thai and English on run 195.
+- English: the filter chip «Draft outlines from the commercial screen», the legend, the overview, ท่าน้ำนนท์ («Commercial screen · draft outline by the owner's rule», «New in this release») and the names without an outline («central code from the commercial screen, no outline yet»); `window.__citymeterI18n.missing` 0 on each.
+- 393 px: a same-origin frame 393 × 740 in the same tab. The first frame opened the light map: the page it replaced never ended (no pagehide), so the shell read a page stopped on screen; with the tab's session mark cleared the frame opens the full map. The harness, not the release. Thai with the screen filter and ท่าน้ำนนท์'s sheet, English ท่าน้ำนนท์: scroll width 393, `missing` 0.
+- Seen, not this release's: the hotel dataset names one record «Bed by Boat Hotel & Apartment 2.5 จากทั้งหมด 5.0» (a rating in the name as the source has it); it is listed in ท่าน้ำนนท์.
+
 ## Release 0.4.1 — 25 พ.ย. 2569
 
 Owner 2026-11-25 23:01 ICT, VERBATIM: “ทำตามที่พี่เสนอเลยครับ” — Claude's table of 22:21: centre pins on top (D-11), «ขอบเดินถึง» and the service area for round 2 (D-10), pull request #27 first. Pull request #28, head `4088074`, stacked on pull request #27.

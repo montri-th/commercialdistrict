@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CityMETER · Commercial District — logos of the records and of the centres (release 0.5.0).
+"""CityMETER · Commercial District — logos of the records and of the centres (release 0.5.1).
 
     python3 -I scripts/build-logos.py --root <folder that holds the family's checkouts> --built-on YYYY-MM-DD
 

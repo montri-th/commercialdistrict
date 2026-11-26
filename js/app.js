@@ -66,7 +66,7 @@ const state = {
   condoDs: null, condoIndex: new Set(), condoCells: new Map(), condoSpots: [], condoNear: new Map(),
   poiPopup: null, poiCard: null, poiTip: null, poiTipKey: '', recordLabels: null,
   rows: [], pending: [], overview: null, ramp: null, fills: new Map(),
-  // kind of neighbourhood shown (0.2.0, `f.kind`): '' every one · registry · lodging · added (js/model.js KINDS)
+  // kind of neighbourhood shown (0.2.0, `f.kind`): '' every one · registry · lodging · screen (0.5.0) · added (js/model.js KINDS)
   kind: '',
   // «ขอบเดินถึง» (0.4.0, `f.around`): data/around.json decoded (null until it arrives or if it did not), the reading
   // (in · 400 · 800: the column the table stresses and the line the map draws) and the lines, one file per neighbourhood
@@ -101,7 +101,7 @@ function saveURL() {
 const rowById = id => (id && state.model?.byId.get(id)) || null;
 /** The words of a group filter (0.2.0; outline words 0.2.1, when the registry admitted the lodging areas). */
 const kindLabel = kind => ({registry: L('ขอบตามหลักเกณฑ์ทะเบียน', 'Outlines by the registry\'s rules'), lodging: L('ขอบร่างจากผลคัดที่พัก', 'Draft outlines from the lodging screen'),
-  added: L('ใหม่ในรุ่นนี้', 'New in this release')}[kind] || '');
+  screen: L('ขอบร่างจากผลคัดย่านการค้า', 'Draft outlines from the commercial screen'), added: L('ใหม่ในรุ่นนี้', 'New in this release')}[kind] || '');
 const lensDs = () => (state.lens && state.model?.dsById.get(state.lens)) || null;
 const openRow = () => rowById(state.nb);
 const compareRows = () => state.compare.map(rowById).filter(Boolean);
@@ -791,7 +791,7 @@ function chosenSet() {
 }
 
 /**
- * (0.5.0) A neighbourhood's logo shard (data/logos/<id>.json, js/logos.js), once, from the moment it opens: the records
+ * (0.5.1) A neighbourhood's logo shard (data/logos/<id>.json, js/logos.js), once, from the moment it opens: the records
  * take their logos when they are decoded, the centres «รอบย่านนี้» names take theirs in place (the panel keeps its
  * scroll). Optional: without it the names show alone (`partial('logos')`).
  */

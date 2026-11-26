@@ -124,10 +124,11 @@ export function pairsOf(row, model) {
 /** Rows of a province (or every row) after the search. */
 /**
  * Groups of neighbourhoods (0.2.0; `f.kind`): registry = outlines closed by the registry's own rules; lodging = the draft
- * outlines of the lodging screen's new areas (owner 2026-11-18; central codes of the registry since 0.2.1); added = first
- * drawn in this data release.
+ * outlines of the lodging screen's new areas (owner 2026-11-18; central codes of the registry since 0.2.1); screen = the
+ * outlines the owner's rule drew for the codes of the registry's commercial screen (0.5.0; owner 2026-11-26); added =
+ * first drawn since the outlines of 16 Nov 2026.
  */
-export const KINDS = ['registry', 'lodging', 'added'];
+export const KINDS = ['registry', 'lodging', 'screen', 'added'];
 export const kindMatch = (r, kind) => !kind || (kind === 'added' ? Boolean(r.added) : (r.kind || 'registry') === kind);
 
 export function scopeRows(model, {province = '', search = '', kind = ''} = {}) {
@@ -140,7 +141,8 @@ export function scopePending(model, {province = '', search = '', kind = ''} = {}
   const terms = lower(search).trim().split(/\s+/).filter(Boolean);
   if (!terms.length) return [];
   const fromLodging = p => p.screen === 'lodging' || p.status === 'lodging';
-  const fits = p => !kind || (kind === 'lodging' ? fromLodging(p) : kind === 'registry' ? !fromLodging(p) : false);
+  const fromScreen = p => p.screen === 'commercial';
+  const fits = p => !kind || (kind === 'lodging' ? fromLodging(p) : kind === 'screen' ? fromScreen(p) : kind === 'registry' ? !fromLodging(p) && !fromScreen(p) : false);
   return model.pending.filter(p => (!province || p.province === province) && fits(p) && terms.every(t => p.haystack.includes(t)));
 }
 

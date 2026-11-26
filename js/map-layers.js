@@ -165,7 +165,7 @@ export function installRecordLabels(map, container, {onSelect, reservedBottom = 
       button.className = 'record-label';
       button.setAttribute('translate', 'no');
       if (a.logo) {
-        // (0.5.0) the record's logo on its plate before the name, as Shopping Center names its venues; decorative
+        // (0.5.1) the record's logo on its plate before the name, as Shopping Center names its venues; decorative
         button.classList.add('has-logo');
         const plate = document.createElement('span'), img = document.createElement('img'), text = document.createElement('span');
         plate.className = 'logo-plate label-logo';
