@@ -230,6 +230,55 @@ export function mapSectors(map, tab) {
 
 const isPale = fill => contrastRatio(fill, '#FFFFFF') < 1.25;
 
+/**
+ * What a reader finds the way by (0.7.1; owner 2026-11-26 17:51, VERBATIM: “แผนที่รัศมีควรจะมี โครงร่างถนน ทะเล ลำน้ำ
+ * กายภาพ ให้ดูแบบเดียวกับ shopping center ด้วยได้มั้ยครับ”): map.ctx from scripts/build-context-map.py, OpenStreetMap of
+ * the Shopping Center page's extract, in the map's own 25 m units. The sea and the water areas fill the ground under the
+ * cells (a cell keeps its colour where it meets water); rivers, roads, rail and stations are drawn over the cells in the
+ * ink and paper of the map's label chips, as «รอบศูนย์นี้» draws them — never a data colour, never a count.
+ */
+const ctxOf = map => (map?.ctx && Array.isArray(map.ctx.r) ? map.ctx : null);
+const ROAD_ORDER = [3, 2, 1, 0];
+
+function ctxUnder(ctx) {
+  if (!ctx) return '';
+  return (ctx.c ? `<path class="pm-sea" d="${esc(ctx.c)}" fill-rule="evenodd"/>` : '')
+    + (ctx.a ? `<path class="pm-water" d="${esc(ctx.a)}" fill-rule="evenodd"/>` : '');
+}
+
+function ctxOver(ctx) {
+  if (!ctx) return '';
+  const roads = ROAD_ORDER.filter(c => ctx.r[c]);
+  return '<g class="pm-ctx">'
+    + (ctx.w ? `<path class="pm-river-case" d="${esc(ctx.w)}"/><path class="pm-river" d="${esc(ctx.w)}"/>` : '')
+    + roads.map(c => `<path class="pm-road-case c${c}" d="${esc(ctx.r[c])}"/>`).join('')
+    + roads.map(c => `<path class="pm-road c${c}" d="${esc(ctx.r[c])}"/>`).join('')
+    + (ctx.t ? `<path class="pm-rail-case" d="${esc(ctx.t)}"/><path class="pm-rail" d="${esc(ctx.t)}"/>` : '')
+    + (ctx.s || []).map(([x, y]) => `<circle class="pm-station" cx="${Number(x)}" cy="${Number(y)}" r="3.4"/>`).join('')
+    + '</g>';
+}
+
+/** What the map draws to find the way by, in words (“ถนน ราง และลำน้ำ” · “roads, rail and rivers”), for its title. */
+function ctxWords(map) {
+  const ctx = ctxOf(map);
+  if (!ctx) return '';
+  const w = [ctx.r.some(Boolean) && ['ถนน', 'roads'], ctx.t && ['ราง', 'rail'], ctx.w && ['ลำน้ำ', 'rivers'],
+    ctx.c && ['ทะเล', 'the sea'], ctx.a && ['แหล่งน้ำ', 'water']].filter(Boolean);
+  if (!w.length) return '';
+  const th = w.map(x => x[0]), en = w.map(x => x[1]);
+  return L(th.length > 1 ? `${th.slice(0, -1).join(' ')} และ${th.at(-1)}` : th[0],
+    en.length > 1 ? `${en.slice(0, -1).join(', ')} and ${en.at(-1)}` : en[0]);
+}
+
+/** The names the build placed (≤ 1 sea, 1 river, 4 roads, 3 stations; none overlap at 360 px); a name OpenStreetMap
+ *  gives only in Thai stays Thai on the English page (it is a name, not a sentence). */
+function ctxLabels(ctx, at) {
+  return (ctx?.L || []).map(([kind, x, y, align, th, en]) => {
+    const [lx, ly] = at(Number(x), Number(y));
+    return `<span class="pm-lab is-${esc(kind)} at-${esc(align)}" style="left:${lx}%;top:${ly}%">${esc(L(th, en || th))}</span>`;
+  }).join('');
+}
+
 /** The SVG of one map: cells (runs of one colour per row), the 5 km ground, the service lines, the walk edges, the outline. */
 export function mapSVG(row, map, tab, {title = ''} = {}) {
   const {cells, ramp} = mapModel(map, tab);
@@ -250,6 +299,7 @@ export function mapSVG(row, map, tab, {title = ''} = {}) {
   const pad = 6, vx = x0 * U - pad, vy = -(y1 + 1) * U - pad, vw = w * U + 2 * pad, vh = h * U + 2 * pad;
   const at = (x, y) => [(((x - vx) / vw) * 100).toFixed(2), (((y - vy) / vh) * 100).toFixed(2)];
   const L_ = map.lines || {};
+  const ctx = ctxOf(map);
   const id = `pm-${tab}-${String(row.id).replace(/[^\w-]/g, '')}`;
   const labels = ['s1', 's3', 's5'].filter(k => L_.lab?.[k]).map(k => {
     const [lx, ly] = at(...L_.lab[k]);
@@ -258,20 +308,32 @@ export function mapSVG(row, map, tab, {title = ''} = {}) {
   return `<div class="pm-wrap"><svg class="pm-map" viewBox="${vx} ${vy} ${vw} ${vh}" role="img" aria-labelledby="${id}-t"><title id="${id}-t">${esc(title)}</title>`
     + `<defs><clipPath id="${id}-c"><path d="${esc(L_.s5 || '')}"/></clipPath></defs>`
     + `<path class="pm-bg" d="${esc(L_.s5 || '')}"/><g clip-path="url(#${id}-c)">`
+    + ctxUnder(ctx)
     + [...paths].map(([f, d]) => `<path d="${d}" fill="${f}" shape-rendering="crispEdges"${isPale(f) ? ' class="pm-pale"' : ''}/>`).join('')
+    + ctxOver(ctx)
     + '</g>'
     + ['s3', 's1'].filter(k => L_[k]).map(k => `<path class="pm-line" d="${esc(L_[k])}"/>`).join('')
     + `<path class="pm-edge" d="${esc(L_.s5 || '')}"/>`
     + ['w800', 'w400'].filter(k => L_[k]).map(k => `<path class="pm-walk" d="${esc(L_[k])}"/>`).join('')
     + `${L_.o ? `<path class="pm-outline-case" d="${esc(L_.o)}"/><path class="pm-outline" d="${esc(L_.o)}"/>` : ''}</svg>`
-    + `${labels}<span class="pm-north" aria-hidden="true">↑ ${esc(L('เหนือ', 'N'))}</span></div>`;
+    + `${labels}${ctxLabels(ctx, at)}<span class="pm-north" aria-hidden="true">↑ ${esc(L('เหนือ', 'N'))}</span></div>`;
 }
 
-/** The key of the lines over the map. */
-function mapKey() {
-  const line = (cls, th, en) => `<span class="pm-key-item"><svg class="pm-key-line" viewBox="0 0 24 8" aria-hidden="true">${cls === 'pm-outline' ? '<path class="pm-outline-case" d="M2 4h20"/>' : ''}<path class="${cls}" d="M2 4h20"/></svg>${esc(L(th, en))}</span>`;
+/** The key of the lines over the map; the context items only for what this map draws. */
+function mapKey(map) {
+  const line = (cls, th, en, cased = false) => `<span class="pm-key-item"><svg class="pm-key-line" viewBox="0 0 24 8" aria-hidden="true">${cased ? `<path class="${cls.split(' ')[0]}-case${cls.includes(' ') ? ` ${cls.split(' ')[1]}` : ''}" d="M2 4h20"/>` : ''}<path class="${cls}" d="M2 4h20"/></svg>${esc(L(th, en))}</span>`;
   const cell = `<span class="pm-key-item"><svg class="pm-key-cell" viewBox="0 0 12 12" aria-hidden="true"><rect class="pm-bg" x="0.5" y="0.5" width="11" height="11"/></svg>${esc(L('ไม่มีในชุดข้อมูลที่นับ', 'none in the datasets counted'))}</span>`;
-  return `<p class="pm-key">${line('pm-outline', 'ขอบย่าน', 'Neighbourhood outline')}${line('pm-walk', 'ขอบเดินถึง 400 · 800 ม.', 'Walkable edge 400 · 800 m')}${line('pm-line', '1 · 3 · 5 กม. จากขอบ', '1 · 3 · 5 km from the edge')}${cell}</p>`;
+  const ctx = ctxOf(map);
+  const water = ctx && (ctx.c || ctx.a) ? `<span class="pm-key-item"><svg class="pm-key-cell" viewBox="0 0 12 12" aria-hidden="true"><rect class="${ctx.c ? 'pm-sea' : 'pm-water'}" x="0.5" y="0.5" width="11" height="11"/></svg>${esc(ctx.c ? L('ทะเลและแหล่งน้ำ', 'Sea and water') : L('แหล่งน้ำ', 'Water'))}</span>` : '';
+  const station = ctx?.s?.length ? `<span class="pm-key-item"><svg class="pm-key-line" viewBox="0 0 24 8" aria-hidden="true"><circle class="pm-station" cx="12" cy="4" r="3"/></svg>${esc(L('สถานี', 'Stations'))}</span>` : '';
+  const context = ctx ? [
+    ctx.r.some(Boolean) ? line('pm-road c2', 'ถนนสายหลัก', 'Major roads', true) : '',
+    ctx.t ? line('pm-rail', 'รถไฟฟ้าและรถไฟ', 'Rail lines', true) : '',
+    station,
+    ctx.w ? line('pm-river', 'ลำน้ำ', 'Rivers', true) : '',
+    water,
+  ].join('') : '';
+  return `<p class="pm-key">${line('pm-outline', 'ขอบย่าน', 'Neighbourhood outline', true)}${line('pm-walk', 'ขอบเดินถึง 400 · 800 ม.', 'Walkable edge 400 · 800 m')}${line('pm-line', '1 · 3 · 5 กม. จากขอบ', '1 · 3 · 5 km from the edge')}${cell}${context}</p>`;
 }
 
 /** The map read as a table: 8 directions × 4 bands from the edge, places (or people) per band, the top direction bold. */
@@ -292,7 +354,8 @@ export function mapSection(row, rec, meta, {tab = DEFAULT_MAP, prov = null, outO
   const {cells, ramp} = mapModel(map, current);
   const sec = mapSectors(map, current);
   // no name in the title: the panel names the neighbourhood, and a name in an English sentence would leave Thai in it
-  const title = L(`${cfg.th}: ${cfg.what[0]} ในระยะ 5 กม. จากขอบย่าน ทิศเหนืออยู่ด้านบน`, `${cfg.en}: ${cfg.what[1]} within 5 km of the neighbourhood’s edge, north up`);
+  const found = ctxWords(map);
+  const title = L(`${cfg.th}: ${cfg.what[0]} ในระยะ 5 กม. จากขอบย่าน ทิศเหนืออยู่ด้านบน${found ? ` มี${found}ให้ดูตำแหน่ง` : ''}`, `${cfg.en}: ${cfg.what[1]} within 5 km of the neighbourhood’s edge, north up${found ? `, with ${found} to find the way by` : ''}`);
   const lead = cells.length
     ? `${esc(L(`${num(cells.length)} ช่องที่มี · มากสุด`, `${num(cells.length)} cells with any · up to`))} ${nw(esc(`${num(ramp.max)} ${L(...cfg.unit)}`))}`
     : esc(L('ไม่พบในชุดข้อมูลที่นับในระยะ 5 กม. (0)', 'None in the datasets counted within 5 km (0)'));
@@ -304,5 +367,5 @@ export function mapSection(row, rec, meta, {tab = DEFAULT_MAP, prov = null, outO
   const lacking = current === 'res' || !outOfScope ? [] : outOfScope(MAP_GROUP_IDS[current] || []);
   const source = `<p class="hint pm-source">${esc(L(`${cfg.what[0]} · สถานที่ที่อยู่ห่างขอบย่านไม่เกิน 5 กม. เส้นตรง นับลงช่อง${current === 'res' ? '' : ' · ไม่ใช่จำนวนคนหรือจำนวนครั้งที่มา'}`, `${cfg.what[1]} · places within 5 km of the edge, straight line, counted in cells${current === 'res' ? '' : ' · not people or visits'}`))}${lacking.length ? `<br>${esc(L(`ไม่มีข้อมูลในจังหวัดนี้: ${lacking.join(' · ')}`, `no data in this province: ${lacking.join(' · ')}`))}` : ''}</p>${typeof prov === 'function' ? prov(current) : ''}`;
   return `<section class="panel-section map-section" id="nb-map" aria-labelledby="nb-map-title"><div class="section-heading"><h3 id="nb-map-title">${pic('maps')}${esc(L('แผนที่รอบย่าน ช่อง 250 ม.', 'Around the neighbourhood, 250 m cells'))} <span class="glance-tag">${esc(current === 'res' ? L('แบบจำลอง', 'modelled') : L('อนุมาน', 'inferred'))}</span></h3></div>
-    ${tabs}<p class="pm-lead">${lead}</p>${mapSVG(row, map, current, {title})}${legend}${mapKey()}${dir}${mapTable(sec, cfg)}${source}</section>`;
+    ${tabs}<p class="pm-lead">${lead}</p>${mapSVG(row, map, current, {title})}${legend}${mapKey(map)}${dir}${mapTable(sec, cfg)}${source}</section>`;
 }

@@ -4,6 +4,7 @@
     python3 -I scripts/build-people.py --sources <folder of the 16 pinned demo files> --office <montri-th/office
         data/offices.json @8e8d8be> --shoppingcenter <clone of montri-th/shoppingcenter> [--repo .] [--out data]
         [--built-on YYYY-MM-DD] [--residents <people-residents.json from scripts/residents/>]
+        [--context <context.json from scripts/build-context-map.py>]
 
 Owner 2026-11-26 14:03 (VERBATIM in handoff/around/decisions.json): “ทำยังไงถึงจะเห็นปริมาณคน residents, visitors,
 commuters ได้ อยากได้วิธีง่ายๆตรงไปตรงมาไม่ซับซ้อนมาก”, then 14:31 “A ตัวเลขทางการแบ่งลงย่าน (แนะนำ)” (D-12) and 14:40
@@ -30,6 +31,9 @@ Outputs:
                         only), recorded rooms and modelled guests a year; levels among the frozen reference set.
                         and under `map` the 250 m cells within 5 km of the outline: places visitors use and places of work and study per
                         cell, and the outline, the walk edges and the service-area lines to draw over them.
+                        With --context (0.7.1), `map.ctx`: the sea, water areas, rivers, major roads, rail, stations
+                        and a few names from OpenStreetMap to find the way by (scripts/build-context-map.py), drawn
+                        on the map's own frame; never a count.
 
 Rules (DATA_METHOD.md §15):
   * Distances: straight line from the outline the map draws, in an azimuthal equidistant projection centred on the
@@ -55,7 +59,8 @@ warnings.simplefilter('ignore')
 
 SCHEMA = 'citymeter-commercialdistrict-people/1'
 MAPS_SCHEMA = 'citymeter-commercialdistrict-maps/1'
-RELEASE = '0.7.0'
+CONTEXT_SCHEMA = 'citymeter-commercialdistrict-context/1'
+RELEASE = '0.7.1'
 SCALES = (400, 800, 1000, 3000, 5000)   # 400 · 800: the walkable edges, inside included, for the axis rows; 1 · 3 · 5 km: the service area (D-10)
 CELL_M = 250
 UNIT_M = 25                      # drawn lines in 25 m units (as «รอบศูนย์นี้»)
@@ -178,6 +183,7 @@ def main():
     ap.add_argument('--office', required=True)
     ap.add_argument('--shoppingcenter', required=True)
     ap.add_argument('--residents', default=None)
+    ap.add_argument('--context', default=None)
     ap.add_argument('--out', default=None)
     ap.add_argument('--built-on', default=date.today().isoformat())
     a = ap.parse_args()
@@ -283,6 +289,11 @@ def main():
 
     # ---- residents (0.7.1, scripts/residents/): optional here
     residents = json.load(open(a.residents, encoding='utf-8')) if a.residents else None
+    # ---- what a reader finds the way by on the maps (0.7.1, scripts/build-context-map.py): optional here, drawn on the
+    #      very frame of each map (its meta.frame is checked against the map's cell below)
+    context = json.load(open(a.context, encoding='utf-8')) if a.context else None
+    if context and context['meta'].get('schema') != CONTEXT_SCHEMA:
+        sys.exit(f"{a.context}: schema {context['meta'].get('schema')}, not {CONTEXT_SCHEMA}")
 
     people, maps, maps_written = {}, {}, 0
     check = defaultdict(int)
@@ -452,6 +463,11 @@ def main():
             if residents['meta'].get('frame') and residents['meta']['frame'].get(i) != maps[i]['cell']:
                 sys.exit(f'{i}: the residents grid was drawn on another frame')
             maps[i]['res'] = rg
+        cx = (context or {}).get('rows', {}).get(i)
+        if cx is not None:
+            if context['meta']['frame'].get(i) != maps[i]['cell']:
+                sys.exit(f'{i}: the context was drawn on another frame')
+            maps[i]['ctx'] = cx
         maps_written += 1
 
     # ---- levels among the reference set (D-8), per scale; a figure mostly from datasets under 90 % takes none
@@ -497,6 +513,7 @@ def main():
         'sources': {d['id']: d['source'] for d in datasets if d['id'] in {'school', 'factory', 'governmentoffice', 'university', 'office', 'hotel'} | set(sum(MAP_GROUPS.values(), ()))},
         'shoppingcenterModel': {'file': SC_MODEL, 'sha256': sha256_file(sc_model_path)},
         'residents': residents.get('meta') if residents else None,
+        'context': {k: v for k, v in context['meta'].items() if k != 'frame'} if context else None,
         'checked': dict(check),
     }
     # one file per neighbourhood (the panel loads the one it opens) and the meta beside them

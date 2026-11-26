@@ -883,6 +883,29 @@ map names the direction holding the most (eight directions from the reference po
 direction by distance band (inside · to 1 km · 1–3 km · 3–5 km) as the reading without the map; a band without places
 reads 0, and the datasets of the map that do not reach the province are named under it.
 
+**What a reader finds the way by (0.7.1, D-17).** Owner 2026-11-26 17:51, VERBATIM: “แผนที่รัศมีควรจะมี โครงร่างถนน ทะเล
+ลำน้ำ กายภาพ ให้ดูแบบเดียวกับ shopping center ด้วยได้มั้ยครับ”; on the file, “ดึงจาก Mac ของผม (แนะนำ)”. Every round map
+draws, from OpenStreetMap (`scripts/build-context-map.py`, embedded by `scripts/build-people.py --context` as `map.ctx`;
+the people meta keeps the source as `context`): the sea (the ground the coastline leaves on its right, never where the
+reference point stands) and water areas of 10,000 m² (6.25 ไร่) or more (natural=water, landuse=reservoir,
+waterway=riverbank), both filled in the basemap's water and shore tones *under* the cells, so a cell keeps its colour
+where it meets water; and *over* the cells, in the ink and paper of the map's label chips as «รอบศูนย์นี้» draws them:
+rivers (waterway=river, in the map's role blue), roads of four classes (motorway, trunk, primary, secondary), rail
+(rail, subway, light rail, monorail; no service track, nothing for industry, the military, tourism or tests), the
+operating stations of CityMETER Transit and the national rail stops with scheduled trips the main map draws
+(`data/rail.json`; a national stop within 150 m of a Transit station is that station), and at most one sea, one river,
+four road and three station names, placed so that on a map 360 px wide none overlaps another, the outline, the 1 · 3 ·
+5 km labels or the north mark (the station nearest the reference point that has room first; a name OpenStreetMap gives
+only in Thai stays Thai on the English page). Lines are clipped to the 5 km ground and simplified to 12 m, in the map's
+own 25 m units. The file is the Shopping Center page's (D-14): Geofabrik's extract `thailand-261124.osm.pbf`, data to
+2026-11-24T21:21:23Z, SHA-256 `62b496bf2383ddd266cfcd3456cd03064db1887399f2a4c869bbf953bfd12d24`, checked by the build and
+kept outside the repository; © OpenStreetMap contributors, ODbL 1.0, credited on the map's provenance line with its
+date. The lines are to read the map by: they are never counted, never a distance and never a barrier the page measures
+with — the walk edges and the 1 · 3 · 5 km lines stay straight from the outline until the method along real paths
+(D-13). The key names only what the map draws. Rebuild: `python3 -I scripts/build-context-map.py --repo . --osm <the
+extract> --out <outside the repository> [--cache <outside>]`, then `scripts/build-people.py … --context <that file>`;
+the same inputs give the same bytes, and a context drawn on another frame stops the people build.
+
 **The topic rows (D-V6b, binding; supersedes D-V6).** The axes keep the owner's words น่าอยู่ · น่าเที่ยว · น่าค้าขาย; the
 guard D-V6 kept by leaving “น่า” off the screen moves into the rows (`js/indicators.js`): (1) every row is one sentence with
 its number, its unit and what it means, and its label (แบบจำลอง · อย่างน้อย · a star); (2) no score, no total and no rank of

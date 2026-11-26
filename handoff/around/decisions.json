@@ -88,6 +88,20 @@
    "channel": "Claude chat, Project 02 CityMETER",
    "verbatim": "เลือกประเภทธุรกิจและแบรนด์ (แนะนำ)",
    "note": "the option chosen on how the page knows the reader's business"
+  },
+  {
+   "at": "2026-11-26T17:51:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "แผนที่รัศมีควรจะมี โครงร่างถนน ทะเล ลำน้ำ กายภาพ ให้ดูแบบเดียวกับ shopping center ด้วยได้มั้ยครับ",
+   "note": "sent with a screenshot of the round map of ป่าตอง (0.7.0)"
+  },
+  {
+   "at": "2026-11-26",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "ดึงจาก Mac ของผม (แนะนำ)",
+   "note": "the option chosen, minutes after 17:51, on where the OpenStreetMap file comes from: the copy in his Downloads folder, staged with his approval and checked by SHA-256 against the Shopping Center page's (the minute of the answer was not recorded)"
   }
  ],
  "reading": {
@@ -343,6 +357,22 @@
    "amends": "INV-01 (contracts.json) for the two place maps only: the listed datasets' located places are added per 250 m cell, as «รอบศูนย์นี้» does; the map, its legend, its direction line and its folded table read those cells; the page labels the map อนุมาน, names the datasets and says it is not people or visits; no other figure on the page adds places across datasets",
    "ownerCheck": "pending — reported to the owner in chat on 2026-11-26; he may ask for one map per dataset instead",
    "where": "scripts/build-people.py (MAP_GROUPS) · js/people.js (mapSection) · DATA_METHOD.md §16"
+  },
+  {
+   "id": "D-17",
+   "question": "แผนที่รอบย่านควรมีโครงร่างถนน ทะเล ลำน้ำ และกายภาพ ให้ดูแบบเดียวกับหน้าศูนย์การค้าไหม (เจ้าของ 17:51)",
+   "status": "decided",
+   "decision": "มี: ถนนสายหลัก 4 ชั้น ราง ลำน้ำ และชื่อไม่กี่ชื่อ แบบเดียวกับ «รอบศูนย์นี้» (สี เส้น และกติกาวางชื่อ) จากไฟล์ OpenStreetMap ไฟล์เดียวกับหน้าศูนย์การค้า (thailand-261124.osm.pbf, SHA-256 62b496bf…, D-14) เพิ่มทะเลและแหล่งน้ำ (เต็มพื้นใต้ช่อง) และสถานีรถไฟทางไกลที่แผนที่หลักของหน้านี้วาด · เส้นใช้อ่านตำแหน่ง ไม่ใช้นับ ไม่ใช้วัดระยะ และไม่ใช่สิ่งกีดขวางที่หน้าคำนวณ · ระยะ 400/800 ม. และ 1 · 3 · 5 กม. ยังวัดเส้นตรงจนกว่าจะมีวิธีตามทางจริง (D-13)",
+   "decidedAt": "2026-11-26T17:51:00+07:00",
+   "decidedBy": "owner (Montri): the request and the file; the drawing is Claude's reading of “ให้ดูแบบเดียวกับ shopping center”",
+   "delegatedToAuthor": true,
+   "authorJudgement": "ทะเล และแหล่งน้ำตั้งแต่ 10,000 ตร.ม. (6.25 ไร่) วาดเป็นพื้นใต้ช่อง เพราะเจ้าของเอ่ยคำว่า ทะเล และหน้าศูนย์การค้ามีแต่เส้นแม่น้ำ · สถานีรถไฟทางไกลที่มีเที่ยววิ่ง (ชุดเดียวกับแผนที่หลัก) เพิ่มจากสถานีที่เปิดให้บริการของ CityMETER Transit · ชื่อ ≤ 1 ทะเล 1 ลำน้ำ 4 ถนน 3 สถานี ไม่ทับกันที่ความกว้าง 360 px และไม่ทับขอบย่าน",
+   "rejectedAlternatives": [
+    "วาดจาก basemap ของแผนที่หลัก (vector tiles): แผงต้องโหลด tiles เพิ่ม และไม่ใช่ไฟล์เดียวกับหน้าศูนย์การค้า",
+    "เฉพาะเส้นที่หน้าศูนย์การค้ามี (ไม่มีทะเลและแหล่งน้ำ): ไม่ตอบคำว่า ทะเล ที่เจ้าของขอ",
+    "ดาวน์โหลดไฟล์ OpenStreetMap ใหม่เอง: D-14 ให้ใช้ไฟล์เดียวกับหน้าศูนย์การค้า และเจ้าของเลือกไฟล์จากเครื่องของเขา"
+   ],
+   "where": "scripts/build-context-map.py · scripts/build-people.py --context (map.ctx, meta.context) · js/people.js (ctxUnder · ctxOver · ctxLabels · mapKey) · js/panel.js (mapProvenance) · js/lang.js (registerPlaceNames) · styles.css (.pm-sea … .pm-lab) · DATA_METHOD.md §16b"
   }
  ],
  "release": {
@@ -373,5 +403,12 @@
    "D-16"
   ],
   "scope": "D-12 commuters, overnight visitors and residents inside the outline and within 1 km (3 and 5 km and the residents map in 0.7.1); D-13 and D-14 wait for the Shopping Center's file and method (straight line meanwhile, said on the page); D-15 in full; D-16 the round maps as «รอบศูนย์นี้» (author judgement, the owner’s check pending)"
+ },
+ "amendedIn3": {
+  "version": "0.7.1",
+  "decisions": [
+   "D-17"
+  ],
+  "scope": "D-17 in full: roads, rail, rivers, the sea, water areas, stations and a few names on the round maps, from the Shopping Center page's OpenStreetMap file; distances stay straight line (D-13)"
  }
 }

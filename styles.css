@@ -1488,6 +1488,27 @@ button.mx-who .mx-name { text-decoration: underline; text-underline-offset: 3px;
 .pm-map .pm-outline-case, .pm-key-line .pm-outline-case { stroke: var(--map-marker-halo, #fff); stroke-width: 4px; }
 .pm-map .pm-outline, .pm-key-line .pm-outline { stroke: var(--map-selected-stroke); stroke-width: 2.25px; }
 .pm-key-line path { fill: none; stroke-linecap: round; }
+/* what a reader finds the way by (0.7.1, owner 2026-11-26 17:51): the sea and water areas in the basemap's water and
+   shore tones under the cells (never over a cell's colour), rivers, roads, rail and stations over them in the ink and
+   paper of the map's label chips as «รอบศูนย์นี้» draws them (montri-th/shoppingcenter styles.css .res-overlay): the same
+   on both themes like the cells, never a data colour */
+.pm-map .pm-sea, .pm-map .pm-water, .pm-key-cell .pm-sea, .pm-key-cell .pm-water { fill: var(--basemap-water); stroke: var(--basemap-shore); stroke-width: 0.75px; vector-effect: non-scaling-stroke; }
+.pm-map .pm-ctx path { fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.pm-road-case { stroke: var(--area-label-bg); }
+.pm-road { stroke: var(--area-label-ink); }
+.pm-road-case.c0 { stroke-width: 3.6px; } .pm-road.c0 { stroke-width: 2.2px; }
+.pm-road-case.c1 { stroke-width: 3.2px; } .pm-road.c1 { stroke-width: 1.9px; }
+.pm-road-case.c2 { stroke-width: 2.8px; } .pm-road.c2 { stroke-width: 1.5px; }
+.pm-road-case.c3 { stroke-width: 1.7px; } .pm-road.c3 { stroke-width: .8px; }
+.pm-rail-case { stroke: var(--area-label-bg); stroke-width: 2.6px; }
+.pm-rail { stroke: var(--area-label-ink); stroke-width: 1.2px; stroke-dasharray: 3 3; }
+.pm-river-case { stroke: var(--area-label-bg); stroke-width: 4.4px; }
+.pm-river { stroke: var(--map-active-layer); stroke-width: 2.8px; }
+.pm-map .pm-station, .pm-key-line .pm-station { fill: var(--area-label-ink); stroke: var(--area-label-bg); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
+.pm-lab { position: absolute; padding: 0 5px; border-radius: 6px; background: var(--area-label-bg); color: var(--area-label-ink); font: 600 12px/1.45 var(--font-body); white-space: nowrap; pointer-events: none; }
+.pm-lab.at-c { transform: translate(-50%, -50%); }
+.pm-lab.at-l { transform: translate(6px, -50%); }
+.pm-lab.at-r { transform: translate(calc(-100% - 6px), -50%); }
 .pm-ring-label { position: absolute; transform: translate(-50%, -110%); padding: 0 4px; border-radius: 6px; background: var(--surface-card); font-size: 13px; line-height: 1.35; color: var(--text-secondary); white-space: nowrap; pointer-events: none; }
 .pm-north { position: absolute; left: 0; top: 0; padding: 0 4px; border-radius: 6px; background: var(--surface-card); font-size: 13px; line-height: 1.35; color: var(--text-secondary); }
 .pm-legend { display: grid; gap: 4px; }

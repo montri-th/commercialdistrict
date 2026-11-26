@@ -18,7 +18,7 @@
  * shared grammar at · f.search · f.neighborhood · f.show · m · cmp · v3d by citymeter-shell (js/shell/url.js); opening a
  * province or a neighbourhood adds a browser history entry.
  */
-import {registerDataNames} from './lang.js';
+import {registerDataNames, registerPlaceNames} from './lang.js';
 import {provinces as provinceList, provinceByCode, provinceCodeFrom, provinceName, setProvinces, decodeData, scopeRows, scopePending, KINDS, kindMatch, cell, rowsBounds, dsName, dsUnit, dsUnitN, num, PILLARS, PILLAR_SERIES} from './model.js';
 import {buildOverview, buildNeighborhood, buildCompare} from './profile.js';
 import {decodeAround, aroundDistance, aroundMatches} from './around.js';
@@ -380,6 +380,7 @@ function ensurePeople(r) {
       const rec = decodePeople(json, r.id);
       if (!rec || !m?.schema) throw new Error('Invalid people file');
       state.peopleMeta = m;
+      registerPlaceNames(rec);
       state.people.set(r.id, rec);
       if (state.nb === r.id && state.mapTab === 'res' && !Array.isArray(rec.map?.res)) { state.mapTab = DEFAULT_MAP; saveURL(); }
     })
