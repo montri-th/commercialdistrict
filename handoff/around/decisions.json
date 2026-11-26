@@ -25,6 +25,69 @@
    "channel": "Claude chat, Project 02 CityMETER",
    "verbatim": "ทำตามที่พี่เสนอเลยครับ",
    "note": "answers Claude's table of 2026-11-25 22:21: centre pins (0.4.1), the neighbourhood's distances, PR #27"
+  },
+  {
+   "at": "2026-11-26T14:03:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "ดีขึ้นนะครับ และมีข้อปรึกษาเพื่อปรับปรุงให้ดีขึ้นดังนี้ / 1) คนอยู่ แบบจำลองยังไม่ถึงรอบข้อมูลรอรุ่นแบบจำลองผู้อยู่อาศัย (รอบ 2) ทำยังไงถึงจะเห็นปริมาณคน residents, visitors, commuters ได้ อยากได้วิธีง่ายๆตรงไปตรงมาไม่ซับซ้อนมาก ช่วยนำเสนอมาให้เลือกหน่อย / 2) น่าอยู่ น่าเที่ยว น่าค้าขาย ผมว่าน่าจะคงคำไว้แบบนี้แล้วเรามาพยายามทำข้อมูลให้สามารถตอบความ \"น่า\" ให้ได้จริง เพิ่มเติมจากข้อมูลที่พี่ทำขึ้นมาแล้ว ให้เห็นทั้ง เชิงปริมาณ และ คุณภาพ / 2.1) น่าอยู่ ความน่าอยู่ควรจะเน้นไปที่กิจกรรมที่คนที่อยู่ในย่านนี้จะต้องเจอทุกวัน เช่น การกิน, การนอน, ความแออัด, ความคึกคักมีสีสัน, ความสงบ, คุณภาพชีวิตที่ดี, อากาศดี, การเดินทางมีทางเลือกมาก หลาย mode mode ละหลายๆ option และทางเลือกมีคุณภาพ, การออกกำลังกาย, พื้นที่สีเขียว, ใกล้ของจำเป็นครบครัน etc / 2.2) น่าเที่ยว ความน่าเที่ยว คือมีการเที่ยวหลายๆอย่าง ที่ inspiring เช่น museum, edutainment, arts, concert, สถานท่องเที่ยวทางประวัติศาสตร์, nightlife, ธรรมชาติ, หาด, ภูเขา, น้ำตก, เดินป่า, โรงแรม รีสอท ที่พักค้างแรมประเภทต่างๆ, ย่านคูลๆ, shopping, fashion / 2.3) น่าค้าขาย มีกำลังซื้อสูง ทั้งปริมาณผู้ซื้อ และ ระดับราคาความเต็มใจจ่ายในหลายๆระดับราคา, มีคู่แข่งมากน้อย, มีพันธมิตรมากน้อย, มี present ของสาขาของเราแล้วหรือยัง, มีกิจกรรมที่ดึงดูด traffic ที่มี preference ที่ตรงกับสินค้าและบริการของเรา / 2.4) charts ใน sidebar ตอนนี้ยังดูยากอยู่มาก ตัวเล็ก ตัวเลขต่างไม่รู้ว่ามีความหมายอย่างไร ยังไม่ consistent กับ venue locale insight เท่าที่ควร พวก heatmap กลมๆก็ไม่มี ทำยังไงจะมีได้และ relevant กับ case ของ commercial district นี้ด้วย / ขอปรึกษา แล้วพี่ปรับ brief และแผน และลงมือปรับเลย",
+   "note": "item 1 asks for options on people figures; line breaks shown as “ / ”"
+  },
+  {
+   "at": "2026-11-26T14:13:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "รัศมีการนับ 400m ,800 m ควรดูเรื่อง physical barrier ด้วยนะครับ เพราะคนจะข้ามฝั่งไม่ได้ง่ายๆ / และสงสัยว่า 1,3,5km แบบ venue เรายังจะมีอยู่มั้ยนะ",
+   "note": "line breaks shown as “ / ”"
+  },
+  {
+   "at": "2026-11-26T14:31:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "A ตัวเลขทางการแบ่งลงย่าน (แนะนำ)",
+   "note": "the option chosen in Claude's question box on people figures (the minute is approximate: the answer came just before the 14:32 message)"
+  },
+  {
+   "at": "2026-11-26T14:31:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "คิดว่าควรใช้ 1,3,5 km เหมือน venue มั้ย จะได้ใช้ datasource ชุดเดียวกัน ทั้งเรื่องข้ามสะพานด้วย",
+   "note": "typed as the answer to the question on how to get the OpenStreetMap file for the barriers"
+  },
+  {
+   "at": "2026-11-26T14:32:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "สองข้อนี้ถามมาใหม่ครับ",
+   "note": "the questions on where 1 · 3 · 5 km is measured from and how the page knows the reader's business had no answer; asked again"
+  },
+  {
+   "at": "2026-11-26T14:40:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "ศูนย์การค้ากำลังจะใช้ 1,3,5 กม แบบคิดเรื่องสะพานและสิ่งกีดขวาง เราใช้แบบเดียวกันได้มั้ย",
+   "note": "typed as the answer to “which distances”; the minute is approximate"
+  },
+  {
+   "at": "2026-11-26T14:40:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "จากขอบย่าน (แนะนำ)",
+   "note": "the option chosen on where 1 · 3 · 5 km is measured from"
+  },
+  {
+   "at": "2026-11-26T14:40:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "venue, shopping center กำลังโหลด รอใช้ไฟล์เดียวกันครับ",
+   "note": "typed as the answer on the OpenStreetMap file"
+  },
+  {
+   "at": "2026-11-26T14:40:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "เลือกประเภทธุรกิจและแบรนด์ (แนะนำ)",
+   "note": "the option chosen on how the page knows the reader's business"
   }
  ],
  "reading": {
@@ -197,6 +260,72 @@
    "appliedAs": "0.4.1: js/layers.js poiCollection (VENUE_LIFT, กองข้ามชุด) · js/records.js labelItems และ tipHTML · js/app.js updateRecordLabels · tests/venue-pins.test.js",
    "deviation": "ข้อเสนอเดิมให้ป้ายบอก “N รายการ จาก M ชุด” ตัดตัวเลขออกเพราะเป็นยอดรวมข้ามชุดข้อมูล (INV-01) และตัวตรวจเดิมห้ามตัวเลขใน tip · ใช้คำ “ตรงนี้มีหลายชุดซ้อนกัน” แทน",
    "where": "js/layers.js · js/records.js · js/app.js · tests/venue-pins.test.js · DATA_METHOD.md §4"
+  },
+  {
+   "id": "D-12",
+   "question": "เห็นปริมาณคนอยู่ คนมาทำงานและเรียน และผู้มาเยือนได้อย่างไร แบบง่ายและตรงไปตรงมา (เจ้าของถาม 14:03 ข้อ 1)",
+   "status": "decided",
+   "decision": "A",
+   "recommendation": "A",
+   "options": [
+    "A) ตัวเลขทางการแบ่งลงย่าน: คนอยู่ = ประชากรตามทะเบียนรายแขวง/ตำบลแบ่งลงอาคารตามพื้นที่ใช้สอย (วิธีของหน้าศูนย์การค้า) · คนมาทำงานและเรียน = คนที่แหล่งบันทึก (นักเรียน คนงานโรงงาน) + คนทำงานในสำนักงาน (แบบจำลอง) · ผู้มาเยือนค้างคืน = ผู้เข้าพักต่อคืนของจังหวัดตามสถิติกระทรวงการท่องเที่ยวฯ แบ่งตามสัดส่วนห้องพักในย่าน",
+    "B) ประชากรรายช่อง 100 ม. (WorldPop): คนอยู่อย่างเดียว",
+    "C) ข้อมูลตำแหน่งมือถือ: ครบสามกลุ่มรายชั่วโมง ต้องมีสัญญาและค่าใช้จ่าย — ระยะถัดไป",
+    "D) นับสถานที่แบบเดิม: ไม่มีจำนวนคน"
+   ],
+   "decidedAt": "2026-11-26T14:31:00+07:00",
+   "decidedBy": "owner",
+   "ownerWords": "A ตัวเลขทางการแบ่งลงย่าน (แนะนำ)",
+   "delegatedToAuthor": false,
+   "amends": "INV-01 (contracts.json) for the group คนมาทำงานและเรียน only: the parts are added into one figure read as “อย่างน้อย” (at least), each part shown beside it with its own source and date; no other total across groups or datasets",
+   "meaning": "สามกลุ่ม สามตัวเลข ติดป้ายแบบจำลอง ปัดเป็น “ราว” และบอกชุดข้อมูล · แหล่ง · วันที่ · ขอบเขต ทุกตัว · ไม่ใช่ footfall ไม่ใช่จำนวนลูกค้า · คนมาแบบเช้าไปเย็นกลับยังนับไม่ได้ จึงแสดงเป็นจำนวนสถานที่ที่ผู้มาเยือนใช้",
+   "appliedAs": "0.7.0: คนมาทำงานและเรียน · ผู้มาเยือนค้างคืน · คนอยู่ในขอบย่าน · 0.7.1: คนอยู่ใน 1 · 3 · 5 กม. (NL-08)",
+   "where": "scripts/build-people.py · data/people.json · js/people.js"
+  },
+  {
+   "id": "D-13",
+   "question": "ระยะนับ 400/800 ม. ควรคิดสิ่งกีดขวาง และ 1 · 3 · 5 กม. แบบ venue ยังมีอยู่ไหม (เจ้าของ 14:13)",
+   "status": "decided",
+   "decision": "1 · 3 · 5 กม. วัดจากขอบย่าน แบบเดียวกับหน้าศูนย์การค้าที่คิดเรื่องสะพานและสิ่งกีดขวาง ใช้ไฟล์และวิธีเดียวกัน",
+   "decidedAt": "2026-11-26T14:40:00+07:00",
+   "decidedBy": "owner",
+   "ownerWords": "ศูนย์การค้ากำลังจะใช้ 1,3,5 กม แบบคิดเรื่องสะพานและสิ่งกีดขวาง เราใช้แบบเดียวกันได้มั้ย · จากขอบย่าน (แนะนำ)",
+   "delegatedToAuthor": false,
+   "amends": "D-10 (the service area stays 1 · 3 · 5 km from the edge; it is measured along real paths like the venue page instead of a straight line)",
+   "authorJudgement": "400/800 ม. «ขอบเดินถึง» คงไว้ (D-10) และใช้กติกาสะพานและสิ่งกีดขวางชุดเดียวกัน ตามที่เจ้าของบอก 14:13 ว่าควรคิดเรื่องนี้ เจ้าของไม่ได้สั่งให้ตัดระยะนี้ และได้แจ้งในแชทแล้วว่าถ้าจะตัดให้บอก",
+   "interim": "until the Shopping Center's file and method are in hand, every distance stays a straight line from the edge and the page says it waits for distances along real paths",
+   "meaning": "ทั้งสองหน้าใช้ไฟล์ OSM สคริปต์ และกติกาเดียวกัน ที่เดียวกันได้ตัวเลขเดียวกัน · ตัวเลขของย่านวัดจากขอบ จึงเทียบตรง ๆ กับวงจากจุดของศูนย์ไม่ได้ และหน้าเว็บเขียนกำกับไว้",
+   "where": "scripts/build-people.py · scripts/build-around.py (when the method arrives)"
+  },
+  {
+   "id": "D-14",
+   "question": "ไฟล์ OpenStreetMap สำหรับระยะตามทางจริง",
+   "status": "decided",
+   "decision": "รอไฟล์เดียวกับที่หน้าศูนย์การค้ากำลังโหลด แล้วตรวจ SHA-256 ให้ตรงกัน",
+   "decidedAt": "2026-11-26T14:40:00+07:00",
+   "decidedBy": "owner",
+   "ownerWords": "venue, shopping center กำลังโหลด รอใช้ไฟล์เดียวกันครับ",
+   "delegatedToAuthor": false,
+   "meaning": "Commercial District ไม่โหลดไฟล์ของตัวเอง · ใช้ hash เดียวกับหน้าศูนย์การค้า",
+   "where": "DATA_METHOD.md §16"
+  },
+  {
+   "id": "D-15",
+   "question": "แกนน่าค้าขายรู้ได้อย่างไรว่าผู้อ่านขายอะไร (คู่แข่ง พันธมิตร สาขาของเรา)",
+   "status": "decided",
+   "decision": "ผู้อ่านเลือกประเภทธุรกิจ และเลือกแบรนด์ได้เมื่อแบรนด์นั้นอยู่ในชุดข้อมูล",
+   "recommendation": "same",
+   "options": [
+    "เลือกประเภทธุรกิจและแบรนด์",
+    "ภาพรวมทั่วไปอย่างเดียว",
+    "ส่งต่อไป Yolk"
+   ],
+   "decidedAt": "2026-11-26T14:40:00+07:00",
+   "decidedBy": "owner",
+   "ownerWords": "เลือกประเภทธุรกิจและแบรนด์ (แนะนำ)",
+   "delegatedToAuthor": false,
+   "meaning": "คู่แข่ง พันธมิตร และสาขาของเรานับตามประเภทที่ผู้อ่านเลือก ไม่ใช่คำแนะนำให้เปิดสาขา · แบรนด์ที่ไม่อยู่ในชุดข้อมูลบอกว่ายังไม่มีข้อมูล ไม่บอกว่าไม่มีสาขา",
+   "where": "js/trade.js · ?biz=&brand= in the address"
   }
  ],
  "release": {
@@ -216,5 +345,15 @@
    "D-11"
   ],
   "scope": "D-11 in full; D-10 the name «ขอบเดินถึง» on the page, its service area in round 2"
+ },
+ "amendedIn2": {
+  "version": "0.7.0",
+  "decisions": [
+   "D-12",
+   "D-13",
+   "D-14",
+   "D-15"
+  ],
+  "scope": "D-12 commuters, overnight visitors and residents inside the outline (residents in 1 · 3 · 5 km in 0.7.1); D-13 and D-14 wait for the Shopping Center's file and method (straight line meanwhile, said on the page); D-15 in full"
  }
 }

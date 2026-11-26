@@ -57,6 +57,13 @@
       "channel": "Claude chat, Project 02 CityMETER",
       "verbatim": "ทำตามที่เสนอให้ครบทุกข้อพร้อม publish",
       "note": "D-V2 … D-V5, D-V7, D-V8 and the open sub-questions as recommended; build V1 and publish"
+    },
+    {
+      "at": "2026-11-26T14:03:00+07:00",
+      "by": "owner (Montri)",
+      "channel": "Claude chat, Project 02 CityMETER",
+      "verbatim": "ดีขึ้นนะครับ และมีข้อปรึกษาเพื่อปรับปรุงให้ดีขึ้นดังนี้ / 1) คนอยู่ แบบจำลองยังไม่ถึงรอบข้อมูลรอรุ่นแบบจำลองผู้อยู่อาศัย (รอบ 2) ทำยังไงถึงจะเห็นปริมาณคน residents, visitors, commuters ได้ อยากได้วิธีง่ายๆตรงไปตรงมาไม่ซับซ้อนมาก ช่วยนำเสนอมาให้เลือกหน่อย / 2) น่าอยู่ น่าเที่ยว น่าค้าขาย ผมว่าน่าจะคงคำไว้แบบนี้แล้วเรามาพยายามทำข้อมูลให้สามารถตอบความ \"น่า\" ให้ได้จริง เพิ่มเติมจากข้อมูลที่พี่ทำขึ้นมาแล้ว ให้เห็นทั้ง เชิงปริมาณ และ คุณภาพ / 2.1) น่าอยู่ ความน่าอยู่ควรจะเน้นไปที่กิจกรรมที่คนที่อยู่ในย่านนี้จะต้องเจอทุกวัน เช่น การกิน, การนอน, ความแออัด, ความคึกคักมีสีสัน, ความสงบ, คุณภาพชีวิตที่ดี, อากาศดี, การเดินทางมีทางเลือกมาก หลาย mode mode ละหลายๆ option และทางเลือกมีคุณภาพ, การออกกำลังกาย, พื้นที่สีเขียว, ใกล้ของจำเป็นครบครัน etc / 2.2) น่าเที่ยว ความน่าเที่ยว คือมีการเที่ยวหลายๆอย่าง ที่ inspiring เช่น museum, edutainment, arts, concert, สถานท่องเที่ยวทางประวัติศาสตร์, nightlife, ธรรมชาติ, หาด, ภูเขา, น้ำตก, เดินป่า, โรงแรม รีสอท ที่พักค้างแรมประเภทต่างๆ, ย่านคูลๆ, shopping, fashion / 2.3) น่าค้าขาย มีกำลังซื้อสูง ทั้งปริมาณผู้ซื้อ และ ระดับราคาความเต็มใจจ่ายในหลายๆระดับราคา, มีคู่แข่งมากน้อย, มีพันธมิตรมากน้อย, มี present ของสาขาของเราแล้วหรือยัง, มีกิจกรรมที่ดึงดูด traffic ที่มี preference ที่ตรงกับสินค้าและบริการของเรา / 2.4) charts ใน sidebar ตอนนี้ยังดูยากอยู่มาก ตัวเล็ก ตัวเลขต่างไม่รู้ว่ามีความหมายอย่างไร ยังไม่ consistent กับ venue locale insight เท่าที่ควร พวก heatmap กลมๆก็ไม่มี ทำยังไงจะมีได้และ relevant กับ case ของ commercial district นี้ด้วย / ขอปรึกษา แล้วพี่ปรับ brief และแผน และลงมือปรับเลย",
+      "note": "with a screenshot of the live panel of พร้อมพงษ์ at 800 m; line breaks shown as “ / ”"
     }
   ],
   "reading": {
@@ -194,7 +201,7 @@
     {
       "id": "D-V6",
       "question": "ชื่อแกนบนหน้าจอ",
-      "status": "decided",
+      "status": "superseded",
       "decision": "อยู่ · เที่ยว · ค้าขาย",
       "option": "A) อยู่ · เที่ยว · ค้า โดยใช้ “ค้าขาย” แทน “ค้า”",
       "decidedAt": "2026-11-26T09:56:00+07:00",
@@ -206,6 +213,30 @@
       ],
       "meaning": "ข้อมูลบอกได้ว่ามีอะไรรองรับ แต่ตัดสินไม่ได้ว่าน่าหรือไม่น่า",
       "appliedAs": "js/axes.js#AXES · ไม่มีคำ “น่า…”",
+      "where": "js/axes.js",
+      "supersededBy": "D-V6b"
+    },
+    {
+      "id": "D-V6b",
+      "question": "ชื่อแกนบนหน้าจอ (ทบทวนหลังเห็นรุ่น 0.6.0 บนเว็บจริง)",
+      "status": "decided",
+      "decision": "น่าอยู่ · น่าเที่ยว · น่าค้าขาย",
+      "option": "คงคำ “น่า…” ตามที่เจ้าของเสนอแต่แรก (07:56) แล้วทำข้อมูลให้ตอบความ “น่า” ด้วยปริมาณและคุณภาพ",
+      "decidedAt": "2026-11-26T14:03:00+07:00",
+      "decidedBy": "owner",
+      "ownerWords": "น่าอยู่ น่าเที่ยว น่าค้าขาย ผมว่าน่าจะคงคำไว้แบบนี้แล้วเรามาพยายามทำข้อมูลให้สามารถตอบความ \"น่า\" ให้ได้จริง เพิ่มเติมจากข้อมูลที่พี่ทำขึ้นมาแล้ว ให้เห็นทั้ง เชิงปริมาณ และ คุณภาพ",
+      "delegatedToAuthor": false,
+      "reverses": "D-V6 (09:56: อยู่ · เที่ยว · ค้าขาย, ไม่มีคำ “น่า…”)",
+      "removedGuard": "D-V6 kept “น่า” off the screen because the data says what supports living, visiting and trading, not whether a neighbourhood is น่า… The words come back; the guard moves into the rows.",
+      "replacementRule": "binding: (1) every row under an axis is one sentence with its number, unit and what it means, and its evidence label; (2) no score, no total and no rank of a neighbourhood per axis (D-V7 A stays); (3) what has no data yet reads “ยังไม่มีข้อมูล”, never 0 and never left out silently; (4) the method says that น่า… names the question the axis helps to answer, not a verdict that the neighbourhood is or is not น่า…",
+      "meaning": "แกนตั้งคำถามแบบที่ผู้อ่านคิด ส่วนคำตอบคือตัวเลขเชิงปริมาณและคุณภาพของแต่ละเรื่อง",
+      "requirements": {
+        "2.1": "น่าอยู่: สิ่งที่คนในย่านเจอทุกวัน — กิน นอน (ที่อยู่อาศัย) ความแออัด ความคึกคัก ความสงบ คุณภาพชีวิต อากาศ การเดินทางหลายระบบ ระบบละหลายทางเลือกและมีคุณภาพ ออกกำลังกาย พื้นที่สีเขียว ของจำเป็นครบ",
+        "2.2": "น่าเที่ยว: ของให้เที่ยวหลายแบบ — museum edutainment arts concert ประวัติศาสตร์ nightlife ธรรมชาติ หาด ภูเขา น้ำตก เดินป่า ที่พักหลายประเภท ย่านคูลๆ shopping fashion",
+        "2.3": "น่าค้าขาย: กำลังซื้อ (จำนวนผู้ซื้อ และความเต็มใจจ่ายหลายระดับราคา) คู่แข่ง พันธมิตร สาขาของเรา และกิจกรรมที่ดึงคนที่ชอบสินค้าแบบเรา",
+        "2.4": "กราฟในแถบข้างอ่านง่าย ตัวใหญ่พอ ตัวเลขบอกความหมาย ใช้รูปแบบเดียวกับ «รอบศูนย์นี้» และมีแผนที่วงกลมที่ใช้กับย่านได้"
+      },
+      "appliedAs": "0.7.0: js/axes.js#AXES · the panel rows (js/visual.js, js/people.js) · DATA_METHOD.md §15",
       "where": "js/axes.js"
     },
     {

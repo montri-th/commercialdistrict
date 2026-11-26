@@ -80,5 +80,213 @@
     "English names for neighbourhoods when the registry carries them",
     "field-checked outlines replace drafts as the registry closes them",
     "a dataset registry row and a production code for this dataset"
-  ]
+  ],
+  "v07": {
+    "title": "น่าอยู่ · น่าเที่ยว · น่าค้าขาย ด้วยปริมาณคน แผนที่วงกลม และระยะตามทางจริง",
+    "owner": "2026-11-26 14:03 (D-V6b, the request), 14:13, 14:31–14:40 (D-12 … D-15); VERBATIM in handoff/visual/decisions.json and handoff/around/decisions.json",
+    "staging": {
+      "0.7.0": "today: V7-01 … V7-06 (distances straight line from the edge, said on the page)",
+      "0.7.1": "after the night crawl of Building V4: V7-07, then V7-08",
+      "0.7.2": "when the Shopping Center's OpenStreetMap file and its method are in hand: V7-09",
+      "later": "V7-10, in the order the owner picks"
+    },
+    "tasks": [
+      {
+        "id": "V7-01",
+        "release": "0.7.0",
+        "title": "ชื่อแกน น่าอยู่ · น่าเที่ยว · น่าค้าขาย และกติกาที่แทนการกันคำ “น่า…” (D-V6b)",
+        "dependsOn": [],
+        "files": [
+          "js/axes.js",
+          "tests/visual.test.js",
+          "DATA_METHOD.md"
+        ],
+        "acceptance": [
+          "AXES th = น่าอยู่ · น่าเที่ยว · น่าค้าขาย",
+          "every axis row: number + unit + meaning + evidence label",
+          "no score, total or rank per axis",
+          "missing reads ยังไม่มีข้อมูล"
+        ]
+      },
+      {
+        "id": "V7-02",
+        "release": "0.7.0",
+        "title": "คนมาทำงานและเรียน (ยอด “อย่างน้อย” พร้อมส่วนประกอบ) และผู้มาเยือนค้างคืน ในย่านและพื้นที่ให้บริการ 1 · 3 · 5 กม. จากขอบ (NL-09 NL-15 D-12)",
+        "dependsOn": [],
+        "files": [
+          "new:scripts/build-people.py",
+          "new:data/people.json",
+          "new:js/people.js",
+          "new:tests/people.test.js"
+        ],
+        "acceptance": [
+          "parts: students (2569) · university students (single-site universities) · registered factory workers · recorded government staff · office workers (model range, the low end in the total)",
+          "overnight visitors: the province's guests per the Ministry of Tourism and Sports allocated by the share of recorded rooms",
+          "dataset · source · date · boundary on every figure",
+          "level = mid-rank among the reference set, «ระดับเทียบ N/100»"
+        ]
+      },
+      {
+        "id": "V7-03",
+        "release": "0.7.0",
+        "title": "คนอยู่ในขอบย่าน (NL-08 ส่วนแรก) ด้วยวิธี variant A ของหน้าศูนย์การค้า",
+        "dependsOn": [],
+        "files": [
+          "new:scripts/residents/",
+          "data/people.json"
+        ],
+        "acceptance": [
+          "the crawler reproduces data/residents of montri-th/shoppingcenter for sample venues",
+          "production API about 700 requests, paced",
+          "registered ≠ living there: said in the method"
+        ]
+      },
+      {
+        "id": "V7-04",
+        "release": "0.7.0",
+        "title": "แผนที่วงกลม 250 ม. ระยะ 5 กม. จากขอบ: ที่ผู้มาเยือนใช้ · ที่ทำงานและที่เรียน",
+        "dependsOn": [],
+        "files": [
+          "new:scripts/build-maps.py",
+          "new:data/maps/<id>.json",
+          "new:js/circle-map.js"
+        ],
+        "acceptance": [
+          "the LUTs of «รอบศูนย์นี้» (activity · count) with 41 samples, legend with real values, ranked within the map",
+          "the outline, the walk edges and the 1 · 3 · 5 km lines over the cells",
+          "a table by direction and distance that reads instead of the map"
+        ]
+      },
+      {
+        "id": "V7-05",
+        "release": "0.7.0",
+        "title": "แถบข้างแบบ «รอบศูนย์นี้»: ใครอยู่ตรงนี้ 3 ช่อง → แผนที่ → การ์ดน่า… → ตาราง 16 ชุดพับไว้",
+        "dependsOn": [
+          "V7-02",
+          "V7-04"
+        ],
+        "files": [
+          "js/panel.js",
+          "js/visual.js",
+          "styles.css"
+        ],
+        "acceptance": [
+          "text ≥ 14 px in the panel at 393 px and desktop",
+          "the words and meters of «รอบศูนย์นี้» (ระดับเทียบ N/100, 5 steps)",
+          "Thai and English"
+        ]
+      },
+      {
+        "id": "V7-06",
+        "release": "0.7.0",
+        "title": "ตัวชี้วัดปริมาณและคุณภาพของสามแกนจากข้อมูลที่มี",
+        "dependsOn": [
+          "V7-01"
+        ],
+        "files": [
+          "new:js/indicators.js",
+          "new:tests/indicators.test.js"
+        ],
+        "acceptance": [
+          "น่าอยู่: กิน · ของจำเป็น · ที่อยู่อาศัย · แออัด/คึกคัก · การเดินทาง · ออกกำลังกาย/สีเขียว · อากาศ",
+          "น่าเที่ยว: ที่พัก · ช้อปปิ้ง · แหล่งเรียนรู้/ศิลปะ/ประวัติศาสตร์/กลางคืน/ธรรมชาติ · ความหลากหลาย",
+          "น่าค้าขาย: ผู้ซื้อ (สามกลุ่ม ไม่รวมกัน) · ระดับราคาแถวนี้",
+          "a topic without data is a row that says so and what would fill it"
+        ]
+      },
+      {
+        "id": "V7-07",
+        "release": "0.7.1",
+        "title": "คนอยู่ใน 1 · 3 · 5 กม. จากขอบ และแผนที่คนอยู่ (NL-08 ส่วนที่สอง)",
+        "dependsOn": [
+          "V7-03"
+        ],
+        "files": [
+          "scripts/residents/",
+          "data/people.json",
+          "data/maps/<id>.json"
+        ],
+        "acceptance": [
+          "the night crawl (about 20,000 requests, as the Shopping Center's)",
+          "density.area LUT ranked within the map (D49 of Shopping Center)"
+        ]
+      },
+      {
+        "id": "V7-08",
+        "release": "0.7.1",
+        "title": "น่าค้าขาย: เลือกประเภทธุรกิจและแบรนด์ — คู่แข่ง พันธมิตร สาขาของเรา (D-15)",
+        "dependsOn": [
+          "V7-06"
+        ],
+        "files": [
+          "new:js/trade.js",
+          "scripts/build-data.py (brands per record)"
+        ],
+        "acceptance": [
+          "types from datasets that hold businesses of one kind",
+          "partners are this demo's reading (Inference), named as such",
+          "a brand outside the data reads ยังไม่มีข้อมูล, never ไม่มีสาขา",
+          "?biz=&brand= in the address"
+        ]
+      },
+      {
+        "id": "V7-09",
+        "release": "0.7.2",
+        "title": "ระยะตามทางจริง 400/800 ม. และ 1 · 3 · 5 กม. ด้วยไฟล์และวิธีของหน้าศูนย์การค้า (D-13 D-14)",
+        "dependsOn": [
+          "the Shopping Center's file and method"
+        ],
+        "files": [
+          "scripts/build-around.py",
+          "scripts/build-people.py",
+          "scripts/build-maps.py"
+        ],
+        "status": "blocked",
+        "acceptance": [
+          "the same SHA-256 as the Shopping Center's OpenStreetMap file",
+          "the same rules for bridges, crossings, expressways, rivers and rail",
+          "the page drops the words “เส้นตรง” only then"
+        ]
+      },
+      {
+        "id": "V7-10",
+        "release": "later",
+        "title": "ชุดข้อมูลใหม่สำหรับเรื่องที่ยังไม่มีข้อมูล",
+        "dependsOn": [
+          "the owner's order"
+        ],
+        "files": [],
+        "acceptance": [
+          "PM2.5 · bus and boat routes · parks · museums, arts and learning · historic sites · nightlife · markets and food courts · apparel · banks · cinemas with points; each through the Dataset Registry first"
+        ]
+      }
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "AC18",
+        "scenario": "a people figure",
+        "expected": "dataset · source · date · boundary, and the word แบบจำลอง or ที่แหล่งบันทึก beside it; rounded as «ราว»"
+      },
+      {
+        "id": "AC19",
+        "scenario": "an axis card",
+        "expected": "no score, total or rank of the neighbourhood; a topic without data says ยังไม่มีข้อมูล"
+      },
+      {
+        "id": "AC20",
+        "scenario": "a round map",
+        "expected": "a 41-sample LDS LUT, legend with real values, colours compared within the map only, a table instead of the map"
+      },
+      {
+        "id": "AC21",
+        "scenario": "panel text",
+        "expected": "at least 14 px for sentences and numbers at 393 px and desktop"
+      },
+      {
+        "id": "AC22",
+        "scenario": "a distance",
+        "expected": "says straight line from the edge until V7-09 ships"
+      }
+    ]
+  }
 }
