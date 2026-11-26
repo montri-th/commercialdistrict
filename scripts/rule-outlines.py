@@ -664,6 +664,11 @@ def cmd_revise(a):
             report.append(rec)
             continue
         new = parts[0] if len(parts) == 1 else MultiPolygon(parts)
+        if not new.contains(Point(lon, lat)):  # (0.5.2) the rounding can pass a few metres off the point: the seed joins
+            new = make_valid(new.union(seed.difference(unary_union(near)) if near else seed))
+            new = new if isinstance(new, (Polygon, MultiPolygon)) else unary_union([g for g in new.geoms if isinstance(g, (Polygon, MultiPolygon))])
+            rec['seedJoined'] = True
+        assert new.contains(Point(lon, lat)), f'{code}: its outline does not hold its point'
         fwd = utm(new)[0]
         reach = round(transform(fwd, new).hausdorff_distance(transform(fwd, seed_polygon(lat, lon))))
         status = 'apply' if reach <= REVIEW_M else 'review'

@@ -668,8 +668,8 @@ def main():
                     'neighbourhood_reference_point': f['properties']['reference_point'], 'source_province_codes': [],
                     'name_status': 'draft_pending_local_name_validation', 'field_verified': False, '_kind': 'screen',
                     '_screen': {'on': f['properties']['outlined_on'], 'reachM': f['properties']['reach_m'], 'role': role_th,
-                                # (0.5.2) drawn with CityMETER Building V4 on the owner's word of 2026-11-26 10:02
-                                'cm': (f['properties'].get('decided') or {}).get('choice') == 'buildingsV4'}}})
+                                # (0.5.2) drawn on the owner's word of 2026-11-26 10:02 over CityMETER Building V4 footprints
+                                'cm': ((f['properties'].get('buildings') or {}).get('cm') or 0) > 0}}})
                 tally['drawn'] += 1
             else:
                 why = (f['properties']['status'] if f is not None else 'none')

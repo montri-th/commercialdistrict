@@ -44,7 +44,7 @@ test('every neighbourhood: a figure pair for every dataset in scope and none out
       assert.ok(v[0] >= 0 && v[0] <= v[1], `${r.id} ${ds}: the 800 m figure holds the 400 m one`);
     }
   }
-  assert.equal(cells, 5533); // 0.5.0: 451 outlines (4,806 cells for the 395 of 0.4.0)
+  assert.equal(cells, 5747); // 0.5.2: 469 outlines (5,533 for the 451 of 0.5.0; 4,806 for the 395 of 0.4.0)
   assert.ok(!/"total"|"sum"/i.test(JSON.stringify(rows)), 'no total or sum anywhere');
 });
 
@@ -145,8 +145,8 @@ test('centres with a «รอบศูนย์นี้» page: one outline at 
     const keys = new Set(readJSON(`data/records/${id}.json`).rows.map(rec => String(rec[4])));
     assert.ok(keys.has(v) || notPinned.has(v), `${v} listed inside ${id} but not counted there`);
   }
-  assert.equal(seen.size, 176); // 0.5.0 (166 in 0.4.0)
-  assert.equal(Object.values(A.rows).reduce((s, x) => s + (x.v?.near.length || 0), 0), 361); // 0.5.0 (356 in 0.4.0)
+  assert.equal(seen.size, 180); // 0.5.2 (176 in 0.5.0, 166 in 0.4.0)
+  assert.equal(Object.values(A.rows).reduce((s, x) => s + (x.v?.near.length || 0), 0), 363); // 0.5.2 (361 in 0.5.0, 356 in 0.4.0)
   assert.equal(A.meta.venues.n, 492);
 });
 
@@ -168,12 +168,12 @@ test('the lines of the map: one file per neighbourhood, 400 m inside 800 m, both
   }
 });
 
-test('ties: a count highlight says how many neighbourhoods share its rank (336 of 437 have at least 3)', () => {
+test('ties: a count highlight says how many neighbourhoods share its rank (363 of 467 have at least 3)', () => {
   const {model} = load();
   let count = 0, three = 0;
   for (const r of model.rows) for (const h of r.hl || []) if (h.k === 'count') { count++; if (sharedBy(model, r, h) >= 3) three++; }
-  assert.equal(count, 437); // 0.5.0 (390 in 0.4.0)
-  assert.equal(three, 336); // 0.5.0 (289 in 0.4.0)
+  assert.equal(count, 467); // 0.5.2 (437 in 0.5.0, 390 in 0.4.0)
+  assert.equal(three, 363); // 0.5.2 (336 in 0.5.0, 289 in 0.4.0)
   const siam = model.rows.find(r => r.name === 'สยาม'), fit = siam.hl.find(h => h.d === 'fitness');
   const t = sharedBy(model, siam, fit);
   assert.ok(t > 1);
@@ -235,7 +235,7 @@ test('a neighbourhood with no highlight says what there is, inside and within 80
   const {model} = load();
   const A = around();
   const thin = model.rows.filter(r => !(r.hl || []).length);
-  assert.equal(thin.length, 183); // 0.5.0 (153 in 0.4.0)
+  assert.equal(thin.length, 185); // 0.5.2 (183 in 0.5.0, 153 in 0.4.0)
   for (const r of thin) {
     const html = renderNeighborhood(buildNeighborhood(model, r), model, {ctx: ctx(), around: A});
     const lead = html.match(/<p class="aha-copy">([\s\S]*?)<\/p>/)[1];
