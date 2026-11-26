@@ -279,6 +279,51 @@ function ctxLabels(ctx, at) {
   }).join('');
 }
 
+/**
+ * The names over a round map (0.7.2). The build fits them for a map 360 px wide; the panel draws it 250–440 px wide (the
+ * live check of 0.7.1 found names touching on a 325 px map). Once the map is laid out, a name that would cover an
+ * earlier name (map.ctx.L is in order of priority: the nearest station, the sea, the river, the roads, other stations),
+ * a ring label or the north mark, would sit on the outline, or would leave the map, is hidden; 2 px of touching is
+ * allowed. Runs again whenever the map changes size (watchMapNames). Returns how many names it hid.
+ */
+const TOUCH_PX = 2;
+export function fitMapNames(wrap) {
+  const box = wrap?.getBoundingClientRect?.();
+  if (!box || !box.width) return 0;
+  const svg = wrap.querySelector('.pm-map'), outline = wrap.querySelector('.pm-outline');
+  const inv = svg?.getScreenCTM?.()?.inverse?.() || null;
+  const onOutline = (x, y) => {
+    if (!inv || typeof outline?.isPointInFill !== 'function') return false;
+    const u = {x: inv.a * x + inv.c * y + inv.e, y: inv.b * x + inv.d * y + inv.f};
+    return outline.isPointInFill(typeof DOMPoint === 'function' ? new DOMPoint(u.x, u.y) : u);
+  };
+  const taken = [...wrap.querySelectorAll('.pm-ring-label, .pm-north')].map(e => e.getBoundingClientRect());
+  let hid = 0;
+  for (const lab of wrap.querySelectorAll('.pm-lab')) {
+    lab.hidden = false;
+    const r = lab.getBoundingClientRect();
+    const out = r.left < box.left - TOUCH_PX || r.right > box.right + TOUCH_PX || r.top < box.top - TOUCH_PX || r.bottom > box.bottom + TOUCH_PX;
+    const hit = taken.some(t => r.left + TOUCH_PX < t.right && t.left + TOUCH_PX < r.right && r.top + TOUCH_PX < t.bottom && t.top + TOUCH_PX < r.bottom);
+    const onLine = !out && !hit && [0.1, 0.5, 0.9].some(fx => [0.2, 0.5, 0.8].some(fy => onOutline(r.left + fx * r.width, r.top + fy * r.height)));
+    if (out || hit || onLine) { lab.hidden = true; hid++; } else taken.push(r);
+  }
+  return hid;
+}
+
+let nameWatch = null;
+/** Fit the names of every round map under root now, again when a map changes size, and once the fonts have loaded. */
+export function watchMapNames(root) {
+  const wraps = [...(root?.querySelectorAll?.('.pm-wrap') || [])];
+  if (typeof ResizeObserver === 'function') {
+    nameWatch ||= new ResizeObserver(entries => { for (const e of entries) fitMapNames(e.target); });
+    nameWatch.disconnect();
+    for (const w of wraps) nameWatch.observe(w);
+  } else {
+    wraps.forEach(fitMapNames);
+  }
+  if (wraps.length && globalThis.document?.fonts?.ready) document.fonts.ready.then(() => wraps.forEach(w => w.isConnected && fitMapNames(w)));
+}
+
 /** The SVG of one map: cells (runs of one colour per row), the 5 km ground, the service lines, the walk edges, the outline. */
 export function mapSVG(row, map, tab, {title = ''} = {}) {
   const {cells, ramp} = mapModel(map, tab);

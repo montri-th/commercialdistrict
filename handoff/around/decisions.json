@@ -372,7 +372,8 @@
     "เฉพาะเส้นที่หน้าศูนย์การค้ามี (ไม่มีทะเลและแหล่งน้ำ): ไม่ตอบคำว่า ทะเล ที่เจ้าของขอ",
     "ดาวน์โหลดไฟล์ OpenStreetMap ใหม่เอง: D-14 ให้ใช้ไฟล์เดียวกับหน้าศูนย์การค้า และเจ้าของเลือกไฟล์จากเครื่องของเขา"
    ],
-   "where": "scripts/build-context-map.py · scripts/build-people.py --context (map.ctx, meta.context) · js/people.js (ctxUnder · ctxOver · ctxLabels · mapKey) · js/panel.js (mapProvenance) · js/lang.js (registerPlaceNames) · styles.css (.pm-sea … .pm-lab) · DATA_METHOD.md §16b"
+   "where": "scripts/build-context-map.py · scripts/build-people.py --context (map.ctx, meta.context) · js/people.js (ctxUnder · ctxOver · ctxLabels · mapKey) · js/panel.js (mapProvenance) · js/lang.js (registerPlaceNames) · styles.css (.pm-sea … .pm-lab) · DATA_METHOD.md §16b · js/people.js (fitMapNames · watchMapNames, 0.7.2) · js/app.js (renderPanel)",
+   "followUp": "0.7.2 (2026-11-26, after the live check of 0.7.1): the page fits the names again at the width it draws the map (250–440 px) and hides one that would cover an earlier name, a ring label, the north mark or the outline, or leave the map; found on a map 325 px wide at a 1280 px window"
   }
  ],
  "release": {
@@ -410,5 +411,12 @@
    "D-17"
   ],
   "scope": "D-17 in full: roads, rail, rivers, the sea, water areas, stations and a few names on the round maps, from the Shopping Center page's OpenStreetMap file; distances stay straight line (D-13)"
+ },
+ "amendedIn4": {
+  "version": "0.7.2",
+  "decisions": [
+   "D-17"
+  ],
+  "scope": "D-17 continued: the names fitted at the width the map is drawn"
  }
 }

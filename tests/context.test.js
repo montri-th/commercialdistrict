@@ -16,7 +16,7 @@ import {ROOT, load, readJSON} from './helpers.js';
 import {decodeAround} from '../js/around.js';
 import {buildNeighborhood} from '../js/profile.js';
 import {renderNeighborhood} from '../js/panel.js';
-import {mapSVG} from '../js/people.js';
+import {mapSVG, fitMapNames} from '../js/people.js';
 
 const OSM_SHA = '62b496bf2383ddd266cfcd3456cd03064db1887399f2a4c869bbf953bfd12d24';
 const KINDS = {sea: 1, river: 1, road: 4, station: 3};
@@ -124,4 +124,34 @@ test('the key names only what the map draws; the provenance line credits OpenStr
   assert.doesNotMatch(key(bare), /ถนนสายหลัก|แหล่งน้ำ/);
   // a name is a chip over the map, set beside its point by the page as the build fitted it
   assert.match(patong, /<span class="pm-lab is-sea at-c" style="left:[\d.]+%;top:[\d.]+%">ทะเล<\/span>/);
+});
+
+test('0.7.2: at the width the map is drawn, a name that would cover an earlier one, a ring label, the north mark or the outline, or leave the map, is hidden', () => {
+  const rect = (left, top, width, height) => ({left, top, width, height, right: left + width, bottom: top + height});
+  const el = r => ({hidden: false, getBoundingClientRect: () => r});
+  const names = {
+    a: el(rect(100, 100, 60, 17)),   // first in priority: kept
+    b: el(rect(140, 110, 60, 17)),   // covers a: hidden
+    c: el(rect(159, 100, 50, 17)),   // touches a by 1 px: kept (2 px allowed)
+    d: el(rect(280, 200, 40, 17)),   // leaves the map: hidden
+    e: el(rect(20, 15, 40, 17)),     // on the 1 km label: hidden
+    f: el(rect(210, 245, 40, 12)),   // on the outline: hidden
+    g: el(rect(150, 121, 40, 17)),   // only on b, which is hidden: kept
+  };
+  const outline = {isPointInFill: p => p.x >= 200 && p.x <= 260 && p.y >= 240 && p.y <= 260};
+  const svg = {getScreenCTM: () => ({inverse: () => ({a: 1, b: 0, c: 0, d: 1, e: 0, f: 0})})};
+  const wrap = {
+    getBoundingClientRect: () => rect(0, 0, 300, 300),
+    querySelector: sel => (sel === '.pm-map' ? svg : sel === '.pm-outline' ? outline : null),
+    querySelectorAll: sel => (sel === '.pm-lab' ? Object.values(names) : sel === '.pm-ring-label, .pm-north' ? [el(rect(10, 10, 40, 18)), el(rect(0, 0, 50, 18))] : []),
+  };
+  assert.equal(fitMapNames(wrap), 4);
+  assert.deepEqual(Object.entries(names).filter(([, n]) => n.hidden).map(([k]) => k), ['b', 'd', 'e', 'f']);
+  // fitted again at another width, every name is looked at afresh
+  assert.equal(fitMapNames({...wrap, querySelectorAll: sel => (sel === '.pm-lab' ? [names.b] : [])}), 0);
+  assert.equal(names.b.hidden, false);
+  // a map not laid out (no width) is left alone
+  assert.equal(fitMapNames({getBoundingClientRect: () => rect(0, 0, 0, 0)}), 0);
+  // the page fits them whenever the panel renders
+  assert.match(readFileSync(join(ROOT, 'js/app.js'), 'utf8'), /view\.innerHTML = html;\n[^\n]*\n\s*watchMapNames\(view\);/);
 });

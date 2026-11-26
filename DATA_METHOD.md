@@ -896,7 +896,10 @@ operating stations of CityMETER Transit and the national rail stops with schedul
 (`data/rail.json`; a national stop within 150 m of a Transit station is that station), and at most one sea, one river,
 four road and three station names, placed so that on a map 360 px wide none overlaps another, the outline, the 1 · 3 ·
 5 km labels or the north mark (the station nearest the reference point that has room first; a name OpenStreetMap gives
-only in Thai stays Thai on the English page). Lines are clipped to the 5 km ground and simplified to 12 m, in the map's
+only in Thai stays Thai on the English page). The panel draws the map 250–440 px wide, so the page fits the names again
+at the width it draws (0.7.2, `js/people.js#fitMapNames`, again whenever the map changes size): a name that would cover
+an earlier one in that order, a ring label or the north mark, would sit on the outline or would leave the map is hidden
+(2 px of touching allowed) — the live check of 0.7.1 found names touching on a map 325 px wide. Lines are clipped to the 5 km ground and simplified to 12 m, in the map's
 own 25 m units. The file is the Shopping Center page's (D-14): Geofabrik's extract `thailand-261124.osm.pbf`, data to
 2026-11-24T21:21:23Z, SHA-256 `62b496bf2383ddd266cfcd3456cd03064db1887399f2a4c869bbf953bfd12d24`, checked by the build and
 kept outside the repository; © OpenStreetMap contributors, ODbL 1.0, credited on the map's provenance line with its
