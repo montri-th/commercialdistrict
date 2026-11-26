@@ -44,7 +44,7 @@ in §9 are published.
 
 ## 2. Neighbourhoods
 
-**Observed fact.** 451 outlines in 77 provinces since 0.5.0 (§2d: 56 of the registry's commercial screen, 5.48 km² as drawn; 212.11 km² in all). Before it, 395 outlines in 77 provinces, 95.03 km²: the registry's 358 closed outlines (80.86 km², registry
+**Observed fact.** 451 outlines in 77 provinces since 0.5.0, 212.11 km² as the page draws them (§2d: 56 of the registry's commercial screen, 5.48 km²). The 395 before it, 95.03 km²: the registry's 358 closed outlines (80.86 km², registry
 `area_m2` in its metric CRS, 473 m² to 2.17 km² — 0.3 to 1,358 ไร่ as the page writes it since 0.2.5; since 0.2.4 one of them extended on the owner's word, §2b) and, since
 0.2.0, 37 lodging areas of its lodging screen (14.18 km², §2a). Since 0.3.0, 235 of the 395 (220 of the registry's, 15 lodging
 areas) are redrawn by the owner's rule (§2c): as drawn, 206.63 km² (the registry's 182.83, the lodging areas 23.80), 1,592 m² to
