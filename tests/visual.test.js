@@ -43,9 +43,9 @@ test('D-V2: the build’s highlight rule, ported, gives the file’s own highlig
     assert.equal(r.strong, r.hl.filter(h => h.p >= 0.9).length);
   }
   const n = f => model.rows.reduce((s, r) => s + f(r), 0);
-  assert.equal(n(r => r.hlBuild.length), 599);
-  assert.equal(n(r => r.hl.length), 529, '599 less the starred, plus the complete ones the cap of four had cut (459 + 70)');
-  assert.equal(model.rows.filter(r => r.hl.length).length, 255);
+  assert.equal(n(r => r.hlBuild.length), 639); // 0.6.1: 469 outlines (599 on the 451 of 0.6.0)
+  assert.equal(n(r => r.hl.length), 560, '639 less the starred, plus the complete ones the cap of four had cut (485 + 75; 459 + 70 = 529 in 0.6.0)');
+  assert.equal(model.rows.filter(r => r.hl.length).length, 271); // 0.6.1 (255 in 0.6.0)
   const siam = model.rows.find(r => r.name === 'สยาม');
   assert.deepEqual(siam.hl.map(h => h.d), ['luxurybrands', 'camera', 'governmentoffice', 'transit']);
 });
@@ -76,11 +76,11 @@ test('D-V1: one level per dataset and neighbourhood — the mean of two mid-rank
       assert.ok(x.level > 0 && x.level <= 100);
     }
   }
-  // Siam, as the proposal read it on the data of 0.4.1, now on the 451 neighbourhoods of 0.5.1
+  // Siam, as the proposal read it on the data of 0.4.1, now on the 469 neighbourhoods of 0.6.1 (451 in 0.5.1 and 0.6.0)
   const siam = model.rows.find(r => r.name === 'สยาม');
   const lux = cellOf(model, siam, model.dsById.get('luxurybrands'));
   assert.equal(lux.kind, 'ranked');
-  assert.equal(lux.n, 9);
+  assert.equal(lux.n, 10); // 0.6.1 (9 on the 451 of 0.6.0)
   assert.equal(lux.countRank, 1);
 });
 
@@ -204,7 +204,7 @@ test('the highlight cards: one per highlight of a complete dataset, in order, ea
       cards++;
     });
   }
-  assert.equal(cards, 529, 'the highlights of D-V2');
+  assert.equal(cards, 560, 'the highlights of D-V2 (529 in 0.6.0)');
 });
 
 test('what comes together: a role’s evidence stays visible, ✓ by its datasets, ○ by what the data shows (DATA_METHOD §7)', () => {

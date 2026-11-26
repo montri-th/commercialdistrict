@@ -1,0 +1,234 @@
+{
+ "about": "The owner's answers of 2026-11-26 10:02 ICT on the outlines of the commercial screen's codes (DATA_METHOD.md §2d, release 0.5.2), read by scripts/rule-outlines.py revise. The questions were Claude's (chat, 2026-11-26 about 08:10 ICT, with the tick sheet 02-CityMETER__outline-rule-screen-check__v1__2026-11-26 and its 17 review images).",
+ "owner": {
+  "on": "2026-11-26T10:02:00+07:00",
+  "words_note": "VERBATIM, one line per answer as he numbered them",
+  "ticks_th": "1) ตามที่พี่แนะนำ",
+  "buildings_th": "2) ใช้ Building v4",
+  "keep_th": "3) ผมไม่เห็นรูปร่างพื้นที่ แต่อยากคงไว้ ควรรวมร้านค้าต่างรอบๆตลาดด้วย และควรเชื่อมโยงไปถึงตลาดไอยรา"
+ },
+ "reviewed": {
+  "file": "amendments/outline-new-2026-11-26.geojson",
+  "release": "0.5.0",
+  "sha256": "85c65d023a3d890479d35429126e8db32e08b9ab3c5018c00405e1418f639f8a"
+ },
+ "ticks": {
+  "asked": "The 17 outlines of 0.5.0 that reach over 1 km from their reference point; Claude's recommendation per code, which answer 1 takes as given (Inference: “ตามที่พี่แนะนำ” = as recommended).",
+  "use": [
+   "CMN-TH-15D76C3E9F",
+   "CMN-TH-1A627C8E4D",
+   "CMN-TH-24FC47A3CF",
+   "CMN-TH-7E7A5ECD6B",
+   "CMN-TH-93437FB48D",
+   "CMN-TH-A9CF0EA84E",
+   "CMN-TH-B0B39C6864",
+   "CMN-TH-B170A88E0F",
+   "CMN-TH-B171DA8A57",
+   "CMN-TH-C2D554D5F0",
+   "CMN-TH-C77261EAE5",
+   "CMN-TH-D38572D92B",
+   "CMN-TH-EA2D3FF0FB"
+  ],
+  "trimArms": [
+   "CMN-TH-33E737E0D0"
+  ],
+  "trimArmsNote": "the tick sheet's word for ตัดแขนแคบ: Claude draws the trimmed outline for him to see before it goes on the web, so it waits for his look",
+  "reject": [
+   "CMN-TH-7555A62EBC",
+   "CMN-TH-F44DD8D047",
+   "CMN-TH-F6D24DEA5E"
+  ]
+ },
+ "buildingsV4": {
+  "asked": "The 141 codes the basemap left without a building near the point, or with too few (0.5.0 statuses no-buildings and few-buildings, ย่านตลาดไท apart): draw them with CityMETER Building V4 where the demo's map draws it (data/building-units: an อปท. where V4 holds at least 1.15 times OpenStreetMap's buildings).",
+  "rule": "the owner's rule of 2026-11-24 (§2c) and the seeds of 0.5.0 (§2d), with the drawing's option cm: inside a unit the buildings are V4's in place of OpenStreetMap's; ground stays the basemap's"
+ },
+ "keep": {
+  "CMN-TH-BAFFB5235F": {
+   "asked": "ย่านตลาดไท: its reference point marks a place 2.8 km from the market its name says (0.5.0, held). Withdraw, correct the name and point, or keep.",
+   "reference_th": "จุดของตลาดไทใน OpenStreetMap (ไม่ใช่จุดอ้างอิงของทะเบียน ซึ่งห่างตลาด 2.8 กม.)",
+   "seedM": 40,
+   "seeds": [
+    {
+     "name_th": "ตลาดไท (Talad Thai)",
+     "point": [
+      100.6265473,
+      14.0819121
+     ],
+     "source": "OpenFreeMap planet 20261122_124456_pt (OpenMapTiles schema, zoom 14), © OpenStreetMap contributors, ODbL 1.0; layer poi, feature id 43153325891"
+    },
+    {
+     "name_th": "ตลาดไอยรา (Iyara Market)",
+     "point": [
+      100.632239,
+      14.0782021
+     ],
+     "source": "OpenFreeMap planet 20261122_124456_pt (OpenMapTiles schema, zoom 14), © OpenStreetMap contributors, ODbL 1.0; layer poi, feature id 43153323901"
+    }
+   ],
+   "limits": [
+    {
+     "label": "ตลาดไท (พื้นที่ค้าปลีกใน OSM) ส่วนที่ 1",
+     "take": [
+      [
+       100.6204265,
+       14.0836863
+      ],
+      [
+       100.6317294,
+       14.083754
+      ],
+      [
+       100.6317347,
+       14.084035
+      ],
+      [
+       100.6351089,
+       14.0840298
+      ],
+      [
+       100.6351089,
+       14.0802158
+      ],
+      [
+       100.6337732,
+       14.0802002
+      ],
+      [
+       100.6337786,
+       14.0797527
+      ],
+      [
+       100.6317937,
+       14.0797475
+      ],
+      [
+       100.6317884,
+       14.0804031
+      ],
+      [
+       100.6204373,
+       14.0803251
+      ],
+      [
+       100.6204265,
+       14.0836863
+      ]
+     ],
+     "source": "OpenFreeMap planet 20261122_124456_pt (OpenMapTiles schema, zoom 14), © OpenStreetMap contributors, ODbL 1.0; layer landuse, class retail, feature id 2178962452, the part in tile 14/12771/7544"
+    },
+    {
+     "label": "ตลาดไท (พื้นที่ค้าปลีกใน OSM) ส่วนที่ 2",
+     "take": [
+      [
+       100.6344223,
+       14.0840298
+      ],
+      [
+       100.6365895,
+       14.0840298
+      ],
+      [
+       100.6366217,
+       14.0802262
+      ],
+      [
+       100.6344223,
+       14.0802054
+      ],
+      [
+       100.6344223,
+       14.0840298
+      ]
+     ],
+     "source": "OpenFreeMap planet 20261122_124456_pt (OpenMapTiles schema, zoom 14), © OpenStreetMap contributors, ODbL 1.0; layer landuse, class retail, feature id 2178962452, the part in tile 14/12772/7544"
+    },
+    {
+     "label": "ร้านรอบตลาดไทภายใน 250 ม. และทางถึงตลาดไอยรา",
+     "near": [
+      [
+       [
+        100.6204265,
+        14.0836863
+       ],
+       [
+        100.6317294,
+        14.083754
+       ],
+       [
+        100.6317347,
+        14.084035
+       ],
+       [
+        100.6351089,
+        14.0840298
+       ],
+       [
+        100.6351089,
+        14.0802158
+       ],
+       [
+        100.6337732,
+        14.0802002
+       ],
+       [
+        100.6337786,
+        14.0797527
+       ],
+       [
+        100.6317937,
+        14.0797475
+       ],
+       [
+        100.6317884,
+        14.0804031
+       ],
+       [
+        100.6204373,
+        14.0803251
+       ],
+       [
+        100.6204265,
+        14.0836863
+       ]
+      ],
+      [
+       [
+        100.6344223,
+        14.0840298
+       ],
+       [
+        100.6365895,
+        14.0840298
+       ],
+       [
+        100.6366217,
+        14.0802262
+       ],
+       [
+        100.6344223,
+        14.0802054
+       ],
+       [
+        100.6344223,
+        14.0840298
+       ]
+      ],
+      [
+       [
+        100.6265473,
+        14.0819121
+       ],
+       [
+        100.632239,
+        14.0782021
+       ]
+      ]
+     ],
+     "d": 250
+    }
+   ],
+   "why": "Inference (Claude): his words name the market, the shops round it and ตลาดไอยรา; the market's own area joins whole ('take'), the shops are the buildings the rule reaches within 250 m of it, and the corridor includes the line to ตลาดไอยรา (about 230 m south of the market's edge). 250 m reaches the shophouses on Phahonyothin west of the market; a wider corridor would take in more housing round it."
+  }
+ }
+}

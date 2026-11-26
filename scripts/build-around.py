@@ -51,9 +51,10 @@ from shapely.ops import unary_union
 warnings.simplefilter('ignore')
 
 SCHEMA = 'citymeter-commercialdistrict-around/1'
-RELEASE = '0.5.0'
+RELEASE = '0.6.1'
 # D-8: the reference set stays until a release names the one it replaces; a neighbourhood added later is ranked against
-# it. 0.5.0 adds the outlines of the registry's commercial screen (rows[].kind 'screen') and keeps the set of 0.4.0.
+# it. 0.5.0 adds the outlines of the registry's commercial screen (rows[].kind 'screen') and keeps the set of 0.4.0;
+# 0.6.1 adds the ones the owner's answers of 2026-11-26 10:02 outline, and keeps it too.
 REFERENCE = {'id': 'commercialdistrict-0.4.0-outlined', 'n': 395,
              'codesSha256': 'd9ae2a5b33ebfdddb4b384014894d9ae57896675b4e6e37d6ca473f6a32d4f6f'}
 RINGS = (400, 800)

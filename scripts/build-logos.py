@@ -91,7 +91,14 @@ def display(raw, mime):
         im = im.resize((max(1, round(im.size[0] * scale)), max(1, round(im.size[1] * scale))), Image.LANCZOS)
     buf = io.BytesIO()
     im.save(buf, 'WEBP', **({'lossless': True, 'quality': 100, 'method': 6} if alpha else {'quality': 90, 'method': 6}))
-    return buf.getvalue(), 'image/webp', im.size[0], im.size[1], f'uniform scale to {TARGET_EDGE} px longest side, WebP ' + ('lossless' if alpha else 'quality 90')
+    how = 'lossless' if alpha else 'quality 90'
+    for q in (90, 80, 70):  # (0.6.1) a mark still over 64 KB once lossless (photo-like) keeps its alpha at the first quality that fits
+        if buf.tell() <= MAX_BYTES:
+            break
+        buf = io.BytesIO()
+        im.save(buf, 'WEBP', quality=q, alpha_quality=100, method=6)
+        how = f'quality {q}' + (', alpha kept' if alpha else '')
+    return buf.getvalue(), 'image/webp', im.size[0], im.size[1], f'uniform scale to {TARGET_EDGE} px longest side, WebP ' + how
 
 
 class Out:

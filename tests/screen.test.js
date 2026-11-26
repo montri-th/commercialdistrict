@@ -4,6 +4,9 @@
  * “อัปเดตเว็บ”): the codes the registry admitted from the screen are neighbourhoods of this demo where the owner's rule of
  * 2026-11-24 drew them an outline from their reference point within 1 km; the others are searchable names. One code is
  * held until the owner decides (its name does not match the place its point marks) and is not on the page at all.
+ * 0.6.1 — the owner's answers of 2026-11-26 10:02 (“1) ตามที่พี่แนะนำ” · “2) ใช้ Building v4” · “3) … อยากคงไว้ …”): the
+ * outlines over 1 km he chose to use are neighbourhoods too, the codes without buildings were drawn again with CityMETER
+ * Building V4, and ย่านตลาดไท is kept (no longer held); amendments/outline-new-2026-11-26-r2.geojson.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -14,8 +17,8 @@ import {renderOverview, renderNeighborhood, tableRowHTML, thaiDates} from '../js
 
 const holes = /undefined|NaN|\[object Object\]|Infinity/;
 const ctx = model => ({meta: model.meta, datasetCount: 16});
-const HELD = 'CMN-TH-BAFFB5235F'; // ย่านตลาดไท: held until the owner decides (Claude advised withdrawing it, 2026-11-26)
-const SCREEN = {admitted: 228, drawn: 56, review: 17, undrawn: 154, heldOwner: 1};
+const TALAD = 'CMN-TH-BAFFB5235F'; // ย่านตลาดไท: held in 0.5.0; kept by the owner on 2026-11-26 10:02 (“อยากคงไว้”)
+const SCREEN = {admitted: 228, drawn: 74, review: 66, undrawn: 88, heldOwner: 0}; // 0.6.1 (0.5.0: 56, 17, 154, 1)
 
 test('the screen\'s codes add up: drawn, waiting for the owner\'s tick, without an outline, held until he decides', () => {
   const {model} = load();
@@ -37,27 +40,36 @@ test('the screen\'s codes add up: drawn, waiting for the owner\'s tick, without 
 test('the outlines file is the one the build read, byte for byte, and every drawn code is in it', () => {
   const {model, outlines} = load();
   const m = model.meta.screen;
-  assert.equal(m.outlines.file, 'amendments/outline-new-2026-11-26.geojson');
+  assert.equal(m.outlines.file, 'amendments/outline-new-2026-11-26-r2.geojson');
   assert.equal(sha256(readBytes(m.outlines.file)), m.outlines.sha256);
   const file = readJSON(m.outlines.file);
-  assert.equal(file.drawing.seedsSha256.length, 64);
+  assert.equal(file.drawing.buildingsV4.seedsSha256.length, 64);
+  // the file of 0.5.0 and the owner's answers it was read with, byte for byte
+  assert.equal(sha256(readBytes('amendments/' + file.drawing.prior.file)), file.drawing.prior.sha256);
+  assert.equal(sha256(readBytes('amendments/' + file.drawing.answers.file)), file.drawing.answers.sha256);
   const applied = file.features.filter(f => f.properties.status === 'apply').map(f => f.properties.canonical_id).sort();
   const rows = model.rows.filter(r => r.kind === 'screen');
   assert.deepEqual(rows.map(r => r.id).sort(), applied);
+  const answers = readJSON('amendments/' + file.drawing.answers.file);
   for (const f of file.features) {
-    assert.ok(['apply', 'review'].includes(f.properties.status), f.properties.canonical_id);
-    assert.ok(f.properties.status === 'apply' ? f.properties.reach_m <= 1000 : f.properties.reach_m > 1000, f.properties.canonical_id);
+    const p = f.properties, id = p.canonical_id;
+    assert.ok(['apply', 'review'].includes(p.status), id);
+    // over 1 km only where the owner chose it (“ตามที่พี่แนะนำ”): used as drawn
+    if (p.status === 'apply' && p.reach_m > 1000) assert.ok(answers.ticks.use.includes(id) && p.decided.choice === 'use', id);
+    if (p.status === 'review') assert.ok(p.reach_m > 1000, id);
+    assert.ok(!answers.ticks.reject.includes(id), id);
   }
   for (const r of rows) assert.equal(outlines.features.find(f => f.properties.id === r.id)?.properties.kind, 'screen', r.id);
 });
 
 test('a drawn code of the screen is a neighbourhood like the others: its row, province, area, records, new and dotted', () => {
   const {model, shards} = load();
+  const reachOver = new Set(readJSON('amendments/outline-new-choices-2026-11-26.json').ticks.use);
   for (const r of model.rows.filter(x => x.kind === 'screen')) {
     assert.match(r.id, /^CMN-TH-[0-9A-F]{10}$/);
     assert.ok(r.added, r.id);
     assert.equal(r.screen.on, '2026-11-26');
-    assert.ok(r.screen.reachM <= 1000, r.id);
+    assert.ok(r.screen.reachM <= 1000 || reachOver.has(r.id), r.id);
     assert.ok(r.areaM2 > 0 && /^[A-Z]{3}$/.test(r.province), r.id);
     assert.equal(r.nameStatus, 'draft_pending_local_name_validation');
     assert.equal(r.fieldVerified, false);
@@ -69,11 +81,14 @@ test('a drawn code of the screen is a neighbourhood like the others: its row, pr
   assert.ok(model.rows.slice(0, model.meta.totals.closed).every(r => r.kind === 'registry'), 'the registry\'s outlines stay first');
 });
 
-test('the held code is nowhere on the page; the others without an outline are searchable names that say why', () => {
-  const {model, raw} = load();
-  assert.ok(!model.byId.has(HELD));
-  assert.ok(!model.pendingById.has(HELD));
-  assert.ok(!JSON.stringify(raw).includes(HELD));
+test('ย่านตลาดไท is kept (0.6.1): no code is held; the codes without an outline on the map are searchable names that say why', () => {
+  const {model} = load();
+  assert.equal(model.meta.screen.heldOwner, 0);
+  assert.equal(model.meta.totals.screenHeld, 0);
+  // drawn from the market's own points (the registry's point is 2.8 km away): a neighbourhood, or a name waiting for his tick
+  const row = model.byId.get(TALAD), name = model.pendingById.get(TALAD);
+  assert.ok(Boolean(row) !== Boolean(name), 'ย่านตลาดไท is either a neighbourhood or a name');
+  if (name) assert.equal(name.wait, 'review');
   const named = model.pending.filter(p => p.screen === 'commercial');
   assert.equal(named.length, SCREEN.review + SCREEN.undrawn);
   for (const p of named) {
@@ -113,7 +128,7 @@ test('the page words of the screen: badge, outline, area, provenance, the nation
   assert.match(page, /data-value="screen"/);
   // the registry's codes on the page add up to all of them, the held one included, one space apart
   const t = model.meta.totals;
-  assert.match(page, new RegExp(`ทะเบียนย่านกลาง ${t.codes} รหัส: ขอบปิดฉบับร่าง ${t.closed} ย่าน · ขอบร่างจากผลคัดย่านที่พัก ${t.lodgingDrawn} · ขอบร่างจากผลคัดย่านการค้า ${t.screenDrawn} · รอขอบ ${t.held} · ชื่อรวมหลายย่าน ${t.collections} · พักไว้รอเจ้าของตัดสิน ${t.screenHeld}`));
+  assert.match(page, new RegExp(`ทะเบียนย่านกลาง ${t.codes} รหัส: ขอบปิดฉบับร่าง ${t.closed} ย่าน · ขอบร่างจากผลคัดย่านที่พัก ${t.lodgingDrawn} · ขอบร่างจากผลคัดย่านการค้า ${t.screenDrawn} · รอขอบ ${t.held} · ชื่อรวมหลายย่าน ${t.collections}${t.screenHeld ? ` · พักไว้รอเจ้าของตัดสิน ${t.screenHeld}` : '(?! · พักไว้)'}`));
   assert.doesNotMatch(page, /\S  ·/);
   const p = model.pending.find(x => x.screen === 'commercial' && x.wait === 'review');
   if (p) {
@@ -135,4 +150,23 @@ test('D-8: the glance ranks the screen\'s neighbourhoods against the reference s
   assert.equal(sha256(Buffer.from(order.join('\n'))), ref.codesSha256);
   assert.equal(around.meta.glance.universe.centers.n, 395);
   for (const r of model.rows.filter(x => x.kind === 'screen')) assert.ok(around.rows[r.id], r.id);
+});
+
+test('0.6.1: the owner\'s answers of 26 Nov 10:02 — the outlines he chose to use are neighbourhoods, the ones he set aside are names, V4 says so', () => {
+  const {model} = load();
+  const answers = readJSON('amendments/outline-new-choices-2026-11-26.json');
+  assert.equal(answers.owner.ticks_th, '1) ตามที่พี่แนะนำ');
+  assert.equal(answers.owner.buildings_th, '2) ใช้ Building v4');
+  for (const id of answers.ticks.use) assert.equal(model.byId.get(id)?.kind, 'screen', id);
+  for (const id of answers.ticks.reject) {
+    assert.ok(!model.byId.has(id), id);
+    assert.equal(model.pendingById.get(id)?.wait, 'undrawn', id);
+  }
+  for (const id of answers.ticks.trimArms) assert.equal(model.pendingById.get(id)?.wait, 'review', id);
+  const v4 = model.rows.filter(r => r.screen?.cm);
+  assert.equal(v4.length, 5);
+  const html = renderNeighborhood(buildNeighborhood(model, v4[0]), model, {ctx: ctx(model)});
+  assert.match(html, /วาดจากจุดอ้างอิงของผลคัดย่านการค้า ด้วยอาคาร CityMETER \(Building V4\) 26 พ\.ย\. 2569/);
+  const other = model.rows.find(r => r.kind === 'screen' && !r.screen?.cm);
+  assert.doesNotMatch(renderNeighborhood(buildNeighborhood(model, other), model, {ctx: ctx(model)}), /Building V4\)/);
 });

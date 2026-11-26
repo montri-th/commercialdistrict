@@ -1,5 +1,23 @@
 # CityMETER Commercial District — verification
 
+## Release 0.6.1 — 26 พ.ย. 2569
+
+Owner 2026-11-26 10:02 ICT, VERBATIM with line breaks shown as “ / ”: “1) ตามที่พี่แนะนำ / 2) ใช้ Building v4 / 3) ผมไม่เห็นรูปร่างพื้นที่ แต่อยากคงไว้ ควรรวมร้านค้าต่างรอบๆตลาดด้วย และควรเชื่อมโยงไปถึงตลาดไอยรา / 4) ผมไม่เห็นว่าต้องกดตรงไหน” — his answers to Claude's questions of about 08:10 (the fourth is about the Yolk session, not this release). `DATA_METHOD.md` §2e.
+
+### Drawing (ICT, 2026-11-26)
+
+- Where: the live demo on montri-th.github.io in the owner's Chrome through Claude in Chrome, OpenFreeMap tiles of build `20261122_124456_pt`, the rule script with the option `cm` and `lightLanduse: ['industrial']`: commit `ce411f8` (SHA-256 `005e4360…`) for the first 48 places of the 8 m drawing, `23a7005` (`6f7fe660…`: the V4 tiles of a box fetched 8 at a time, read in the same order) for the rest, the 40 m drawing and ย่านตลาดไท. Every other outline of the demo was in place, with the 14 outlines of 0.5.0 his first answer keeps (the trimmed one before its trim) and the screen's other codes as 8 m seeds; the seeds list of 141 codes had SHA-256 `83c90ad2…fe9f` and the page reported the same 16 digits.
+- A first start at 10:14 without the industrial option was stopped and discarded; the drawing restarted at 10:28 with the options of §2c and §2d.
+- Chrome was unreachable from about 10:55 to 11:25 (the computer asleep). Two places failed on a V4 tile (`CMN-TH-35C8354D32`, `CMN-TH-9F7E2ECA26`) and one was half drawn (`CMN-TH-DE7A4EE2C8`); all three were drawn again. From 11:26 each place was kept in the page's storage as it was drawn; from about 12:00 a V4 request in the page had a 20 s limit, then the script's own retries.
+- From 8 m seeds: 141 places, 0 errors; export 213,657 bytes, SHA-256 `87750778…e512`: 57 grew alone, 7 shared, 32 into a city's fabric, 13 ran on, 32 unchanged (no seed fell between cells). From 40 m (the 32 unchanged): 19,612 bytes, `56462786…6660`. ย่านตลาดไท with its three limits: 1,065 bytes, `99f71d68…2a87`. Carried out at 13:19–13:21 in parts of 45,000 characters through a second tab of the same site, each part checked against the page's SHA-256 prefix; each joined export matched the page's SHA-256. The two V4 exports are kept privately (they locate codes the registry has not outlined); the market's is in `amendments/`.
+- `scripts/rule-outlines.py revise`: the 56 of 0.5.0 as they were; 13 used; 3 set aside; ชุมชนซอยพหลโยธิน 94 trimmed to 298 ไร่, still 1,495 m from its point: waits for his look. V4: 5 within 1 km (4 from the 8 m seed, 1 from the 40 m one; 17 to 158 ไร่), 64 farther (230 to 6,258 ไร่, median about 1,390; 1,015 to 5,904 m, median about 2,075), 34 city, 13 run on, 24 without a building, 1 with too few. ย่านตลาดไท: 1,245 ไร่ over 1,124 V4 buildings, 1,040 m from its seeds: waits for his tick. 140 outlines in `amendments/outline-new-2026-11-26-r2.geojson` (2,119,373 bytes); every drawn outline holds its point (one waiting outline, คลองคาง–ตลาดท่าเรือ, passed 6.6 m off its point once rounded, so its 8 m seed joins it); the build stops on any overlap and found none.
+
+### Local
+
+- Build: `scripts/build-data.py` with the registry export of 2026-11-26 as in 0.5.0 and `--screen amendments/outline-new-2026-11-26-r2.geojson`, nothing held: 469 outlines; the screen 74 drawn, 66 waiting, 88 without an outline. The records shards of the 451 earlier neighbourhoods are unchanged byte for byte; 18 are new. `scripts/build-around.py`: the reference set of 0.4.0 (395) unchanged, release 0.6.1. `scripts/build-logos.py` with the family's checkouts at the commits of 0.5.1: 469 shards, the 451 earlier byte for byte, 6 new files (one University mark over 64 KB lossless saved at WebP quality 90, alpha kept, 49,256 bytes).
+- The rebuild of 0.5.1's data, surroundings and logos from the same inputs (with `outline-new-2026-11-26.geojson` and the hold) reproduced every committed file byte for byte before this release's changes.
+- `npm test` 196: 196 pass, 0 fail (195 with the pinned counts of 0.6.1, and one new test of the owner's answers).
+- `node scripts/check-lds-parity.mjs --lds Landometer-Design-System-v0.9.7.md` (SHA-256 `d3085cbc…2d96`): 130 ok, 0 failed.
 ## Release 0.6.0 — 26 พ.ย. 2569
 
 Owner 2026-11-26 11:43 ICT, VERBATIM: “ทำตามที่เสนอให้ครบทุกข้อพร้อม publish” — every recommended option of the proposal `02-CityMETER__commercialdistrict-visual-first-panel-proposal__v1__2026-11-26` (his earlier words of the day and Claude's reading of each decision in `handoff/visual/decisions.json`). Branch `release/0.6.0-visual-first` from `2155352` (0.5.1).

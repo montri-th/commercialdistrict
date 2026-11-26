@@ -44,7 +44,7 @@ in §9 are published.
 
 ## 2. Neighbourhoods
 
-**Observed fact.** 451 outlines in 77 provinces since 0.5.0, 212.11 km² as the page draws them (§2d: 56 of the registry's commercial screen, 5.48 km²). The 395 before it, 95.03 km²: the registry's 358 closed outlines (80.86 km², registry
+**Observed fact.** 469 outlines in 77 provinces since 0.6.1, 233.03 km² as the page draws them (§2d and §2e: 74 of the registry's commercial screen, 26.39 km²; in 0.5.0, 451 and 212.11 km² with 56 of them, 5.48 km²). The 395 before it, 95.03 km²: the registry's 358 closed outlines (80.86 km², registry
 `area_m2` in its metric CRS, 473 m² to 2.17 km² — 0.3 to 1,358 ไร่ as the page writes it since 0.2.5; since 0.2.4 one of them extended on the owner's word, §2b) and, since
 0.2.0, 37 lodging areas of its lodging screen (14.18 km², §2a). Since 0.3.0, 235 of the 395 (220 of the registry's, 15 lodging
 areas) are redrawn by the owner's rule (§2c): as drawn, 206.63 km² (the registry's 182.83, the lodging areas 23.80), 1,592 m² to
@@ -269,7 +269,47 @@ change of the rule and waits for the owner's word.
 provinces); the counts inside the 395 earlier outlines do not change (their outlines are as before). The glance of §12
 still ranks against the 395 of release 0.4.0 (D-8); a neighbourhood of the screen takes a level against them without
 joining them. The registry sheet is not written: the outline status of these codes there stays “ยังพักไว้ … รอวาดขอบตาม
-หลักเกณฑ์ของเจ้าของ” until the owner's word.
+หลักเกณฑ์ของเจ้าของ” until the owner's word. Release 0.6.1 applies his answers on these outlines (§2e).
+
+## 2e. The owner's answers on those outlines (0.6.1)
+
+Owner 2026-11-26 10:02, VERBATIM, as he numbered them: “1) ตามที่พี่แนะนำ” · “2) ใช้ Building v4” · “3) ผมไม่เห็นรูปร่าง
+พื้นที่ แต่อยากคงไว้ ควรรวมร้านค้าต่างรอบๆตลาดด้วย และควรเชื่อมโยงไปถึงตลาดไอยรา” — on Claude's questions of about 08:10: the 17
+outlines over 1 km (with a recommendation per code, the tick sheet and its 17 images), drawing the codes the basemap left
+without buildings from CityMETER Building V4, and ย่านตลาดไท (withdraw it, correct its name and point, or keep it). His
+answers are kept in `amendments/outline-new-choices-2026-11-26.json` and read by `scripts/rule-outlines.py revise`, which
+writes `amendments/outline-new-2026-11-26-r2.geojson`; the file of 0.5.0 stays as it was, and every outline it applied
+keeps its geometry.
+
+**The 17 over 1 km (Owner-stated; Inference: “ตามที่พี่แนะนำ” takes Claude's recommendation for each).** 13 take their
+outline as drawn and are neighbourhoods of the demo like the 56 of 0.5.0. Three take none (หางดง–ตลาดสดเทศบาล, ตลาดกองทุน,
+หลาดชุมทางทุ่งสง): searchable names. ชุมชนซอยพหลโยธิน 94 takes its outline less its narrow arms: the opening of 75 m of §2c
+(arms narrower than 150 m off), the opened part nearest its point along the drawing and the strip of the drawing that joins
+the point to it (5 m cells whose walk from the point is within 150 m of the shortest), so it still holds its point
+(`trim_arms_seed`). The tick sheet said Claude would show that draft before the web, and it still reaches 1,495 m: it
+waits for his look like the outlines over 1 km.
+
+**CityMETER Building V4 (Owner-stated: a change of the rule's buildings).** The 141 codes 0.5.0 left without a
+building near the point, or with too few, were drawn again in the live demo with the drawing's option `cm`: inside a unit of
+`data/building-units` (an อปท., in Bangkok a เขต, where V4 holds at least 1.15 times OpenStreetMap's buildings; the map
+already draws V4 there) the buildings are CityMETER Building V4's, read from the production tiles the map reads (layer
+`building-detail`), in place of the OpenStreetMap buildings whose interior point stands in the unit; elsewhere they stay
+OpenStreetMap's. The ground (line A), the seeds, the options (`lightLanduse: ['industrial']`), the 1 km tick and the
+order are those of §2d; every outline of the demo is in place, with the 13 now used and the trimmed one before its trim,
+and the screen's codes without an outline as seeds of 8 m. A seed of 8 m covers about one cell and can fall between cells:
+in 0.5.0, 18 of the 228 covered no cell by half and vanished, so those codes were drawn from the 40 m seed only; since 0.6.1
+the script keeps the cell of the point. Result (Observed fact): 5 take an outline within 1 km (4
+from the 8 m seed, 1 from the 40 m one), 64 reach further and wait for his tick, 47 run into a
+city's fabric or on beyond 5 km, 25 still reach no building or too few (21 of these lie outside every V4
+unit). V4 holds every building, houses included, so a town's fabric joins up more often than with OpenStreetMap's.
+
+**ย่านตลาดไท (Owner-stated: keep; Inference: the outline his words describe).** Its registry point marks a place 2.8 km
+from the market (§2d). The outline starts from 40 m seeds at the OpenStreetMap points of ตลาดไท and ตลาดไอยรา (basemap layer
+`poi`); the market's own area, OpenStreetMap's retail land use that holds ตลาดไท, joins whole (`take`); the shops round it
+are the buildings the rule reaches within 250 m of that area and of the line to ตลาดไอยรา (`near`), with V4 as above. Its
+reference point here is the market's OpenStreetMap point; the registry is not written. It takes 1,245 ไร่ over 1,124 V4 buildings and reaches 1,040 m from those points: over 1 km, so it waits for his tick with a picture, as the other outlines over 1 km do; its name is listed meanwhile, no longer held.
+
+**What it changes.** 469 outlines in 77 provinces, 233.0 km² (0.045% of the provinces' area): the 358 of the registry, the 37 lodging drafts and 74 of the screen (the 56 of 0.5.0, the 13 he chose to use, 5 drawn with V4). Of the screen's 228 codes, 66 wait for his tick (64 drawn with V4, the trimmed one, ย่านตลาดไท) and 88 have no outline (the 3 he set aside, 25 without buildings, 47 in a fabric, and the 13 of 0.5.0 in a fabric, not drawn again); none is held. The glance still ranks against the 395 of 0.4.0 (D-8). The registry sheet is not written: the outline status and ย่านตลาดไท's reference point there stay as they are until his word. The logo shards are built again for the 469 (§13).
 
 ## 3. Datasets and their default scope
 
@@ -535,6 +575,15 @@ python3 -I scripts/rule-outlines.py new amendments/outline-new-2026-11-26-point.
   --bundle <outlines dir> --lodging <lodging folder> --hold CMN-TH-BAFFB5235F --on 2026-11-26 \
   --out amendments/outline-new-2026-11-26.geojson --report <report.json>
 #    and step 5 takes --screen amendments/outline-new-2026-11-26.geojson --screen-on 2026-11-26 --screen-hold CMN-TH-BAFFB5235F
+# 8b. (0.6.1) the owner's answers of 2026-11-26 10:02 (§2e): the codes without buildings drawn again in the live demo with the
+#    option cm (8 m seeds, then 40 m for the ones that drawing left unchanged) and ย่านตลาดไท with its own seeds and limits; the
+#    two V4 drawings stay private (they locate codes the registry has not outlined; their SHA-256 are in the r2 file), the
+#    market's is in amendments/; then
+python3 -I scripts/rule-outlines.py revise --prior amendments/outline-new-2026-11-26.geojson --choices amendments/outline-new-choices-2026-11-26.json \
+  --point <V4 drawing from 8 m> --wide <V4 drawing from 40 m> --special amendments/outline-new-2026-11-26-talad.json \
+  --seeds <[code, lat, lon] list the page drew from> --seeds-sha <16 hex digits the page reported> --info <names, provinces, districts> \
+  --bundle <outlines dir> --lodging <lodging folder> --on 2026-11-26 --out amendments/outline-new-2026-11-26-r2.geojson --report <report.json>
+#    and step 5 takes --screen amendments/outline-new-2026-11-26-r2.geojson --screen-on 2026-11-26 (nothing held)
 # 9. (0.4.0) the surroundings (§12): after data/neighborhoods.json, data/boundaries.geojson and data/records/ are built,
 #    from the same 16 files (flat, <dataset id>.json; the estates with the demo's boundaries.geojson in industrialestate_dir/)
 python3 -I scripts/build-around.py --sources <the 16 files> --shoppingcenter <clone of montri-th/shoppingcenter> --built-on <YYYY-MM-DD>
@@ -645,6 +694,7 @@ Owner 2026-11-26 06:14, VERBATIM: “เช็คหน่อยว่า โล
 - Joined by ids only (`scripts/build-logos.py`): a record's key in its own demo → the brand id that demo gives it → the logo that demo's registry gives that id (the kit's own id or the same id in another dataset; never a name rewrite, never fuzzy) for Hotel, Fitness, Restaurants, Grocery, Camera Shops, Luxury Brands, Pharmacy and University; a shopping centre — and every centre «รอบย่านนี้» names — by its Shopping Center venue id through the kit's venue pool, roles `venue_specific` and `parent_complex` only (a shared department-store or chain banner is not a centre's own mark, so it is left out); an office by its Office ID (montri-th/office `data/office-logos.json`, 0.6.0); a station record by its line → the line's mark (montri-th/transit `data/operator-logos.json`, 0.4.0: a line in service whose GTFS names its operator). The source files are read at the commits recorded in `data/logos-report.json` (`inputs`); a brand file that differs from the one the records were built from (`neighborhoods.json` → `source.sha256`) is joined only where the key reads the same name (none differed on 2026-11-26).
 - Build of 2026-11-26 (on the 451 neighbourhoods of 0.5.0): 3,186 of the 12,975 records inside the outlines carry a logo — every Grocery, Luxury Brands and Fitness record, 108 of 109 Camera Shops, 88 of 94 station records, 519 of 3,403 restaurants, 139 of 5,053 accommodation records (most have no brand), 135 of 278 pharmacies, 56 of 691 centres and markets, 29 of 189 offices; Factory, Government Office, Hospital, School and University records have no logo source yet (University's 13 sites belong to universities without a collected logo). 163 of the 537 centre names «รอบย่านนี้» lists carry one, counted per neighbourhood (73 of the 270 distinct centres). 452 files, 5.1 MB in all, 329 of 451 neighbourhoods with at least one.
 - Display (the family rule): SVG and rasters ≤ 512 px and ≤ 64 KB keep their bytes; larger rasters are scaled uniformly to 384 px on the longest side as WebP (119 files; `sourceSha256` keeps the original's). Plates: the family's (`#FFFFFF`, `#E5E9E6`, `#182327`) as the source registry chose them, the same in both themes; never recoloured.
+- Build of 2026-11-26 for 0.6.1 (on its 469 neighbourhoods, the family's checkouts at the commits of the 0.5.1 build, `data/logos-report.json` `inputs`): 3,353 of the 13,407 records inside the outlines carry a logo, 166 of the 543 centre names around them, 458 files, no SHA-256 issue; the shards of the 451 earlier neighbourhoods are byte for byte those of 0.5.1. Since 0.6.1 a raster still over 64 KB once scaled and saved lossless is saved at the first WebP quality of 90, 80, 70 that fits, alpha kept (one University mark, 76 KB lossless); no file of 0.5.1 changes by it.
 - Where: the card's head (32 px), the tip of one record (20 px), the names at a point and the panel's names (16 px), a spot's name on the map (14 px, only when every record of the spot has the same logo), and the centres «รอบย่านนี้» names (16 px). Decorative (`alt=""`): the name beside it is the identity. One shard per neighbourhood (`data/logos/<id>.json`, empty maps where none), loaded when the neighbourhood opens; a shard that fails to load is said (`partial('logos')`) and the names show alone.
 - A logo identifies a brand or a place. It counts nothing, ranks nothing and is never evidence of a tenancy, an operator or a status beyond what its own demo says. The marks belong to their owners; showing one is not a trademark licence.
 

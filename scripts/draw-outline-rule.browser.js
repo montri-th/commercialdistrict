@@ -13,6 +13,14 @@
  * 'take' (a ring): an area the owner names as part of the place, e.g. the strip between a beach and the road behind it —
  * its land joins the area whatever the buildings, still inside his other limits.
  * redo — draw again places already drawn in this page (otherwise a place drawn once is kept).
+ * cm — (0.6.1, owner 2026-11-26 10:02 “ใช้ Building v4”) inside a CityMETER unit of the demo's map (an อปท., in Bangkok a
+ * เขต, where CityMETER Building V4 holds at least 1.15 × the OpenStreetMap buildings; data/building-units) the buildings
+ * are CityMETER Building V4's, read from the production tiles the map reads (js/shell/building-units.js), in place of
+ * the OpenStreetMap buildings whose interior point stands in the unit — the buildings the map draws there. Ground (A)
+ * stays the basemap's. A drawing records it (opts.cm) and counts both kinds (osmBuildings, cmBuildings).
+ * addSeeds([[code, lat, lon] | [code, [[lat, lon], …]]], radiusM) — a code without an outline grows from a 24-gon of
+ * radiusM round its point (or round each of its points), the seed of scripts/rule-outlines.py seed_polygon vertex for vertex.
+ * addCores(featureCollection) — outlines the build will draw that the page does not show yet (they keep their ground).
  *
  * Grid 0.0001° (about 11 m). For a neighbourhood and every outline within reach (registry outlines and lodging drafts):
  *   A — the dark ground: what the basemap leaves free of forest, grassland, farmland, rock, wetland, sand, an urban park,
@@ -165,9 +173,46 @@ window.__rule = (() => {
     const E = shares[P.coreMasks[me].id];
     return {E, part, shares, edge: edgeOf(part), edgeOwn: edgeOf(E), fill: M.sum(part) / N, sharers: sh.filter(j => j !== me).map(j => P.coreMasks[j].id)}; }
 
+  // ----- CityMETER Building V4 (option cm): the footprints the map draws inside a CityMETER unit
+  const meets = (a, b) => a[0] <= b[2] && b[0] <= a[2] && a[1] <= b[3] && b[1] <= a[3];
+  const centre = g => { const q = g.type === 'MultiPolygon' ? g.coordinates[0][0] : g.coordinates[0]; let sx = 0, sy = 0; for (const v of q) { sx += v[0]; sy += v[1]; } return [sx / q.length, sy / q.length]; };
+  async function cmZones(O) { if (S.cmZones) return S.cmZones;
+    const [bu, mvt] = await Promise.all([import(O.unitsModule), import(O.mvtModule)]), idx = await getJSON(O.unitsBase + 'index.json'), zones = [];
+    const provs = idx.provinces.map(p => p.province);
+    for (let i = 0; i < provs.length; i += 6) for (const j of await Promise.all(provs.slice(i, i + 6).map(p => getJSON(O.unitsBase + p + '.json').catch(() => null)))) if (j && bu.validUnitFile(j)) zones.push(...bu.zonesOf(j));
+    S.cm = {bu, mvt}; S.cmZones = zones; return zones; }
+  async function cmTile(url) { for (let k = 0; ; k++) { try { const r = await fetch(url); if (!r.ok) throw new Error('' + r.status); const u8 = new Uint8Array(await r.arrayBuffer());
+      return u8.byteLength ? (S.cm.mvt.parseVectorTile(u8, {only: ['building-detail']}).layers['building-detail'] || {extent: 4096, features: []}) : {extent: 4096, features: []}; }
+    catch (e) { if (k >= 2) throw new Error('V4 tile ' + url.split('?')[0] + ': ' + e.message); await sleep(800); } } }
+  /** Read the V4 footprints of every tile of bbox that meets a CityMETER unit: a building once, from the tile that holds
+   * its interior point (the production tiles send every building that touches a tile whole), outer rings by the sign of
+   * their area in tile units (the vector-tile rule), holes after their outer ring. */
+  async function cmFill(bbox, O) { const zones = await cmZones(O), {bu, mvt} = S.cm, jobs = [];
+    for (const T of tilesIn(bbox)) { if (T.cm) continue; const t = {x: T.x, y: T.y, z: 14}, b = tb(T.x, T.y, 14), here = zones.filter(z => meets(z.bbox, b)), urls = [];
+      for (const z of here) for (const u of z.tileUnits) { if (!meets(u.bbox, b)) continue; const url = bu.cmTileUrl(t, u, z.tileType); if (url) urls.push(url); }
+      jobs.push({T, t, here, urls}); }
+    // (0.6.1) every tile of the box is fetched at once, 8 requests at a time; each tile is then read in the order one by
+    // one would read it, so the buildings and their order are the same (the drawing too)
+    const all = [...new Set(jobs.flatMap(j => j.urls))], got = new Map(); let next = 0;
+    await Promise.all(Array.from({length: Math.min(8, all.length)}, async () => { while (next < all.length) { const url = all[next++]; got.set(url, await cmTile(url)); } }));
+    for (const {T, t, here, urls} of jobs) { const feats = [], seen = new Set();
+      for (const url of urls) { const L = got.get(url), ext = L.extent || 4096;
+        for (const f of L.features) { if (f.type !== 3) continue; const polys = [];
+          for (const ring of f.rings()) { let a = 0; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) a += ring[j][0] * ring[i][1] - ring[i][0] * ring[j][1];
+            if (a > 0) polys.push([ring]); else if (polys.length) polys[polys.length - 1].push(ring); }
+          for (const p of polys) { const o = p[0]; let sx = 0, sy = 0; for (const v of o) { sx += v[0]; sy += v[1]; } const ix = sx / o.length, iy = sy / o.length;
+            if (!(ix >= 0 && ix < ext && iy >= 0 && iy < ext)) continue;
+            const ll = p.map(r => r.map(([px, py]) => mvt.tileToLonLat(px, py, t, ext))), q = ll[0], key = q.length + '|' + q[0][0].toFixed(7) + ',' + q[0][1].toFixed(7) + '|' + (q[1] || q[0])[0].toFixed(7);
+            if (seen.has(key)) continue; seen.add(key); feats.push({c: '', br: '', g: {type: 'Polygon', coordinates: ll}, cm: 1}); } } }
+      T.osm = T.osm || T.building; T.cmB = feats; T.cmZ = here; T.cm = true; } }
+  /** The buildings of the tiles of bbox: the map's (V4 inside a CityMETER unit, OSM elsewhere) with cm, OSM only without. */
+  function useCm(bbox, on) { for (const T of tilesIn(bbox)) { if (!T.osm) continue;
+    T.building = on ? T.osm.filter(f => !(T.cmZ.length && S.cm.bu.zoneAt(T.cmZ, centre(f.g)))).concat(T.cmB) : T.osm; } }
+
   // ----- run: sweep each neighbourhood's tiles, draw, check, trace
   const DEFAULTS = {coresUrl: '/commercialdistrict/data/boundaries.geojson', hotelsUrl: '/hotel/data/hotels.json', tileJsonUrl: 'https://tiles.openfreemap.org/planet',
-                    reachM: [2000, 5000], denseFill: 0.35, keepTiles: 160};
+                    reachM: [2000, 5000], denseFill: 0.35, keepTiles: 160,
+                    unitsBase: '/commercialdistrict/data/building-units/', unitsModule: '/commercialdistrict/js/shell/building-units.js', mvtModule: '/commercialdistrict/js/shell/mvt.js'};
   const getJSON = url => fetch(url).then(r => { if (!r.ok) throw new Error(url + ' ' + r.status); return r.json(); });
   const tileRange = bbox => { const n = 2 ** 14, tx = lo => Math.floor((lo + 180) / 360 * n), ty = la => Math.floor((1 - Math.log(Math.tan(la * Math.PI / 180) + 1 / Math.cos(la * Math.PI / 180)) / Math.PI) / 2 * n);
     const out = []; for (let x = tx(bbox[0]); x <= tx(bbox[2]); x++) for (let y = ty(bbox[3]); y <= ty(bbox[1]); y++) out.push(x + '/' + y); return out; };
@@ -176,17 +221,25 @@ window.__rule = (() => {
     const bbox = [cb[0] - reach * kx, cb[1] - reach * ky, cb[2] + reach * kx, cb[3] + reach * ky];
     if (Object.keys(S.tiles).length > O.keepTiles) { for (const k of Object.keys(S.tiles)) { const T = S.tiles[k], b = tb(T.x, T.y, 14); if (!(b[2] > bbox[0] && b[0] < bbox[2] && b[3] > bbox[1] && b[1] < bbox[3])) { delete S.tiles[k]; S.done.delete(k); } } }
     const need = tileRange(bbox), positions = need.every(k => S.done.has(k)) ? 0 : await sweep(bbox);
+    if (O.cm) await cmFill(bbox, O);
+    useCm(bbox, !!O.cm);
     const P = {bbox, G: grid(bbox)}; const G = P.G, M = morph(G);
     P.base = base(G, bbox, {light: new Set(O.lightLanduse || []), limits: (O.limits || {})[F.properties.id] || []});
     const ras = gg => { const ctx = cv(G); fillG(G, ctx, gg); return maskOf(G, ctx); };
-    P.seed = ras(g);
-    P.coreMasks = []; for (const C of S.cores) { const b = C.bbox; if (b[2] < bbox[0] || b[0] > bbox[2] || b[3] < bbox[1] || b[1] > bbox[3]) continue; P.coreMasks.push({id: C.id, kind: C.kind, own: C.id === F.properties.id, mask: C.id === F.properties.id ? P.seed : ras(C.g)}); }
+    // (0.6.1) a seed covers about one cell and can fall between cells (none half covered): it keeps the cell of its point
+    // (in 0.5.0, 18 of the 228 seeds of 8 m vanished so, and their codes were drawn from the 40 m seed)
+    const rasSeed = (gg, kind) => { const mk = ras(gg); if (kind !== 'seed' || mk.some(v => v)) return mk;
+      for (const p of (gg.type === 'Polygon' ? [gg.coordinates] : gg.coordinates)) { const q = p[0].slice(0, -1); const c = cellOf(G, q.reduce((s, v) => s + v[0], 0) / q.length, q.reduce((s, v) => s + v[1], 0) / q.length); if (c >= 0) mk[c] = 1; }
+      return mk; };
+    P.seed = rasSeed(g, F.properties.kind);
+    P.coreMasks = []; for (const C of S.cores) { const b = C.bbox; if (b[2] < bbox[0] || b[0] > bbox[2] || b[3] < bbox[1] || b[1] > bbox[3]) continue; P.coreMasks.push({id: C.id, kind: C.kind, own: C.id === F.properties.id, mask: C.id === F.properties.id ? P.seed : rasSeed(C.g, C.kind)}); }
     const r = draw(P);
-    const cents = []; for (const T of tilesIn(bbox)) { const b = tb(T.x, T.y, 14); for (const f of T.building) { const polys = f.g.type === 'MultiPolygon' ? f.g.coordinates : [f.g.coordinates]; for (const p of polys) { const q = p[0]; let sx = 0, sy = 0; for (const v of q) { sx += v[0]; sy += v[1]; } const cx = sx / q.length, cy = sy / q.length; if (cx < b[0] || cx >= b[2] || cy < b[1] || cy >= b[3]) continue; cents.push(cellOf(G, cx, cy)); } } }
-    const count = mk => { let k = 0; for (const c of cents) if (c >= 0 && mk[c]) k++; return k; };
+    const cents = [], cmCents = []; for (const T of tilesIn(bbox)) { const b = tb(T.x, T.y, 14); for (const f of T.building) { const polys = f.g.type === 'MultiPolygon' ? f.g.coordinates : [f.g.coordinates]; for (const p of polys) { const q = p[0]; let sx = 0, sy = 0; for (const v of q) { sx += v[0]; sy += v[1]; } const cx = sx / q.length, cy = sy / q.length; if (cx < b[0] || cx >= b[2] || cy < b[1] || cy >= b[3]) continue; (f.cm ? cmCents : cents).push(cellOf(G, cx, cy)); } } }
+    const count = (mk, cs = cents) => { let k = 0; for (const c of cs) if (c >= 0 && mk[c]) k++; return k; };
     const hot = mk => { let k = 0; for (const [lo, la] of S.hot) { const c = cellOf(G, lo, la); if (c >= 0 && mk[c]) k++; } return k; };
     return {P, r, positions, stats: {reachM: reach, areaM2: Math.round(areaM2(G, r.E)), coreM2: Math.round(areaM2(G, P.seed)), partM2: Math.round(areaM2(G, r.part)),
-      edgeCells: r.edge, edgeOwn: r.edgeOwn, fill: +r.fill.toFixed(3), sharers: r.sharers, osmBuildings: count(r.E), osmBuildingsCore: count(P.seed), hotels: hot(r.E), hotelsCore: hot(P.seed), positions}};
+      edgeCells: r.edge, edgeOwn: r.edgeOwn, fill: +r.fill.toFixed(3), sharers: r.sharers, osmBuildings: count(r.E), osmBuildingsCore: count(P.seed), hotels: hot(r.E), hotelsCore: hot(P.seed), positions,
+      ...(O.cm ? {cmBuildings: count(r.E, cmCents), cmBuildingsCore: count(P.seed, cmCents)} : {})}};
   }
   async function run(ids, options = {}) { const O = {...DEFAULTS, ...options}; S.status = 'loading'; S.err = [];
     if (!S.cores) { const gj = await getJSON(O.coresUrl); S.cores = gj.features.map(f => ({id: f.properties.id, kind: f.properties.kind, g: f.geometry, bbox: bboxOf(f.geometry), f})); }
@@ -201,10 +254,25 @@ window.__rule = (() => {
       const shares = {}; if (apply && st.sharers.length) for (const [k, mk] of Object.entries(res.r.shares)) shares[k] = enc(rings(res.P.G, mk));
       const lim = (O.limits || {})[id] || [], opts = {};
       if ((O.lightLanduse || []).length) opts.lightLanduse = O.lightLanduse;
+      if (O.cm) opts.cm = 'CityMETER Building V4';
       if (lim.length) opts.limits = lim.map(L => L.label || (L.take ? 'own area' : L.poly ? 'area' : L.near ? 'corridor' : L.passWater ? 'water to cross' : 'line'));
       S.out[id] = {id, kind: F.properties.kind, grid: [+res.P.G.lon0.toFixed(4), +res.P.G.lat1.toFixed(4), res.P.G.res], check: st, rings: apply ? enc(rings(res.P.G, res.r.E)) : '', shares, ...(Object.keys(opts).length ? {opts} : {})};
     } catch (e) { S.err.push(id + ': ' + (e && e.stack ? e.stack.slice(0, 300) : e)); } }
     S.status = 'done'; }
+  /** Seeds: a 24-gon of radiusM round a code's point, or round each of its points (scripts/rule-outlines.py seed_polygon). */
+  function addSeeds(list, radiusM) { if (!S.cores) throw new Error('run([]) first: the outlines load with it');
+    const gon = (lat, lon) => { const ky = 1 / 111320, kx = 1 / (111320 * Math.cos(lat * Math.PI / 180)), q = [];
+      for (let k = 0; k <= 24; k++) { const a = 2 * Math.PI * (k % 24) / 24; q.push([+(lon + radiusM * kx * Math.cos(a)).toFixed(7), +(lat + radiusM * ky * Math.sin(a)).toFixed(7)]); } return [q]; };
+    for (const s of list) { const pts = Array.isArray(s[1]) ? s[1] : [[s[1], s[2]]];
+      const g = pts.length === 1 ? {type: 'Polygon', coordinates: gon(...pts[0])} : {type: 'MultiPolygon', coordinates: pts.map(p => gon(...p))};
+      const C = {id: s[0], kind: 'seed', g, bbox: bboxOf(g), f: {type: 'Feature', properties: {id: s[0], kind: 'seed'}, geometry: g}};
+      const i = S.cores.findIndex(c => c.id === s[0]); if (i >= 0) S.cores[i] = C; else S.cores.push(C); }
+    return S.cores.length; }
+  /** Outlines the next build draws that the page does not show yet: they keep their ground (split halfway, never taken). */
+  function addCores(fc) { if (!S.cores) throw new Error('run([]) first: the outlines load with it');
+    for (const f of fc.features) { const id = f.properties.canonical_id || f.properties.id, C = {id, kind: f.properties.kind || 'screen', g: f.geometry, bbox: bboxOf(f.geometry), f: {type: 'Feature', properties: {id, kind: f.properties.kind || 'screen'}, geometry: f.geometry}};
+      const i = S.cores.findIndex(c => c.id === id); if (i >= 0) S.cores[i] = C; else S.cores.push(C); }
+    return S.cores.length; }
   /** The export, in parts: places [from, to) of the order run went through. */
   const exportText = (from = 0, to = Infinity) => JSON.stringify({drawnOn: new Date().toISOString().slice(0, 10), tilesBuild: S.tilesBuild, places: Object.values(S.out).slice(from, to), errors: S.err});
   /** A drawing's rings as GeoJSON (cell corners back to degrees; rings of one share by even–odd, as drawn). */
@@ -222,5 +290,5 @@ window.__rule = (() => {
     const gz = new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer());
     let b64 = ''; for (let i = 0; i < gz.length; i += 0x8000) b64 += String.fromCharCode.apply(null, gz.subarray(i, i + 0x8000)); b64 = btoa(b64);
     const parts = []; for (let i = 0; i < b64.length; i += size) parts.push(b64.slice(i, i + size)); S.gz = {sha, bytes: u8.length, parts}; return {sha, bytes: u8.length, gzBytes: gz.length, parts: parts.length}; }
-  return {S, run, exportText, exportGz, show, geo, sweep, grid, morph, draw, rings, one};
+  return {S, run, exportText, exportGz, show, geo, sweep, grid, morph, draw, rings, one, addSeeds, addCores, cmFill};
 })();
