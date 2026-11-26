@@ -26,8 +26,10 @@ meeting_room, level = stairs, fee = payments, quality = verified, programme =
 menu_book, history = trending_up, aff = account_tree (สังกัด) and closed =
 event_busy. School 0.2.0 adds learning = auto_stories (เรียนเสริม records) and the
 four services tutor = edit_note (กวดวิชา), language = translate (ภาษา), arts =
-palette (ศิลปะ) and child = child_care (พัฒนาการเด็ก). No star glyph: a star would read as a rating. Outbound links keep
-the nav-7 open_in_new mark.
+palette (ศิลปะ) and child = child_care (พัฒนาการเด็ก). Commercial District 0.6.0 (owner 2026-11-26, D-V4 B) adds a
+glyph per dataset (the five shops and industrial estates with glyphs of their own) and home · luggage · payments for the
+axes อยู่ · เที่ยว · ค้าขาย; trade shares payments with fee. No star glyph: a star would read as a rating. Outbound links
+keep the nav-7 open_in_new mark.
 """
 import hashlib, json, sys
 from pathlib import Path
@@ -78,6 +80,27 @@ GLYPHS = {
     'language': ('translate', 0xE8E2),
     'arts': ('palette', 0xE40A),
     'child': ('child_care', 0xEB41),
+    # Commercial District 0.6.0 (owner 2026-11-26 11:43, “ทำตามที่เสนอให้ครบทุกข้อพร้อม publish”, D-V4 B of the visual-first
+    # panel proposal): one glyph per dataset beside its name — the glyphs Shopping Center's «รอบศูนย์นี้» gives the same
+    # datasets, plus one of its own for each of the five shops (camera, fitness, grocery, pharmacy, restaurant) and for
+    # industrial estates (a factory glyph already marks the factory registrations) — and the three axes อยู่ · เที่ยว · ค้าขาย.
+    'hotel': ('bed', 0xEFDF),
+    'estate': ('warehouse', 0xEBB8),
+    'office': ('corporate_fare', 0xF1D0),
+    'venue': ('local_mall', 0xE54C),
+    'camera': ('photo_camera', 0xE412),
+    'factory': ('factory', 0xEBBC),
+    'fitness': ('fitness_center', 0xEB43),
+    'grocery': ('local_grocery_store', 0xE8CC),
+    'brand': ('diamond', 0xEAD5),
+    'pharmacy': ('local_pharmacy', 0xE550),
+    'restaurant': ('restaurant', 0xE56C),
+    'gov': ('account_balance', 0xE84F),
+    'hospital': ('local_hospital', 0xE548),
+    'university': ('history_edu', 0xEA3E),
+    'home': ('home', 0xE9B2),
+    'luggage': ('luggage', 0xF235),
+    'trade': ('payments', 0xEF63),
 }
 AXES = {'FILL': 0, 'wght': 300, 'GRAD': 0, 'opsz': 24}
 ROOT = Path(__file__).resolve().parent.parent
@@ -97,6 +120,8 @@ def main(src):
     sub.populate(unicodes=[cp for _, cp in GLYPHS.values()])
     sub.subset(static)
     static.flavor = 'woff2'
+    # (0.6.0) keep the source's head.modified, so the same source and glyphs give the same bytes on every run
+    static.recalcTimestamp = False
     OUT.parent.mkdir(parents=True, exist_ok=True)
     static.save(OUT)
     data = OUT.read_bytes()
@@ -113,7 +138,7 @@ def main(src):
         'license': 'Apache-2.0 (assets/icons/material-symbols-Apache-2.0.txt)',
         'axes': AXES,
         'glyphs': {role: {'name': name, 'codepoint': f'U+{cp:04X}'} for role, (name, cp) in GLYPHS.items()},
-        'status': 'test exception to LDS nav-7 (owner 2026-10-22; actions and building added 2026-10-29; terrain glyphs 2026-11-01 for the map labels; rank, date, distance, construction and dataset 2026-11-01 for short copy; school glyphs 2026-11-05; learning glyphs 2026-11-06); nav-7 subset unchanged',
+        'status': 'test exception to LDS nav-7 (owner 2026-10-22; actions and building added 2026-10-29; terrain glyphs 2026-11-01 for the map labels; rank, date, distance, construction and dataset 2026-11-01 for short copy; school glyphs 2026-11-05; learning glyphs 2026-11-06; dataset and axis glyphs 2026-11-26, D-V4 B); nav-7 subset unchanged',
     }
     MANIFEST.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
     print(f'wrote {OUT} ({len(data)} bytes, sha256 {manifest["sha256"]}) and {MANIFEST.name}')

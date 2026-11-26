@@ -170,11 +170,13 @@ test('the lines of the map: one file per neighbourhood, 400 m inside 800 m, both
 
 test('ties: a count highlight says how many neighbourhoods share its rank (336 of 437 have at least 3)', () => {
   const {model} = load();
+  // the file's own highlights (hlBuild); since 0.6.0 the page draws them again without the starred datasets (D-V2)
   let count = 0, three = 0;
-  for (const r of model.rows) for (const h of r.hl || []) if (h.k === 'count') { count++; if (sharedBy(model, r, h) >= 3) three++; }
+  for (const r of model.rows) for (const h of r.hlBuild || []) if (h.k === 'count') { count++; if (sharedBy(model, r, h) >= 3) three++; }
   assert.equal(count, 437); // 0.5.0 (390 in 0.4.0)
   assert.equal(three, 336); // 0.5.0 (289 in 0.4.0)
-  const siam = model.rows.find(r => r.name === 'สยาม'), fit = siam.hl.find(h => h.d === 'fitness');
+  const siam = model.rows.find(r => r.name === 'สยาม'), fit = siam.hlBuild.find(h => h.d === 'fitness');
+  assert.ok(!siam.hl.some(h => h.d === 'fitness'), 'fitness, a starred dataset, is no highlight on the page (D-V2)');
   const t = sharedBy(model, siam, fit);
   assert.ok(t > 1);
   const w = highlightWords(fit, model.dsById.get('fitness'), siam, 3, t);
@@ -231,16 +233,20 @@ test('handoff/around: the plan byte for byte, the owner’s words verbatim, the 
   assert.deepEqual(inv, readJSON('handoff/product-brief.json').invariants);
 });
 
-test('a neighbourhood with no highlight says what there is, inside and within 800 m, each dataset in its own unit', () => {
+test('a neighbourhood with no highlight says what there is, inside and within 800 m, by numbers of datasets (0.6.0: the fingerprint’s key)', () => {
   const {model} = load();
   const A = around();
   const thin = model.rows.filter(r => !(r.hl || []).length);
-  assert.equal(thin.length, 183); // 0.5.0 (153 in 0.4.0)
+  assert.equal(thin.length, 196); // 0.6.0, D-V2: highlights only on datasets with points for ≥ 90 % (183 with every dataset in 0.5.0)
   for (const r of thin) {
     const html = renderNeighborhood(buildNeighborhood(model, r), model, {ctx: ctx(), around: A});
-    const lead = html.match(/<p class="aha-copy">([\s\S]*?)<\/p>/)[1];
-    assert.match(lead, /ชุดที่มีข้อมูลในจังหวัด/, r.id);
-    assert.match(lead, /ขอบเดินถึง 800 ม\. (พบ|ก็ไม่พบ)/, r.id);
-    assert.ok(!/ยังไม่มีชุดข้อมูลไหนเด่นเกินเกณฑ์/.test(lead), r.id);
+    const head = html.slice(0, html.indexOf('</section>'));
+    const key = head.match(/<p class="fp-key">([\s\S]*?)<\/p>/)[1].replace(/<[^>]+>/g, ' ');
+    const n = {in: Object.values(r.c).filter(v => v > 0).length, out: model.datasets.filter(d => !(d.id in r.c)).length};
+    assert.match(key, new RegExp(`ในย่าน ${n.in} ชุด`), r.id);
+    const edge = model.datasets.filter(d => r.c[d.id] === 0 && A.rows.get(r.id).a[d.id][1] > 0).length;
+    if (edge) assert.match(key, new RegExp(`เฉพาะขอบเดินถึง 800 ม\\. ${edge}`), r.id);
+    if (n.out) assert.match(key, new RegExp(`ไม่มีข้อมูลในจังหวัด ${n.out}`), r.id);
+    assert.ok(!/aha-copy|ยังไม่มีชุดข้อมูลไหนเด่นเกินเกณฑ์/.test(head), r.id);
   }
 });

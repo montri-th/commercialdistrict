@@ -14,6 +14,9 @@
 import {LANG} from './shell/i18n.js';
 
 export const PILLARS = Object.freeze(['Land', 'Location', 'Living']);
+/** D-4 (0.4.0): a dataset with points for under 90 % of its records is starred — counted, never ranked or levelled. */
+export const LOW_LOCATED = 0.9;
+export const lowLocated = ds => Boolean(ds?.records) && ds.located / ds.records < LOW_LOCATED;
 /** Land · Location · Living → the series the CityMETER catalog gives each pillar (handoff-tokens.css). */
 export const PILLAR_SERIES = Object.freeze({Land: 4, Location: 7, Living: 1});
 export const PILLAR_TH = Object.freeze({Land: 'Land', Location: 'Location', Living: 'Living'});
@@ -59,9 +62,50 @@ export const provinceCodeFrom = value => {
 
 const lower = s => String(s || '').toLocaleLowerCase('th');
 
+const fixed = (x, n) => Number(x.toFixed(n));
+
+/**
+ * The highlights of one row by the build's own rule (scripts/build-data.py, “highlight candidates”): per dataset with
+ * records inside, the strongest of four comparisons — share of the dataset's located records nationwide, count rank
+ * among the neighbourhoods of the provinces it covers, density rank among those holding at least `minCount`, one of the
+ * few holding any — kept when its strength reaches `strengthMin`; strongest first (equal strength: the larger national
+ * share first), at most `maxHighlights`. `keep(ds)` chooses the datasets that may stand out. With every dataset kept it
+ * returns the file's own `hl` (tests/visual.test.js holds the two equal for every row).
+ */
+export function highlightsOf(r, datasets, rules = {}, keep = () => true) {
+  const MIN = rules.minCount ?? 3, NATIONAL = rules.nationalShare ?? 0.05, PEERS = rules.minPeers ?? 10;
+  const RARE = rules.rareShare ?? 0.15, STRENGTH = rules.strengthMin ?? 0.75, MAX = rules.maxHighlights ?? 4;
+  const out = [];
+  for (const d of datasets) {
+    const n = r.c?.[d.id];
+    if (!n || !keep(d)) continue;
+    const [ci = 0, covn = 0, rr = null, peers = 0] = r.r?.[d.id] || [];
+    const share = d.located ? n / d.located : 0, withAny = d.peers?.withAny ?? 0;
+    let best = null;
+    const offer = c => { if (!best || c.p > best.p) best = c; };
+    if (share >= NATIONAL) offer({k: 'share', v: fixed(share, 4), p: 0.95 + Math.min(share, 0.05)});
+    if (n >= MIN && covn) offer({k: 'count', v: ci, of: covn, p: 1 - (ci - 1) / covn});
+    if (rr != null && peers >= PEERS) offer({k: 'density', v: rr, of: peers, p: 1 - (rr - 1) / peers});
+    if (covn && withAny / covn <= RARE) offer({k: 'rare', v: withAny, of: covn, p: 1 - withAny / covn});
+    if (best && best.p >= STRENGTH) out.push({d: d.id, ...best, share});
+  }
+  out.sort((a, b) => fixed(b.p, 3) - fixed(a.p, 3) || b.share - a.share);
+  return out.slice(0, MAX).map(({share, p, ...h}) => ({...h, p: fixed(p, 3)}));
+}
+
+/** The pairs a row's highlights form among the nationwide pairs at or above `pairMinRho` (the build's `pairs` of a row). */
+export function togetherOf(hl, strongPairs) {
+  const best = hl.map(h => h.d);
+  return best.flatMap(a => best.filter(b => strongPairs.has(`${a}|${b}`)).map(b => [a, b]));
+}
+
 /**
  * Decode data/neighborhoods.json. Adds per row: area in km², the density of each dataset, the strongest highlight's
  * pillar (the map's default colour) and a search haystack.
+ *
+ * (0.6.0, D-V2; owner 2026-11-26 11:43) A highlight stands only on a dataset with points for at least 90 % of its records:
+ * the row's highlights are drawn again by the build's rule over those datasets (`hl`), and so are the pairs they form
+ * (`pairs`); the file's own lists stay as `hlBuild` and `pairsBuild`.
  */
 export function decodeData(json) {
   if (!json?.rows || !Array.isArray(json.datasets)) throw new Error('Invalid neighbourhood data');
@@ -69,15 +113,19 @@ export function decodeData(json) {
   const dsById = new Map(datasets.map(d => [d.id, d]));
   const formerIds = json.meta?.lodging?.aliases || {};
   const former = new Map(Object.entries(formerIds).map(([old, now]) => [now, old]));
+  const rules = json.meta?.rules || {};
+  const strongPairs = new Set((json.pairs || []).filter(p => p.rho >= (rules.pairMinRho ?? 0.35)).map(p => `${p.a}|${p.b}`));
+  const complete = d => !lowLocated(d);
   const rows = json.rows.map((r, index) => {
     const km2 = r.areaM2 / 1e6;
     const density = {};
     for (const [id, c] of Object.entries(r.c || {})) density[id] = c / km2;
-    const top = (r.hl || [])[0];
+    const hl = highlightsOf(r, datasets, rules, complete);
+    const top = hl[0];
     const pillar = top ? dsById.get(top.d)?.group || '' : '';
-    const strong = (r.hl || []).filter(h => h.p >= 0.9).length;
+    const strong = hl.filter(h => h.p >= 0.9).length;
     const p = provinceByCode(r.province);
-    return {...r, index, km2, density, pillar, strong,
+    return {...r, hlBuild: r.hl || [], pairsBuild: r.pairs || [], hl, pairs: togetherOf(hl, strongPairs), index, km2, density, pillar, strong,
       haystack: lower([r.name, ...(r.aliases || []), p?.th, p?.en, r.id, former.get(r.id)].filter(Boolean).join(' '))};
   });
   const byId = new Map(rows.map(r => [r.id, r]));
