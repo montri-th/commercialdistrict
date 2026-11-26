@@ -111,6 +111,10 @@ test('the page words of the screen: badge, outline, area, provenance, the nation
   assert.match(page, new RegExp(`ย่านจากผลคัดย่านการค้า ${SCREEN.drawn} ย่าน`));
   assert.match(page, /รหัสกลางที่ทะเบียนรับ 25–26 พ\.ย\. 2569/);
   assert.match(page, /data-value="screen"/);
+  // the registry's codes on the page add up to all of them, the held one included, one space apart
+  const t = model.meta.totals;
+  assert.match(page, new RegExp(`ทะเบียนย่านกลาง ${t.codes} รหัส: ขอบปิดฉบับร่าง ${t.closed} ย่าน · ขอบร่างจากผลคัดย่านที่พัก ${t.lodgingDrawn} · ขอบร่างจากผลคัดย่านการค้า ${t.screenDrawn} · รอขอบ ${t.held} · ชื่อรวมหลายย่าน ${t.collections} · พักไว้รอเจ้าของตัดสิน ${t.screenHeld}`));
+  assert.doesNotMatch(page, /\S  ·/);
   const p = model.pending.find(x => x.screen === 'commercial' && x.wait === 'review');
   if (p) {
     const s = renderOverview({...buildOverview(model, {rows: [], pending: [p]}), searching: true, pending: [p]}, model, {ctx: ctx(model)});
