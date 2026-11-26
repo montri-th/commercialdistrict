@@ -34,6 +34,12 @@ test('one people file per neighbourhood, every scale, and the meta file names it
   assert.equal(meta.release, readJSON('package.json').version);
   assert.equal(meta.parts.off.model.commit, '8e8d8be866f4307d581eb4d72cd64579c2724564', 'the Office file is pinned');
   assert.match(meta.parts.off.model.sha256, /^[0-9a-f]{64}$/);
+  for (const k of ['stu', 'uni', 'fac', 'gov', 'off']) assert.ok(meta.parts[k].dataset && meta.parts[k].th && meta.parts[k].en, k);
+  assert.match(meta.gst.source.url, /^https:\/\/www\.nso\.go\.th\//);
+  assert.equal(meta.gst.source.year, 2024);
+  assert.match(meta.gst.sha256, /^[0-9a-f]{64}$/);
+  assert.match(meta.residents.populationMonth, /^\d{4}-\d{2}$/, 'the register month of the residents');
+  assert.deepEqual(meta.residents.populationCheck.differ, [], 'popCount equals the register total of that month everywhere read');
   for (const r of model.rows) {
     assert.ok(existsSync(join(ROOT, `data/people/${r.id}.json`)), r.id);
     const p = people(r.id);
@@ -72,6 +78,16 @@ test('D-12: commuters are the sum of their parts at the low end, starred when ha
       const sum = parts.reduce((t, v) => t + (v || 0), 0);
       assert.equal(s.com, parts.every(v => v == null) ? null : sum, `${r.id} ${k}`);
       if (s.off) assert.ok(s.off[0] <= s.off[1], `${r.id} ${k} office range`);
+      // a part is 0 only when no record lies within the scale; records without any figure leave it unknown, never 0
+      for (const part of ['stu', 'fac', 'gov']) {
+        if (s[part] === 0) assert.ok(!s[`${part}N`], `${r.id} ${k} ${part}: 0 with records in reach`);
+        if (s[part] === null && s[`${part}N`]) assert.equal(s[`${part}N`][0], 0, `${r.id} ${k} ${part}`);
+        if (s[`${part}N`]) assert.ok(s[`${part}N`][0] <= s[`${part}N`][1]);
+      }
+      if (s.uni === null && s.uniN) assert.equal(s.uniN[0], 0, `${r.id} ${k} uni`);
+      if (s.uni === 0) assert.ok(!s.uniN, `${r.id} ${k} uni: 0 with universities in reach`);
+      if (s.gst === 0) assert.ok(!s.roomsN, `${r.id} ${k}: 0 guests with lodging in reach`);
+      if (s.gst === null && s.roomsN) assert.equal(s.roomsN[0], 0, `${r.id} ${k} rooms`);
       const lowShare = [['stu', 'school'], ['uni', 'university'], ['fac', 'factory'], ['gov', 'governmentoffice']]
         .reduce((t, [x, ds]) => t + (low.has(ds) ? s[x] || 0 : 0), 0) + (low.has('office') && s.off ? s.off[0] : 0);
       assert.equal(s.comLow, Boolean(s.com) && lowShare * 2 >= s.com, `${r.id} ${k} star`);
@@ -115,8 +131,14 @@ test('every neighbourhood renders «ใครอยู่ตรงนี้» wi
       const built = (meta.residents?.scales || []).includes(reach);
       if (p.s[reach].res == null) assert.match(sec, built ? /data-people="res">[\s\S]*?ยังไม่มีข้อมูลอาคารในขอบนี้/ : /data-people="res">[\s\S]*?รอข้อมูลรอบถัดไป/, `${r.id} ${reach}`);
       // one provenance line and the method
-      assert.match(sec, /class="hint people-source"/, r.id);
+      assert.match(sec, /class="hint panel-foot provenance"/, r.id);
       assert.match(sec, /<summary>วิธีคิดตัวเลขคน<\/summary>/, r.id);
+      // dataset · source · date · boundary on the block's own line
+      for (const part of ['dataset', 'source', 'date', 'boundary']) assert.match(sec, new RegExp(`data-prov="${part}"`), `${r.id} ${reach} ${part}`);
+      // a measured 0 has no level beside it
+      for (const m of sec.matchAll(/<li class="people-tile is-ready" data-people="(\w+)">([\s\S]*?)<\/li>/g)) {
+        if (/<b class="data-number">0<\/b>/.test(m[2])) assert.ok(!/people-level/.test(m[2]), `${r.id} ${reach} ${m[1]}: a level beside 0`);
+      }
       assert.ok(!/รวมสามกลุ่ม|ยอดรวม|total/i.test(text(sec)), r.id);
     }
     for (const tab of MAP_TABS) {
@@ -141,14 +163,23 @@ test('D-V6b: every topic row says a number or why there is none — never a bare
   const {model} = load();
   const around = A();
   const meta = readJSON('data/people/meta.json');
-  const WAIT = /ยังไม่มีข้อมูล|รอข้อมูลรอบถัดไป|กำลังโหลด|เลือกประเภทธุรกิจและแบรนด์|น้อยกว่า 3 ร้าน/;
+  const WAIT = /ยังไม่มีข้อมูล|รอข้อมูลรอบถัดไป|กำลังโหลด|น้อยกว่า 3 ร้าน/;
+  // the datasets each row reads: one that does not reach the province is named on its row
+  const ROW_DS = {eat: ['restaurant', 'grocery'], needs: ['grocery', 'pharmacy', 'hospital', 'school', 'transit', 'governmentoffice', 'fitness'],
+    shop: ['shoppingcenter', 'luxurybrands'], mix: ['hotel', 'shoppingcenter', 'restaurant', 'luxurybrands'], biz: ['factory', 'industrialestate', 'camera'],
+    green: ['fitness'], spend: ['luxurybrands'], work: ['office'], stay: ['hotel'], move: ['transit']};
+  // a number never stands without its unit: every bold figure is followed by a word in the same unbreakable span
+  const BARE = /<b class="data-number">[^<]*<\/b>(?!\s*[^\s<])/;
   for (const r of model.rows) {
     const p = people(r.id);
     for (const distance of ['in', '400', '800']) {
       for (const axis of ['live', 'visit', 'trade']) {
         for (const t of topicsOf(axis, {row: r, model, around, people: p, peopleMeta: meta, distance})) {
+          const out = (ROW_DS[t.id] || []).filter(id => !(id in r.c));
           if (t.text) {
             assert.match(text(t.text), /\d/, `${r.id} ${distance} ${axis} ${t.id}: a number`);
+            assert.ok(!BARE.test(t.text), `${r.id} ${distance} ${axis} ${t.id}: a number without its unit`);
+            if (out.length) assert.match(t.text, /ยังไม่มีข้อมูลในจังหวัดนี้/, `${r.id} ${distance} ${t.id}: ${out} not named`);
           } else {
             assert.match(t.wait[0], WAIT, `${r.id} ${distance} ${axis} ${t.id}: why there is none`);
             assert.ok(!/(^|\s)0(\s|$)/.test(t.wait[0]), `${r.id} ${t.id}`);
@@ -157,9 +188,27 @@ test('D-V6b: every topic row says a number or why there is none — never a bare
         const html = topicsHTML(axis, {row: r, model, around, people: p, peopleMeta: meta, distance});
         assert.ok(!/คะแนน|ยอดรวม|รวมทั้งหมด|score|total/i.test(text(html)), `${r.id} ${axis}`);
       }
-      // buyers: three groups side by side with “never added” beside them
+      // buyers: three groups side by side with “never added” beside them; the models say so; a starred sum keeps its star
       const buyers = topicsOf('trade', {row: r, model, around, people: p, peopleMeta: meta, distance}).find(t => t.id === 'buyers');
-      if (buyers.text) assert.match(text(buyers.text), /สามกลุ่มไม่รวมกัน/, r.id);
+      const s = p.s[distance];
+      if (buyers.text) {
+        assert.match(text(buyers.text), /สามกลุ่มไม่รวมกัน/, r.id);
+        if (s.res != null || s.gst != null) assert.match(text(buyers.text), /แบบจำลอง/, `${r.id} ${distance}`);
+        if (s.comLow) assert.match(buyers.text, /\*/, `${r.id} ${distance}: the star of the at-least figure`);
+      }
+      const crowd = topicsOf('live', {row: r, model, around, people: p, peopleMeta: meta, distance}).find(t => t.id === 'crowd');
+      if (crowd.text) assert.match(text(crowd.text), /แบบจำลอง/, r.id);
     }
   }
+});
+
+test('the rows while the people file loads and when it fails: said so, never a figure or “next round”', () => {
+  const {model} = load();
+  const around = A();
+  const r = model.rows[0];
+  const pick = (axis, id, ctx) => topicsOf(axis, {row: r, model, around, distance: 'in', ...ctx}).find(t => t.id === id);
+  assert.match(pick('trade', 'buyers', {people: null, peopleState: 'loading'}).wait[0], /กำลังโหลดตัวเลขคน/);
+  assert.match(pick('live', 'crowd', {people: null, peopleState: 'loading'}).wait[0], /กำลังโหลดตัวเลขคน/);
+  assert.match(pick('trade', 'buyers', {people: null, peopleState: 'error'}).wait[0], /โหลดตัวเลขคนไม่สำเร็จ/);
+  assert.match(pick('live', 'crowd', {people: null, peopleState: 'error'}).wait[0], /โหลดตัวเลขคนไม่สำเร็จ/);
 });

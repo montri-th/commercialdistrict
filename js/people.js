@@ -42,6 +42,14 @@ export function aboutPeople(x) {
   const step = x >= 10000 ? 1000 : x >= 1000 ? 100 : 10;
   return num(Math.round(x / step) * step);
 }
+/** An at-least figure rounded down (never above what was counted): the same steps as aboutPeople; under 10 exact. */
+export function atLeastPeople(x) {
+  if (x == null) return null;
+  if (x < 10) return num(x);
+  const step = x >= 10000 ? 1000 : x >= 1000 ? 100 : 10;
+  return num(Math.floor(x / step) * step);
+}
+const UNDER_10 = ['ไม่ถึง 10', 'under 10'];
 /** «รอบศูนย์นี้»'s five steps: min(5, floor(p / 20) + 1); 0 = none found. */
 export const levelOf = (p, count = 1) => (count > 0 && p != null ? Math.min(5, Math.floor(p / 20) + 1) : 0);
 function levelMeter(level, p = null) {
@@ -72,11 +80,12 @@ export function peopleTiles(rec, reach, meta = null) {
   const resState = s.res != null ? 'ready' : (meta?.residents?.scales || []).includes(reach) ? 'none' : 'pending';
   return [
     {key: 'res', icon: 'home', th: 'คนอยู่', en: 'Living here', tag: ['แบบจำลอง', 'modelled'], state: resState, count: s.res ?? null,
-      value: s.res == null ? '' : s.res === 0 ? '0' : aboutPeople(s.res) || '<10', about: Boolean(aboutPeople(s.res)), unit: ['คน', 'people'], star: false, p: p.res ?? null},
+      value: s.res == null ? '' : s.res === 0 ? '0' : aboutPeople(s.res) || L(...UNDER_10), about: Boolean(aboutPeople(s.res)), unit: ['คน', 'people'], star: false, p: p.res ?? null},
+    // at least: rounded down, never “ราว”
     {key: 'com', icon: 'office', th: 'คนมาทำงานและเรียน', en: 'Come to work and study', tag: ['อย่างน้อย', 'at least'], state: s.com == null ? 'none' : 'ready', count: s.com ?? null,
-      value: s.com == null ? '' : s.com === 0 ? '0' : aboutPeople(s.com) || '<10', about: Boolean(aboutPeople(s.com)), unit: ['คน', 'people'], star: Boolean(s.comLow), p: s.comLow ? null : p.com ?? null},
+      value: s.com == null ? '' : atLeastPeople(s.com), about: false, unit: ['คน', 'people'], star: Boolean(s.comLow), p: s.comLow ? null : p.com ?? null},
     {key: 'gst', icon: 'luggage', th: 'ผู้มาเยือนค้างคืน', en: 'Overnight visitors', tag: ['แบบจำลอง', 'modelled'], state: s.gst == null ? 'none' : 'ready', count: s.gst ?? null,
-      value: s.gst == null ? '' : s.gst === 0 ? '0' : aboutPeople(s.gst) || '<10', about: Boolean(aboutPeople(s.gst)), unit: ['คนต่อปี', 'a year'], star: false, p: p.gst ?? null},
+      value: s.gst == null ? '' : s.gst === 0 ? '0' : aboutPeople(s.gst) || L(...UNDER_10), about: Boolean(aboutPeople(s.gst)), unit: ['คนต่อปี', 'a year'], star: false, p: p.gst ?? null, roomsN: s.roomsN || null},
     {key: 'ctr', icon: 'venue', th: 'ศูนย์และตลาด', en: 'Centres and markets', tag: null, state: s.n?.shoppingcenter == null ? 'none' : 'ready', count: s.n?.shoppingcenter ?? null,
       value: s.n?.shoppingcenter == null ? '' : num(s.n.shoppingcenter), about: false, unit: ['แห่ง', 'places'], star: false, p: p.ctr ?? null},
   ];
@@ -92,13 +101,21 @@ const NONE_WORDS = {
 /** The parts of a tile, one short line each (numbers with their units; the model's range for office workers). */
 function partsLine(key, s, meta) {
   if (key === 'com') {
-    const part = (v, th, en) => (v == null ? '' : nw(`${esc(L(th, en))} ${num(v)}`));
-    const off = s.off ? nw(`${esc(L('คนทำงานในสำนักงาน', 'office workers'))} ${num(s.off[0])}–${num(s.off[1])} <small>${esc(L('แบบจำลอง', 'modelled'))}</small>`) : '';
-    return [part(s.stu, 'นักเรียน', 'students'), part(s.uni, 'นักศึกษา', 'university students'), part(s.fac, 'คนงานโรงงาน', 'factory workers'),
-      part(s.gov, 'บุคลากรรัฐ', 'government staff'), off].filter(Boolean).join(' · ');
+    // a part: its figure (and how many of its records carry one, when not all do); unknown when none does — never 0
+    const part = (v, N, th, en, of) => {
+      if (v == null && !N) return '';
+      if (v == null) return `${esc(L(th, en))}: ${nw(esc(L(`ไม่มีตัวเลข (${num(N[1])} ${of[0]})`, `no figure (${num(N[1])} ${of[1]})`)))}`;
+      const partial = N && N[0] < N[1] ? ` <small>${nw(esc(L(`มีตัวเลข ${num(N[0])} จาก ${num(N[1])} ${of[0]}`, `figures for ${num(N[0])} of ${num(N[1])} ${of[1]}`)))}</small>` : '';
+      return `${nw(`${esc(L(th, en))} ${num(v)}`)}${partial}`;
+    };
+    const off = s.off ? `${nw(`${esc(L('คนทำงานในสำนักงาน', 'office workers'))} ${num(s.off[0])}–${num(s.off[1])}`)} <small>${esc(L('แบบจำลอง', 'modelled'))}</small>` : '';
+    return [part(s.stu, s.stuN, 'นักเรียน', 'students', ['แห่ง', 'schools']), part(s.uni, s.uniN, 'นักศึกษา', 'university students', ['มหาวิทยาลัย', 'universities']),
+      part(s.fac, s.facN, 'คนงานโรงงาน', 'factory workers', ['โรงงาน', 'factories']), part(s.gov, s.govN, 'บุคลากรรัฐ', 'government staff', ['แห่ง', 'offices']), off].filter(Boolean).join(' · ');
   }
   if (key === 'gst' && s.rooms != null) {
-    return nw(esc(L(`ห้องที่แหล่งบันทึก ${num(s.rooms)} ห้อง`, `${num(s.rooms)} recorded rooms`)));
+    const N = s.roomsN;
+    const partial = N && N[0] < N[1] ? ` · ${nw(esc(L(`มีตัวเลขห้อง ${num(N[0])} จาก ${num(N[1])} แห่ง`, `room figures for ${num(N[0])} of ${num(N[1])} places`)))}` : '';
+    return `${nw(esc(L(`ห้องที่แหล่งบันทึก ${num(s.rooms)} ห้อง`, `${num(s.rooms)} recorded rooms`)))}${partial}`;
   }
   if (key === 'res' && s.res != null && meta?.residents?.populationMonth) {
     return nw(esc(L(`ทะเบียนบ้าน ${monthWords(meta.residents.populationMonth)}`, `register of ${monthWords(meta.residents.populationMonth)}`)));
@@ -107,31 +124,32 @@ function partsLine(key, s, meta) {
 }
 
 /** «ใครอยู่ตรงนี้»: the scale switch, four tiles, the key, the parts, one source line and the method, folded. */
-export function peopleSection(row, rec, meta, {reach = DEFAULT_REACH, refN = 395, state = 'ready'} = {}) {
+export function peopleSection(row, rec, meta, {reach = DEFAULT_REACH, refN = 395, state = 'ready', prov = ''} = {}) {
   const head = `<div class="section-heading"><h3 id="nb-people-title">${pic('home')}${esc(L('ใครอยู่ตรงนี้', 'Who is here'))}</h3></div>`;
   if (state !== 'ready' || !rec) {
     const words = state === 'error' ? L('โหลดตัวเลขคนไม่สำเร็จ', 'The people figures did not load') : L('กำลังโหลดตัวเลขคน…', 'Loading the people figures…');
     const retry = state === 'error' ? ` <button type="button" class="btn" data-action="people-retry">${esc(L('ลองอีกครั้ง', 'Try again'))}</button>` : '';
-    return `<section class="panel-section people-section" id="nb-people" aria-labelledby="nb-people-title">${head}<p class="people-wait">${esc(words)}${retry}</p></section>`;
+    return `<section class="panel-section people-section" id="nb-people" aria-labelledby="nb-people-title" tabindex="-1">${head}<p class="people-wait">${esc(words)}${retry}</p></section>`;
   }
   const switcher = `<div class="people-switch" role="group" aria-label="${esc(L('อ่านตัวเลขที่ระยะ', 'Read the figures at'))}">${REACHES.map(v => `<button type="button" class="seg" data-action="set-reach" data-value="${v}" aria-pressed="${reach === v}">${esc(reachWords(v, {short: true}))}</button>`).join('')}</div>`;
   const s = rec.s[reach] || {};
   const tiles = peopleTiles(rec, reach, meta);
   const tile = t => {
-    const ready = t.state === 'ready', level = ready && !t.star && (t.p != null || t.count === 0) ? levelOf(t.p, t.count) : null;
+    const ready = t.state === 'ready', level = ready && !t.star && t.count > 0 && t.p != null ? levelOf(t.p, t.count) : null;
     const star = t.star ? `<sup aria-hidden="true">*</sup><span class="sr-only">${esc(L('ส่วนใหญ่มาจากชุดที่มีพิกัดไม่ครบ จึงไม่จัดระดับ', 'mostly from datasets without points for every record, so no level'))}</span>` : '';
     const figure = ready
       ? `<span class="people-fig">${t.about ? `<small>${esc(L('ราว', 'about'))}</small> ` : ''}<b class="data-number">${esc(t.value)}</b> <span class="people-unit">${esc(L(...t.unit))}${star}</span></span>`
-      : `<span class="people-fig is-state">${esc(t.state === 'pending' ? L('รอข้อมูลรอบถัดไป', 'Coming in the next data round') : L(...(NONE_WORDS[t.key] || NONE_WORDS.any)))}</span>`;
+      : `<span class="people-fig is-state">${esc(t.state === 'pending' ? L('รอข้อมูลรอบถัดไป', 'Coming in the next data round')
+        : t.key === 'gst' && t.roomsN ? L(`ไม่มีตัวเลขห้องพัก (${num(t.roomsN[1])} แห่ง)`, `No room figures (${num(t.roomsN[1])} places)`) : L(...(NONE_WORDS[t.key] || NONE_WORDS.any)))}</span>`;
     const meter = level == null ? '' : `<span class="people-level">${levelMeter(level, t.count > 0 ? t.p : null)}<span>${esc(L(`ระดับเทียบ ${num(Math.round(t.p ?? 0))}/100`, `level ${num(Math.round(t.p ?? 0))}/100`))}</span><span class="sr-only">${esc(L(`${LEVEL_WORDS[level][0]} ระดับ ${num(level)} จาก 5 เทียบ ${num(refN)} ย่าน`, `${LEVEL_WORDS[level][1]}, level ${num(level)} of 5 among ${num(refN)} neighbourhoods`))}</span></span>`;
     const parts = ready ? partsLine(t.key, s, meta) : '';
     return `<li class="people-tile is-${t.state}" data-people="${t.key}">${pic(t.icon)}<span class="people-label">${esc(L(t.th, t.en))}${t.tag ? ` <span class="glance-tag">${esc(L(...t.tag))}</span>` : ''}</span>${figure}${meter}${parts ? `<small class="people-parts">${parts}</small>` : ''}</li>`;
   };
   const starred = tiles.some(t => t.state === 'ready' && t.star);
   const key = `<p class="hint people-key">${levelMeter(3)}<span>${esc(L(`ระดับเทียบ ${num(refN)} ย่าน · น้อย → มาก`, `Level among ${num(refN)} neighbourhoods · low → high`))}</span>${starred ? `<span>${esc(L('* ส่วนใหญ่มาจากชุดที่มีพิกัดไม่ครบ จึงไม่จัดระดับ', '* mostly from datasets without points for every record, so no level'))}</span>` : ''}</p>`;
-  const lead = `<p class="people-lead">${pic('distance')}${esc(reach === 'in' ? L('ในขอบร่างของย่าน', 'Inside the draft outline') : L(`ในย่านและพื้นที่ ${num(+reach / 1000)} กม. จากขอบ`, `Inside and within ${num(+reach / 1000)} km of the edge`))}</p>`;
-  return `<section class="panel-section people-section" id="nb-people" aria-labelledby="nb-people-title">${head}${switcher}${lead}
-    <ul class="people-grid" aria-labelledby="nb-people-title">${tiles.map(tile).join('')}</ul>${key}${peopleSource(meta)}${peopleMethod(meta)}</section>`;
+  const lead = `<p class="people-lead">${pic('distance')}<span>${reach === 'in' ? esc(L('ในขอบร่างของย่าน', 'Inside the draft outline')) : `${esc(L('ในย่านและพื้นที่', 'Inside and within'))} ${nw(esc(L(`${num(+reach / 1000)} กม.`, `${num(+reach / 1000)} km`)))} ${esc(L('จากขอบ', 'of the edge'))}`}</span></p>`;
+  return `<section class="panel-section people-section" id="nb-people" aria-labelledby="nb-people-title" tabindex="-1">${head}${switcher}${lead}
+    <ul class="people-grid" aria-labelledby="nb-people-title">${tiles.map(tile).join('')}</ul>${key}${prov || peopleSource(meta)}${peopleMethod(meta)}</section>`;
 }
 
 /** One provenance line: dataset · source · date · boundary, short (the method is folded below). */
@@ -171,6 +189,9 @@ const MAP_CFG = {
   res: {th: 'คนอยู่', en: 'Living here', scale: DENSITY_SCALE, unit: ['คนต่อช่อง', 'people per cell'],
     what: ['คนในทะเบียนบ้าน (แบบจำลอง) ต่อช่อง 250 × 250 ม.', 'registered residents (modelled) per 250 × 250 m cell']},
 };
+// the datasets of each place map (scripts/build-people.py#MAP_GROUPS)
+const MAP_GROUP_IDS = {visit: ['hotel', 'shoppingcenter', 'grocery', 'restaurant', 'pharmacy', 'fitness', 'luxurybrands', 'camera'],
+  work: ['office', 'governmentoffice', 'factory', 'industrialestate', 'university', 'hospital', 'school']};
 const BAND_WORDS = [['ในย่าน', 'Inside'], ['ถึง 1 กม.', 'to 1 km'], ['1–3 กม.', '1–3 km'], ['3–5 กม.', '3–5 km']];
 export const DIRECTIONS = Object.freeze([['เหนือ', 'North'], ['ตะวันออกเฉียงเหนือ', 'Northeast'], ['ตะวันออก', 'East'], ['ตะวันออกเฉียงใต้', 'Southeast'],
   ['ใต้', 'South'], ['ตะวันตกเฉียงใต้', 'Southwest'], ['ตะวันตก', 'West'], ['ตะวันตกเฉียงเหนือ', 'Northwest']]);
@@ -203,7 +224,8 @@ export function mapSectors(map, tab) {
     return {th, en, v: sums[s], total: sum, share: total > 0 ? (100 * sum) / total : 0};
   });
   const top = rows.reduce((best, r) => (r.total > best.total ? r : best), rows[0]);
-  return {rows, top, total};
+  const tops = top && top.total > 0 ? rows.filter(r => r.total === top.total) : [];
+  return {rows, top, tops, total};
 }
 
 const isPale = fill => contrastRatio(fill, '#FFFFFF') < 1.25;
@@ -255,12 +277,12 @@ function mapKey() {
 /** The map read as a table: 8 directions × 4 bands from the edge, places (or people) per band, the top direction bold. */
 function mapTable(sec, cfg) {
   const head = `<tr><th scope="col">${esc(L('ทิศ', 'Direction'))}</th>${BAND_WORDS.map(b => `<th scope="col">${esc(L(...b))}</th>`).join('')}<th scope="col">${esc(L('รวมทิศนี้', 'This direction'))}</th></tr>`;
-  const rows = sec.rows.map(r => `<tr${r === sec.top && r.total > 0 ? ' class="is-top"' : ''}><th scope="row">${esc(L(r.th, r.en))}</th>${r.v.map(v => `<td class="data-number">${v ? num(Math.round(v)) : '–'}</td>`).join('')}<td class="data-number">${num(Math.round(r.total))}<small>${num(Math.round(r.share))}%</small></td></tr>`).join('');
-  return `<details class="scope-details pm-table-fold"><summary>${esc(L('อ่านแผนที่เป็นตาราง', 'Read the map as a table'))}</summary><div class="table-scroll"><table class="pm-table"><caption class="sr-only">${esc(L(`${cfg.th} แยกทิศและระยะจากขอบ`, `${cfg.en} by direction and distance from the edge`))}</caption><thead>${head}</thead><tbody>${rows}</tbody></table></div><p class="hint">${esc(L('ช่อง 250 ม. นับเข้าทิศและระยะตามจุดกึ่งกลางช่อง · – คือไม่มีในชุดข้อมูลที่นับ ไม่ใช่ศูนย์ · ทิศวัดจากจุดอ้างอิงของย่าน', 'A 250 m cell goes to a direction and a band by its centre · – means none in the datasets counted, not zero · directions from the neighbourhood’s reference point'))}</p></details>`;
+  const rows = sec.rows.map(r => `<tr${r === sec.top && r.total > 0 ? ' class="is-top"' : ''}><th scope="row">${esc(L(r.th, r.en))}</th>${r.v.map(v => `<td class="data-number">${num(Math.round(v || 0))}</td>`).join('')}<td class="data-number">${num(Math.round(r.total))}<small>${num(Math.round(r.share))}%</small></td></tr>`).join('');
+  return `<details class="scope-details pm-table-fold"><summary>${esc(L('อ่านแผนที่เป็นตาราง', 'Read the map as a table'))}</summary><div class="table-scroll"><table class="pm-table"><caption class="sr-only">${esc(L(`${cfg.th} แยกทิศและระยะจากขอบ`, `${cfg.en} by direction and distance from the edge`))}</caption><thead>${head}</thead><tbody>${rows}</tbody></table></div><p class="hint">${esc(L('ช่อง 250 ม. นับเข้าทิศและระยะตามจุดกึ่งกลางช่อง · 0 = ไม่พบในชุดข้อมูลที่นับ · ทิศวัดจากจุดอ้างอิงของย่าน', 'A 250 m cell goes to a direction and a band by its centre · 0 = none in the datasets counted · directions from the neighbourhood’s reference point'))}</p></details>`;
 }
 
 /** «แผนที่รอบย่าน»: three tabs, the map of the chosen one, its legend and key, the top direction and the table. */
-export function mapSection(row, rec, meta, {tab = DEFAULT_MAP} = {}) {
+export function mapSection(row, rec, meta, {tab = DEFAULT_MAP, prov = null, outOfScope = null} = {}) {
   if (!rec?.map) return '';
   const map = rec.map;
   const has = t => t !== 'res' || Array.isArray(map.res);
@@ -272,11 +294,15 @@ export function mapSection(row, rec, meta, {tab = DEFAULT_MAP} = {}) {
   // no name in the title: the panel names the neighbourhood, and a name in an English sentence would leave Thai in it
   const title = L(`${cfg.th}: ${cfg.what[0]} ในระยะ 5 กม. จากขอบย่าน ทิศเหนืออยู่ด้านบน`, `${cfg.en}: ${cfg.what[1]} within 5 km of the neighbourhood’s edge, north up`);
   const lead = cells.length
-    ? L(`${num(cells.length)} ช่องที่มี · มากสุด ${num(ramp.max)} ${cfg.unit[0]}`, `${num(cells.length)} cells with any · up to ${num(ramp.max)} ${cfg.unit[1]}`)
-    : L('ไม่มีในชุดข้อมูลที่นับในระยะ 5 กม.', 'None in the datasets counted within 5 km');
-  const dir = sec.total > 0 ? `<p class="pm-dir">${pic('distance')}<span>${esc(L(`ทิศ${sec.top.th}มีมากที่สุด ${num(Math.round(sec.top.share))}% ของทั้งแผนที่`, `${sec.top.en} holds the most, ${num(Math.round(sec.top.share))}% of the map`))}</span></p>` : '';
+    ? `${esc(L(`${num(cells.length)} ช่องที่มี · มากสุด`, `${num(cells.length)} cells with any · up to`))} ${nw(esc(`${num(ramp.max)} ${L(...cfg.unit)}`))}`
+    : esc(L('ไม่พบในชุดข้อมูลที่นับในระยะ 5 กม. (0)', 'None in the datasets counted within 5 km (0)'));
+  const tied = sec.tops.length > 1;
+  const dir = sec.total > 0 ? `<p class="pm-dir">${pic('distance')}<span>${esc(tied
+    ? L(`ทิศ${sec.tops.map(t => t.th).join(' และ ')} มีมากเท่ากัน ทิศละ ${num(Math.round(sec.top.share))}% ของทั้งแผนที่`, `${sec.tops.map(t => t.en).join(' and ')} hold the most, ${num(Math.round(sec.top.share))}% of the map each`)
+    : L(`ทิศ${sec.top.th}มีมากที่สุด ${num(Math.round(sec.top.share))}% ของทั้งแผนที่`, `${sec.top.en} holds the most, ${num(Math.round(sec.top.share))}% of the map`))}</span></p>` : '';
   const legend = ramp.levels.length ? `<div class="pm-legend"><span class="pm-legend-title">${esc(L(`${cfg.unit[0]} 250 × 250 ม. · สีเทียบเฉพาะในแผนที่นี้`, `${cfg.unit[1]}, 250 × 250 m · colours compare within this map only`))}</span>${rampLegendHTML(ramp)}</div>` : '';
-  const source = `<p class="hint pm-source">${esc(L(`${cfg.what[0]} · ชุดข้อมูล CityMETER · ช่องที่จุดกึ่งกลางอยู่ห่างขอบย่านไม่เกิน 5 กม. เส้นตรง · ไม่ใช่จำนวนคนหรือจำนวนครั้งที่มา`, `${cfg.what[1]} · CityMETER datasets · cells within 5 km of the edge, straight line · not people or visits`))}</p>`;
+  const lacking = current === 'res' || !outOfScope ? [] : outOfScope(MAP_GROUP_IDS[current] || []);
+  const source = `<p class="hint pm-source">${esc(L(`${cfg.what[0]} · สถานที่ที่อยู่ห่างขอบย่านไม่เกิน 5 กม. เส้นตรง นับลงช่อง${current === 'res' ? '' : ' · ไม่ใช่จำนวนคนหรือจำนวนครั้งที่มา'}`, `${cfg.what[1]} · places within 5 km of the edge, straight line, counted in cells${current === 'res' ? '' : ' · not people or visits'}`))}${lacking.length ? `<br>${esc(L(`ไม่มีข้อมูลในจังหวัดนี้: ${lacking.join(' · ')}`, `no data in this province: ${lacking.join(' · ')}`))}` : ''}</p>${typeof prov === 'function' ? prov(current) : ''}`;
   return `<section class="panel-section map-section" id="nb-map" aria-labelledby="nb-map-title"><div class="section-heading"><h3 id="nb-map-title">${pic('maps')}${esc(L('แผนที่รอบย่าน ช่อง 250 ม.', 'Around the neighbourhood, 250 m cells'))} <span class="glance-tag">${esc(current === 'res' ? L('แบบจำลอง', 'modelled') : L('อนุมาน', 'inferred'))}</span></h3></div>
-    ${tabs}<p class="pm-lead">${esc(lead)}</p>${mapSVG(row, map, current, {title})}${legend}${mapKey()}${dir}${mapTable(sec, cfg)}${source}</section>`;
+    ${tabs}<p class="pm-lead">${lead}</p>${mapSVG(row, map, current, {title})}${legend}${mapKey()}${dir}${mapTable(sec, cfg)}${source}</section>`;
 }

@@ -280,7 +280,8 @@
    "amends": "INV-01 (contracts.json) for the group คนมาทำงานและเรียน only: the parts are added into one figure read as “อย่างน้อย” (at least), each part shown beside it with its own source and date; no other total across groups or datasets",
    "meaning": "สามกลุ่ม สามตัวเลข ติดป้ายแบบจำลอง ปัดเป็น “ราว” และบอกชุดข้อมูล · แหล่ง · วันที่ · ขอบเขต ทุกตัว · ไม่ใช่ footfall ไม่ใช่จำนวนลูกค้า · คนมาแบบเช้าไปเย็นกลับยังนับไม่ได้ จึงแสดงเป็นจำนวนสถานที่ที่ผู้มาเยือนใช้",
    "appliedAs": "0.7.0: คนมาทำงานและเรียน · ผู้มาเยือนค้างคืน · คนอยู่ในขอบย่าน · 0.7.1: คนอยู่ใน 1 · 3 · 5 กม. (NL-08)",
-   "where": "scripts/build-people.py · data/people.json · js/people.js"
+   "authorJudgementOnApply": "ผู้มาเยือนค้างคืนแสดงเป็นคนต่อปี ไม่ใช่ “ผู้เข้าพักต่อคืน” ตามถ้อยคำของทางเลือก A: ตาราง 17.1 ให้ผู้เข้าพักทั้งปีของจังหวัด การแปลงเป็นต่อคืนต้องใช้ระยะพำนักเฉลี่ยซึ่งตารางนี้ไม่มี จึงคงหน่วยของแหล่ง (Claude 2026-11-26 16:20) — รอเจ้าของยืนยัน",
+   "where": "scripts/build-people.py · data/people/<id>.json · js/people.js"
   },
   {
    "id": "D-13",

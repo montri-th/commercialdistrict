@@ -316,20 +316,26 @@ def main():
         for sc in ['in', *SCALES]:
             key = 'in' if sc == 'in' else str(sc)
             o = scales[key]
+            # a recorded part: the sum over the records that carry the figure; none within the scale is a measured 0;
+            # records there without any figure leave the part unknown (None), never 0 — `<part>N` = [with a figure, all]
             for part, ds_id in RECORDED:
                 if ds_id not in r['c']:
                     o[part] = None
                     continue
                 sel = select(ds_id, sc)
-                o[part] = int(pts[ds_id]['m'][sel].sum())
+                known = int(np.sum(pts[ds_id]['has'][sel]))
+                o[part] = int(pts[ds_id]['m'][sel].sum()) if known or not len(sel) else None
+                if len(sel):
+                    o[part + 'N'] = [known, int(len(sel))]
             # university students: every site of the university located and within the scale
+            # (a university with a site within the scale that cannot be counted leaves the part unknown when none can)
             if 'university' in r['c']:
                 sel = set(pts['university']['id'][k] for k in select('university', sc))
-                total = 0
-                for u in {site_uni[k] for k in sel if k in site_uni}:
-                    if uni_students.get(u) and uni_sites[u] <= located_sites and uni_sites[u] <= sel:
-                        total += uni_students[u]
-                o['uni'] = total
+                near = {site_uni[k] for k in sel if k in site_uni}
+                counted = [u for u in near if uni_students.get(u) and uni_sites[u] <= located_sites and uni_sites[u] <= sel]
+                o['uni'] = sum(uni_students[u] for u in counted) if counted or not near else None
+                if near:
+                    o['uniN'] = [len(counted), len(near)]
             else:
                 o['uni'] = None
             # office workers: area × occupancy ÷ 12–10 m² per person, rounded outward (the Shopping Center's code)
@@ -352,10 +358,17 @@ def main():
                     low_share += v
             o['comLow'] = bool(o['com']) and low_share * 2 >= o['com']
             # rooms and guests a year
+            # (lodging within the scale without any room figure leaves rooms and guests unknown, never 0)
             if 'hotel' in r['c']:
                 sel = select('hotel', sc)
-                o['rooms'] = int(pts['hotel']['m'][sel].sum())
-                o['gst'] = int(round(float(np.sum(pts['hotel']['m'][sel] * pts['hotel']['gpr'][sel]))))
+                known = int(np.sum(pts['hotel']['has'][sel]))
+                if known or not len(sel):
+                    o['rooms'] = int(pts['hotel']['m'][sel].sum())
+                    o['gst'] = int(round(float(np.sum(pts['hotel']['m'][sel] * pts['hotel']['gpr'][sel]))))
+                else:
+                    o['rooms'] = o['gst'] = None
+                if len(sel):
+                    o['roomsN'] = [known, int(len(sel))]
             else:
                 o['rooms'] = o['gst'] = None
             # located records per dataset within the scale (inside included), for the axis rows at a service distance
@@ -364,7 +377,13 @@ def main():
                 o['res'] = residents['rows'][i].get(key)
         # the inside figures equal the data build's measures (rows[].m)
         for part, ds_id in RECORDED + (('rooms', 'hotel'),):
-            want = (r.get('m', {}).get(ds_id) or [0])[0] if ds_id in r['c'] else None
+            # rows[].m holds [sum, records with a figure] only when some record inside has one
+            if ds_id not in r['c']:
+                want = None
+            elif ds_id in r.get('m', {}):
+                want = r['m'][ds_id][0]
+            else:
+                want = 0 if r['c'][ds_id] == 0 else None
             if scales['in'][part] != want:
                 sys.exit(f'{i} {ds_id}: inside {scales["in"][part]}, rows[].m says {want}')
             check[ds_id] += 1

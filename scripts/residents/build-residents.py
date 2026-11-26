@@ -3,7 +3,7 @@
 CityMETER · Commercial District — registered residents per neighbourhood (0.7.0; D-12, handoff/around/decisions.json).
 
     python3 -I scripts/residents/build-residents.py --repo . --cache <folder outside the repository> \
-        --out <file outside the repository> [--reach 0|5000] [--workers 4] [--built-on YYYY-MM-DD]
+        --out <file outside the repository> [--reach 0|1000|3000|5000] [--workers 4] [--built-on YYYY-MM-DD] [--plan-only]
 
 Owner 2026-11-26 14:03 (VERBATIM in handoff/around/decisions.json): “คนอยู่ แบบจำลองยังไม่ถึงรอบข้อมูลรอรุ่นแบบจำลอง
 ผู้อยู่อาศัย (รอบ 2) ทำยังไงถึงจะเห็นปริมาณคน residents, visitors, commuters ได้ อยากได้วิธีง่ายๆตรงไปตรงมาไม่ซับซ้อนมาก”;
@@ -13,8 +13,8 @@ Method (variant A of «รอบศูนย์นี้», montri-th/shoppingce
 registered population (production's popCount, the civil register of the latest month) in proportion to its floor area —
 footprint × estimated floors from production's vector tiles, or production's own GFA weight for a building drawn from
 OpenStreetMap parts — over production's GFA total of the subdistrict. A building counts where the centre of its footprint
-(of the union of its parts) lies: inside the outline the map draws (`in`) or, with --reach 5000, within 400 m · 800 m ·
-1 · 3 · 5 km of it, straight line in an azimuthal equidistant projection centred on the neighbourhood's reference point.
+(of the union of its parts) lies: inside the outline the map draws (`in`) or, with --reach, within 400 m · 800 m ·
+1 · 3 · 5 km of it (the distances up to the reach), straight line in an azimuthal equidistant projection centred on the neighbourhood's reference point.
 Buildings without an estimated floor count carry no floor area and are left out (counted in the meta). This is a model of
 where registered people are, not a census of who lives there: people living here without being registered are not in it,
 and a commercial building takes people by its floor area like any other.
@@ -48,9 +48,10 @@ def args():
     ap.add_argument('--repo', default='.')
     ap.add_argument('--cache', required=True)
     ap.add_argument('--out', required=True)
-    ap.add_argument('--reach', type=int, default=0, choices=(0, 5000))
+    ap.add_argument('--reach', type=int, default=0, choices=(0, 1000, 3000, 5000))
     ap.add_argument('--workers', type=int, default=4)
     ap.add_argument('--built-on', default=time.strftime('%Y-%m-%d'))
+    ap.add_argument('--plan-only', action='store_true', help='print the requests the run needs and how many are cached, then stop')
     return ap.parse_args()
 
 
@@ -125,6 +126,15 @@ def main():
     pairs = sorted(pairs)
     touched = sorted({p[2] for p in pairs})
     print(f'{len(rows)} outlines · reach {reach} m · {len(pairs)} tile × subdistrict requests · {len(touched)} subdistricts', flush=True)
+    if a.plan_only:
+        def cached(url, binary):
+            return os.path.exists(os.path.join(crawl.CACHE, hashlib.sha256(url.encode()).hexdigest() + ('.bin' if binary else '.json')))
+        q = 'inTileType=SUBDISTRICT&inTileId={}&version=V4&hideWithParts=true'
+        have = sum(cached(f'{crawl.API}/building/detailMvt/{crawl.Z}/{x}/{y}?{q.format(sid)}', True) for x, y, sid in pairs)
+        have_parts = sum(cached(f'{crawl.API}/building/parts?inTileType=SUBDISTRICT&inTileId={sid}&version=V4', False) for sid in touched)
+        provs_t = sorted({sds[s]['province'] for s in touched})
+        print(f'tiles cached {have}/{len(pairs)} · parts lists cached {have_parts}/{len(touched)} · provinces {len(provs_t)}', flush=True)
+        return
 
     # ---- the population check: popCount of every touched subdistrict = the register's total of the month
     pop_month, compared, differ = {}, 0, []
@@ -205,7 +215,7 @@ def main():
             bx, by = fwd.transform(lon[idx], lat[idx])
             d = shapely.distance(gp, shapely.points(bx, by))
             d[inside] = 0.0
-            for s in SCALES:
+            for s in [x for x in SCALES if x <= reach]:   # a scale beyond the run's reach is not read, so not written
                 within = d <= s
                 o[str(s)] = int(round(float(people[idx][within].sum()))) if within.any() else None
                 if not within.any():
@@ -214,7 +224,7 @@ def main():
 
     meta = {
         'schema': 'citymeter-commercialdistrict-residents/1', 'builtOn': a.built_on, 'populationMonth': month,
-        'reach': reach, 'scales': ['in', *map(str, SCALES)] if reach else ['in'],
+        'reach': reach, 'scales': ['in', *[str(x) for x in SCALES if x <= reach]],
         'source': {'api': crawl.API, 'buildings': 'CityMETER Building V4 (detailMvt z15, hideWithParts; parts; detail gfaWeight)',
                    'population': 'building/info lv1 popCount per subdistrict = population/info lv1 tot of the month (checked)'},
         'method': {'th': 'ประชากรตามทะเบียนบ้านของแขวง/ตำบลเดือนล่าสุด แบ่งลงทุกอาคารของ CityMETER Building V4 ตามพื้นที่ใช้สอย (ฐาน × จำนวนชั้นโดยประมาณ หรือค่าน้ำหนักของ production สำหรับอาคารที่วาดจากส่วนอาคาร) หารด้วยพื้นที่ใช้สอยรวมของแขวง/ตำบลที่ production ให้ แล้วรวมอาคารที่จุดกึ่งกลางอยู่ในขอบย่านหรือในระยะ',

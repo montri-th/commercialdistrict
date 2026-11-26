@@ -145,7 +145,7 @@
           "registered ≠ living there: said in the method"
         ],
         "status": "done (0.7.0)",
-        "deliveredAs": "scripts/residents/crawl.py and build-residents.py; inside the outlines: 3,665 tile × subdistrict requests and 4,952 responses in all (the plan said about 700: the outlines touch 791 subdistricts and the population check reads every province); checked against the Shopping Center page at +0.30 % and +0.32 %"
+        "deliveredAs": "scripts/residents/crawl.py and build-residents.py; inside the outlines: 3,665 tile × subdistrict requests and 4,952 responses in all (the plan said about 700: the outlines touch 792 subdistricts and the population check reads every province); checked against the Shopping Center page at +0.30 % and +0.32 %"
       },
       {
         "id": "V7-04",

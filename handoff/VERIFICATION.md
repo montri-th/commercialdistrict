@@ -9,16 +9,16 @@ of 14:13 and his answers of 14:31–14:40 (D-12 … D-15); D-16 is Claude's read
 
 - Residents: `python3 -I scripts/residents/build-residents.py --repo . --cache <outside> --out <outside> --built-on 2026-11-26`
   (reach 0: inside the outlines). Production API read only, paced at 4 requests a second: population month 2026-10, its
-  register total equal to `popCount` in all 791 subdistricts touched (0 differ); 3,665 tile × subdistrict requests,
+  register total equal to `popCount` in all 791 of the 792 subdistricts touched that carry one (0 differ); 3,665 tile × subdistrict requests,
   1,318,420 buildings (262 drawn from parts, with production's GFA weight), none without floors; 7 outlines hold no
   building (“ยังไม่มีข้อมูลอาคารในขอบนี้”). 4,952 responses, the SHA-256 of their list `86006747…` (`meta.residents.responses`);
   output SHA-256 `b2d72d04…b3b5` (kept outside the repository).
 - Check of the method against the Shopping Center page (`montri-th/shoppingcenter@78cf457`, `data/residents`, 1 km):
   SC-000337 8,887 against 8,858 (+0.32 %) · SC-002835 15,178 against 15,132 (+0.30 %); 13 and 6 buildings fewer. Hypothesis:
   production's buildings changed between the runs (not checked).
-- People: `python3 -I scripts/build-people.py --sources <16 pinned demo files> --office <office 8e8d8be> --shoppingcenter
-  <montri-th/shoppingcenter@78cf457> --residents <the file above> --built-on 2026-11-26`: 469 files (5.1 MB, the largest
-  42 KB) and `meta.json`; the inside figures equal `rows[].m` for every row (the script stops otherwise); the counts at
+- People (rebuilt after the review, see below): `python3 -I scripts/build-people.py --sources <16 pinned demo files> --office <office 8e8d8be> --shoppingcenter
+  <montri-th/shoppingcenter@78cf457> --residents <the file above> --built-on 2026-11-26`: 469 files (about 5.4 MB) and
+  `meta.json`; the inside figures equal `rows[].m` for every row (the script stops otherwise); the counts at
   400 and 800 m equal `data/around.json` for all 5,747 neighbourhood × dataset pairs; 6 lodging places outside every
   province left out.
 

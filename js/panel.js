@@ -403,7 +403,7 @@ function venueHref(id) {
 }
 
 /** The surroundings section's own provenance line: dataset · source · date · boundary, then the method (INV-09). */
-function aroundProvenance(r, model, around, distance) {
+function aroundProvenance(r, model, around, distance, peopleMeta = null) {
   const meta = around?.meta;
   const reach = distance === 'in' ? Math.max(...(meta?.ringsM || [800])) : +distance;
   // the date is the data's (the datasets of the neighbourhood's province), as the glance's line
@@ -412,7 +412,42 @@ function aroundProvenance(r, model, around, distance) {
   const dataset = meta ? L(`CityMETER Commercial District · ขอบเดินถึง รุ่น ${meta.release}`, `CityMETER Commercial District · walkable edge ${meta.release}`) : 'CityMETER Commercial District';
   const boundary = meta ? L(`${r.name} · ขอบร่าง ${rai(r.areaM2)} ไร่ และนอกขอบไม่เกิน ${num(reach)} ม. วัดเส้นตรง`, `${r.name} · draft outline ${rai(r.areaM2)} rai and up to ${num(reach)} m beyond it, straight line`)
     : L(`${r.name} · ขอบร่าง ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline ${rai(r.areaM2)} rai`);
-  return `<p class="hint panel-foot provenance"><span class="prov-part" data-prov="dataset">${pic('dataset')}<span class="sr-only">${L('ชุดข้อมูล ', 'Dataset ')}</span>${esc(dataset)}</span> <span class="prov-part" data-prov="source"><span class="sr-only">${L('แหล่ง', 'Source')}</span>${esc(L(`จาก ${num(model.datasets.length)} ชุดข้อมูล CityMETER ตามรุ่นที่ตรึง`, `from ${num(model.datasets.length)} CityMETER datasets at pinned versions`))}</span><span class="prov-part" data-prov="date">${pic('date')}<span class="sr-only">${L('ข้อมูล ', 'Data ')}</span>${esc(when)}</span><span class="prov-part" data-prov="boundary">${pic('area')}<span class="sr-only">${L('ขอบเขต ', 'Boundary ')}</span>${esc(boundary)}</span><span class="prov-part prov-method"><a href="${METHOD_URL}#12" target="_blank" rel="noopener">${L('วิธีนับ', 'Method')}</a></span></p>`;
+  return `<p class="hint panel-foot provenance"><span class="prov-part" data-prov="dataset">${pic('dataset')}<span class="sr-only">${L('ชุดข้อมูล ', 'Dataset ')}</span>${esc(dataset)}</span> <span class="prov-part" data-prov="source"><span class="sr-only">${L('แหล่ง', 'Source')}</span>${esc(L(`จาก ${num(model.datasets.length)} ชุดข้อมูล CityMETER ตามรุ่นที่ตรึง`, `from ${num(model.datasets.length)} CityMETER datasets at pinned versions`))}${peopleMeta ? esc(L(` · คนอยู่: ทะเบียนราษฎร ${monthOf(peopleMeta.residents?.populationMonth)} แบ่งลงอาคาร CityMETER · ผู้มาเยือน: กระทรวงการท่องเที่ยวและกีฬา ${peopleMeta.gst?.source?.year ? peopleMeta.gst.source.year + 543 : ''}`, ` · residents: civil register ${monthOf(peopleMeta.residents?.populationMonth)} over CityMETER buildings · visitors: Ministry of Tourism and Sports ${peopleMeta.gst?.source?.year || ''}`)) : ''}</span><span class="prov-part" data-prov="date">${pic('date')}<span class="sr-only">${L('ข้อมูล ', 'Data ')}</span>${esc(when)}</span><span class="prov-part" data-prov="boundary">${pic('area')}<span class="sr-only">${L('ขอบเขต ', 'Boundary ')}</span>${esc(boundary)}</span><span class="prov-part prov-method"><a href="${METHOD_URL}#${peopleMeta ? 'maps-and-topics' : '12'}" target="_blank" rel="noopener">${L('วิธีนับ', 'Method')}</a></span></p>`;
+}
+
+/** One provenance line of the 0.7.0 parts: dataset · source · date · boundary, then the method (DATA_METHOD.md §15–§16). */
+const PEOPLE_DS = ['school', 'university', 'factory', 'governmentoffice', 'office', 'hotel', 'shoppingcenter'];
+function provLine({dataset, source, date, boundary, anchor}) {
+  const part = (k, icon, sr, text) => `<span class="prov-part" data-prov="${k}">${pic(icon)}<span class="sr-only">${sr}</span>${esc(text)}</span>`;
+  return `<p class="hint panel-foot provenance">${part('dataset', 'dataset', L('ชุดข้อมูล ', 'Dataset '), dataset)} ${part('source', 'source', L('แหล่ง', 'Source'), source)}${part('date', 'date', L('ข้อมูล ', 'Data '), date)}${part('boundary', 'area', L('ขอบเขต ', 'Boundary '), boundary)}<span class="prov-part prov-method"><a href="${METHOD_URL}#${anchor}" target="_blank" rel="noopener">${L('วิธีคิด', 'Method')}</a></span></p>`;
+}
+const MONTHS_TH = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+const MONTHS_EN = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const monthOf = ym => { const [y, m] = String(ym || '').split('-').map(Number); return y && m ? L(`${MONTHS_TH[m]} ${y + 543}`, `${MONTHS_EN[m]} ${y}`) : ''; };
+function peopleProvenance(r, model, meta, reach) {
+  const dates = model.datasets.filter(ds => PEOPLE_DS.includes(ds.id) && ds.id in (r.c || {})).map(dsDate).filter(Boolean).sort();
+  const when = dates.length ? daySpan(dates[0], dates.at(-1)) : '';
+  const pm = meta?.residents?.populationMonth, yr = meta?.gst?.source?.year;
+  const date = [pm ? L(`ทะเบียน ${monthOf(pm)}`, `register ${monthOf(pm)}`) : '', yr ? L(`ผู้เข้าพัก พ.ศ. ${yr + 543}`, `guests ${yr}`) : '', when ? L(`ชุดข้อมูล ${when}`, `datasets ${when}`) : ''].filter(Boolean).join(' · ');
+  const far = reach === 'in' ? '' : L(` และพื้นที่ไม่เกิน ${num(+reach / 1000)} กม. จากขอบ วัดเส้นตรง (รอระยะตามทางจริง)`, ` and up to ${num(+reach / 1000)} km from the edge, straight line (distances along real paths to come)`);
+  return provLine({
+    dataset: L(`CityMETER Commercial District · ใครอยู่ตรงนี้ รุ่น ${meta?.release || ''}`.trim(), `CityMETER Commercial District · who is here ${meta?.release || ''}`.trim()),
+    source: L('คนอยู่: ทะเบียนราษฎรรายแขวง/ตำบลจาก CityMETER แบ่งลงอาคาร Building V4 · คนมาทำงานและเรียน: ชุดข้อมูล CityMETER สถานศึกษา มหาวิทยาลัย โรงงาน หน่วยงานรัฐ และสำนักงาน (แบบจำลองของหน้าศูนย์การค้า) · ผู้มาเยือนค้างคืน: กระทรวงการท่องเที่ยวและกีฬา ตาราง 17.1 กับห้องพักในชุดข้อมูลที่พัก · ศูนย์และตลาด: ชุดข้อมูลศูนย์การค้าและตลาด',
+      'Living here: the civil register by subdistrict from CityMETER spread over Building V4 · work and study: CityMETER datasets of schools, universities, factories, government offices and offices (the Shopping Center page’s model) · overnight visitors: Ministry of Tourism and Sports, Table 17.1, with the rooms of the lodging dataset · centres and markets: the Shopping Center dataset'),
+    date, boundary: L(`${r.name} · ขอบร่าง ${rai(r.areaM2)} ไร่${far}`, `${r.name} · draft outline ${rai(r.areaM2)} rai${far}`), anchor: 'people'});
+}
+const MAP_DS = {visit: ['hotel', 'shoppingcenter', 'grocery', 'restaurant', 'pharmacy', 'fitness', 'luxurybrands', 'camera'],
+  work: ['office', 'governmentoffice', 'factory', 'industrialestate', 'university', 'hospital', 'school']};
+function mapProvenance(r, model, meta, tab) {
+  const ids = MAP_DS[tab] || [];
+  const dates = model.datasets.filter(ds => ids.includes(ds.id) && ds.id in (r.c || {})).map(dsDate).filter(Boolean).sort();
+  const when = dates.length ? L(`ชุดข้อมูล ${daySpan(dates[0], dates.at(-1))}`, `datasets ${daySpan(dates[0], dates.at(-1))}`) : '';
+  const pm = meta?.residents?.populationMonth;
+  return provLine({
+    dataset: L(`CityMETER Commercial District · แผนที่รอบย่าน รุ่น ${meta?.release || ''}`.trim(), `CityMETER Commercial District · round map ${meta?.release || ''}`.trim()),
+    source: tab === 'res' ? L('ทะเบียนราษฎรรายแขวง/ตำบลจาก CityMETER แบ่งลงอาคาร Building V4', 'the civil register by subdistrict from CityMETER spread over Building V4') : L('ชุดข้อมูล CityMETER ตามรุ่นที่ตรึง', 'CityMETER datasets at pinned versions'),
+    date: tab === 'res' ? (pm ? L(`ทะเบียน ${monthOf(pm)}`, `register ${monthOf(pm)}`) : '') : when,
+    boundary: L(`${r.name} · สถานที่ที่อยู่ห่างขอบไม่เกิน 5 กม. วัดเส้นตรง นับลงช่อง 250 × 250 ม.`, `${r.name} · places within 5 km of the edge, straight line, counted in 250 × 250 m cells`), anchor: 'maps-and-topics'});
 }
 
 /**
@@ -499,18 +534,18 @@ function demoTarget(ds, province) {
  * to read them, the indicators each axis has no data for yet, and the table of 0.4.0 with every figure at every distance;
  * then the centres with a «รอบศูนย์นี้» page and the section's own provenance line.
  */
-function aroundSection(d, model, around, {distance = 'in', fillOf = () => '', venueLogo = () => null, people = null, peopleMeta = null, reach = DEFAULT_REACH} = {}) {
+function aroundSection(d, model, around, {distance = 'in', fillOf = () => '', venueLogo = () => null, people = null, peopleMeta = null, peopleState = 'ready'} = {}) {
   const r = d.row, t = aroundTable(d, model, around, {distance, fillOf});
   const reading = t.loaded ? distance : 'in', hl = new Set(d.highlights.map(x => x.ds.id));
   const cells = cellsOf(model, r, around);
   const hlShown = cells.some(x => hl.has(x.ds.id) && x.kind === 'ranked');
   const star = cells.some(x => x.kind !== 'out' && lowLocated(x.ds));
   const cards = axisCards(model, r, around, {distance: reading, hl, demoOf: ds => demoTarget(ds, r.province),
-    topics: axisId => topicsHTML(axisId, {row: r, model, around, people, peopleMeta, reach, distance: reading})});
+    topics: axisId => topicsHTML(axisId, {row: r, model, around, people, peopleMeta, peopleState, distance: reading})});
   const fold = `<details class="scope-details around-fold"><summary>${L('วิธีอ่าน แหล่งที่ตรวจไว้ และตัวเลขทุกระยะ (16 ชุด)', 'How to read, sources looked at, and every figure (16 datasets)')}</summary>${axisFoldIntro(model)}${t.table}${t.note}</details>`;
   const hint = L(`${num(model.datasets.length)} ชุดข้อมูล`, `${num(model.datasets.length)} datasets`);
   return `<section class="panel-section around-section axes-section" id="nb-around" aria-labelledby="nb-around-title"><div class="section-heading">${heading('dataset', AXES.map(a => L(a.th, a.en)).join(' · '), 'nb-around-title')}<span class="hint">${esc(hint)}</span></div>
-    ${t.switcher}${cards}${axisKey({distance: reading, hl: hlShown, star})}${fold}${aroundVenues(r, around, distance, venueLogo)}${aroundProvenance(r, model, around, reading)}</section>`;
+    ${t.switcher}${cards}${axisKey({distance: reading, hl: hlShown, star})}${fold}${aroundVenues(r, around, distance, venueLogo)}${aroundProvenance(r, model, around, reading, people ? peopleMeta : null)}</section>`;
 }
 
 function similarSection(d, model, around) {
@@ -656,8 +691,10 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
   // (0.7.0, D-12 and 2.4 of 2026-11-26) «ใครอยู่ตรงนี้» and the round maps follow the neighbourhood's figures, in the place of
   // the 0.4.0 glance (its students and rooms are parts of the people tiles now); «ขอบเดินถึง» keeps the place of the list
   const refN = around?.meta.referenceSet?.n || 395;
-  const peopleHTML = peopleSection(r, people, peopleMeta, {reach, refN, state: people ? 'ready' : peopleState === 'error' ? 'error' : 'loading'});
-  return `${aha}${metrics}${peopleHTML}${people ? mapSection(r, people, peopleMeta, {tab: mapTab}) : ''}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${aroundSection(d, model, around, {distance, fillOf, venueLogo, people, peopleMeta, reach})}${recordsHTML}${similarSection(d, model, around)}
+  const peopleHTML = peopleSection(r, people, peopleMeta, {reach, refN, state: people ? 'ready' : peopleState === 'error' ? 'error' : 'loading',
+    prov: people ? peopleProvenance(r, model, peopleMeta, reach) : ''});
+  const mapHTML = people ? mapSection(r, people, peopleMeta, {tab: mapTab, prov: tab => mapProvenance(r, model, peopleMeta, tab), outOfScope: ids => model.datasets.filter(ds => ids.includes(ds.id) && !(ds.id in (r.c || {}))).map(ds => dsName(ds))}) : '';
+  return `${aha}${metrics}${peopleHTML}${mapHTML}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${aroundSection(d, model, around, {distance, fillOf, venueLogo, people, peopleMeta, peopleState: people ? 'ready' : peopleState === 'error' ? 'error' : 'loading'})}${recordsHTML}${similarSection(d, model, around)}
     ${actionBar({kind: 'neighborhood', name: r.name, province, point: {lat: r.ref[1], lon: r.ref[0]}})}
     ${registryDetails(d, model)}
     ${provenance(ctx, {boundary: r.kind === 'lodging' && !am ? L(`${r.name} · ขอบร่างของผลคัดย่านที่พัก ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline of the lodging screen ${rai(r.areaM2)} rai`) : r.kind === 'screen' ? L(`${r.name} · ขอบร่างตามหลักของเจ้าของ ${thaiDate(r.screen?.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline by the owner's rule, ${thaiDate(r.screen?.on)}, from OpenStreetMap ${rai(r.areaM2)} rai`) : am ? L(`${r.name} · ขอบย่านฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline extended on ${thaiDate(am.on)} from OpenStreetMap ${rai(r.areaM2)} rai`) : L(`${r.name} · ขอบย่านฉบับร่าง ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline ${rai(r.areaM2)} rai`)})}`;

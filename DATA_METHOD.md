@@ -795,9 +795,14 @@ his answers 14:31–14:40 (D-12 “A ตัวเลขทางการแบ�
 Files: `data/people/<id>.json` and `data/people/meta.json` from `scripts/build-people.py`; the residents from
 `scripts/residents/build-residents.py`, whose output (`--out`) and cache (`--cache`) stay outside the repository.
 
-**Three groups, three figures, never added together (INV-01).** Each is a model or a sum of recorded people, read
-“ราว” (about) and rounded — 10 000 or more to the thousand, 1 000 or more to the hundred, 10 or more to the ten; under 10
-reads “ไม่ถึง 10”; a measured 0 reads 0. None is footfall, a number of customers or sales.
+**Three groups, three figures, never added together (INV-01).** Each is a model or a sum of recorded people. A modelled
+figure reads “ราว” (about), rounded — 10 000 or more to the thousand, 1 000 or more to the hundred, 10 or more to the ten;
+under 10 it reads “ไม่ถึง 10”. The at-least figure is rounded down by the same steps and never says ราว (under 10 it is
+exact). A measured 0 reads 0 and has no level beside it. A part whose records within the distance carry no figure at all
+is unknown — “ไม่มีตัวเลข (n แห่ง)”, never 0 — and a part some of whose records carry one says how many (“มีตัวเลข k จาก n”):
+government staff are unknown at 1 km for 123 neighbourhoods, university students for 35 (a university with a site in reach
+that cannot be counted). Lodging without any room figure leaves rooms and guests unknown in the same way. None is
+footfall, a number of customers or sales.
 
 **Where (D-13; straight line for now).** ในย่าน = inside the outline the map draws (for a dataset, the records the data
 build counted inside); 1 · 3 · 5 km = inside and within that distance of the edge (`f.reach`, 1 km by default); the axis
@@ -813,7 +818,7 @@ register's total of the latest month, spread over every building of CityMETER Bu
 footprint × estimated floors from production's vector tiles (z15, `hideWithParts`), or production's own GFA weight for a
 building drawn from OpenStreetMap parts — over production's GFA total of the subdistrict; a building counts where the
 centre of its footprint (of the union of its parts) lies. Run of 2026-11-26 (Observed): population month 2026-10, the
-register's total equal to `popCount` in all 791 subdistricts the outlines touch; 1,318,420 buildings read in 3,665 tile ×
+register's total equal to `popCount` in all 791 of the 792 subdistricts the outlines touch that carry one; 1,318,420 buildings read in 3,665 tile ×
 subdistrict requests, 262 of them drawn from parts; none without an estimated floor. Seven outlines hold no building of
 Building V4 (islands and hill villages among them): their figure is unknown — “ยังไม่มีข้อมูลอาคารในขอบนี้”, never 0.
 Check against the Shopping Center page (`montri-th/shoppingcenter@78cf457`, `data/residents/049.json` and `100.json`,
@@ -836,7 +841,9 @@ from datasets with points for under 90 % of their records (`meta.levels.lowLocat
 industrialestate, office, pharmacy, school) it carries a star and no level (the rule of «รอบศูนย์นี้» §30) — at 1 km that is
 400 of the 469 neighbourhoods (Observed, this build).
 
-**ผู้มาเยือนค้างคืน (guests a year, modelled).** The province's guests of the year (Ministry of Tourism and Sports, Table
+**ผู้มาเยือนค้างคืน (guests a year, modelled).** A year, not a night as option A of D-12 worded it: the table gives the
+year's guests, and a night would need the length of stay, which it does not hold (Claude's reading, recorded in D-12 for
+the owner to confirm). The province's guests of the year (Ministry of Tourism and Sports, Table
 17.1, 2024, published by the National Statistical Office; `scripts/people/mots-t17.1-2567.tsv`, its SHA-256 in the meta)
 shared by recorded rooms: rooms of the Hotel dataset's lodging within the distance × the province's guests ÷ the
 province's recorded rooms. A lodging place takes the province whose outline holds it, else the nearest within 0.05°; 6
@@ -859,8 +866,8 @@ insight เท่าที่ควร พวก heatmap กลมๆก็ไ�
 (D-V6b in `handoff/visual/decisions.json`; D-16 in `handoff/around/decisions.json`).
 
 **The round maps (D-16, Claude's reading under his 14:03 words; his check pending).** As «รอบศูนย์นี้» draws them (D55,
-D59 of the Shopping Center page): cells of 250 × 250 m in the neighbourhood's local projection, those whose centre lies
-within 5 km of the edge, straight line. ที่ผู้มาเยือนใช้ = located places of eight datasets per cell (lodging, centres and
+D59 of the Shopping Center page): the places within 5 km of the edge, straight line, counted in cells of 250 × 250 m of
+the neighbourhood's local projection (a cell on the 5 km line can have its centre a little beyond it). ที่ผู้มาเยือนใช้ = located places of eight datasets per cell (lodging, centres and
 markets, groceries, restaurants, pharmacies, fitness, luxury brands, camera shops) on the LDS `activity` scale ·
 ที่ทำงานและที่เรียน = places of seven (offices, government offices, factories, industrial estates, universities,
 hospitals, schools) on `count` · คนอยู่ = registered residents (modelled) per cell on `density.area`, with the run over 5 km
@@ -870,7 +877,8 @@ people go, not people or visits); no other figure on the page adds places across
 the map's scale, ranked within that one map, the same HEX on both themes; a pale cell keeps a hairline edge. Over the
 cells: the outline, the walk edges 400 · 800 m and the 1 · 3 · 5 km lines with their labels, north up. The line under the
 map names the direction holding the most (eight directions from the reference point); “อ่านแผนที่เป็นตาราง” gives every
-direction by distance band (inside · to 1 km · 1–3 km · 3–5 km) as the reading without the map.
+direction by distance band (inside · to 1 km · 1–3 km · 3–5 km) as the reading without the map; a band without places
+reads 0, and the datasets of the map that do not reach the province are named under it.
 
 **The topic rows (D-V6b, binding; supersedes D-V6).** The axes keep the owner's words น่าอยู่ · น่าเที่ยว · น่าค้าขาย; the
 guard D-V6 kept by leaving “น่า” off the screen moves into the rows (`js/indicators.js`): (1) every row is one sentence with
@@ -888,5 +896,7 @@ kinds of lodging, guests a year) · ช้อปปิ้งและแฟช�
 (the three groups of §15 side by side, “สามกลุ่มไม่รวมกัน · ไม่ใช่จำนวนลูกค้า”) · กำลังจ่าย (luxury points of sale; land prices
 and rents not in this demo, never the income of the people here) · คนทำงาน (offices and office workers, modelled) ·
 กิจการรอบตัว (factories, industrial estates, camera shops) · คู่แข่ง พันธมิตร สาขาของเรา (the business type and brand
-picker of D-15, 0.7.1). The datasets' levels of §14 fold under the rows of each axis. Text of the people block, the
-maps and the rows is 14 px or more, their tags 13 px (V7-05).
+picker of D-15: “ยังไม่มีข้อมูล” until the page offers it). Every count carries its dataset's unit and, under 90 %, its star;
+a dataset a row reads that does not reach the province is named on the row (“ยังไม่มีข้อมูลในจังหวัดนี้: …”); the modelled
+figures say แบบจำลอง. The datasets' levels of §14 fold under the rows of each axis. The sentences of the people block, the
+maps and the rows are 14 px; tags, keys and table heads 13 px; the provenance lines keep the panel's 12 px (V7-05).

@@ -231,7 +231,12 @@ function renderPanel() {
     html = renderOverview(state.overview, state.model, {fillOf: fillOfRow, ctx: panelCtx(), around: state.around});
     renderMapAha(state.overview);
   }
+  // (0.7.0) a re-render of the same view (a file arriving, a switch pressed) keeps the folds the reader opened and the
+  // control that had the focus; a new view starts closed at the top
+  const same = renderPanel.lastKey === `${r ? 'neighborhood' : 'overview'}:${state.nb}:${state.province}:${state.lens}`;
+  const kept = same ? keepPlace(view) : null;
   view.innerHTML = html;
+  if (kept) restorePlace(view, kept);
   if (r) { ensureLogos(r); ensurePeople(r); }
   const mode = r ? 'neighborhood' : 'overview';
   view.dataset.mode = mode;
@@ -243,6 +248,28 @@ function renderPanel() {
   const key = `${mode}:${state.nb}:${state.province}:${state.lens}`;
   if (key !== renderPanel.lastKey) { $('panel').scrollTop = 0; setSheet(restSheet()); state.readerPitch = false; state.readerMovedAt = 0; }
   renderPanel.lastKey = key;
+}
+
+/** The open folds (by class and order) and the focused control (by id or action and value) of the panel. */
+function keepPlace(view) {
+  const foldKey = el => { const same = [...view.querySelectorAll('details')].filter(x => x.className === el.className); return `${el.className}|${same.indexOf(el)}`; };
+  const open = [...view.querySelectorAll('details[open]')].map(foldKey);
+  const a = document.activeElement;
+  let focus = null;
+  if (a && view.contains(a)) {
+    if (a.id) focus = `#${CSS.escape(a.id)}`;
+    else if (a.dataset.action) focus = `[data-action="${CSS.escape(a.dataset.action)}"]${a.dataset.value != null ? `[data-value="${CSS.escape(a.dataset.value)}"]` : ''}`;
+    else if (a.tagName === 'SUMMARY' && a.parentElement?.tagName === 'DETAILS') focus = {fold: foldKey(a.parentElement)};
+  }
+  return {open, focus};
+}
+function restorePlace(view, {open, focus}) {
+  const folds = [...view.querySelectorAll('details')];
+  const byKey = new Map(folds.map(el => [`${el.className}|${folds.filter(x => x.className === el.className).indexOf(el)}`, el]));
+  for (const k of open) { const el = byKey.get(k); if (el) el.open = true; }
+  if (!focus) return;
+  const el = typeof focus === 'string' ? view.querySelector(focus) : byKey.get(focus.fold)?.querySelector('summary');
+  el?.focus({preventScroll: true});
 }
 
 /** The phone's first finding on the map (the dock): the overview's Aha in one line. */
@@ -354,6 +381,7 @@ function ensurePeople(r) {
       if (!rec || !m?.schema) throw new Error('Invalid people file');
       state.peopleMeta = m;
       state.people.set(r.id, rec);
+      if (state.nb === r.id && state.mapTab === 'res' && !Array.isArray(rec.map?.res)) { state.mapTab = DEFAULT_MAP; saveURL(); }
     })
     .catch(e => { partial('people'); console.warn('People figures unavailable', r.id, e); state.peopleErr.add(r.id); })
     .finally(() => { state.peopleLoading.delete(r.id); if (state.nb === r.id) renderPanel(); });
@@ -439,7 +467,7 @@ function onPanelAction(event) {
   else if (action === 'set-around') setDistance(value);
   else if (action === 'set-reach') setReach(value);
   else if (action === 'set-map') setMapTab(value);
-  else if (action === 'people-retry') { const r = openRow(); if (r) { state.peopleErr.delete(r.id); renderPanel(); } }
+  else if (action === 'people-retry') { const r = openRow(); if (r) { state.peopleErr.delete(r.id); renderPanel(); $('nb-people')?.focus({preventScroll: true}); } }
   else if (action === 'around-jump') jumpToAround(value);
   else if (action === 'clear-lens') setLens('');
   else if (action === 'clear-search') { state.search = ''; update({fit: true}); }
