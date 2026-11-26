@@ -44,7 +44,7 @@ test('every neighbourhood: a figure pair for every dataset in scope and none out
       assert.ok(v[0] >= 0 && v[0] <= v[1], `${r.id} ${ds}: the 800 m figure holds the 400 m one`);
     }
   }
-  assert.equal(cells, 4806);
+  assert.equal(cells, 5533); // 0.5.0: 451 outlines (4,806 cells for the 395 of 0.4.0)
   assert.ok(!/"total"|"sum"/i.test(JSON.stringify(rows)), 'no total or sum anywhere');
 });
 
@@ -81,12 +81,17 @@ test('levels: the rule of «รอบศูนย์นี้» verbatim, mid-ra
   assert.equal(LEVEL_WORDS[0][0], 'ไม่พบ');
   const {model} = load();
   const {meta, rows} = raw();
-  const codes = model.rows.map(r => r.id).join('\n');
+  // D-8: the reference set of 0.4.0 stays (395 outlines, in order); the commercial screen's outlines of 0.5.0 take a level
+  // against it without joining it
+  const ref = model.rows.filter(r => r.kind !== 'screen');
+  const codes = ref.map(r => r.id).join('\n');
   assert.equal(meta.referenceSet.n, 395);
-  assert.equal(meta.referenceSet.codesSha256, sha256(Buffer.from(codes, 'utf8')), 'the reference set is this release’s outlined neighbourhoods, in order');
-  const rooms = model.rows.map(r => (!('hotel' in r.c) ? null : !r.c.hotel ? 0 : r.m?.hotel ? r.m.hotel[0] : null));
-  const centers = model.rows.map(r => ('shoppingcenter' in r.c ? r.c.shoppingcenter : null));
-  const uRooms = rooms.filter(v => v != null), uCenters = centers.filter(v => v != null);
+  assert.equal(meta.referenceSet.id, 'commercialdistrict-0.4.0-outlined');
+  assert.equal(meta.referenceSet.codesSha256, sha256(Buffer.from(codes, 'utf8')), 'the reference set is the outlined neighbourhoods of 0.4.0, in order');
+  const roomOf = r => (!('hotel' in r.c) ? null : !r.c.hotel ? 0 : r.m?.hotel ? r.m.hotel[0] : null);
+  const centerOf = r => ('shoppingcenter' in r.c ? r.c.shoppingcenter : null);
+  const rooms = model.rows.map(roomOf), centers = model.rows.map(centerOf);
+  const uRooms = ref.map(roomOf).filter(v => v != null), uCenters = ref.map(centerOf).filter(v => v != null);
   assert.equal(meta.glance.universe.rooms.n, uRooms.length);
   assert.equal(meta.glance.universe.centers.n, uCenters.length);
   assert.equal(meta.glance.universe.students.ranked, false, 'the school dataset is never ranked here (D-4)');
@@ -140,8 +145,8 @@ test('centres with a «รอบศูนย์นี้» page: one outline at 
     const keys = new Set(readJSON(`data/records/${id}.json`).rows.map(rec => String(rec[4])));
     assert.ok(keys.has(v) || notPinned.has(v), `${v} listed inside ${id} but not counted there`);
   }
-  assert.equal(seen.size, 166);
-  assert.equal(Object.values(A.rows).reduce((s, x) => s + (x.v?.near.length || 0), 0), 356);
+  assert.equal(seen.size, 176); // 0.5.0 (166 in 0.4.0)
+  assert.equal(Object.values(A.rows).reduce((s, x) => s + (x.v?.near.length || 0), 0), 361); // 0.5.0 (356 in 0.4.0)
   assert.equal(A.meta.venues.n, 492);
 });
 
@@ -163,12 +168,12 @@ test('the lines of the map: one file per neighbourhood, 400 m inside 800 m, both
   }
 });
 
-test('ties: a count highlight says how many neighbourhoods share its rank (289 of 390 have at least 3)', () => {
+test('ties: a count highlight says how many neighbourhoods share its rank (336 of 437 have at least 3)', () => {
   const {model} = load();
   let count = 0, three = 0;
   for (const r of model.rows) for (const h of r.hl || []) if (h.k === 'count') { count++; if (sharedBy(model, r, h) >= 3) three++; }
-  assert.equal(count, 390);
-  assert.equal(three, 289);
+  assert.equal(count, 437); // 0.5.0 (390 in 0.4.0)
+  assert.equal(three, 336); // 0.5.0 (289 in 0.4.0)
   const siam = model.rows.find(r => r.name === 'สยาม'), fit = siam.hl.find(h => h.d === 'fitness');
   const t = sharedBy(model, siam, fit);
   assert.ok(t > 1);
@@ -230,7 +235,7 @@ test('a neighbourhood with no highlight says what there is, inside and within 80
   const {model} = load();
   const A = around();
   const thin = model.rows.filter(r => !(r.hl || []).length);
-  assert.equal(thin.length, 153);
+  assert.equal(thin.length, 183); // 0.5.0 (153 in 0.4.0)
   for (const r of thin) {
     const html = renderNeighborhood(buildNeighborhood(model, r), model, {ctx: ctx(), around: A});
     const lead = html.match(/<p class="aha-copy">([\s\S]*?)<\/p>/)[1];

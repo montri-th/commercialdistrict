@@ -381,8 +381,12 @@ REGISTRY_TAB_READ = {}  # old name -> the tab name this export has (recorded in 
 
 # The columns the build reads by position, checked against their header (the registry's own column names, read from
 # the sheet on 2026-11-25): a moved or renamed column stops the build instead of being read as another field.
+# (0.5.0) the name source of the codes the registry admitted from its commercial screen (2026-11-25 and 26)
+SCREEN_NAME_SOURCE = 'ร่างชื่อจากผลคัดย่านการค้า'
+
 REGISTRY_COLUMNS = {
-    'ชื่อกลาง': {1: 'ชื่อย่านกลาง', 9: 'รหัสย่านใช้งานปัจจุบัน', 10: 'ชื่อย่านใช้งานปัจจุบัน', 11: 'สถานะรหัสเดิม'},
+    'ชื่อกลาง': {1: 'ชื่อย่านกลาง', 2: 'จังหวัด', 3: 'ที่มาของชื่อ', 7: 'บทบาทที่เสนอจากหลักฐาน', 9: 'รหัสย่านใช้งานปัจจุบัน',
+                 10: 'ชื่อย่านใช้งานปัจจุบัน', 11: 'สถานะรหัสเดิม'},
     'หลักฐานบทบาท': {0: 'รหัสย่านกลาง', 3: 'บทบาทย่าน', 4: 'สถานะ'},
 }
 
@@ -465,6 +469,9 @@ def main():
     ap.add_argument('--admitted', default='', help='read-back of the lodging areas the registry admitted (0.2.1): {spec: [[hex, name, province, status, review]], blockSha}')
     ap.add_argument('--admitted-on', default='2026-11-18')
     ap.add_argument('--outline-amendments', default='', help='owner amendments of registry outlines (0.2.4): amendments/outline-amendments.geojson')
+    ap.add_argument('--screen', default='', help="(0.5.0) outlines the owner's rule drew for the commercial screen's codes: amendments/outline-new-<date>.geojson")
+    ap.add_argument('--screen-on', default='2026-11-26')
+    ap.add_argument('--screen-hold', default='', help='comma-separated codes of the commercial screen held until the owner decides (neither drawn nor listed)')
     a = ap.parse_args()
 
     canon_path = os.path.join(a.bundle, 'national-gis', 'canonical-boundaries.geojson')
@@ -622,6 +629,59 @@ def main():
         }
     if deferred:
         sys.exit(f"{deferred[0]['properties']['canonical_id']}: no outline of that code to amend (a lodging draft's needs --lodging)")
+    # ----- (0.5.0) the registry's commercial screen: the codes it admitted on 2026-11-25 and 26 (tab ชื่อกลาง, name source
+    # SCREEN_NAME_SOURCE; owner 2026-11-25 01:04 “ใช้ 3 กองเลย …”), with the outlines the owner's rule drew from each code's
+    # reference point (owner 2026-11-26 06:09 “ลุยตามพี่แนะนำเลยครับทุกข้อ”; scripts/rule-outlines.py new). An outline the rule
+    # drew within 1 km of its seed is a neighbourhood of this demo (kind 'screen', drawn dotted, counted like the others);
+    # a code with no outline yet (no buildings reached, a city's fabric, waiting for the owner's tick or his word) is
+    # searchable only, like the registry's held codes.
+    scr_pending, scr_meta, scr_codes = [], None, []
+    if a.screen:
+        sc = json.load(open(a.screen, encoding='utf-8'))
+        _, central_ = registry_tables(a.registry)('ชื่อกลาง')
+        scr_codes = [(str(r[0]), str(r[1]), str(r[2]), str(r[7])) for r in central_ if str(r[3]).strip() == SCREEN_NAME_SOURCE and str(r[0]).startswith('CMN-TH-')]
+        drawn_ = {f['properties']['canonical_id']: f for f in sc['features']}
+        known = {f['properties']['canonical_id'] for f in feats} | set(admit.values())
+        clash = [c_ for c_, *_ in scr_codes if c_ in known]
+        if clash:
+            sys.exit(f'{clash[0]}: a code of the commercial screen is already a code of the bundle or of the lodging screen')
+        stray = [k for k in drawn_ if k not in {c_ for c_, *_ in scr_codes}]
+        if stray:
+            sys.exit(f'{stray[0]}: an outline of {a.screen} has no row of the commercial screen in the registry')
+        held_owner = set(a.screen_hold.split(',')) if a.screen_hold else set()
+        tally = Counter()
+        for code, name, prov_th, role_th in scr_codes:
+            f = drawn_.get(code)
+            if code in held_owner:
+                tally['heldOwner'] += 1
+                continue
+            if f is not None and f['properties']['status'] == 'apply':
+                if f['properties']['name_th'] and f['properties']['name_th'] != name:
+                    sys.exit(f'{code}: the outline file names it {f["properties"]["name_th"]!r}, the registry {name!r}')
+                geom = shape(f['geometry'])
+                for g in closed:
+                    both = shape(g['geometry']).intersection(geom)
+                    if not both.is_empty and utm_area(both) >= 0.1:
+                        sys.exit(f"{code}: the drawn outline overlaps {g['properties']['canonical_id']}")
+                closed.append({'type': 'Feature', 'geometry': f['geometry'], 'properties': {
+                    'canonical_id': code, 'name_th': name, 'area_m2': utm_area(geom),
+                    'neighbourhood_reference_point': f['properties']['reference_point'], 'source_province_codes': [],
+                    'name_status': 'draft_pending_local_name_validation', 'field_verified': False, '_kind': 'screen',
+                    '_screen': {'on': f['properties']['outlined_on'], 'reachM': f['properties']['reach_m'], 'role': role_th}}})
+                tally['drawn'] += 1
+            else:
+                why = (f['properties']['status'] if f is not None else 'none')
+                tally['review' if why == 'review' else 'undrawn'] += 1
+                scr_pending.append((code, name, prov_th, 'review' if why == 'review' else 'undrawn', role_th))
+        scr_meta = {
+            'title': 'ผลคัดย่านการค้า', 'titleEn': 'Commercial neighbourhood screen',
+            'source': f'ทะเบียนย่านกลาง CityMETER: แท็บ «{REGISTRY_TAB_READ.get("ชื่อกลาง", "ชื่อกลาง")}» แถวที่มาของชื่อ “{SCREEN_NAME_SOURCE}”',
+            'admitted': len(scr_codes), 'admittedOn': ['2026-11-25', '2026-11-26'], 'drawn': tally['drawn'], 'review': tally['review'],
+            'undrawn': tally['undrawn'], 'heldOwner': tally['heldOwner'], 'outlinedOn': a.screen_on,
+            'outlines': {'file': os.path.relpath(a.screen), 'sha256': sha256_file(a.screen), 'drawing': sc.get('drawing')},
+            'reviewM': 1000,
+        }
+        print(f"screen            admitted={len(scr_codes)} drawn={tally['drawn']} review={tally['review']} undrawn={tally['undrawn']} heldOwner={tally['heldOwner']}", file=sys.stderr)
     polys = [shape(f['geometry']) for f in closed]
     prepared = [prep(p) for p in polys]
     tree = STRtree(polys)
@@ -789,8 +849,12 @@ def main():
             'hl': [{**{k: v for k, v in h.items() if k not in ('p', '_sh')}, 'p': round(h['p'], 3)} for h in hls],
             'pairs': together,
         }
-        if pr['_kind'] == 'lodging' or (prev_closed and pr['canonical_id'] not in prev_closed):
-            row['added'] = True  # first drawn in this data release (0.2.0)
+        if pr['_kind'] in ('lodging', 'screen') or (prev_closed and pr['canonical_id'] not in prev_closed):
+            row['added'] = True  # first drawn in this data release (0.2.0; the commercial screen's 0.5.0)
+        if pr['_kind'] == 'screen':
+            row['screen'] = {'on': pr['_screen']['on'], 'reachM': pr['_screen']['reachM']}
+            if not row['roles']:  # the roles the registry proposed for the code (ชื่อกลาง, “บทบาทที่เสนอจากหลักฐาน”, joined by ' · ')
+                row['roles'] = [role_th_to_id[th] for th in (s_.strip() for s_ in pr['_screen']['role'].split('·')) if th in role_th_to_id]
         if pr['canonical_id'] in lodging:
             row['lodging'] = lodging[pr['canonical_id']]
         out_rows.append(row)
@@ -812,6 +876,9 @@ def main():
         # (0.2.1) admitted by the registry: a held code (no closed outline), like the registry's own held codes
         pend.append({'id': gid, 'name': name, 'province': (province_of(*xy) if xy else '') or by_name.get(pname, ''),
                      'status': 'held' if admit else 'lodging', 'screen': 'lodging', 'related': [], 'lodging': lodging[gid]})
+    # (0.5.0) the commercial screen's codes without an outline yet: searchable, never counted
+    for code, name, prov_th, wait, role_th in sorted(scr_pending):
+        pend.append({'id': code, 'name': name, 'province': by_name.get(prov_th, ''), 'status': 'held', 'screen': 'commercial', 'wait': wait, 'related': []})
 
     # ----- display outlines: simplified with shared edges kept (mapshaper), 6 decimals
     with tempfile.TemporaryDirectory() as tmp:
@@ -892,13 +959,17 @@ def main():
         print(f"condo             shown={tally['shown']:>6} held={tally['held']:>4} noPoint={tally['noPoint']:>4} cells={len(condo_cells):>4}", file=sys.stderr)
 
     totals = {
-        'closed': n_registry, 'lodgingDrawn': len(closed) - n_registry, 'outlined': len(closed),
+        'closed': n_registry, 'lodgingDrawn': sum(1 for f in closed if f['properties']['_kind'] == 'lodging'), 'outlined': len(closed),
         'held': sum(1 for p in pend if p['status'] == 'held'), 'collections': sum(1 for p in pend if p['status'] == 'collection'),
         'lodgingUndrawn': sum(1 for p in pend if p.get('screen') == 'lodging'), 'added': sum(1 for r in out_rows if r.get('added')),
         'addedRegistry': sum(1 for r in out_rows if r.get('added') and r['kind'] == 'registry'),
-        'codes': len(feats) + len(admit), 'admitted': len(admit), 'areaKm2': round(sum(area) / 1e6, 2), 'provinces': len(set(nprov)),
+        'screenDrawn': sum(1 for f in closed if f['properties']['_kind'] == 'screen'), 'screenUndrawn': len(scr_pending),
+        'screenHeld': sum(1 for c_, *_ in scr_codes if c_ in (set(a.screen_hold.split(',')) if a.screen_hold else set())),
+        'codes': len(feats) + len(admit) + len(scr_codes), 'admitted': len(admit), 'areaKm2': round(sum(area) / 1e6, 2), 'provinces': len(set(nprov)),
         'thailandKm2': round(sum(f['properties']['areaSqm'] for f in prov['features']) / 1e6, 1), 'insidePoints': len(inside_points),
     }
+    if totals['closed'] + totals['lodgingDrawn'] + totals['screenDrawn'] + totals['held'] + totals['collections'] + totals['screenHeld'] != totals['codes']:
+        sys.exit(f'totals do not add up: {totals}')
     meta = {
         'dataset': 'CityMETER Commercial District', 'datasetTh': 'ย่านกลางและสิ่งที่อยู่ในย่าน', 'builtOn': date.today().isoformat(),
         # Owner 2026-11-16: the registry's internal working fields (field questions, source ids, merge notes, outline
@@ -917,6 +988,8 @@ def main():
         'records': {'dir': 'records', 'fields': REC_FIELDS},
         'condo': condo_meta,
         'lodging': lod_meta,
+        # (0.5.0) the registry's commercial screen: codes admitted 2026-11-25 and 26, outlines drawn by the owner's rule
+        'screen': scr_meta,
         # (0.2.4) owner amendments of registry outlines, until the registry's next release carries them
         'amendments': {'file': 'amendments/outline-amendments.geojson', 'sha256': sha256_file(a.outline_amendments), 'items': amendments} if amendments else None,
         'added': {'since': 'ข้อมูลรุ่น 16 พ.ย. 2569 (343 ขอบปิด)', 'sinceEn': 'the data of 16 Nov 2026 (343 closed outlines)'} if prev_closed else None,

@@ -307,6 +307,154 @@ def cmd_amend(a):
             print(k, v, file=sys.stderr)
 
 
+SEED_M = 8  # (0.5.0) a new code has no outline to grow from: the drawing starts from a 24-gon of 8 m round its reference point
+#             (about one grid cell of 0.0001°), so an outline is the buildings the rule reaches, never the seed's own shape
+WIDE_M = 40  # where that reaches no building, a second drawing from a 24-gon of 40 m (buildings 45 to about 85 m away) …
+WIDE_MIN = 2.5  # … is used only when its outline is at least 2.5 times that seed: never a circle with a building or two
+REVIEW_M = 1000  # owner 2026-11-24 15:00 (“ให้ผมติ๊กรายย่าน”): an outline reaching more than 1 km waits for his tick
+
+
+def seed_polygon(lat, lon, radius=None):
+    """The seed the page drew a new code from, vertex for vertex (the same formula and rounding as the page's)."""
+    import math
+    from shapely.geometry import Polygon
+    ky, kx = 1 / 111320, 1 / (111320 * math.cos(lat * math.pi / 180))
+    ring = []
+    for k in range(24):
+        t = 2 * math.pi * k / 24
+        r_ = SEED_M if radius is None else radius
+        ring.append((round(lon + r_ * kx * math.cos(t), 7), round(lat + r_ * ky * math.sin(t), 7)))
+    return Polygon(ring)
+
+
+def cmd_new(a):
+    """(0.5.0) Outlines for the codes the registry admitted from its commercial screen (owner 2026-11-26 06:09, “ลุยตามพี่
+    แนะนำเลยครับทุกข้อ”, on “วาดขอบ … ย่านใหม่ตามหลักเกณฑ์ของพี่”): the owner's rule of 2026-11-24 drawn from a seed round each
+    code's reference point, every outline the build already draws left out, one drawing per shared area (the first new code
+    of it in the registry's order), and the reach that he ticks himself beyond 1 km."""
+    import os
+    from shapely.geometry import shape, mapping, MultiPolygon, Polygon
+    from shapely.ops import unary_union, transform
+    from shapely.validation import make_valid
+    places, meta = load_places(a.exports)
+    wide, wide_meta = load_places([a.wide]) if a.wide else ({}, {})
+    seeds = json.load(open(a.seeds, encoding='utf-8'))
+    seeds_sha = hashlib.sha256(json.dumps(seeds, ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
+    if a.seeds_sha and not (len(a.seeds_sha) >= 16 and seeds_sha.startswith(a.seeds_sha)):  # the page reports 16 hex digits
+        sys.exit(f'the seeds are not the list the page drew from: {seeds_sha} ≠ {a.seeds_sha}')
+    info = {s['code']: s for s in json.load(open(a.info, encoding='utf-8'))} if a.info else {}
+    rows = {r['id']: r for r in json.load(open(a.rows, encoding='utf-8'))['rows']}
+    canon = json.load(open(os.path.join(a.bundle, 'national-gis', 'canonical-boundaries.geojson'), encoding='utf-8'))
+    base = {f['properties']['canonical_id']: f['geometry'] for f in canon['features'] if f['geometry']}
+    drafts = json.load(open(os.path.join(a.lodging, 'boundaries', 'current-all268-review-drafts.geojson'), encoding='utf-8'))['features']
+    for d in drafts:
+        code = 'CMN-TH-' + d['properties']['proposal_group_id'].removeprefix('LP-NEW-')
+        if code in rows and rows[code]['kind'] == 'lodging':
+            base[code] = d['geometry']
+    def poly(g):
+        v = make_valid(shape(g))
+        ps = [p for p in getattr(v, 'geoms', [v]) if isinstance(p, (Polygon, MultiPolygon))]
+        return v if isinstance(v, (Polygon, MultiPolygon)) else unary_union(ps)
+    cur = {k: poly(g) for k, g in base.items()}
+    for f in json.load(open(a.amendments, encoding='utf-8'))['features']:  # every outline as the build draws it
+        cur[f['properties']['canonical_id']] = poly(f['geometry'])
+    missing = [k for k in rows if k not in cur]
+    if missing:
+        sys.exit(f'{len(missing)} outlines of the demo are not in the inputs, e.g. {missing[:3]}')
+    order = [s[0] for s in seeds]
+    new_set, held = set(order), set(a.hold.split(',')) if a.hold else set()
+    if set(places) != new_set or (wide and set(wide) != new_set):
+        sys.exit(f'the drawings hold {len(places)} and {len(wide)} places, the seeds {len(new_set)}')
+    # the point-seeded drawing first; the wide one only for a code it left unchanged (no building within reach of the point)
+    wide_area = utm_area(seed_polygon(13.75, 100.5, WIDE_M))
+    use_wide = set()
+    for pid in order:
+        if classify(places[pid]) == 'unchanged' and pid in wide and classify(wide[pid]) in ('clean', 'split') \
+                and wide[pid]['check']['areaM2'] >= WIDE_MIN * wide_area:
+            use_wide.add(pid)
+    assigned = {}
+    for source, pids in (('point', order), ('wide', [p_ for p_ in order if p_ in use_wide])):
+        for pid in pids:
+            pl = places[pid] if source == 'point' else wide[pid]
+            if classify(pl) not in ('clean', 'split') or pid in assigned:
+                continue
+            for k, rings in ({pid: pl['rings']} if classify(pl) == 'clean' else pl['shares']).items():
+                # an existing neighbour's share is never taken (its outline stays as the build draws it); a new code
+                # takes a share of the wide drawing only when the point drawing left it unchanged
+                if k in new_set and (source == 'point' or k in use_wide or classify(places[k]) == 'unchanged'):
+                    assigned.setdefault(k, (pl['grid'], rings, pid, source))
+    tree_ids = list(cur)
+    feats, report = [], []
+    for code, lat, lon in seeds:
+        pl, seed = places[code], seed_polygon(lat, lon)
+        c = pl['check']
+        rec = {'id': code, 'class': classify(pl), 'reachM': c['reachM'], 'fill': c['fill'], 'osmBuildings': c['osmBuildings'],
+               'sharers': c['sharers'], 'inside': [k for k in tree_ids if k not in new_set and cur[k].intersects(seed)]}
+        if code in wide:
+            cw = wide[code]['check']
+            rec['wide'] = {'class': classify(wide[code]), 'areaM2': round(cw['areaM2']), 'osmBuildings': cw['osmBuildings'], 'used': code in use_wide}
+        if code not in assigned:
+            st = {'city': 'city', 'runs-on': 'runs-on'}.get(rec['class'])
+            if st is None and rec.get('wide', {}).get('class') in ('city', 'runs-on'):
+                st = rec['wide']['class']
+            if st is None and rec.get('wide', {}).get('class') in ('clean', 'split'):
+                st = 'few-buildings'  # the wide drawing grew, but under WIDE_MIN times its seed
+            rec['status'] = st or 'no-buildings'
+            report.append(rec)
+            continue
+        grid, rings, by, source = assigned[code]
+        if source == 'wide':
+            seed = seed_polygon(lat, lon, WIDE_M)
+        drawn = smooth(decode_rings(rings, grid))
+        near = [cur[k] for k in cur if k != code and cur[k].intersects(drawn.buffer(0.001))]
+        new = drawn.difference(unary_union(near)) if near else drawn
+        new = make_valid(new)
+        parts = [p for p in getattr(new, 'geoms', [new]) if isinstance(p, Polygon) and (p.intersects(seed) or utm_area(p) >= CRUMB_M2)]
+        if not parts:
+            rec['status'] = 'covered'
+            report.append(rec)
+            continue
+        new = parts[0] if len(parts) == 1 else MultiPolygon(parts)
+        fwd = utm(new)[0]
+        reach = round(transform(fwd, new).hausdorff_distance(transform(fwd, seed_polygon(lat, lon))))  # from the point's own seed
+        status = 'held' if code in held else 'apply' if reach <= REVIEW_M else 'review'
+        rec.update({'status': status, 'drawnWith': by, 'seedM': WIDE_M if source == 'wide' else SEED_M, 'areaM2': round(utm_area(new), 2),
+                    'reachSeedM': reach, 'parts': len(parts)})
+        report.append(rec)
+        for g in near:
+            both = g.intersection(new)
+            assert both.is_empty or utm_area(both) < 0.1, f'{code} overlaps an outline'
+        cur[code] = new  # held or waiting, it keeps its ground: a later code never takes it
+        tree_ids.append(code)
+        x = info.get(code, {})
+        opts = (wide if source == 'wide' else places)[by].get('opts') or {}
+        words = rule_words(opts.get('lightLanduse') or [])
+        feats.append({'type': 'Feature', 'geometry': mapping(new), 'properties': {
+            'canonical_id': code, 'name_th': x.get('name', ''), 'province_th': x.get('province', ''), 'district_th': x.get('district', ''),
+            'reference_point': [lon, lat], 'drawn_on': meta['drawnOn'], 'outlined_on': a.on, 'by': 'owner', 'owner_words_th': OWNER_TH,
+            'status': status, 'area_m2': rec['areaM2'], 'reach_m': reach, 'metric_crs': 'EPSG:32647' if new.centroid.x < 102 else 'EPSG:32648',
+            'seed': {'shape': '24-gon', 'radius_m': WIDE_M if source == 'wide' else SEED_M, 'centre': 'the registry\'s reference point (05_REVIEW_QUEUE, column จุดอ้างอิงย่าน)'},
+            'rules': ['BUILDINGS', 'DARK-GROUND'] + (['HALFWAY'] if by != code or c['sharers'] else []),
+            'osm': f"OpenFreeMap planet {meta['tilesBuild']} (OpenMapTiles schema, zoom 14) as the demo's basemap draws it, © OpenStreetMap contributors, ODbL 1.0",
+            'method': f"scripts/draw-outline-rule.browser.js in the demo on {(wide_meta if source == 'wide' else meta)['drawnOn']} (drawn with {by}), seeded at the reference point ({WIDE_M if source == 'wide' else SEED_M} m); "
+                      f"scripts/rule-outlines.py new: steps rounded (closing {SMOOTH_M} m within {REACH_M} m), simplified {SIMPLIFY_M} m, every other outline left out",
+            'rule': {'name': RULE['name'], 'th': words[0], 'en': words[1], 'drawnWith': by, 'shared': bool(by != code or c['sharers']),
+                     **({'lightLanduse': opts['lightLanduse']} if opts.get('lightLanduse') else {})},
+            'status_th': 'ขอบวาดตามหลักที่เจ้าของกำหนดจากจุดอ้างอิงของผลคัดย่านการค้า รอทะเบียนรับในรุ่นถัดไป',
+            'status_en': "drawn by the owner's rule from the commercial screen's reference point, awaiting the registry's next release"}})
+    out = {'type': 'FeatureCollection', 'drawing': {'drawnOn': meta['drawnOn'], 'tilesBuild': meta['tilesBuild'], 'seedsSha256': seeds_sha,
+           'seedM': SEED_M, 'wideSeedM': WIDE_M if a.wide else None, 'wideMin': WIDE_MIN if a.wide else None,
+           'exports': [{'file': os.path.basename(p), 'sha256': hashlib.sha256(open(p, 'rb').read()).hexdigest(), 'seedM': SEED_M} for p in a.exports]
+                      + ([{'file': os.path.basename(a.wide), 'sha256': hashlib.sha256(open(a.wide, 'rb').read()).hexdigest(), 'seedM': WIDE_M}] if a.wide else [])},
+           'features': feats}
+    open(a.out, 'w', encoding='utf-8').write(json.dumps(out, ensure_ascii=False, separators=(',', ':')) + '\n')
+    json.dump(report, open(a.report, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    tally = defaultdict(int)
+    for r in report:
+        tally[r['status']] += 1
+    print(json.dumps(dict(tally)), f'{len(feats)} outlines', file=sys.stderr)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest='cmd', required=True)
@@ -330,10 +478,24 @@ def main():
     m.add_argument('--only', default='', help='comma-separated codes to amend (default: every clean or split one)')
     m.add_argument('--skip', default='', help='comma-separated codes to leave as drawn by the registry')
     m.add_argument('--choices', default='', help="the owner's picks: amendments/outline-rule-choices-<date>.json (apply, applyTicked, applyNoted, trimArms)")
+    n = sub.add_parser('new', help="(0.5.0) outlines for the commercial screen's new codes, drawn from seeds at their reference points")
+    n.add_argument('exports', nargs='+')
+    n.add_argument('--seeds', required=True, help='the [code, lat, lon] list the page drew from, in the registry\'s order')
+    n.add_argument('--wide', default='', help='the drawing seeded with WIDE_M round the same points (used where the point drawing reached no building)')
+    n.add_argument('--seeds-sha', default='', help='the SHA-256 the page reported for that list')
+    n.add_argument('--info', default='', help='names, provinces and districts of the codes (a private read of the registry, never committed)')
+    n.add_argument('--rows', default='data/neighborhoods.json')
+    n.add_argument('--bundle', required=True)
+    n.add_argument('--lodging', required=True)
+    n.add_argument('--amendments', default='amendments/outline-amendments.geojson')
+    n.add_argument('--hold', default='', help='comma-separated codes drawn but held on the owner\'s word')
+    n.add_argument('--on', required=True)
+    n.add_argument('--out', required=True)
+    n.add_argument('--report', required=True)
     a = ap.parse_args()
     if a.cmd == 'amend' and not a.display and not (a.bundle and a.lodging):
         sys.exit('amend needs --bundle and --lodging (or --display for a preview)')
-    {'decode': cmd_decode, 'review': cmd_review, 'amend': cmd_amend}[a.cmd](a)
+    {'decode': cmd_decode, 'review': cmd_review, 'amend': cmd_amend, 'new': cmd_new}[a.cmd](a)
 
 
 if __name__ == '__main__':

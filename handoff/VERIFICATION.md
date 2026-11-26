@@ -1,5 +1,22 @@
 # CityMETER Commercial District — verification
 
+## Release 0.5.0 — 26 พ.ย. 2569
+
+Owner 2026-11-26 06:09 ICT, VERBATIM: “ลุยตามพี่แนะนำเลยครับทุกข้อ” — Claude's four next steps: check the names of round 9 against Google Maps (read only), draw the outlines of the 228 new codes by his rule, make the Yolk import pack, update the web and merge pull request #25 once it reads the renamed tabs. Pull request #25 merged first (`d4393a0`). This release: branch `release-0.5.0-screen-areas` from `d4393a0`.
+
+### Drawing (ICT, 2026-11-26)
+
+- Where: the live demo on montri-th.github.io in the owner's Chrome through Claude in Chrome, `scripts/draw-outline-rule.browser.js` already in the page from the 24 Nov work (the tiles of OpenFreeMap build `20261122_124456_pt`), the 228 seeds appended after the 395 cores; seed list SHA-256 `51e04360…693f` (the page's 16 digits and the container's file agree).
+- Drawing with 40 m seeds: 06:20–06:40, 228 places, 0 errors (20.2 min); export 118,493 bytes, SHA-256 `759ad29a…18fb`. Drawing with 8 m seeds: 07:00–07:14, 228 places, 0 errors (14.1 min); export 111,748 bytes, SHA-256 `2dc47d3f…0cbd`. Each carried out of the page byte for byte (gzip and base64 in 3,000-character slices, every slice's SHA-256 compared with the page's), both in `amendments/`.
+- Basemap check: at ตลาดแม่กลอง (an unchanged place) the page's tile cache held the z14 tiles with water and land use loaded and 1 to 12 building features each; at สยาม the tile holds 149: the places left without an outline lack OpenStreetMap buildings, the tiles did load.
+- `scripts/rule-outlines.py new`: 56 apply (44 from the 8 m seed, 12 from the 40 m one), 17 review (over 1 km), 134 without a building, 8 with too few (the 40 m outline under 2.5 times its circle), 8 city, 5 run on; every reference point inside its outline; no overlap.
+
+### Local
+
+- Build: `scripts/build-data.py` with the registry export of 2026-11-26 (SHA-256 in `meta.registry`), the bundle as before, `--screen amendments/outline-new-2026-11-26.geojson`: 451 outlines; the counts inside the 395 earlier outlines are unchanged (`c`, `m`, `s` and areas equal to 0.4.1 row by row); ranks and highlights move with the larger universe. `scripts/build-around.py`: the reference set of 0.4.0 kept (its SHA-256 checked), 5,533 cells; rebuilt from 0.4.1's data first, it gave 0.4.1's `data/around.json` and 395 ring files byte for byte except the release field and the reference-set note.
+- `npm test` 191: 191 pass, 0 fail (184 + 7 in `tests/screen.test.js`).
+- `node scripts/check-lds-parity.mjs --lds Landometer-Design-System-v0.9.7.md` (SHA-256 `d3085cbc…2d96`): 130 ok, 0 failed.
+
 ## Release 0.4.1 — 25 พ.ย. 2569
 
 Owner 2026-11-25 23:01 ICT, VERBATIM: “ทำตามที่พี่เสนอเลยครับ” — Claude's table of 22:21: centre pins on top (D-11), «ขอบเดินถึง» and the service area for round 2 (D-10), pull request #27 first. Pull request #28, head `4088074`, stacked on pull request #27.
