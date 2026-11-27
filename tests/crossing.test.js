@@ -23,6 +23,8 @@ const ctx = model => ({meta: model.meta, datasetCount: model.datasets.length});
 test('the people, residents and around files were built with one rule, on the pinned OpenStreetMap file', () => {
   const pm = readJSON('data/people/meta.json');
   const am = readJSON('data/around.json').meta;
+  // the «ขอบเดินถึง» provenance line names the release of the counts it shows (review 2026-11-27: it read 0.6.1)
+  assert.equal(am.release, readJSON('package.json').version);
   for (const [what, c] of [['people', pm.crossing], ['around', am.crossing], ['residents', pm.residents?.crossing]]) {
     assert.ok(c, `${what}: meta.crossing`);
     assert.equal(c.osm.sha256, OSM_SHA256, `${what}: D-14, the Shopping Center page's file`);
@@ -35,12 +37,12 @@ test('the people, residents and around files were built with one rule, on the pi
   assert.equal(pm.crossing.cacheSha256, pm.residents.crossing.cacheSha256, 'people and residents read the same rivers');
   assert.equal(pm.crossing.kinds, am.crossing.kinds);
   assert.equal(pm.crossing.kinds, pm.residents.crossing.kinds);
-  assert.ok(pm.crossing.neighbourhoods.riverWithin5km > 0 && pm.crossing.neighbourhoods.figuresChanged > 0);
+  assert.ok(pm.crossing.neighbourhoods.acrossInMap > 0 && pm.crossing.neighbourhoods.figuresChanged > 0);
   assert.ok(am.crossing.datasetCountsMoved > 0);
   assert.match(am.crossing.owner, /คิดด้วย/);
 });
 
-test('every river record of a map is well formed, and band 4 is only a cell beyond 5 km through the crossings', () => {
+test('every river record of a map is well formed, and band 4 is exactly a cell within 5 km in a straight line and beyond it through the crossings', () => {
   const {model} = load();
   let withX = 0;
   for (const r of model.rows) {
@@ -48,15 +50,25 @@ test('every river record of a map is well formed, and band 4 is only a cell beyo
     const x = p.map.x;
     const {w, h} = p.map.cell;
     for (const tab of ['visit', 'work', 'res']) {
-      const four = (p.map[tab] || []).filter(c => c[2] === 4);
+      const cells = p.map[tab] || [];
+      const four = cells.filter(c => c[2] === 4);
       if (!x) { assert.equal(four.length, 0, `${r.id} ${tab}: band 4 without a river record`); continue; }
-      const across = new Map(x.k);
-      for (const [k] of four) assert.ok(across.has(k) && (across.get(k) < 0 || across.get(k) >= 500), `${r.id} ${tab} ${k}`);
+      const across = new Map(x.k.map(([k, d10, s10]) => [k, [d10, s10]]));
+      // band 4 ⇔ across, within 5 km in a straight line and beyond it through the crossings — the hatch's own test at 5 km
+      // (review 2026-11-27: one rounded test for both; a rim cell past 5 km in a straight line stays band 3)
+      for (const [k, , band] of cells) {
+        const a = across.get(k);
+        const hatched = Boolean(a) && (a[0] < 0 || a[0] > 500) && a[1] <= 500;
+        assert.equal(band === 4, hatched, `${r.id} ${tab} ${k}: band ${band}, across ${JSON.stringify(a)}`);
+      }
     }
     if (!x) continue;
     withX++;
     assert.ok(x.k.length > 0, r.id);
-    for (const [k, d10] of x.k) assert.ok(Number.isInteger(k) && k >= 0 && k < w * h && Number.isInteger(d10) && d10 >= -1, `${r.id} ${k}`);
+    for (const [k, d10, s10] of x.k) {
+      assert.ok(Number.isInteger(k) && k >= 0 && k < w * h && Number.isInteger(d10) && d10 >= -1 && Number.isInteger(s10) && s10 >= 0, `${r.id} ${k}`);
+      if (d10 >= 0) assert.ok(d10 >= s10, `${r.id} ${k}: never nearer than the straight line`);
+    }
     assert.ok(x.c.length <= 12, r.id);
     let last = -1;
     for (const c of x.c) {
@@ -66,6 +78,10 @@ test('every river record of a map is well formed, and band 4 is only a cell beyo
       last = c[5];
     }
     for (const [th, en] of x.r) assert.ok(th || en, r.id);
+    // one entry per river (review 2026-11-27: the Noi River listed twice, once without its Thai name)
+    const ths = x.r.map(([th]) => th).filter(Boolean), ens = x.r.map(([, en]) => en).filter(Boolean);
+    assert.equal(new Set(ths).size, ths.length, `${r.id}: a river twice by its Thai name`);
+    assert.equal(new Set(ens).size, ens.length, `${r.id}: a river twice by its English name`);
     for (const v of Object.values(x.a || {})) assert.ok(v >= 0 && v <= 100, r.id);
     for (const [i, share] of Object.values(x.u || {})) assert.ok(i >= -1 && i < x.c.length && share >= 0 && share <= 100, r.id);
   }
@@ -107,9 +123,14 @@ test('ปุณณวิถี: the river line names the Chao Phraya and the fer
   // inside: no river line (a distance from the edge is not read)
   const htmlIn = at('in');
   assert.ok(!/people-river/.test(htmlIn.slice(htmlIn.indexOf('id="nb-people"'), htmlIn.indexOf('id="nb-map"'))));
-  // the hatch follows the distance the tiles read: more cells beyond 1 km than beyond 5 km
+  // the hatch follows the distance the tiles read: a cell within it in a straight line and beyond it through the crossings
+  // (review 2026-11-27: a cell already beyond it in a straight line is not the river's doing and stays plain)
   const count = d_ => (d_.match(/h10v10h-10z/g) || []).length;
-  assert.ok(count(crossOutPath(p.map, '1000')) > count(crossOutPath(p.map, '5000')));
+  for (const R of [1000, 3000, 5000]) {
+    const expected = p.map.x.k.filter(([, d10, s10]) => s10 * 10 <= R && (d10 < 0 || d10 * 10 > R)).length;
+    assert.equal(count(crossOutPath(p.map, String(R))), expected, `${R}`);
+  }
+  assert.ok(count(crossOutPath(p.map, '5000')) > 0, 'Bang Krachao has cells within 5 km in a straight line and beyond it through the crossings');
   assert.equal(crossOutPath(p.map, 'in'), crossOutPath(p.map, '5000'), 'inside reads the map’s own 5 km');
   const map5 = html5.slice(html5.indexOf('id="nb-map"'));
   assert.match(map5, /class="pm-cross-out"/);
@@ -157,4 +178,22 @@ test('a crossing in words: its own name, else the road it carries, else the kind
   assert.deepEqual(crossingWords([0, 0, 'bridge', 'สะพานพระราม 8', 'Rama VIII Bridge']), ['สะพานพระราม 8', 'Rama VIII Bridge']);
   assert.deepEqual(crossingWords([0, 0, 'foot', '', '']), ['สะพานคนเดิน', 'a footbridge']);
   assert.deepEqual(REACHES, ['in', '1000', '3000', '5000']);
+});
+
+test('the river line names every river it lists, on the Thai page too (a river OpenStreetMap names only in English)', () => {
+  const {model} = load();
+  const around = decodeAround(readJSON('data/around.json'));
+  const meta = readJSON('data/people/meta.json');
+  let lines = 0;
+  for (const r of model.rows) {
+    const p = readJSON(`data/people/${r.id}.json`);
+    if (!p.map?.x) continue;
+    const html = renderNeighborhood(buildNeighborhood(model, r), model, {ctx: ctx(model), around, people: p, peopleMeta: meta, reach: '5000', mapTab: 'res'});
+    const m = /<p class="people-river">([\s\S]*?)<\/p>/.exec(html);
+    if (!m) continue;
+    lines++;
+    const t = text(m[1]);
+    assert.doesNotMatch(t, /อีกฝั่ง\s*(และ|\d)|และ\s*\d/, `${r.id}: a river without a name: ${t}`);
+  }
+  assert.ok(lines > 100, `${lines} river lines`);
 });

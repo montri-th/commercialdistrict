@@ -180,6 +180,8 @@ const kmWords = m => L(`${num(m / 1000)} กม.`, `${num(m / 1000)} km`);
 const metreWords = m => (m < 1000 ? L(`${num(Math.round(m / 10) * 10)} ม.`, `${num(Math.round(m / 10) * 10)} m`)
   : L(`${one(Math.round(m / 100) / 10)} กม.`, `${one(Math.round(m / 100) / 10)} km`));
 const shareWords = v => (v >= 10 ? num(Math.round(v)) : one(Math.round(v * 10) / 10));
+/** How far a crossing is from the edge: “ที่ขอบย่าน” when the edge reaches it (a bridge the outline runs onto), else metres. */
+const edgeWords = m => (m < 10 ? L('ที่ขอบย่าน', 'at the edge') : metreWords(m));
 
 /**
  * A crossing in words [th, en] — the Shopping Center page's crossingName (js/venue-locale.js): a ferry or a metro line by
@@ -211,7 +213,9 @@ function crossingHTML(c) {
   const m = /^(the \w+ of )(.*)$/.exec(text);
   return m ? `${esc(m[1])}<span class="place-name">${esc(m[2])}</span>` : `<span class="place-name">${esc(text)}</span>`;
 }
-const riverNameHTML = ([th, en]) => (EN && !en ? `<span class="place-name">${esc(th)}</span>` : `<span class="place-name">${esc(L(th, `the ${en}`))}</span>`);
+const riverNameHTML = ([th, en]) => (EN
+  ? (en ? `<span class="place-name">${esc(`the ${en}`)}</span>` : `<span class="place-name">${esc(th)}</span>`)
+  : (th ? `<span class="place-name">${esc(th)}</span>` : `<span class="place-name" lang="en">${esc(en)}</span>`));
 
 /**
  * The river under the tiles (0.7.5), as «รอบศูนย์นี้» writes it: who lives across a river within the distance (a share of
@@ -231,7 +235,7 @@ export function riverHTML(rec, reach, meta) {
   if (rivers.length && share != null && share >= 1) {
     const names = rivers.map(riverNameHTML).join(esc(L(' และ', ' and ')));
     const head = `${esc(L('อีกฝั่ง', 'Across '))}${names}${EN ? ':' : ''}`;
-    const cross = nearest ? ` · ${esc(L(via ? 'วัดระยะผ่าน ' : 'ทางข้ามใกล้สุด ', via ? 'measured through ' : 'nearest crossing: '))}${crossingHTML(nearest)} ${nw(esc(`(${metreWords(nearest[5])})`))}` : '';
+    const cross = nearest ? ` · ${esc(L(via ? 'วัดระยะผ่าน ' : 'ทางข้ามใกล้สุด ', via ? 'measured through ' : 'nearest crossing: '))}${crossingHTML(nearest)} ${nw(esc(`(${edgeWords(nearest[5])})`))}` : '';
     note = `<p class="people-river">${pic('distance')}<span>${head} ${nw(esc(L(`${shareWords(share)}% ของคนอยู่ใน ${kmWords(+reach)}`, `${shareWords(share)}% of the residents within ${kmWords(+reach)}`)))}${cross}</span></p>`;
   }
   const s = rec.s?.[reach] || {}, st = rec.st?.[reach] || {};
@@ -246,7 +250,7 @@ export function riverHTML(rec, reach, meta) {
     const va = fmt(a), vb = fmt(b);
     return `<td class="data-number">${va === vb ? esc(va) : `<b>${esc(va)}</b>`}</td><td class="data-number">${esc(vb)}</td>`;
   };
-  const list = (x.c || []).slice(0, 3).map(c => `${crossingHTML(c)} ${nw(esc(`(${metreWords(c[5])})`))}`).join(' · ');
+  const list = (x.c || []).slice(0, 3).map(c => `${crossingHTML(c)} ${nw(esc(`(${edgeWords(c[5])})`))}`).join(' · ');
   const osm = meta?.crossing?.osm;
   const ferries = meta?.crossing?.kinds !== 'no-ferry';
   const fold = `<details class="scope-details people-cross"><summary>${esc(L('ข้ามแม่น้ำ: เทียบกับนับแบบเส้นตรง', 'Across the river: against the straight line'))}</summary>
@@ -256,8 +260,8 @@ export function riverHTML(rec, reach, meta) {
     <ul class="people-cross-method">
       <li>${esc(L('ฝั่งเดียวกับย่านวัดเส้นตรงจากขอบเหมือนเดิม คน อาคาร และสถานที่ที่อยู่อีกฝั่งแม่น้ำนับเมื่อระยะผ่านทางข้ามที่ใกล้ที่สุดอยู่ในระยะ (ขอบย่าน → ทางข้าม → จุด แต่ละช่วงเป็นเส้นตรง) กติกาเดียวกับหน้าศูนย์การค้า ไม่ใช่เวลาเดินหรือขับรถ',
         'On the neighbourhood’s bank the straight line from the edge as before; people, buildings and places across a river count when their distance through the nearest crossing is within the distance (edge → crossing → place, each leg a straight line) — the Shopping Center page’s rule, not walking or driving time'))}</li>
-      <li>${esc(ferries ? L('แม่น้ำ: ทางน้ำที่ OpenStreetMap ตั้งชื่อว่า “แม่น้ำ…” · ทางข้าม: สะพานและอุโมงค์ถนนทุกระดับ สะพานคนเดิน รถไฟฟ้า และเรือข้ามฟาก', 'Rivers: the waterways OpenStreetMap names as a river (Maenam …) · crossings: road bridges and tunnels of every class, footbridges, metro lines and cross-river ferries')
-        : L('แม่น้ำ: ทางน้ำที่ OpenStreetMap ตั้งชื่อว่า “แม่น้ำ…” · ทางข้าม: สะพานและอุโมงค์ถนนทุกระดับ สะพานคนเดิน และรถไฟฟ้า (ไม่นับเรือข้ามฟาก)', 'Rivers: the waterways OpenStreetMap names as a river (Maenam …) · crossings: road bridges and tunnels of every class, footbridges and metro lines (ferries not counted)'))}</li>
+      <li>${esc(ferries ? L('แม่น้ำ: ทางน้ำที่ OpenStreetMap ตั้งชื่อเป็นแม่น้ำ (“แม่น้ำ…” หรือชื่ออังกฤษ “… River”) · ทางข้าม: สะพานและอุโมงค์ถนนทุกระดับ สะพานคนเดิน ทางข้ามน้ำตื้น รถไฟฟ้า และเรือข้ามฟาก', 'Rivers: the waterways OpenStreetMap names as a river (Maenam …, or an English name “… River”) · crossings: road bridges and tunnels of every class, footbridges, fords, metro lines and cross-river ferries')
+        : L('แม่น้ำ: ทางน้ำที่ OpenStreetMap ตั้งชื่อเป็นแม่น้ำ (“แม่น้ำ…” หรือชื่ออังกฤษ “… River”) · ทางข้าม: สะพานและอุโมงค์ถนนทุกระดับ สะพานคนเดิน ทางข้ามน้ำตื้น และรถไฟฟ้า (ไม่นับเรือข้ามฟาก)', 'Rivers: the waterways OpenStreetMap names as a river (Maenam …, or an English name “… River”) · crossings: road bridges and tunnels of every class, footbridges, fords and metro lines (ferries not counted)'))}</li>
       ${list ? `<li>${esc(L('ทางข้ามที่ใกล้ขอบย่านที่สุด: ', 'Crossings nearest the edge: '))}${list}</li>` : ''}
       <li>${esc(L('ระดับเทียบคิดใหม่ทั้งชุดอ้างอิงด้วยกติกาเดียวกัน ย่านที่ไม่มีแม่น้ำใกล้จึงอาจเลื่อนระดับเล็กน้อย · แผนที่ยังวาดทุกช่องใน 5 กม. แบบเส้นตรง ช่องอีกฝั่งที่เกินระยะเมื่อนับผ่านทางข้ามเป็นลายเส้นทแยง',
         'Levels are recomputed for the whole reference set under the same rule, so a neighbourhood with no river near may move a little · the map still draws every cell within 5 km in a straight line; the cells across the river beyond the distance through a crossing are hatched'))}</li>
@@ -449,10 +453,11 @@ export function watchMapNames(root) {
 }
 
 /**
- * Under the rule (0.7.5): the cells across a river whose centre is beyond the distance through the crossings (or reached by
- * none) — hatched in the map's ink over their own colours, as «รอบศูนย์นี้» marks them — and the crossings within 5 km as
- * small diamonds in the ink and paper of the map's labels (never a data colour). `reach`: the distance the tiles read
- * (inside reads the map's own 5 km).
+ * Under the rule (0.7.5): the cells across a river whose centre is within the distance in a straight line but beyond it
+ * through the crossings (or reached by none) — hatched in the map's ink over their own colours, as «รอบศูนย์นี้» marks the
+ * cells inside its radius — and the nearest crossings within 5 km (at most 12) as small diamonds in the ink and paper of
+ * the map's labels (never a data colour). A cell already beyond the distance in a straight line is not the river's doing
+ * and stays plain, as on the neighbourhood's own bank. `reach`: the distance the tiles read (inside reads the map's 5 km).
  */
 export function crossOutPath(map, reach) {
   const x = crossOf(map);
@@ -460,8 +465,9 @@ export function crossOutPath(map, reach) {
   const R = REACHES.includes(String(reach)) && reach !== 'in' ? +reach : 5000;
   const {x0, y1, w} = map.cell, U = 10;
   let d = '';
-  for (const [k, d10] of x.k) {
+  for (const [k, d10, s10] of x.k) {
     if (d10 >= 0 && d10 * 10 <= R) continue;
+    if (s10 != null && s10 * 10 > R) continue;
     const r = Math.floor(k / w), c = k % w;
     d += `M${(x0 + c) * U} ${(r - y1 - 1) * U}h${U}v${U}h${-U}z`;
   }

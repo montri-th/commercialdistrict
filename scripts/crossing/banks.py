@@ -157,23 +157,27 @@ class Banks:
         return out
 
     def _home(self):
-        """The banks the origin holds: the labels of the pixels whose centre lies inside it, and the label at its edge
-        and at a point of it (a thin outline or a point holds at least one)."""
+        """The banks the origin holds: the labels of the raster cells whose centre lies inside it, a bank with fewer than
+        HOME_MIN cells or HOME_SHARE of them left out (a sliver where an outline is drawn over the river's line). An
+        origin that holds no cell centre (a point, a thin outline) takes the bank of a point of it, read at its own cell
+        and searched round only when that cell is the river's line. Points on the edge no longer add banks: a window round
+        an edge that lies on the river's line could take the far bank (review of 2026-11-27: four riverside outlines)."""
         g = self.origin
-        labs = set()
         if g.geom_type in ('Polygon', 'MultiPolygon'):
             x0, y0, x1, y1 = g.bounds
             xs = np.arange(math.floor((x0 - self.x0) / PX), math.ceil((x1 - self.x0) / PX)) * PX + self.x0 + PX / 2
             ys = self.y1 - (np.arange(math.floor((self.y1 - y1) / PX), math.ceil((self.y1 - y0) / PX)) * PX + PX / 2)
             X, Y = np.meshgrid(xs, ys)
             inside = shapely.contains_xy(g, X.ravel(), Y.ravel())
-            labs |= {int(v) for v in self.label_at(X.ravel()[inside], Y.ravel()[inside]) if v > 0}
-            b = g.boundary
-            pts = [b.interpolate(f, normalized=True) for f in np.linspace(0, 1, 64, endpoint=False)]
-            labs |= {int(v) for v in self.label_at([p.x for p in pts], [p.y for p in pts], search=3) if v > 0}
+            labs = self.label_at(X.ravel()[inside], Y.ravel()[inside])
+            labs = labs[labs > 0]
+            if len(labs):
+                ids, n = np.unique(labs, return_counts=True)
+                keep = {int(i) for i, c in zip(ids, n) if c >= max(HOME_MIN, HOME_SHARE * len(labs))}
+                return keep or {int(ids[int(np.argmax(n))])}
         p = g.representative_point()
-        labs |= {int(v) for v in self.label_at([p.x], [p.y], search=3) if v > 0}
-        return labs
+        v = int(self.label_at([p.x], [p.y], search=3)[0])
+        return {v} if v > 0 else set()
 
     def origin_dist(self, q):
         return float(shapely.distance(self.origin, shapely.Point(q)))
@@ -237,13 +241,25 @@ class Banks:
         return out, across, via_link
 
     def rivers_within(self, area):
-        """[(th, en)] of the barrier rivers whose line meets `area` (a shapely geometry in metres), by Thai name."""
-        out, seen = [], set()
+        """[[th, en]] of the barrier rivers whose line meets `area` (a shapely geometry in metres), nearest the origin
+        first, one entry per river: a part named only in English joins the entry of the same English name (and fills its
+        missing name), so a river is never listed twice or without the name it has."""
+        found = []
         for c, nm in zip(self.lines_xy, self.line_names):
-            key = nm[0] or nm[1]
-            if key and key not in seen and len(c) >= 2 and shapely.LineString(c).intersects(area):
-                seen.add(key)
-                out.append([nm[0], nm[1]])
+            th, en = (nm[0] or '').strip(), (nm[1] or '').strip()
+            if not (th or en) or len(c) < 2:
+                continue
+            line = shapely.LineString(c)
+            if line.intersects(area):
+                found.append((float(shapely.distance(self.origin, line)), th, en))
+        out = []
+        for _d, th, en in sorted(found, key=lambda e: e[0]):
+            for e in out:
+                if (th and th == e[0]) or (en and en == e[1]):
+                    e[0], e[1] = e[0] or th, e[1] or en
+                    break
+            else:
+                out.append([th, en])
         return out
 
     def reached(self, limit=5000.0):
@@ -264,6 +280,8 @@ class Banks:
 
 
 KINDS_ALL = ('bridge', 'road', 'tunnel', 'foot', 'ford', 'metro', 'ferry')
+HOME_MIN = 6        # raster cells (20 m): a bank holding fewer inside an outline is a sliver, not a home bank
+HOME_SHARE = 0.02   # nor one holding less than 2 % of the outline's cells
 RULE = {
     'th': 'ฝั่งเดียวกับย่านวัดเส้นตรงจากขอบย่าน อีกฝั่งแม่น้ำวัดระยะผ่านทางข้ามที่ใกล้ที่สุด (ขอบย่าน → ทางข้าม → จุด แต่ละช่วงเป็นเส้นตรง) '
           'ทางข้ามคือสะพานและอุโมงค์ถนนทุกระดับ สะพานคนเดิน รถไฟฟ้า และเรือข้ามฟาก ไม่ใช่เวลาเดินหรือขับรถ',
@@ -273,13 +291,17 @@ RULE = {
 }
 
 
-def load(path, kinds='all'):
+def load(path, kinds='all', expect_sha256=None):
     """(Rivers, meta) from the cache of scripts/crossing/rivers.py. kinds: 'all' (D70 of the Shopping Center) or
-    'no-ferry' (every kind but the ferries)."""
+    'no-ferry' (every kind but the ferries). The cache is a pickle this repository's own script wrote outside the
+    repository; with expect_sha256 (a residents file's crossing.cacheSha256) its bytes are checked before they are read."""
     import hashlib
     import pickle
     import sys
     raw = open(path, 'rb').read()
+    digest = hashlib.sha256(raw).hexdigest()
+    if expect_sha256 and digest != expect_sha256:
+        sys.exit(f'{path}: SHA-256 {digest[:12]}… is not the cache the residents file was built with ({expect_sha256[:12]}…)')
     cache = pickle.loads(raw)
     if cache.get('schema') != 'citymeter-commercialdistrict-rivers/1':
         sys.exit(f'{path}: not a rivers cache of scripts/crossing/rivers.py')
@@ -295,6 +317,6 @@ def load(path, kinds='all'):
     meta = {
         'rule': rule, 'kinds': kinds, 'osm': cache['osm'], 'counts': cache['counts'],
         'method': 'DATA_METHOD.md#river-crossings (the Shopping Center page’s D70, read from montri-th/shoppingcenter DATA_METHOD.md §32)',
-        'cacheSha256': hashlib.sha256(raw).hexdigest(),
+        'cacheSha256': digest,
     }
     return Rivers(cache, kinds=picked), meta
