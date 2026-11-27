@@ -35,6 +35,9 @@ if (LANG === 'en') {
 export function registerPlaceNames(rec) {
   if (LANG !== 'en') return;
   const thai = (rec?.map?.ctx?.L || []).filter(l => !l[5] && THAI.test(l[4] || '')).map(l => l[4]);
+  // (0.7.5) a crossing or a river OpenStreetMap names only in Thai stays Thai in the English line under the tiles
+  for (const c of rec?.map?.x?.c || []) if (!c[4] && THAI.test(c[3] || '')) thai.push(c[3]);
+  for (const r of rec?.map?.x?.r || []) if (!r[1] && THAI.test(r[0] || '')) thai.push(r[0]);
   if (thai.length) keepThai(thai);
 }
 

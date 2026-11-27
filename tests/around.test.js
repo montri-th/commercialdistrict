@@ -146,7 +146,9 @@ test('centres with a «รอบศูนย์นี้» page: one outline at 
     assert.ok(keys.has(v) || notPinned.has(v), `${v} listed inside ${id} but not counted there`);
   }
   assert.equal(seen.size, 180); // 0.6.1 (176 in 0.5.0, 166 in 0.4.0)
-  assert.equal(Object.values(A.rows).reduce((s, x) => s + (x.v?.near.length || 0), 0), 363); // 0.6.1 (361 in 0.5.0, 356 in 0.4.0)
+  // 0.7.5: across a river through the crossings — บางพลัด no longer has ศูนย์การค้าสุพรีม and ไฮมอลล์ สามเสน (across the
+  // Chao Phraya) within 800 m; 363 in a straight line (0.6.1), 361 in 0.5.0, 356 in 0.4.0
+  assert.equal(Object.values(A.rows).reduce((s, x) => s + (x.v?.near.length || 0), 0), 361);
   assert.equal(A.meta.venues.n, 492);
 });
 

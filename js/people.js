@@ -14,7 +14,7 @@
  * the outline, the walk edges and the service lines over them, and read as a table too.
  */
 import {LANG} from './shell/i18n.js';
-import {num} from './model.js';
+import {num, one} from './model.js';
 import {COUNT_SCALE, DENSITY_SCALE, ACTIVITY_SCALE, buildRamp, classify, rampLegendHTML, contrastRatio} from './scales.js';
 import {LEVEL_WORDS, pctFill} from './around.js';
 
@@ -162,7 +162,107 @@ export function peopleSection(row, rec, meta, {reach = DEFAULT_REACH, refN = 395
   const key = `<p class="hint people-key">${levelMeter(3)}<span>${esc(L(`ระดับเทียบ ${num(refN)} ย่าน · น้อย → มาก`, `Level among ${num(refN)} neighbourhoods · low → high`))}</span>${starred ? `<span>${esc(L('* ส่วนใหญ่มาจากชุดที่มีพิกัดไม่ครบ จึงไม่จัดระดับ', '* mostly from datasets without points for every record, so no level'))}</span>` : ''}</p>`;
   const lead = `<p class="people-lead">${pic('distance')}<span>${reach === 'in' ? esc(L('ในขอบร่างของย่าน', 'Inside the draft outline')) : `${esc(L('ในย่านและพื้นที่', 'Inside and within'))} ${nw(esc(L(`${num(+reach / 1000)} กม.`, `${num(+reach / 1000)} km`)))} ${esc(L('จากขอบ', 'of the edge'))}`}</span></p>`;
   return `<section class="panel-section people-section" id="nb-people" aria-labelledby="nb-people-title" tabindex="-1">${head}${switcher}${lead}
-    <ul class="people-grid" aria-labelledby="nb-people-title">${tiles.map(tile).join('')}</ul>${key}${prov || peopleSource(meta)}${peopleMethod(meta)}</section>`;
+    <ul class="people-grid" aria-labelledby="nb-people-title">${tiles.map(tile).join('')}</ul>${key}${riverHTML(rec, reach, meta)}${prov || peopleSource(meta)}${peopleMethod(meta)}</section>`;
+}
+
+/**
+ * Across a river (0.7.5, V7-09; owner 2026-11-27 06:51 on 400/800 m, VERBATIM “คิดด้วย”, and 07:09 “คนอยู่ไม่น่าจะข้าม
+ * แม่น้ำจากบางกระเจ้ามาที่ปุณณวิถีได้นะครับ”): the data built with scripts/crossing/ say so in their meta, and the page's words
+ * follow the data — the straight line only where the files were built without it.
+ */
+export const crossingRule = meta => Boolean(meta?.crossing);
+export const distanceWords = meta => (crossingRule(meta)
+  ? L('วัดจากขอบย่าน อีกฝั่งแม่น้ำนับผ่านทางข้าม', 'from the edge; across a river, through a crossing')
+  : L('วัดเส้นตรงจากขอบย่าน', 'straight line from the edge'));
+
+const crossOf = map => (map?.x && Array.isArray(map.x.k) ? map.x : null);
+const kmWords = m => L(`${num(m / 1000)} กม.`, `${num(m / 1000)} km`);
+const metreWords = m => (m < 1000 ? L(`${num(Math.round(m / 10) * 10)} ม.`, `${num(Math.round(m / 10) * 10)} m`)
+  : L(`${one(Math.round(m / 100) / 10)} กม.`, `${one(Math.round(m / 100) / 10)} km`));
+const shareWords = v => (v >= 10 ? num(Math.round(v)) : one(Math.round(v * 10) / 10));
+
+/**
+ * A crossing in words [th, en] — the Shopping Center page's crossingName (js/venue-locale.js): a ferry or a metro line by
+ * its own name; a bridge, tunnel or ford by its name, else the road it carries; a footbridge. A name OpenStreetMap gives
+ * only in Thai stays Thai on the English page (js/lang.js#registerPlaceNames).
+ */
+export function crossingWords(c) {
+  const [, , kind, th0 = '', en = ''] = c || [];
+  // a name that is only the kind's own word (a ferry OpenStreetMap names “เรือข้ามฟาก”) is no name
+  const th = ['เรือข้ามฟาก', 'สะพาน', 'สะพานคนเดิน', 'รถไฟฟ้า'].includes(th0.trim()) && !en ? '' : th0;
+  const named = (wTh, wEn) => {
+    if (!th) return [wTh, `a ${wEn}`];
+    if (/สะพาน|อุโมงค์/.test(th)) return [th, en || th];
+    return [`${wTh}${th}`, `the ${wEn} of ${en || th}`];
+  };
+  if (kind === 'ferry') return th ? [th, en || th] : ['เรือข้ามฟาก', 'a ferry'];
+  if (kind === 'metro') return th ? [th, en || th] : ['รถไฟฟ้า', 'a metro line'];
+  if (kind === 'foot') return th ? [th, en || th] : ['สะพานคนเดิน', 'a footbridge'];
+  if (kind === 'tunnel') return named('อุโมงค์', 'tunnel');
+  if (kind === 'ford') return named('ทางข้ามน้ำตื้น', 'ford');
+  return named('สะพาน', 'bridge');
+}
+/** The crossing as HTML for the page's language: a name that stays Thai in an English sentence is a text of its own. */
+const THAI_CHARS = /[ก-๛]/;
+function crossingHTML(c) {
+  const [th, en] = crossingWords(c);
+  const text = L(th, en);
+  if (!EN || !THAI_CHARS.test(text)) return esc(text);
+  const m = /^(the \w+ of )(.*)$/.exec(text);
+  return m ? `${esc(m[1])}<span class="place-name">${esc(m[2])}</span>` : `<span class="place-name">${esc(text)}</span>`;
+}
+const riverNameHTML = ([th, en]) => (EN && !en ? `<span class="place-name">${esc(th)}</span>` : `<span class="place-name">${esc(L(th, `the ${en}`))}</span>`);
+
+/**
+ * The river under the tiles (0.7.5), as «รอบศูนย์นี้» writes it: who lives across a river within the distance (a share of
+ * the straight-line residents) and the crossing most of those counted come through — or the nearest one when none is
+ * counted at this distance — and, folded, the four figures through the crossings against the straight line, with the rule.
+ * Only where a barrier river parts the 5 km round the outline and the files were built with the rule.
+ */
+export function riverHTML(rec, reach, meta) {
+  const x = crossingRule(meta) ? crossOf(rec?.map) : null;
+  if (!x || reach === 'in' || !REACHES.includes(reach)) return '';
+  const rivers = (x.r || []).slice(0, 2);
+  const share = x.a?.[reach] ?? null;
+  const [k] = x.u?.[reach] || [-1, 0];
+  const via = k >= 0 ? x.c?.[k] : null, nearest = via || x.c?.[0] || null;
+  let note = '';
+  if (rivers.length && share != null && share >= 1) {
+    const names = rivers.map(riverNameHTML).join(esc(L(' และ', ' and ')));
+    const head = `${esc(L('อีกฝั่ง', 'Across '))}${names}${EN ? ':' : ''}`;
+    const cross = nearest ? ` · ${esc(L(via ? 'ข้ามที่ ' : 'ทางข้ามใกล้สุด ', via ? 'crossing at ' : 'nearest crossing: '))}${crossingHTML(nearest)} ${nw(esc(`(${metreWords(nearest[5])})`))}` : '';
+    note = `<p class="people-river">${pic('distance')}<span>${head} ${nw(esc(L(`${shareWords(share)}% ของคนอยู่ใน ${kmWords(+reach)}`, `${shareWords(share)}% of the residents within ${kmWords(+reach)}`)))}${cross}</span></p>`;
+  }
+  const s = rec.s?.[reach] || {}, st = rec.st?.[reach] || {};
+  const people = v => (v == null ? '–' : v === 0 ? num(0) : aboutPeople(v) || L(...UNDER_10));
+  const rows = [
+    [L('คนอยู่ (ราว)', 'Living here (about)'), s.res, 'res' in st ? st.res : s.res, people],
+    [L('ผู้มาเยือนค้างคืน (ราว คนต่อปี)', 'Overnight visitors (about, a year)'), s.gst, 'gst' in st ? st.gst : s.gst, people],
+    [L('คนมาทำงานและเรียน (อย่างน้อย)', 'Come to work and study (at least)'), s.com, 'com' in st ? st.com : s.com, v => (v == null ? '–' : atLeastPeople(v))],
+    [L('ศูนย์และตลาด (แห่ง)', 'Centres and markets (places)'), s.n?.shoppingcenter, 'ctr' in st ? st.ctr : s.n?.shoppingcenter, v => (v == null ? '–' : num(v))],
+  ].filter(([, a, b]) => a != null || b != null);
+  const cell = (a, b, fmt) => {
+    const va = fmt(a), vb = fmt(b);
+    return `<td class="data-number">${va === vb ? esc(va) : `<b>${esc(va)}</b>`}</td><td class="data-number">${esc(vb)}</td>`;
+  };
+  const list = (x.c || []).slice(0, 3).map(c => `${crossingHTML(c)} ${nw(esc(`(${metreWords(c[5])})`))}`).join(' · ');
+  const osm = meta?.crossing?.osm;
+  const ferries = meta?.crossing?.kinds !== 'no-ferry';
+  const fold = `<details class="scope-details people-cross"><summary>${esc(L('ข้ามแม่น้ำ: เทียบกับนับแบบเส้นตรง', 'Across the river: against the straight line'))}</summary>
+    ${rows.length ? `<div class="table-scroll"><table class="pm-table cross-table"><caption class="sr-only">${esc(L(`ตัวเลขใน ${kmWords(+reach)} จากขอบ เมื่อนับอีกฝั่งแม่น้ำผ่านทางข้าม และเมื่อนับแบบเส้นตรง`, `Figures within ${kmWords(+reach)} of the edge with the far bank reached through a crossing, and in a straight line`))}</caption>
+    <thead><tr><th scope="col">${esc(L(`ใน ${kmWords(+reach)} จากขอบ`, `Within ${kmWords(+reach)} of the edge`))}</th><th scope="col">${esc(L('ผ่านทางข้าม', 'Through a crossing'))}</th><th scope="col">${esc(L('เส้นตรง', 'Straight line'))}</th></tr></thead>
+    <tbody>${rows.map(([t, a, b, fmt]) => `<tr><th scope="row">${esc(t)}</th>${cell(a, b, fmt)}</tr>`).join('')}</tbody></table></div>` : ''}
+    <ul class="people-cross-method">
+      <li>${esc(L('ฝั่งเดียวกับย่านวัดเส้นตรงจากขอบเหมือนเดิม คน อาคาร และสถานที่ที่อยู่อีกฝั่งแม่น้ำนับเมื่อระยะผ่านทางข้ามที่ใกล้ที่สุดอยู่ในระยะ (ขอบย่าน → ทางข้าม → จุด แต่ละช่วงเป็นเส้นตรง) กติกาเดียวกับหน้าศูนย์การค้า ไม่ใช่เวลาเดินหรือขับรถ',
+        'On the neighbourhood’s bank the straight line from the edge as before; people, buildings and places across a river count when their distance through the nearest crossing is within the distance (edge → crossing → place, each leg a straight line) — the Shopping Center page’s rule, not walking or driving time'))}</li>
+      <li>${esc(ferries ? L('แม่น้ำ: ทางน้ำที่ OpenStreetMap ตั้งชื่อว่า “แม่น้ำ…” · ทางข้าม: สะพานและอุโมงค์ถนนทุกระดับ สะพานคนเดิน รถไฟฟ้า และเรือข้ามฟาก', 'Rivers: the waterways OpenStreetMap names as a river (Maenam …) · crossings: road bridges and tunnels of every class, footbridges, metro lines and cross-river ferries')
+        : L('แม่น้ำ: ทางน้ำที่ OpenStreetMap ตั้งชื่อว่า “แม่น้ำ…” · ทางข้าม: สะพานและอุโมงค์ถนนทุกระดับ สะพานคนเดิน และรถไฟฟ้า (ไม่นับเรือข้ามฟาก)', 'Rivers: the waterways OpenStreetMap names as a river (Maenam …) · crossings: road bridges and tunnels of every class, footbridges and metro lines (ferries not counted)'))}</li>
+      ${list ? `<li>${esc(L('ทางข้ามที่ใกล้ขอบย่านที่สุด: ', 'Crossings nearest the edge: '))}${list}</li>` : ''}
+      <li>${esc(L('ระดับเทียบคิดใหม่ทั้งชุดอ้างอิงด้วยกติกาเดียวกัน ย่านที่ไม่มีแม่น้ำใกล้จึงอาจเลื่อนระดับเล็กน้อย · แผนที่ยังวาดทุกช่องใน 5 กม. แบบเส้นตรง ช่องอีกฝั่งที่เกินระยะเมื่อนับผ่านทางข้ามเป็นลายเส้นทแยง',
+        'Levels are recomputed for the whole reference set under the same rule, so a neighbourhood with no river near may move a little · the map still draws every cell within 5 km in a straight line; the cells across the river beyond the distance through a crossing are hatched'))}</li>
+      ${osm ? `<li>${esc(L(`OpenStreetMap จาก Geofabrik (${osm.file}) © ผู้ร่วมให้ข้อมูล OpenStreetMap (ODbL)`, `OpenStreetMap from Geofabrik (${osm.file}) © OpenStreetMap contributors (ODbL)`))} · <a href="DATA_METHOD.md#river-crossings" target="_blank" rel="noopener">${esc(L('ที่มาและวิธี', 'Sources and method'))}</a></li>` : ''}
+    </ul></details>`;
+  return note + fold;
 }
 
 /** One provenance line: dataset · source · date · boundary, short (the method is folded below). */
@@ -170,10 +270,10 @@ export function peopleSource(meta) {
   const pm = meta?.residents?.populationMonth;
   const th = [pm ? `คนอยู่: ทะเบียนราษฎร ${monthWords(pm)} แบ่งลงอาคาร CityMETER Building V4` : 'คนอยู่: ทะเบียนราษฎรแบ่งลงอาคาร CityMETER Building V4',
     'คนมาทำงานและเรียน: ชุดข้อมูล CityMETER', `ผู้มาเยือน: กระทรวงการท่องเที่ยวและกีฬา ${meta?.gst?.source?.year ? meta.gst.source.year + 543 : ''}`.trim(),
-    'วัดเส้นตรงจากขอบย่าน (รอระยะตามทางจริง)'].join(' · ');
+    crossingRule(meta) ? 'วัดจากขอบย่าน อีกฝั่งแม่น้ำนับผ่านทางข้าม' : 'วัดเส้นตรงจากขอบย่าน'].join(' · ');
   const en = [pm ? `Living here: civil register of ${monthWords(pm)} spread over CityMETER Building V4` : 'Living here: civil register spread over CityMETER Building V4',
     'work and study: CityMETER datasets', `visitors: Ministry of Tourism and Sports ${meta?.gst?.source?.year || ''}`.trim(),
-    'straight line from the edge (distances along real paths to come)'].join(' · ');
+    crossingRule(meta) ? 'from the edge; across a river, through a crossing' : 'straight line from the edge'].join(' · ');
   return `<p class="hint people-source">${esc(L(th, en))}</p>`;
 }
 
@@ -186,8 +286,11 @@ export function peopleMethod(meta) {
       'Students recorded for 2026 + students of universities whose every site is within the distance + workers on the factory register + staff that government offices record + office workers by model (area × occupancy ÷ 10–12 m² per person, the low end in the figure) · shop, hotel and hospital workers are not in it yet, so the figure is “at least”, rounded down · only records with a point count · a record without a figure is never taken as 0: the parts say how many carry one')],
     [L('ผู้มาเยือนค้างคืน (แบบจำลอง)', 'Overnight visitors (modelled)'), L('ผู้เข้าพักทั้งปีของจังหวัด (กระทรวงการท่องเที่ยวและกีฬา ตาราง 17.1 พ.ศ. 2567) แบ่งตามสัดส่วนห้องพักที่บันทึกในย่าน · ที่พักที่ไม่มีตัวเลขห้องไม่ถูกนับ · เป็นคนต่อปี ไม่ใช่ต่อคืน เพราะตารางไม่มีระยะพำนัก · คนที่มาเช้าไปเย็นกลับยังนับไม่ได้ จึงดูได้จากแผนที่ที่ผู้มาเยือนใช้',
       'The province’s guests of the year (Ministry of Tourism and Sports, Table 17.1, 2024) shared by the neighbourhood’s recorded rooms · lodging without a room figure is not counted · a year, not a night: the table has no length of stay · day visitors cannot be counted yet; the map of places visitors use stands for them')],
-    [L('ระยะและระดับ', 'Distances and levels'), L('ในย่าน = ในขอบร่าง · 1 · 3 · 5 กม. = ในย่านและพื้นที่ห่างจากขอบไม่เกินระยะนั้น วัดเส้นตรงจนกว่าจะได้วิธีวัดตามทางจริงชุดเดียวกับหน้าศูนย์การค้า · วัดจากขอบ ตัวเลขจึงเทียบตรง ๆ กับวงจากจุดของศูนย์ไม่ได้ · ระดับเทียบ = อันดับกึ่งกลางเทียบ 395 ย่านอ้างอิง · ไม่ใช่คนเดิน จำนวนลูกค้า หรือยอดขาย',
-      'Inside = within the draft outline · 1 · 3 · 5 km = inside and within that distance of the edge, a straight line until the Shopping Center page’s method along real paths is in hand · measured from the edge, so the figures do not compare one to one with a centre’s circles · level = mid-rank among the 395 reference neighbourhoods · not footfall, customers or sales')],
+    [L('ระยะและระดับ', 'Distances and levels'), crossingRule(meta)
+      ? L('ในย่าน = ในขอบร่าง · 1 · 3 · 5 กม. = ในย่านและพื้นที่ห่างจากขอบไม่เกินระยะนั้น ฝั่งเดียวกับย่านวัดเส้นตรงจากขอบ อีกฝั่งแม่น้ำนับเมื่อระยะผ่านทางข้ามที่ใกล้ที่สุดอยู่ในระยะ (ขอบย่าน → ทางข้าม → จุด แต่ละช่วงเป็นเส้นตรง) กติกาเดียวกับหน้าศูนย์การค้า ไม่ใช่เวลาเดินหรือขับรถ · วัดจากขอบ ตัวเลขจึงเทียบตรง ๆ กับวงจากจุดของศูนย์ไม่ได้ · ระดับเทียบ = อันดับกึ่งกลางเทียบ 395 ย่านอ้างอิง · ไม่ใช่คนเดิน จำนวนลูกค้า หรือยอดขาย',
+        'Inside = within the draft outline · 1 · 3 · 5 km = inside and within that distance of the edge: on the neighbourhood’s bank a straight line from the edge, across a river counted when the distance through the nearest crossing is within it (edge → crossing → place, each leg a straight line) — the Shopping Center page’s rule, not walking or driving time · measured from the edge, so the figures do not compare one to one with a centre’s circles · level = mid-rank among the 395 reference neighbourhoods · not footfall, customers or sales')
+      : L('ในย่าน = ในขอบร่าง · 1 · 3 · 5 กม. = ในย่านและพื้นที่ห่างจากขอบไม่เกินระยะนั้น วัดเส้นตรง · วัดจากขอบ ตัวเลขจึงเทียบตรง ๆ กับวงจากจุดของศูนย์ไม่ได้ · ระดับเทียบ = อันดับกึ่งกลางเทียบ 395 ย่านอ้างอิง · ไม่ใช่คนเดิน จำนวนลูกค้า หรือยอดขาย',
+        'Inside = within the draft outline · 1 · 3 · 5 km = inside and within that distance of the edge, straight line · measured from the edge, so the figures do not compare one to one with a centre’s circles · level = mid-rank among the 395 reference neighbourhoods · not footfall, customers or sales')],
   ];
   return `<details class="scope-details people-method"><summary>${esc(L('วิธีคิดตัวเลขคน', 'How the people figures are made'))}</summary><dl>${items.map(([t, d]) => `<dt>${esc(t)}</dt><dd>${esc(d)}</dd>`).join('')}</dl></details>`;
 }
@@ -232,6 +335,7 @@ export function mapSectors(map, tab) {
   const {m, x0, y1, w} = map.cell;
   const sums = DIRECTIONS.map(() => [0, 0, 0, 0]);
   for (const c of cells) {
+    if (!(c.band >= 0 && c.band <= 3)) continue;   // 0.7.5: band 4 = across a river, beyond 5 km through the crossings
     const east = (x0 + (c.k % w) + 0.5) * m, north = (y1 - Math.floor(c.k / w) + 0.5) * m;
     const bearing = ((Math.atan2(east, north) * 180) / Math.PI + 360) % 360;
     const s = Math.floor(((bearing + 22.5) % 360) / 45);
@@ -343,8 +447,32 @@ export function watchMapNames(root) {
   if (wraps.length && globalThis.document?.fonts?.ready) document.fonts.ready.then(() => wraps.forEach(w => w.isConnected && fitMapNames(w)));
 }
 
+/**
+ * Under the rule (0.7.5): the cells across a river whose centre is beyond the distance through the crossings (or reached by
+ * none) — hatched in the map's ink over their own colours, as «รอบศูนย์นี้» marks them — and the crossings within 5 km as
+ * small diamonds in the ink and paper of the map's labels (never a data colour). `reach`: the distance the tiles read
+ * (inside reads the map's own 5 km).
+ */
+export function crossOutPath(map, reach) {
+  const x = crossOf(map);
+  if (!x) return '';
+  const R = REACHES.includes(String(reach)) && reach !== 'in' ? +reach : 5000;
+  const {x0, y1, w} = map.cell, U = 10;
+  let d = '';
+  for (const [k, d10] of x.k) {
+    if (d10 >= 0 && d10 * 10 <= R) continue;
+    const r = Math.floor(k / w), c = k % w;
+    d += `M${(x0 + c) * U} ${(r - y1 - 1) * U}h${U}v${U}h${-U}z`;
+  }
+  return d;
+}
+function crossingMarks(map, {max = 12} = {}) {
+  return (crossOf(map)?.c || []).slice(0, max)
+    .map(c => `<path class="pm-cross" d="M${Number(c[0])} ${Number(c[1]) - 6}l6 6l-6 6l-6-6z"/>`).join('');
+}
+
 /** The SVG of one map: cells (runs of one colour per row), the 5 km ground, the service lines, the walk edges, the outline. */
-export function mapSVG(row, map, tab, {title = ''} = {}) {
+export function mapSVG(row, map, tab, {title = '', reach = null} = {}) {
   const {cells, ramp} = mapModel(map, tab);
   const {x0, y1, w, h} = map.cell, U = 10;   // a 250 m cell is 10 units of 25 m
   const fill = new Map(cells.map(c => [c.k, classify(c.v, ramp).fill]));
@@ -365,16 +493,19 @@ export function mapSVG(row, map, tab, {title = ''} = {}) {
   const L_ = map.lines || {};
   const ctx = ctxOf(map);
   const id = `pm-${tab}-${String(row.id).replace(/[^\w-]/g, '')}`;
+  const out = reach == null ? '' : crossOutPath(map, reach), marks = reach == null ? '' : crossingMarks(map);
   const labels = ['s1', 's3', 's5'].filter(k => L_.lab?.[k]).map(k => {
     const [lx, ly] = at(...L_.lab[k]);
     return `<span class="pm-ring-label" style="left:${lx}%;top:${ly}%">${esc(L(`${k.slice(1)} กม.`, `${k.slice(1)} km`))}</span>`;
   }).join('');
   return `<div class="pm-wrap"><svg class="pm-map" viewBox="${vx} ${vy} ${vw} ${vh}" role="img" aria-labelledby="${id}-t"><title id="${id}-t">${esc(title)}</title>`
-    + `<defs><clipPath id="${id}-c"><path d="${esc(L_.s5 || '')}"/></clipPath></defs>`
+    + `<defs><clipPath id="${id}-c"><path d="${esc(L_.s5 || '')}"/></clipPath>${out ? `<pattern id="${id}-x" width="4.2" height="4.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path class="pm-cross-line" d="M2.1 0V4.2"/></pattern>` : ''}</defs>`
     + `<path class="pm-bg" d="${esc(L_.s5 || '')}"/><g clip-path="url(#${id}-c)">`
     + ctxUnder(ctx)
     + [...paths].map(([f, d]) => `<path d="${d}" fill="${f}" shape-rendering="crispEdges"${isPale(f) ? ' class="pm-pale"' : ''}/>`).join('')
+    + (out ? `<path class="pm-cross-out" d="${out}" fill="url(#${id}-x)"/>` : '')
     + ctxOver(ctx)
+    + (marks ? `<g class="pm-crossings">${marks}</g>` : '')
     + '</g>'
     + ['s3', 's1'].filter(k => L_[k]).map(k => `<path class="pm-line" d="${esc(L_[k])}"/>`).join('')
     + `<path class="pm-edge" d="${esc(L_.s5 || '')}"/>`
@@ -384,7 +515,7 @@ export function mapSVG(row, map, tab, {title = ''} = {}) {
 }
 
 /** The key of the lines over the map; the context items only for what this map draws. */
-function mapKey(map) {
+function mapKey(map, reach = null) {
   const line = (cls, th, en, cased = false) => `<span class="pm-key-item"><svg class="pm-key-line" viewBox="0 0 24 8" aria-hidden="true">${cased ? `<path class="${cls.split(' ')[0]}-case${cls.includes(' ') ? ` ${cls.split(' ')[1]}` : ''}" d="M2 4h20"/>` : ''}<path class="${cls}" d="M2 4h20"/></svg>${esc(L(th, en))}</span>`;
   const cell = `<span class="pm-key-item"><svg class="pm-key-cell" viewBox="0 0 12 12" aria-hidden="true"><rect class="pm-bg" x="0.5" y="0.5" width="11" height="11"/></svg>${esc(L('ไม่มีในชุดข้อมูลที่นับ', 'none in the datasets counted'))}</span>`;
   const ctx = ctxOf(map);
@@ -397,7 +528,10 @@ function mapKey(map) {
     ctx.w ? line('pm-river', 'ลำน้ำ', 'Rivers', true) : '',
     water,
   ].join('') : '';
-  return `<p class="pm-key">${line('pm-outline', 'ขอบย่าน', 'Neighbourhood outline', true)}${line('pm-walk', 'ขอบเดินถึง 400 · 800 ม.', 'Walkable edge 400 · 800 m')}${line('pm-line', '1 · 3 · 5 กม. จากขอบ', '1 · 3 · 5 km from the edge')}${cell}${context}</p>`;
+  const R = REACHES.includes(String(reach)) && reach !== 'in' ? +reach : 5000;
+  const hatch = reach != null && crossOutPath(map, reach) ? `<span class="pm-key-item"><svg class="pm-key-cell" viewBox="0 0 12 12" aria-hidden="true"><defs><pattern id="pm-key-x" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path class="pm-cross-line" d="M1.5 0V3"/></pattern></defs><rect class="pm-bg" x="0.5" y="0.5" width="11" height="11"/><rect class="pm-cross-out" x="0" y="0" width="12" height="12" fill="url(#pm-key-x)"/></svg>${esc(L(`อีกฝั่งแม่น้ำ เกิน ${num(R / 1000)} กม. เมื่อนับผ่านทางข้าม`, `Across the river, beyond ${num(R / 1000)} km through a crossing`))}</span>` : '';
+  const marks = reach != null && crossOf(map)?.c?.length ? `<span class="pm-key-item"><svg class="pm-key-line" viewBox="0 0 24 8" aria-hidden="true"><path class="pm-cross" d="M12 0.6l3.4 3.4l-3.4 3.4l-3.4-3.4z"/></svg>${esc(L('ทางข้ามแม่น้ำ', 'River crossing'))}</span>` : '';
+  return `<p class="pm-key">${line('pm-outline', 'ขอบย่าน', 'Neighbourhood outline', true)}${line('pm-walk', 'ขอบเดินถึง 400 · 800 ม.', 'Walkable edge 400 · 800 m')}${line('pm-line', '1 · 3 · 5 กม. จากขอบ', '1 · 3 · 5 km from the edge')}${cell}${context}${hatch}${marks}</p>`;
 }
 
 /** The map read as a table: 8 directions × 4 bands from the edge, places (or people) per band, the top direction bold. */
@@ -414,7 +548,7 @@ function mapTable(sec, cfg, tab = '') {
 }
 
 /** «แผนที่รอบย่าน»: three tabs, the map of the chosen one, its legend and key, the top direction and the table. */
-export function mapSection(row, rec, meta, {tab = DEFAULT_MAP, prov = null, outOfScope = null} = {}) {
+export function mapSection(row, rec, meta, {tab = DEFAULT_MAP, prov = null, outOfScope = null, reach = DEFAULT_REACH} = {}) {
   if (!rec?.map) return '';
   const map = rec.map;
   const has = t => t !== 'res' || Array.isArray(map.res);
@@ -437,10 +571,14 @@ export function mapSection(row, rec, meta, {tab = DEFAULT_MAP, prov = null, outO
     : L(`ทิศ${sec.top.th}มีมากที่สุด ${num(Math.round(sec.top.share))}% ของทั้งแผนที่`, `${sec.top.en} holds the most, ${num(Math.round(sec.top.share))}% of the map`))}</span></p>` : '';
   const legend = ramp.levels.length ? `<div class="pm-legend"><span class="pm-legend-title">${esc(L(`${cfg.unit[0]} 250 × 250 ม. · สีเทียบเฉพาะในแผนที่นี้`, `${cfg.unit[1]}, 250 × 250 m · colours compare within this map only`))}</span>${rampLegendHTML(ramp)}</div>` : '';
   const lacking = res || !outOfScope ? [] : outOfScope(MAP_GROUP_IDS[current] || []);
+  const rule = crossingRule(meta) && crossOf(map) ? reach : null;
+  const hatched = rule != null && crossOutPath(map, rule);
+  const R = REACHES.includes(String(reach)) && reach !== 'in' ? +reach : 5000;
+  const across = hatched ? L(` · ลายเส้นทแยง: อีกฝั่งแม่น้ำ เกิน ${num(R / 1000)} กม. เมื่อนับผ่านทางข้าม ไม่นับในตารางเมื่อเกิน 5 กม.`, ` · hatched: across the river, beyond ${num(R / 1000)} km through a crossing; left out of the table beyond 5 km`) : '';
   const what = res
-    ? L(`${cfg.what[0]} · คนของอาคารที่อยู่ห่างขอบย่านไม่เกิน 5 กม. เส้นตรง รวมลงช่อง`, `${cfg.what[1]} · the residents of buildings within 5 km of the edge, straight line, added per cell`)
-    : L(`${cfg.what[0]} · สถานที่ที่อยู่ห่างขอบย่านไม่เกิน 5 กม. เส้นตรง นับลงช่อง · ไม่ใช่จำนวนคนหรือจำนวนครั้งที่มา`, `${cfg.what[1]} · places within 5 km of the edge, straight line, counted in cells · not people or visits`);
+    ? L(`${cfg.what[0]} · คนของอาคารที่อยู่ห่างขอบย่านไม่เกิน 5 กม. เส้นตรง รวมลงช่อง${across}`, `${cfg.what[1]} · the residents of buildings within 5 km of the edge, straight line, added per cell${across}`)
+    : L(`${cfg.what[0]} · สถานที่ที่อยู่ห่างขอบย่านไม่เกิน 5 กม. เส้นตรง นับลงช่อง · ไม่ใช่จำนวนคนหรือจำนวนครั้งที่มา${across}`, `${cfg.what[1]} · places within 5 km of the edge, straight line, counted in cells · not people or visits${across}`);
   const source = `<p class="hint pm-source">${esc(what)}${lacking.length ? `<br>${esc(L(`ไม่มีข้อมูลในจังหวัดนี้: ${lacking.join(' · ')}`, `no data in this province: ${lacking.join(' · ')}`))}` : ''}</p>${typeof prov === 'function' ? prov(current) : ''}`;
   return `<section class="panel-section map-section" id="nb-map" aria-labelledby="nb-map-title"><div class="section-heading"><h3 id="nb-map-title">${pic('maps')}${esc(L('แผนที่รอบย่าน ช่อง 250 ม.', 'Around the neighbourhood, 250 m cells'))} <span class="glance-tag">${esc(current === 'res' ? L('แบบจำลอง', 'modelled') : L('อนุมาน', 'inferred'))}</span></h3></div>
-    ${tabs}<p class="pm-lead">${lead}</p>${mapSVG(row, map, current, {title})}${legend}${mapKey(map)}${dir}${mapTable(sec, cfg, current)}${source}</section>`;
+    ${tabs}<p class="pm-lead">${lead}</p>${mapSVG(row, map, current, {title, reach: rule})}${legend}${mapKey(map, rule)}${dir}${mapTable(sec, cfg, current)}${source}</section>`;
 }
