@@ -17,7 +17,7 @@
   sheet expanded — the map 361 × 369 px, the same checks, no horizontal overflow.
 - Not verified: Safari, a real iPhone. The owner's test on his phone is the check; he was asked after the publish.
 
-## Release 0.7.9 — 27 พ.ย. 2569 (not published): the round map without url(#…) references
+## Release 0.7.9 — 27 พ.ย. 2569: the round map without url(#…) references
 
 The owner's words (VERBATIM): 16:10 “heatmap นี้ไม่ขึ้นใน mobile นะครับ (safari) เช็คที่ citymeter.pages.dev”; he chose
 «แก้แบบกันไว้ก่อนเลย» in Claude's question (the option: the map stops depending on clip-path and pattern referenced
@@ -73,7 +73,7 @@ through url(#…), he tries it on his iPhone once it is live, and this may not b
   `__citymeterI18n.missing` empty, no horizontal overflow.
 - Not verified: a real phone (393 px was a frame in desktop Chrome), browsers other than Chrome.
 
-## Release 0.7.8 — 27 พ.ย. 2569 (not published): the owner's ticks on the commercial screen's outlines
+## Release 0.7.8 — 27 พ.ย. 2569: the owner's ticks on the commercial screen's outlines
 
 The owner's words (VERBATIM): 10:44 “1 แก้แล้วในช่องสีเหลือง / 2 รับ / 3 แก้ / 4 ลบ”, on Claude's four questions of 26 Nov
 (`amendments/outline-new-choices-2026-11-27.json`, `owner.asked_th`); then, on Claude's questions that morning, «ส่งต่อแชท
