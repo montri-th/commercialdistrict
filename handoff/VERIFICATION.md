@@ -17,7 +17,10 @@
   no url(#…), corners 88 · 82 · 67 (อยู่ · เที่ยว · ค้าขาย / Live · Visit · Trade), 168 cells, the busiest line จ.–พฤ.
   17:00–18:00, 19:00–20:00 น. · ศ. 17:00–20:00 น., the workers' rule ปานกลาง / moderate with 7 places, the provenance's
   words of the fix, no page error, no horizontal overflow, `__citymeterI18n.missing` empty.
-- Not verified: citymeter.pages.dev in a browser (its deploy's live checks only), Safari, a real phone.
+- Not verified by Claude: citymeter.pages.dev in a browser (its deploy's live checks only), Safari, a real phone.
+- The owner, 23:40 (VERBATIM): “ดูได้แล้ว merge เลย” — read by Claude as his check on his iPhone of the link sent
+  after the publish (ปุณณวิถี on citymeter.pages.dev, 0.7.10 with the 0.7.9 round map): the page shows. Owner-stated;
+  Claude did not see the phone, and which views he opened is not recorded.
 
 ## Release 0.7.10 — 27 พ.ย. 2569: «ความเป็นย่าน» and «ช่วงไหนน่าจะคึก»
 
@@ -68,6 +71,7 @@ The owner's words (VERBATIM): 18:04 “และ side panel ยังขาด h
   river …”, `__citymeterI18n.missing` empty; ปุณณวิถี at 5 km in Thai in a 393 × 740 frame of the same origin with the
   sheet expanded — the map 361 × 369 px, the same checks, no horizontal overflow.
 - Not verified: Safari, a real iPhone. The owner's test on his phone is the check; he was asked after the publish.
+  His answer came after 0.7.10 went live (23:40, in that release's live record).
 
 ## Release 0.7.9 — 27 พ.ย. 2569: the round map without url(#…) references
 
