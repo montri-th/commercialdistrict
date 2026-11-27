@@ -23,10 +23,14 @@ through url(#…), he tries it on his iPhone once it is live, and this may not b
 - Old against new in headless Chromium (Playwright; main's markup with main's CSS, this tree's with its own; 9 maps, light
   and dark, at 2×): the same size; pixels apart by more than 24 levels 0 to 0.43 % of a map, all on the hatch lines,
   none along the 5 km line.
-- The page served locally (Playwright Chromium; โขงเจียม–ภูก้ำชัย–แก้วประดิษฐ์, อุบลราชธานี, at 1 km; 393 × 740 with
+- The page served locally (Playwright Chromium; โขงเจียม–ภู่กำชัย–แก้วประดิษฐ์, อุบลราชธานี, at 1 km; 393 × 740 with
   the sheet expanded and 1,440 × 900, light and dark): no url(#…) in the section; the map 365 × 350 px on the phone and
   370 × 355 on desktop; the frame's fill equal to the panel's background (rgb(252, 252, 250) light, rgb(32, 41, 45)
   dark); the hatch in the map and in the key; no page error (only the outside requests the container cannot reach).
+- Preview: deploy run 45977210851 (16:51–16:52, Commercial District at `8690169` as the override): family check pass,
+  120 / 120 live checks on preview.citymeter.pages.dev. There, in the owner's Chrome (1,710 px, and a 393 × 740 frame of
+  the same origin in dark with the sheet expanded): cache tag `20261127-r7`, no url(#…) in the map's section, the frame's
+  fill equal to the panel's background, the hatch in the map and in the key, no horizontal overflow.
 - Not verified: Safari or any WebKit (not installable here), a real iPhone. The owner's test on his iPhone is the check.
 - The roadmap's V7-08 moves to 0.7.10.
 
