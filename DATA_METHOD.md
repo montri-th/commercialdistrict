@@ -999,17 +999,19 @@ is the same to 10 m for 94.50 %, within 20 m for 99.55 %, farther apart for 294,
 - The round maps (§16): the cells across a river beyond the distance the tiles read are hatched in the map's ink, the
   crossings within 5 km are small diamonds, and a cell across beyond 5 km through the crossings carries band 4 in its
   record and is left out of the directions. Under the tiles, when at least 1 % of the straight-line residents live across a river, a line names the river, that
-  share and the crossing most of those still counted come through (the nearest crossing when none is counted at that
+  share and the crossing through which the distance of most of those still counted is measured — “วัดระยะผ่าน …”, a
+  distance and never people the crossing carries (owner 2026-11-27 08:57, VERBATIM “เรือขนได้ 16,000 คนเลยเหรอ”; the line
+  read “ข้ามที่ …” before) — (the nearest crossing when none is counted at that
   distance); a fold sets the four figures through the crossings beside the straight ones (`st` in
   `data/people/<id>.json`: the straight figures at 3 and 5 km).
 - ปุณณวิถี within 5 km: 18,777 of the 453,771 residents of the straight line live across the Chao Phraya; 16,588 still
-  count through the crossings, 15,494 of them through เรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก (way 40346702), so the
-  figure is 451,583. Without ferries it would be 434,994 (built for the owner's question, not published).
+  count through the crossings, the distance of 15,494 of them measured through เรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก
+  (way 40346702) — how far they live by that way, not how many the ferry carries — so the figure is 451,583. Without ferries it would be 434,994 (built for the owner's question, not published).
 
 **Records.** `data/people/meta.json` `crossing` {rule, kinds, osm, counts, method, cacheSha256, neighbourhoods} and
 `maps.x`; per neighbourhood `map.x` {k: the cells across and their distance through the crossings in tens of metres, −1
 none in reach; c: up to 12 crossings within 5 km, nearest first, in the map's 25 m units; r: the rivers within 5 km; a:
-the share across per distance; u: the crossing most of those counted come through}; `data/around.json` `meta.crossing`.
+the share across per distance; u: the crossing through which the distance of most of those counted is measured}; `data/around.json` `meta.crossing`.
 
 **Rebuild.** Outside the repository: `python3 -I scripts/crossing/rivers.py --osm <thailand-261124.osm.pbf> --out
 <rivers cache>` (about 90 s), then `scripts/residents/build-residents.py … --reach 5000 --crossing <rivers cache>` (the

@@ -33,11 +33,11 @@ counts are in `DATA_METHOD.md` §17.
   dark; ปากน้ำโพ–ถนนโกสีย์ in English 1,280 light; สายลวด in Thai 393 light. In every case: the tiles residents, visitors,
   commuters, centres; the tabs with the residents map first; `__citymeterI18n.missing` empty; no element wider than its
   box; no page error.
-  - ปุณณวิถี: “อีกฝั่งแม่น้ำเจ้าพระยา 4.1% ของคนอยู่ใน 5 กม. · ข้ามที่ เรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก (2.1 กม.)”;
-    English “Across the Chao Phraya River: 4.1% of the residents within 5 km · crossing at Wat Bang Namphueng Nok - Wat
+  - ปุณณวิถี: “อีกฝั่งแม่น้ำเจ้าพระยา 4.1% ของคนอยู่ใน 5 กม. · วัดระยะผ่าน เรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก (2.1 กม.)”;
+    English “Across the Chao Phraya River: 4.1% of the residents within 5 km · measured through Wat Bang Namphueng Nok - Wat
     Bang Na Nok Ferry (2.1 km)”; the fold: residents about 452,000 through the crossings, 454,000 straight; 4 crossing
     marks and 32 hatched cells on the residents map.
-  - สุรศักดิ์: 32 % across, crossing at a footbridge (750 m), residents 703,000 against 724,000, 13 marks, 83 hatched cells.
+  - สุรศักดิ์: 32 % across, measured through a footbridge (750 m), residents 703,000 against 724,000, 13 marks, 83 hatched cells.
   - ปากน้ำโพ–ถนนโกสีย์: “Across the Chao Phraya River and the Ping River: 43% …”, the bridge of Phahon Yothin Road (1.9 km),
     75,000 against 89,000, 9 marks, 260 hatched cells.
   - สายลวด: 14 % across, เรือข้ามฟากพระสมุทรเจดีย์-วิบูลย์ศรี (2.2 กม.), 239,000 against 258,000, 3 marks, 213 hatched cells.

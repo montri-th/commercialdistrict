@@ -100,7 +100,8 @@ test('ปุณณวิถี: the river line names the Chao Phraya and the fer
   const html5 = at('5000');
   const sec = html5.slice(html5.indexOf('id="nb-people"'), html5.indexOf('id="nb-map"'));
   assert.match(text(sec), /อีกฝั่ง ?แม่น้ำเจ้าพระยา 4\.1% ของคนอยู่ใน 5 กม\./);
-  assert.match(text(sec), /ข้ามที่ เรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก \(2\.1 กม\.\)/);
+  assert.match(text(sec), /วัดระยะผ่าน เรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก \(2\.1 กม\.\)/);
+  assert.doesNotMatch(text(sec), /· ข้ามที่ |พาคน|crossing at /, 'a distance measured through a crossing, never people it carries (owner 2026-11-27 08:57)');
   assert.match(sec, /<summary>ข้ามแม่น้ำ: เทียบกับนับแบบเส้นตรง<\/summary>/);
   assert.match(sec, /<th scope="col">ผ่านทางข้าม<\/th><th scope="col">เส้นตรง<\/th>/);
   // inside: no river line (a distance from the edge is not read)

@@ -123,6 +123,13 @@
    "channel": "Claude chat, Project 02 CityMETER",
    "verbatim": "นับเรือแบบหน้าศูนย์การค้า",
    "note": "the option chosen in Claude's question “กฎข้ามแม่น้ำของย่าน: นับเรือข้ามฟากเป็นทางข้ามไหม?”, answered between 08:31 and 08:40 (the minute was not recorded). The question showed ปุณณวิถี within 5 km: 18,777 residents across the river (modelled); with ferries 16,588 still counted (453,771 → 451,583), without them none (434,994). It named the ferry as บางกะเจ้า–วัดคลองเตยนอก, which was wrong: the build brings 15,494 of the 16,588 through เรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก (OpenStreetMap way 40346702); Claude told the owner after the answer. The other option was «ไม่นับเรือ». On whether the Shopping Center page should change too, asked only for «ไม่นับเรือ», he gave no answer."
+  },
+  {
+   "at": "2026-11-27T08:57:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "เรือขนได้ 16,000 คนเลยเหรอ",
+   "note": "after Claude's correction that the distance of most of the 16,588 is measured through เรือข้ามฟากวัดบางน้ำผึ้งนอก–วัดบางนานอก (Claude had written “พาคนส่วนใหญ่ข้าม”). Claude answered that the figure is how many registered residents live within 5 km of the edge when the way is measured through the ferry's crossing — never people carried, trips or capacity — and offered «ไม่นับเรือ» again (434,994); the page's line now reads “วัดระยะผ่าน …” instead of “ข้ามที่ …”. D-18 stands unless he changes it."
   }
  ],
  "reading": {
@@ -419,7 +426,7 @@
    "rejectedAlternatives": [
     "ไม่นับเรือ (ปุณณวิถี 5 กม. 434,994 แทน 451,583; built for the question with --crossing-kinds no-ferry, not published)"
    ],
-   "meaning": "ทั้งสองหน้าใช้ทางข้ามชุดเดียวกัน คนฝั่งบางกระเจ้าที่ไปถึงขอบปุณณวิถีผ่านเรือข้ามฟากในระยะยังนับอยู่ (16,588 จาก 18,777 ใน 5 กม. 15,494 คนผ่านเรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก) เรือนับโดยไม่ดูตารางเดินเรือ",
+   "meaning": "ทั้งสองหน้าใช้ทางข้ามชุดเดียวกัน คนฝั่งบางกระเจ้าที่ระยะจากบ้านถึงขอบปุณณวิถีเมื่อวัดผ่านท่าเรือข้ามฟากไม่เกินระยะ ยังนับอยู่ (16,588 จาก 18,777 ใน 5 กม. ระยะของ 15,494 คนวัดผ่านเรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก) — เป็นระยะ ไม่ใช่จำนวนคนที่เรือขน ไม่ดูความจุหรือตารางเดินเรือ",
    "where": "scripts/crossing/banks.py KINDS_ALL · build-residents.py / build-people.py / build-around.py --crossing-kinds all (default)"
   }
  ],

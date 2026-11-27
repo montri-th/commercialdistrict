@@ -215,7 +215,8 @@ const riverNameHTML = ([th, en]) => (EN && !en ? `<span class="place-name">${esc
 
 /**
  * The river under the tiles (0.7.5), as «รอบศูนย์นี้» writes it: who lives across a river within the distance (a share of
- * the straight-line residents) and the crossing most of those counted come through — or the nearest one when none is
+ * the straight-line residents) and the crossing through which the distance of most of those counted is measured (a distance,
+ * never people carried: owner 2026-11-27 08:57, VERBATIM “เรือขนได้ 16,000 คนเลยเหรอ”) — or the nearest one when none is
  * counted at this distance — and, folded, the four figures through the crossings against the straight line, with the rule.
  * Only where a barrier river parts the 5 km round the outline and the files were built with the rule.
  */
@@ -230,7 +231,7 @@ export function riverHTML(rec, reach, meta) {
   if (rivers.length && share != null && share >= 1) {
     const names = rivers.map(riverNameHTML).join(esc(L(' และ', ' and ')));
     const head = `${esc(L('อีกฝั่ง', 'Across '))}${names}${EN ? ':' : ''}`;
-    const cross = nearest ? ` · ${esc(L(via ? 'ข้ามที่ ' : 'ทางข้ามใกล้สุด ', via ? 'crossing at ' : 'nearest crossing: '))}${crossingHTML(nearest)} ${nw(esc(`(${metreWords(nearest[5])})`))}` : '';
+    const cross = nearest ? ` · ${esc(L(via ? 'วัดระยะผ่าน ' : 'ทางข้ามใกล้สุด ', via ? 'measured through ' : 'nearest crossing: '))}${crossingHTML(nearest)} ${nw(esc(`(${metreWords(nearest[5])})`))}` : '';
     note = `<p class="people-river">${pic('distance')}<span>${head} ${nw(esc(L(`${shareWords(share)}% ของคนอยู่ใน ${kmWords(+reach)}`, `${shareWords(share)}% of the residents within ${kmWords(+reach)}`)))}${cross}</span></p>`;
   }
   const s = rec.s?.[reach] || {}, st = rec.st?.[reach] || {};
