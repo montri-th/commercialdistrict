@@ -62,7 +62,21 @@ export const provinceCodeFrom = value => {
 
 const lower = s => String(s || '').toLocaleLowerCase('th');
 
-const fixed = (x, n) => Number(x.toFixed(n));
+/**
+ * Python's round(x, n), as scripts/build-data.py rounds a highlight: the nearest multiple of 10^-n to the double's exact
+ * value, an exact tie to the even digit (0.8125 → 0.812). toFixed sends a tie up (0.813), so a tie is settled here from
+ * the exact decimal value (toFixed(100) holds every digit of the shares and strengths it rounds). (0.7.7: the first tie,
+ * 1 − 24/128, came with the outlines the owner ticked.)
+ */
+const fixed = (x, n) => {
+  const exact = x.toFixed(100).replace(/0+$/, '');
+  const dot = exact.indexOf('.');
+  if (dot < 0 || exact.length - dot - 1 !== n + 1 || !exact.endsWith('5')) return Number(x.toFixed(n));
+  const down = exact.slice(0, -1);   // the tie's lower neighbour in magnitude, n digits
+  const last = Number(down[down.length - 1] === '.' ? down[down.length - 2] : down[down.length - 1]);
+  if (last % 2 === 0) return Number(down);
+  return Number((Math.abs(Number(down)) + 10 ** -n).toFixed(n)) * Math.sign(x);
+};
 
 /**
  * The highlights of one row by the build's own rule (scripts/build-data.py, “highlight candidates”): per dataset with

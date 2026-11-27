@@ -43,9 +43,9 @@ test('D-V2: the build’s highlight rule, ported, gives the file’s own highlig
     assert.equal(r.strong, r.hl.filter(h => h.p >= 0.9).length);
   }
   const n = f => model.rows.reduce((s, r) => s + f(r), 0);
-  assert.equal(n(r => r.hlBuild.length), 639); // 0.6.1: 469 outlines (599 on the 451 of 0.6.0)
-  assert.equal(n(r => r.hl.length), 560, '639 less the starred, plus the complete ones the cap of four had cut (485 + 75; 459 + 70 = 529 in 0.6.0)');
-  assert.equal(model.rows.filter(r => r.hl.length).length, 271); // 0.6.1 (255 in 0.6.0)
+  assert.equal(n(r => r.hlBuild.length), 775); // 0.7.7: 534 outlines (639 on the 469 of 0.6.1, 599 on the 451 of 0.6.0)
+  assert.equal(n(r => r.hl.length), 649, '775 less the starred, plus the complete ones the cap of four had cut (567 + 82; 485 + 75 = 560 in 0.6.1; 459 + 70 = 529 in 0.6.0)');
+  assert.equal(model.rows.filter(r => r.hl.length).length, 329); // 0.7.7 (271 in 0.6.1, 255 in 0.6.0)
   const siam = model.rows.find(r => r.name === 'สยาม');
   assert.deepEqual(siam.hl.map(h => h.d), ['luxurybrands', 'camera', 'governmentoffice', 'transit']);
 });
@@ -204,7 +204,7 @@ test('the highlight cards: one per highlight of a complete dataset, in order, ea
       cards++;
     });
   }
-  assert.equal(cards, 560, 'the highlights of D-V2 (529 in 0.6.0)');
+  assert.equal(cards, 649, 'the highlights of D-V2 (560 in 0.6.1, 529 in 0.6.0)');
 });
 
 test('what comes together: a role’s evidence stays visible, ✓ by its datasets, ○ by what the data shows (DATA_METHOD §7)', () => {
