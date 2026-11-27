@@ -290,6 +290,28 @@ of 14:13 and his answers of 14:31–14:40 (D-12 … D-15); D-16 is Claude's read
   13 px after the `#panel small` override; the map's table fits the panel (365 px at 393 px wide).
 - Not checked here: the map on the page (WebGL and the basemap need the live site), the live release.
 
+### Live (2026-11-26, after the owner's word at 17:27, VERBATIM: “merge เลย และ publish”)
+
+- PR #38 merged at 17:27:55 ICT: `daeb6fe` (the tree of `6a0a07e`). GitHub Pages deployment 8082634247 of `daeb6fe`:
+  success at 17:29.
+- `npm run verify:live` with the manifest of `daeb6fe` (2,833 files): 2,763 of the 2,765 published files the same bytes
+  at once; the other two answered 503 and, fetched again, are the same bytes (`data/building-units/PLG.json`,
+  `data/condo/1005_72.json`).
+- citymeter.pages.dev: run 45801758846 of montri-th/citymeter-pages-deploy (`cloudflare-pages.yml`, publish), 17:29–17:35:
+  success; “114 / 114 live checks passed”; the demo family check (site and live) passes with Commercial District at
+  `daeb6fe`, citymeter-shell 0.6.4, 18 demos.
+- Walked in the owner's Chrome (Claude in Chrome), cache tag `20261126-r6` served: พร้อมพงษ์ in Thai on the desktop — the
+  3D map with its canvas, «ใครอยู่ตรงนี้» at 1 km (คนอยู่ราว 43,000 คน, ระดับเทียบ 85/100), the round map and 19 topic rows,
+  nothing missing in the English layer; in English, 3 km and the work map write `f.reach=3000&f.map=work` and keep the
+  focus on the button pressed, residents at 3 km read “Coming in the next data round”, no Thai but the name; at 393 px
+  (an iframe of the same origin) พร้อมพงษ์ in Thai and ป่าตอง in English: the sheet opens full, nothing wider than the
+  screen, ป่าตอง's rows name the datasets Phuket lacks.
+- Headless Chrome on montri-th.github.io (the container cannot load the map library): the same panel readings in Thai
+  and English at 1440 and 393 px.
+- Seen and left for 0.7.1: a university with a site in reach that cannot be counted reads “ไม่มีตัวเลข”, where “ยังนับไม่ได้”
+  says it better; the liveliness level prints a space before “/100”. The iframe at 393 px opened the family's light map
+  (“แผนที่แบบเบา”), a shell behaviour outside this release.
+
 ### Independent review (2026-11-26, a reviewer that did not write the release; read only, on c9e33cc)
 
 12 items: 3 must fix, 7 should fix, 2 groups of minor points. Handled in 137dbdc:
