@@ -28,10 +28,20 @@ const pic = (role, cls = '') => `<i class="${cls ? `${cls} ` : ''}pictogram pic-
 export const REACHES = Object.freeze(['in', '1000', '3000', '5000']);
 /** Author judgement (0.7.0): a neighbourhood opens at 1 km, the nearest service distance; the reader picks another. */
 export const DEFAULT_REACH = '1000';
-export const MAP_TABS = Object.freeze(['visit', 'work', 'res']);
-export const DEFAULT_MAP = 'visit';
+/**
+ * The groups in the owner's order, tiles and map tabs alike (0.7.4; owner 2026-11-27 07:15, VERBATIM: “ควรจะเรียงลำดับ
+ * Resident > Visitor > Commutor และให้มีภาษาอังกฤษด้วย ตอนนี้คลิกไม่ได้”): คนอยู่ › ผู้มาเยือน › คนมาทำงานและเรียน.
+ * The residents map opens first; a neighbourhood without one opens the next tab that has its data.
+ */
+export const MAP_TABS = Object.freeze(['res', 'visit', 'work']);
+export const DEFAULT_MAP = 'res';
 export const validReach = v => (REACHES.includes(String(v)) ? String(v) : DEFAULT_REACH);
 export const validMap = v => (MAP_TABS.includes(String(v)) ? String(v) : DEFAULT_MAP);
+/** The tab a map opens on: the one asked for when its data is here, else the first that has its data. */
+export const mapTabOf = (map, tab) => {
+  const has = t => t !== 'res' || Array.isArray(map?.res);
+  return has(tab) ? tab : MAP_TABS.find(has);
+};
 
 export const reachWords = (reach, {short = false} = {}) => (reach === 'in' ? L('ในย่าน', 'Inside')
   : short ? L(`${num(+reach / 1000)} กม.`, `${num(+reach / 1000)} km`) : L(`${num(+reach / 1000)} กม. จากขอบย่าน`, `${num(+reach / 1000)} km from the edge`));
@@ -71,8 +81,9 @@ const monthWords = ym => {
 };
 
 /**
- * The four tiles at one scale: คนอยู่ (modelled) · คนมาทำงานและเรียน (at least; starred when half or more of it comes from
- * datasets located under 90 %, then no level) · ผู้มาเยือนค้างคืน (guests a year, modelled) · ศูนย์และตลาด (places).
+ * The four tiles at one scale, in the owner's order (0.7.4, MAP_TABS): คนอยู่ (modelled) · ผู้มาเยือนค้างคืน (guests a year,
+ * modelled) · คนมาทำงานและเรียน (at least; starred when half or more of it comes from datasets located under 90 %, then no
+ * level) · ศูนย์และตลาด (places).
  */
 export function peopleTiles(rec, reach, meta = null) {
   const s = rec?.s?.[reach] || {}, p = rec?.p?.[reach] || {};
@@ -81,11 +92,11 @@ export function peopleTiles(rec, reach, meta = null) {
   return [
     {key: 'res', icon: 'home', th: 'คนอยู่', en: 'Living here', tag: ['แบบจำลอง', 'modelled'], state: resState, count: s.res ?? null,
       value: s.res == null ? '' : s.res === 0 ? '0' : aboutPeople(s.res) || L(...UNDER_10), about: Boolean(aboutPeople(s.res)), unit: ['คน', 'people'], star: false, p: p.res ?? null},
+    {key: 'gst', icon: 'luggage', th: 'ผู้มาเยือนค้างคืน', en: 'Overnight visitors', tag: ['แบบจำลอง', 'modelled'], state: s.gst == null ? 'none' : 'ready', count: s.gst ?? null,
+      value: s.gst == null ? '' : s.gst === 0 ? '0' : aboutPeople(s.gst) || L(...UNDER_10), about: Boolean(aboutPeople(s.gst)), unit: ['คนต่อปี', 'a year'], star: false, p: p.gst ?? null, roomsN: s.roomsN || null},
     // at least: rounded down, never “ราว”
     {key: 'com', icon: 'office', th: 'คนมาทำงานและเรียน', en: 'Come to work and study', tag: ['อย่างน้อย', 'at least'], state: s.com == null ? 'none' : 'ready', count: s.com ?? null,
       value: s.com == null ? '' : atLeastPeople(s.com), about: false, unit: ['คน', 'people'], star: Boolean(s.comLow), p: s.comLow ? null : p.com ?? null},
-    {key: 'gst', icon: 'luggage', th: 'ผู้มาเยือนค้างคืน', en: 'Overnight visitors', tag: ['แบบจำลอง', 'modelled'], state: s.gst == null ? 'none' : 'ready', count: s.gst ?? null,
-      value: s.gst == null ? '' : s.gst === 0 ? '0' : aboutPeople(s.gst) || L(...UNDER_10), about: Boolean(aboutPeople(s.gst)), unit: ['คนต่อปี', 'a year'], star: false, p: p.gst ?? null, roomsN: s.roomsN || null},
     {key: 'ctr', icon: 'venue', th: 'ศูนย์และตลาด', en: 'Centres and markets', tag: null, state: s.n?.shoppingcenter == null ? 'none' : 'ready', count: s.n?.shoppingcenter ?? null,
       value: s.n?.shoppingcenter == null ? '' : num(s.n.shoppingcenter), about: false, unit: ['แห่ง', 'places'], star: false, p: p.ctr ?? null},
   ];
@@ -407,7 +418,7 @@ export function mapSection(row, rec, meta, {tab = DEFAULT_MAP, prov = null, outO
   if (!rec?.map) return '';
   const map = rec.map;
   const has = t => t !== 'res' || Array.isArray(map.res);
-  const current = has(tab) ? tab : DEFAULT_MAP;
+  const current = mapTabOf(map, tab);
   const cfg = MAP_CFG[current];
   const tabs = `<div class="pm-tabs" role="group" aria-label="${esc(L('แผนที่ของ', 'Map of'))}">${MAP_TABS.map(t => `<button type="button" class="seg" data-action="set-map" data-value="${t}" aria-pressed="${t === current}"${has(t) ? '' : ' disabled'}>${esc(L(MAP_CFG[t].th, MAP_CFG[t].en))}${has(t) ? '' : ` <small>${esc(L('รอบถัดไป', 'next round'))}</small>`}</button>`).join('')}</div>`;
   const {cells, ramp} = mapModel(map, current);

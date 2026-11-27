@@ -813,7 +813,9 @@ rows read the same file at 400 and 800 m («ขอบเดินถึง», §
 neighbourhood's reference point, measured from the edge, so a figure does not compare one to one with a centre's circle
 of «รอบศูนย์นี้». Distances along real paths — bridges, crossings, expressways, rivers and rail — come with the
 OpenStreetMap file and method of the Shopping Center page, the same file by its SHA-256 (D-14, V7-09); until then the page
-says “วัดเส้นตรงจากขอบย่าน (รอระยะตามทางจริง)”.
+says “วัดเส้นตรงจากขอบย่าน (รอระยะตามทางจริง)”. The walk edges of 400 and 800 m («ขอบเดินถึง») take the same barrier rule
+then: owner 2026-11-27 06:51, VERBATIM “คิดด้วย”, under the question “ระยะ 400/800 ม. จะคิดเรื่องสิ่งกีดขวางด้วยไหม”
+(D-13; before it, an author judgement).
 
 **คนอยู่ (modelled).** The method of «รอบศูนย์นี้» (variant A): production's `popCount` of each subdistrict, the civil
 register's total of the latest month, spread over every building of CityMETER Building V4 in it by floor area —

@@ -64,6 +64,20 @@
       "channel": "Claude chat, Project 02 CityMETER",
       "verbatim": "ดีขึ้นนะครับ และมีข้อปรึกษาเพื่อปรับปรุงให้ดีขึ้นดังนี้ / 1) คนอยู่ แบบจำลองยังไม่ถึงรอบข้อมูลรอรุ่นแบบจำลองผู้อยู่อาศัย (รอบ 2) ทำยังไงถึงจะเห็นปริมาณคน residents, visitors, commuters ได้ อยากได้วิธีง่ายๆตรงไปตรงมาไม่ซับซ้อนมาก ช่วยนำเสนอมาให้เลือกหน่อย / 2) น่าอยู่ น่าเที่ยว น่าค้าขาย ผมว่าน่าจะคงคำไว้แบบนี้แล้วเรามาพยายามทำข้อมูลให้สามารถตอบความ \"น่า\" ให้ได้จริง เพิ่มเติมจากข้อมูลที่พี่ทำขึ้นมาแล้ว ให้เห็นทั้ง เชิงปริมาณ และ คุณภาพ / 2.1) น่าอยู่ ความน่าอยู่ควรจะเน้นไปที่กิจกรรมที่คนที่อยู่ในย่านนี้จะต้องเจอทุกวัน เช่น การกิน, การนอน, ความแออัด, ความคึกคักมีสีสัน, ความสงบ, คุณภาพชีวิตที่ดี, อากาศดี, การเดินทางมีทางเลือกมาก หลาย mode mode ละหลายๆ option และทางเลือกมีคุณภาพ, การออกกำลังกาย, พื้นที่สีเขียว, ใกล้ของจำเป็นครบครัน etc / 2.2) น่าเที่ยว ความน่าเที่ยว คือมีการเที่ยวหลายๆอย่าง ที่ inspiring เช่น museum, edutainment, arts, concert, สถานท่องเที่ยวทางประวัติศาสตร์, nightlife, ธรรมชาติ, หาด, ภูเขา, น้ำตก, เดินป่า, โรงแรม รีสอท ที่พักค้างแรมประเภทต่างๆ, ย่านคูลๆ, shopping, fashion / 2.3) น่าค้าขาย มีกำลังซื้อสูง ทั้งปริมาณผู้ซื้อ และ ระดับราคาความเต็มใจจ่ายในหลายๆระดับราคา, มีคู่แข่งมากน้อย, มีพันธมิตรมากน้อย, มี present ของสาขาของเราแล้วหรือยัง, มีกิจกรรมที่ดึงดูด traffic ที่มี preference ที่ตรงกับสินค้าและบริการของเรา / 2.4) charts ใน sidebar ตอนนี้ยังดูยากอยู่มาก ตัวเล็ก ตัวเลขต่างไม่รู้ว่ามีความหมายอย่างไร ยังไม่ consistent กับ venue locale insight เท่าที่ควร พวก heatmap กลมๆก็ไม่มี ทำยังไงจะมีได้และ relevant กับ case ของ commercial district นี้ด้วย / ขอปรึกษา แล้วพี่ปรับ brief และแผน และลงมือปรับเลย",
       "note": "with a screenshot of the live panel of พร้อมพงษ์ at 800 m; line breaks shown as “ / ”"
+    },
+    {
+      "at": "2026-11-27T07:15:00+07:00",
+      "by": "owner (Montri)",
+      "channel": "Claude chat, Project 02 CityMETER",
+      "verbatim": "ควรจะเรียงลำดับ Resident > Visitor > Commutor \nและให้มีภาษาอังกฤษด้วย ตอนนี้คลิกไม่ได้",
+      "note": "after his screenshot of ปุณณวิถี's round map (07:09)"
+    },
+    {
+      "at": "2026-11-27T08:23:00+07:00",
+      "by": "owner (Montri)",
+      "channel": "Claude chat, Project 02 CityMETER",
+      "verbatim": "EN บนเวบผมคลิกไม่ได้",
+      "note": "his answer, written after each of Claude's two questions, which he sent back with it: (1) whether “ให้มีภาษาอังกฤษด้วย” meant Residents · Visitors · Commuters beside the Thai names on the Thai page, (2) which part “คลิกไม่ได้” meant — the people tiles or the round map. Read as: the English he means is the English page, and the EN link cannot be clicked where he uses the site."
     }
   ],
   "reading": {
@@ -283,6 +297,20 @@
       "meaning": "ข้อมูลเปิดที่น่าจะระบุตำแหน่งได้",
       "appliedAs": "ยังไม่นำเข้าใน 0.6.0: ต้องตรวจความครอบคลุม ที่อยู่ key และสิทธิ์แสดงบนเว็บก่อน (V3)",
       "where": "ไม่มีใน 0.6.0"
+    },
+    {
+      "id": "D-V9",
+      "question": "ลำดับกลุ่มคนใน «ใครอยู่ตรงนี้» และแผนที่รอบย่าน ภาษาอังกฤษ และสิ่งที่คลิกไม่ได้",
+      "status": "decided (order) · the EN link open (where it cannot be clicked)",
+      "decision": "คนอยู่ › ผู้มาเยือน › คนมาทำงานและเรียน ทั้งช่องตัวเลขและแท็บแผนที่ แผนที่คนอยู่เปิดก่อน · ภาษาอังกฤษ = หน้าอังกฤษเดิมผ่านปุ่ม EN · “คลิกไม่ได้” = ปุ่ม EN",
+      "decidedAt": "2026-11-27T08:23:00+07:00",
+      "decidedBy": "owner",
+      "ownerWords": "ควรจะเรียงลำดับ Resident > Visitor > Commutor และให้มีภาษาอังกฤษด้วย ตอนนี้คลิกไม่ได้ (07:15) · EN บนเวบผมคลิกไม่ได้ (08:23)",
+      "delegatedToAuthor": false,
+      "withdrawn": "Claude's first reading, built before the answer and never published (pull request #44 at b6920fb): his English words beside the Thai names on the Thai page, and people tiles that open their maps. Both are taken out; the order stays.",
+      "found": "On citymeter.pages.dev (2026-11-27 08:2x, Claude in Chrome): the EN link is on top at every width from 768 to 1,710 px. On a phone in portrait (393 × 740) EN sits in the menu “Commercial District ▾”, and the note “แผนที่แบบเบา” (opened once per tab when the map stops and restarts light) lies over the menu's first row, so EN cannot be tapped until the note is folded. The note and the menu are the shared shell's (navigation.css z-index 35 over the header's menu), so the fix is a shell release for every demo.",
+      "where": "js/people.js MAP_TABS · DEFAULT_MAP · mapTabOf · peopleTiles (order) · js/app.js",
+      "release": "0.7.4"
     }
   ],
   "authorJudgements": [
@@ -383,6 +411,11 @@
       "recommendation": "B",
       "why": "D-V1c asked for one value across the panel and listed the fingerprint, the matrix, the comparison and the axes; the glance was not among them, and D-8 and NL-04 approved it as it is, so this release does not change it",
       "status": "open"
+    },
+    {
+      "id": "D-V9b",
+      "question": "ปุ่ม EN ที่คลิกไม่ได้ เปิดจากอะไร (มือถือ/iPad/คอม และเบราว์เซอร์) — บนมือถือพบกล่อง «แผนที่แบบเบา» ทับปุ่ม EN ในเมนู การแก้อยู่ในชุดกลางของทุกเดโม",
+      "since": "2026-11-27"
     }
   ]
 }

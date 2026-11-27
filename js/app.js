@@ -23,7 +23,7 @@ import {provinces as provinceList, provinceByCode, provinceCodeFrom, provinceNam
 import {buildOverview, buildNeighborhood, buildCompare} from './profile.js';
 import {decodeAround, aroundDistance, aroundMatches} from './around.js';
 import {renderOverview, renderNeighborhood, renderCompare, renderFilterChips, tableHeadHTML, tableRowHTML, esc, L, dens, sharePct, thaiDate} from './panel.js';
-import {decodePeople, validReach, validMap, DEFAULT_REACH, DEFAULT_MAP, reachWords, watchMapNames} from './people.js';
+import {decodePeople, validReach, validMap, mapTabOf, DEFAULT_REACH, DEFAULT_MAP, reachWords, watchMapNames} from './people.js';
 import {cellOf} from './levels.js';
 import {cellWords} from './visual.js';
 import {loadMapLibrary} from './shell/vendors.js';
@@ -383,7 +383,7 @@ function ensurePeople(r) {
       state.peopleMeta = m;
       registerPlaceNames(rec);
       state.people.set(r.id, rec);
-      if (state.nb === r.id && state.mapTab === 'res' && !Array.isArray(rec.map?.res)) { state.mapTab = DEFAULT_MAP; saveURL(); }
+      if (state.nb === r.id && mapTabOf(rec.map, state.mapTab) !== state.mapTab) { state.mapTab = mapTabOf(rec.map, state.mapTab); saveURL(); }
     })
     .catch(e => { partial('people'); console.warn('People figures unavailable', r.id, e); state.peopleErr.add(r.id); })
     .finally(() => { state.peopleLoading.delete(r.id); if (state.nb === r.id) renderPanel(); });

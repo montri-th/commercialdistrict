@@ -103,11 +103,11 @@ test('D-12: commuters are the sum of their parts at the low end, starred when ha
 
 test('the reading of the people address: scales and map tabs, anything else reads the default', () => {
   assert.deepEqual(REACHES, ['in', '1000', '3000', '5000']);
-  assert.deepEqual(MAP_TABS, ['visit', 'work', 'res']);
+  assert.deepEqual(MAP_TABS, ['res', 'visit', 'work'], 'owner 2026-11-27 07:15: Resident > Visitor > Commuter');
   for (const v of REACHES) assert.equal(validReach(v), v);
   for (const v of ['', '400', '2000', null, undefined]) assert.equal(validReach(v), '1000');
   for (const v of MAP_TABS) assert.equal(validMap(v), v);
-  for (const v of ['', 'x', null]) assert.equal(validMap(v), 'visit');
+  for (const v of ['', 'x', null]) assert.equal(validMap(v), 'res');
   assert.equal(aboutPeople(32343), '32,000');
   assert.equal(aboutPeople(3221402), '3,221,000');
   assert.ok(!aboutPeople(4), 'under 10: no rounded figure (the tile writes <10)');
@@ -125,7 +125,8 @@ test('every neighbourhood renders «ใครอยู่ตรงนี้» wi
       const html = renderNeighborhood(buildNeighborhood(model, r), model, {ctx: ctx(), around, people: p, peopleMeta: meta, reach});
       const sec = html.slice(html.indexOf('id="nb-people"'), html.indexOf('id="nb-map"'));
       assert.equal((sec.match(/class="people-tile /g) || []).length, 4, `${r.id} ${reach}`);
-      for (const key of ['res', 'com', 'gst', 'ctr']) assert.match(sec, new RegExp(`data-people="${key}"`), r.id);
+      // the owner's order (2026-11-27 07:15): residents › visitors › commuters, then centres and markets
+      assert.deepEqual([...sec.matchAll(/data-people="(\w+)"/g)].map(m => m[1]), ['res', 'gst', 'com', 'ctr'], r.id);
       assert.match(sec, new RegExp(`data-action="set-reach" data-value="${reach}" aria-pressed="true"`), r.id);
       // residents: a scale not built yet says it comes next; a built scale without a figure has no building here; never 0
       const built = (meta.residents?.scales || []).includes(reach);
@@ -145,6 +146,7 @@ test('every neighbourhood renders «ใครอยู่ตรงนี้» wi
       const html = renderNeighborhood(buildNeighborhood(model, r), model, {ctx: ctx(), around, people: p, peopleMeta: meta, mapTab: tab});
       const sec = html.slice(html.indexOf('id="nb-map"'), html.indexOf('</section>', html.indexOf('id="nb-map"')));
       assert.ok(sec.length > 0, r.id);
+      assert.deepEqual([...sec.matchAll(/data-action="set-map" data-value="(\w+)"/g)].map(m => m[1]), ['res', 'visit', 'work'], `${r.id}: the tabs in the owner's order`);
       if (!p.map.res) assert.match(sec, /data-value="res"[^>]*disabled/, `${r.id}: the residents map waits for its data round`);
       if (tab === 'res' && !p.map.res) continue;
       // the cells are drawn as one path per colour (runs of a row merged): every fill is a sample of the map's own scale
