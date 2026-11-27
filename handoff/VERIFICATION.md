@@ -1,5 +1,24 @@
 # CityMETER Commercial District — verification
 
+## Release 0.7.6 — 27 พ.ย. 2569 (not published): citymeter-shell 0.6.5
+
+The owner's words (VERBATIM): 08:23 “EN บนเวบผมคลิกไม่ได้”; 08:47 “citymeter.pages.dev ใน Safari”; he chose «แก้ทุกเดโมพร้อมกัน»
+in Claude's question. On citymeter.pages.dev (0.7.3, Claude in Chrome, his Chrome at 1,710 px) a real click on EN opened the
+English page; the link is the element at its own centre at every width from 768 to 1,710 px. The cause in Safari is the
+shell's refresh of the link on `pointerdown`: it wrote the words “EN” again, Safari replaces a text node even for the same
+text (WebKit bug 244559) and drops a click whose press landed on a text node removed before the release (WebKit bug
+252810). Not reproduced in Safari here: WebKit could not be installed in the container.
+
+- `js/shell/header.js` `updateLanguageLink`: only what changed is written; the words once, when they change. Manifest
+  0.6.5; `tests/shell.test.js` (the family's file) gains the test of it. The same bytes in all 17 repositories and in
+  `factory/industrialestate/`.
+- `npm test` here: 229 tests, 229 pass, 0 fail (with 0.7.5 after its review); every other repository passed its own
+  tests with 0.6.5 (Shopping Center after installing `pyahocorasick`, which two of its tests need).
+  `data/people/meta.json` and `data/around.json` carry release 0.7.6 and nothing else new.
+- The live site (0.6.4) in Chrome: a hover and a press on EN wrote its words twice (a counter on the link's
+  `textContent`); on this tree with Playwright and Google Chrome, the same press wrote them 0 times and opened the English
+  page at the same neighbourhood, at 1,440 px and in the phone's menu at 393 px.
+
 ## Release 0.7.5 — 27 พ.ย. 2569 (not published)
 
 The owner's words (VERBATIM): 07:09, with his screenshot of ปุณณวิถี's residents map, “คนอยู่ไม่น่าจะข้ามแม่น้ำจากบางกระเจ้า
