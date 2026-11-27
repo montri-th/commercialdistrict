@@ -346,9 +346,10 @@
    },
    "applied": {
     "release": "0.7.5",
-    "how": "the Shopping Center page's D70 rule (its DATA_METHOD §32) on every neighbourhood: on the neighbourhood's bank the straight line from the edge; across a barrier river the distance through the nearest crossing, edge → crossing → place, each leg straight, never shorter than straight; residents, the people figures and their levels, the round maps and the 400/800 m counts (DATA_METHOD.md §17)",
+    "how": "the Shopping Center page's D70 rule (its DATA_METHOD §32) on every neighbourhood: on the neighbourhood's bank the straight line from the edge; across a barrier river the distance through the nearest crossing, edge → crossing → place, each leg straight, never shorter than straight; residents, the people figures and their levels, the round maps and the 400/800 m counts (DATA_METHOD.md §17); with this repository's own scripts reading the written rule (scripts/crossing/), not the Shopping Center's: 3,264 crossings against its 3,411, its across cells found for 99.63 % and the same distance to 10 m for 94.50 %",
     "interimEnded": "the straight line across rivers (0.7.0–0.7.4)"
-   }
+   },
+   "meaningAsApplied": "ไฟล์ OSM และกติกาเดียวกัน แต่สคริปต์เขียนใหม่ตามกติกา ที่เดียวกันจึงได้ตัวเลขใกล้กันแต่ไม่เท่ากันทุกครั้ง (ช่องอีกฝั่งแม่น้ำพบตรงกัน 99.63% ระยะเท่ากันถึง 10 ม. 94.50%) — ข้อความ meaning เดิมว่า “สคริปต์…เดียวกัน ที่เดียวกันได้ตัวเลขเดียวกัน” เป็นความตั้งใจตอนตัดสิน ไม่ใช่สิ่งที่ได้ (ผู้ตรวจอิสระ 27 พ.ย.)"
   },
   {
    "id": "D-14",
@@ -426,7 +427,7 @@
    "rejectedAlternatives": [
     "ไม่นับเรือ (ปุณณวิถี 5 กม. 434,994 แทน 451,583; built for the question with --crossing-kinds no-ferry, not published)"
    ],
-   "meaning": "ทั้งสองหน้าใช้ทางข้ามชุดเดียวกัน คนฝั่งบางกระเจ้าที่ระยะจากบ้านถึงขอบปุณณวิถีเมื่อวัดผ่านท่าเรือข้ามฟากไม่เกินระยะ ยังนับอยู่ (16,588 จาก 18,777 ใน 5 กม. ระยะของ 15,494 คนวัดผ่านเรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก) — เป็นระยะ ไม่ใช่จำนวนคนที่เรือขน ไม่ดูความจุหรือตารางเดินเรือ",
+   "meaning": "ทั้งสองหน้าใช้กติกาทางข้ามเดียวกัน (ทางข้าม 3,264 กับ 3,411 ของหน้าศูนย์การค้า เรือข้ามฟาก 90 กับ 91) คนฝั่งบางกระเจ้าที่ระยะจากบ้านถึงขอบปุณณวิถีเมื่อวัดผ่านท่าเรือข้ามฟากไม่เกินระยะ ยังนับอยู่ (16,588 จาก 18,777 ใน 5 กม. ระยะของ 15,494 คนวัดผ่านเรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก) — เป็นระยะ ไม่ใช่จำนวนคนที่เรือขน ไม่ดูความจุหรือตารางเดินเรือ",
    "where": "scripts/crossing/banks.py KINDS_ALL · build-residents.py / build-people.py / build-around.py --crossing-kinds all (default)"
   }
  ],

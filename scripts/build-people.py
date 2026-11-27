@@ -36,9 +36,10 @@ Outputs:
                         on the map's own frame; never a count.
 
 Rules (DATA_METHOD.md §15):
-  * Distances: straight line from the outline the map draws, in an azimuthal equidistant projection centred on the
-    neighbourhood's reference point (as scripts/build-around.py), until the Shopping Center's method along real paths is
-    in hand (D-13, D-14). The page says so.
+  * Distances: from the outline the map draws, in an azimuthal equidistant projection centred on the neighbourhood's
+    reference point (as scripts/build-around.py): a straight line on the neighbourhood's bank; with --crossing (0.7.5,
+    D-13, D-14, D-18) across a barrier river the distance through the nearest crossing (scripts/crossing/, DATA_METHOD.md
+    §17). The page says which.
   * A part whose dataset has no located record in the neighbourhood's province is unknown (null), never 0.
   * University students count in a scale only when every site of the university is located and within it.
   * Guests a year: each lodging record's recorded rooms × its province's guests ÷ the province's recorded rooms (records
@@ -301,8 +302,8 @@ def main():
     rivers = crossing_meta = None
     if a.crossing:
         banks_mod = load_module('banks', os.path.join(repo, 'scripts', 'crossing', 'banks.py'))
-        rivers, crossing_meta = banks_mod.load(a.crossing, a.crossing_kinds)
         rc = (residents or {}).get('meta', {}).get('crossing')
+        rivers, crossing_meta = banks_mod.load(a.crossing, a.crossing_kinds, expect_sha256=(rc or {}).get('cacheSha256'))
         if residents and (not rc or rc['cacheSha256'] != crossing_meta['cacheSha256'] or rc['kinds'] != crossing_meta['kinds']):
             sys.exit('the residents file was not built with this --crossing cache and kinds: build it again with them')
     elif residents and residents.get('meta', {}).get('crossing'):
@@ -466,10 +467,11 @@ def main():
                 dc = shapely.distance(g, shapely.points(cx_, cy_))
                 far = np.zeros(len(ks), dtype=bool)
                 if bank is not None:
-                    # a cell across a river takes its centre's distance through the crossings; band 4: across and beyond
-                    # 5 km that way (a cell at the rim whose centre is just past 5 km in a straight line stays band 3)
+                    # a cell across a river takes its centre's distance through the crossings; band 4: across, within
+                    # 5 km in a straight line and beyond it that way, both read in tens of metres as map.x.k writes them
+                    # (a rim cell, past 5 km in a straight line, stays band 3 on either bank)
                     dr, acr, _vl = bank.measure(cx_, cy_, dc)
-                    far = acr & (dr > 5000)
+                    far = acr & (np.round(dr / 10) > 500) & (np.round(dc / 10) <= 500)
                     dc = np.where(acr, dr, dc)
                 band = np.where(far, 4, np.where(dc <= 0, 0, np.where(dc <= 1000, 1, np.where(dc <= 3000, 2, 3))))
             else:
@@ -507,7 +509,8 @@ def main():
                    'mask': mask_runs, 'visit': grids['visit'], 'work': grids['work'], 'lines': lines}
         # ---- the river (0.7.5): the cells of the 5 km across a river with their centre's distance through the crossings
         #      (tens of metres, -1: no crossing in the window reaches that bank), the crossings reached within 5 km, the
-        #      rivers, and from the residents run the share across within each distance and the crossing most come through
+        #      rivers, and from the residents run the share across within each distance and the crossing through which the
+        #      distance of most of those counted is measured
         if bank is not None:
             drawn = set(np.nonzero(inmask)[0].tolist())
             for grp in ('visit', 'work'):
@@ -516,8 +519,10 @@ def main():
             # a building at the very rim can fall a cell past the frame (the map clips it): it has no centre to measure
             kk = np.array(sorted(k for k in drawn if 0 <= k < W * Hh), dtype=np.int64)
             px_, py_ = gx.ravel()[kk], gy.ravel()[kk]
-            d_all, acr_all, _vl = bank.measure(px_, py_, shapely.distance(g, shapely.points(px_, py_)))
-            xk = [[int(k), int(round(v / 10)) if np.isfinite(v) else -1] for k, v, a_ in zip(kk, d_all, acr_all) if a_]
+            s_all = shapely.distance(g, shapely.points(px_, py_))
+            d_all, acr_all, _vl = bank.measure(px_, py_, s_all)
+            xk = [[int(k), int(round(v / 10)) if np.isfinite(v) else -1, int(round(s / 10))]
+                  for k, v, s, a_ in zip(kk, d_all, s_all, acr_all) if a_]
             if xk:
                 xc, ways = [], []
                 for dd, li in bank.reached(5000):
@@ -571,8 +576,9 @@ def main():
                           if crossing_meta else 'the service area so far from the drawn outline, inside included; straight line')},
         'distance': ({'th': crossing_meta['rule']['th'], 'en': crossing_meta['rule']['en']} if crossing_meta
                      else {'th': 'เส้นตรงจากขอบย่าน', 'en': 'straight line from the outline'}),
-        **({'crossing': {**crossing_meta, 'neighbourhoods': {'riverWithin5km': sum(1 for m_ in maps.values() if m_.get('x')),
-                                                              'figuresChanged': len(straight_of)}}} if crossing_meta else {}),
+        **({'crossing': {**crossing_meta, 'neighbourhoods': {'acrossInMap': sum(1 for m_ in maps.values() if m_.get('x')),
+                                                              'figuresChanged': len(straight_of),
+                                                              'note': 'acrossInMap: maps with land across a barrier river in their 5 km (a cell on another bank); figuresChanged: people files with a figure through the crossings other than the straight one'}}} if crossing_meta else {}),
         'parts': {
             'stu': {'dataset': 'school', 'th': 'นักเรียนที่บันทึกปี 2569', 'en': 'students recorded for 2026'},
             'uni': {'dataset': 'university', 'th': 'นักศึกษาของมหาวิทยาลัยที่ทุกวิทยาเขตอยู่ในระยะ', 'en': 'students of universities whose every site is within the distance'},
@@ -590,8 +596,8 @@ def main():
         'maps': {'schema': MAPS_SCHEMA, 'cellM': CELL_M, 'reachM': 5000, 'groups': {k: list(v) for k, v in MAP_GROUPS.items()},
                  'what': 'places per 250 m cell (listed places, not people or visits), cells within 5 km of the drawn outline, straight line (the cells across a river beyond the distance through the crossings are drawn and marked by `x`)',
                  'order': 'cell k = row × w + column; rows north to south from y1, columns west to east from x0; mask = run lengths of cells inside 5 km, starting outside',
-                 'cellRecord': '[k, places, band]: band 0 = the cell centre inside the outline, 1 within 1 km of it, 2 within 3 km, 3 within 5 km, 4 (0.7.5) across a river and beyond 5 km through the crossings',
-                 'x': 'where a barrier river comes within the window (0.7.5): k [[cell, tens of metres through the crossings, -1 none in reach]] of the cells across it; c [[x, y (25 m units, y down), kind, name th, name en, metres]] the crossings reached within 5 km, nearest first (≤ 12); r [[th, en]] the rivers within 5 km; a {distance: % of the straight-line residents across the river}; u {distance: [index in c or -1, % of those counted across who come through it]}'},
+                 'cellRecord': '[k, places, band]: band 0 = the cell centre inside the outline, 1 within 1 km of it, 2 within 3 km, 3 within 5 km, 4 (0.7.5) across a river, within 5 km in a straight line and beyond 5 km through the crossings (tens of metres, as map.x.k)',
+                 'x': 'where a barrier river comes within the window (0.7.5): k [[cell, tens of metres through the crossings (-1: no crossing in the window reaches that bank), tens of metres in a straight line]] of the cells across it; c [[x, y (25 m units, y down), kind, name th, name en, metres]] the nearest crossings reached within 5 km (at most 12); r [[th, en]] the rivers within 5 km, nearest first; a {distance: % of the straight-line residents across the river}; u {distance: [index in c or -1, % of those counted across whose distance is measured through it]} — distances, never people a crossing carries'},
         'sources': {d['id']: d['source'] for d in datasets if d['id'] in {'school', 'factory', 'governmentoffice', 'university', 'office', 'hotel'} | set(sum(MAP_GROUPS.values(), ()))},
         'shoppingcenterModel': {'file': SC_MODEL, 'sha256': sha256_file(sc_model_path)},
         'residents': residents.get('meta') if residents else None,

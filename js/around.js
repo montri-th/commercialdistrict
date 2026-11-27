@@ -5,7 +5,8 @@
  * proposal in handoff/around/ (plan.json, contracts.json).
  *
  * data/around.json (scripts/build-around.py, DATA_METHOD.md §12): per neighbourhood, for every dataset in scope, the
- * located records outside its outline within 400 m and within 800 m of the edge, straight line — [r400, r800], the 800 m
+ * located records outside its outline within 400 m and within 800 m of the edge (straight on the neighbourhood's bank;
+ * across a river through the nearest crossing since 0.7.5, DATA_METHOD.md §17) — [r400, r800], the 800 m
  * figure holding the 400 m one. A record the data build counted inside is never around. Figures are never added: not
  * the inside to the around, not two datasets, not two neighbourhoods (one record can be around several of them).
  *

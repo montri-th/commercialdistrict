@@ -3,44 +3,70 @@
 ## Release 0.7.5 — 27 พ.ย. 2569 (not published)
 
 The owner's words (VERBATIM): 07:09, with his screenshot of ปุณณวิถี's residents map, “คนอยู่ไม่น่าจะข้ามแม่น้ำจากบางกระเจ้า
-มาที่ปุณณวิถีได้นะครับ”; on ferries, the option «นับเรือแบบหน้าศูนย์การค้า» (D-18, between 08:31 and 08:40). The rule and the
-counts are in `DATA_METHOD.md` §17.
+มาที่ปุณณวิถีได้นะครับ”; on ferries, the option «นับเรือแบบหน้าศูนย์การค้า» (D-18, between 08:31 and 08:40); 08:57 “เรือขนได้
+16,000 คนเลยเหรอ” (the river line now says the distance is measured through the crossing). The rule and the counts are in
+`DATA_METHOD.md` §17.
 
-### Data (container, 27 Nov)
+### Data (container, 27 Nov; second build after the independent review)
 
 - `scripts/crossing/rivers.py` on `thailand-261124.osm.pbf` (SHA-256 `62b496bf…2d24`, outside the repository): 1,277 named
   ways, 42 gap ways, 29 mouths, 3,264 crossings; the cache (SHA-256 `cd1e1442…69fc`) outside the repository.
 - `scripts/crossing/parity.py` against `montri-th/shoppingcenter` `data/crossing/`: 267 centres; 73,187 of the 73,460
   published cells across a river found (99.63 %), 229 more here; distance equal to 10 m 94.50 %, within 20 m 99.55 %,
-  294 farther, 35 within 5 km on one side only.
+  294 farther, 35 reached through a crossing on one side only — the same numbers again after the home-bank change below
+  (a centre is a point: it takes the bank of its own cell, as before).
 - `build-residents.py --reach 5000 --crossing <cache>` (the same 59,219 requests and 62,196 responses as 0.7.3, their
-  digest `acdfd81e…b2df` equal), `build-people.py
-  --crossing`, `build-around.py --crossing`: 206 neighbourhoods with a barrier river within 5 km; residents changed in 66,
-  90, 95, 151 and 186 neighbourhoods at 400 m, 800 m, 1, 3 and 5 km; 161 dataset figures of «ขอบเดินถึง» lower in 61
-  neighbourhoods, none higher. The straight figures the build keeps — inside (469) and 400 m to 5 km of the 188
-  neighbourhoods with residents across a river (940) — equal 0.7.3's, and so do the 590 of `st`.
+  digest `acdfd81e…b2df` equal), `build-people.py --crossing`, `build-around.py --crossing`: 208 neighbourhoods with land
+  across a barrier river in their 5 km map; residents lower than 0.7.3 in 70, 94, 100, 154 and 189 neighbourhoods at
+  400 m, 800 m, 1, 3 and 5 km, higher in none; «ขอบเดินถึง»: 178 dataset figures lower in 65 neighbourhoods (222 values),
+  none higher; `data/around.json` `meta.release` 0.7.5. The straight figures the build keeps — inside (469) and `st`
+  (1,117 values over 400 m to 5 km) — equal 0.7.3's.
 - ปุณณวิถี within 5 km: 453,771 in a straight line, 18,777 of them across the Chao Phraya, 16,588 counted through the
-  crossings (15,494 through เรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก, way 40346702): 451,583. Built with `--crossing-kinds
-  no-ferry --only CMN-TH-FC9F0B73B3` for the owner's question: 0 counted, 434,994 (not published).
-- `data/people/meta.json` release 0.7.5; the people files equal the commit `7b956c1` byte for byte but `meta.json`.
+  crossings (the distance of 15,494 measured through เรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก, way 40346702): 451,583.
+  Built with `--crossing-kinds no-ferry --only CMN-TH-FC9F0B73B3` for the owner's question: 0 counted, 434,994 (not
+  published).
+
+### The independent review (27 Nov; a fresh agent, read-only) and what was done
+
+- Must-fix: (1) «ขอบเดินถึง» named release 0.6.1 — `build-around.py` takes the page's release, a test holds it; (2) four
+  riverside outlines took the far bank as home through a window round their edge — home banks now come from the cells
+  inside the outline, slivers under 6 cells or 2 % left out (`banks.py` `_home`), checked on all 469 before the change:
+  exactly those four; (3) wrong figures in the records — the counts above are read again from the second build, the 35
+  worded as `parity.py` counts it, the crossing marks counted on the map only, `st` described as it is.
+- Should-fix done: the map count's name (`acrossInMap`, not “a river within 5 km”); D-13 and D-18 say the scripts are
+  this repository's reading of the rule (3,264 crossings against 3,411); stale straight-line words in
+  `handoff/PRODUCT_BRIEF.md`, `handoff/around/contracts.json` (an amendment beside the contract's words),
+  `handoff/around/README.md`, `llms.txt`, the docstrings and the V7-09 title; rivers listed nearest first, one entry per
+  river, an English-only name kept on the Thai page; band 4 and the hatch read one rule in tens of metres (within the
+  distance in a straight line, beyond it through the crossings; a rim cell stays band 3), with `map.x.k` carrying the
+  straight distance; the records' wording of `u`; the limits of §17.
+- Minor done: the crossing exclusions listed in full; diamonds “the nearest, up to 12”; −1 explained; the fold names
+  English “… River” rivers and fords; the cache's SHA-256 checked before it is read; `updatedOn`; the README's kinds; a
+  crossing the outline runs onto reads “ที่ขอบย่าน” instead of “0 ม.”.
+- Not done: the sheet ledger `12_LAYER_RELEASES` row NLR-002 (`around_counts`) still describes straight-line counts; a
+  new row waits for the owner's word (the registry is written only on his word). The pre-existing rim cells of
+  `CMN-TH-FBBE98C253` past its frame stay filtered out as in 0.7.3.
 
 ### Local (container, 27 Nov)
 
-- `npm test`: 227 tests, 227 pass, 0 fail (new: `tests/crossing.test.js`, 7 tests; the records test now holds D-18 and the
-  owner's 07:09 words).
+- `npm test`: 228 tests, 228 pass, 0 fail (new in `tests/crossing.test.js`: band 4 ⇔ the hatch's test at 5 km for every
+  cell of every map; one entry per river; no river line without a name; the hatch at 1, 3 and 5 km as the rule says;
+  the around release).
 - Playwright with Google Chrome on `python3 -m http.server` over this tree, cache tag `20261127-r3`, at 5 km, the fold
-  opened: ปุณณวิถี in Thai 1,440 light, English 1,440 dark, Thai 393 dark and English 393 light; สุรศักดิ์ in Thai 1,280
-  dark; ปากน้ำโพ–ถนนโกสีย์ in English 1,280 light; สายลวด in Thai 393 light. In every case: the tiles residents, visitors,
-  commuters, centres; the tabs with the residents map first; `__citymeterI18n.missing` empty; no element wider than its
-  box; no page error.
+  opened, after the second build: ปุณณวิถี in Thai 1,440 light, English 1,440 dark, Thai 393 dark and English 393 light;
+  สุรศักดิ์ in Thai 1,280 dark; ปากน้ำโพ–ถนนโกสีย์ in English 1,280 light; สายลวด in Thai 393 light; ธานี–ประเวศนคร สุโขทัย and
+  CMN-TH-E184AACBEC in Thai 1,280 light. In every case: the tiles residents, visitors, commuters, centres; the residents
+  map first; `__citymeterI18n.missing` empty; no element wider than its box; no page error.
   - ปุณณวิถี: “อีกฝั่งแม่น้ำเจ้าพระยา 4.1% ของคนอยู่ใน 5 กม. · วัดระยะผ่าน เรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก (2.1 กม.)”;
-    English “Across the Chao Phraya River: 4.1% of the residents within 5 km · measured through Wat Bang Namphueng Nok - Wat
-    Bang Na Nok Ferry (2.1 km)”; the fold: residents about 452,000 through the crossings, 454,000 straight; 4 crossing
-    marks and 32 hatched cells on the residents map.
-  - สุรศักดิ์: 32 % across, measured through a footbridge (750 m), residents 703,000 against 724,000, 13 marks, 83 hatched cells.
-  - ปากน้ำโพ–ถนนโกสีย์: “Across the Chao Phraya River and the Ping River: 43% …”, the bridge of Phahon Yothin Road (1.9 km),
-    75,000 against 89,000, 9 marks, 260 hatched cells.
-  - สายลวด: 14 % across, เรือข้ามฟากพระสมุทรเจดีย์-วิบูลย์ศรี (2.2 กม.), 239,000 against 258,000, 3 marks, 213 hatched cells.
+    English “Across the Chao Phraya River: 4.1% of the residents within 5 km · measured through Wat Bang Namphueng Nok -
+    Wat Bang Na Nok Ferry (2.1 km)”; the fold: about 452,000 through the crossings, 454,000 straight; 3 crossing marks,
+    25 hatched cells.
+  - สุรศักดิ์: 32 %, measured through a footbridge (750 m), 703,000 against 724,000, 12 marks, 48 hatched cells.
+  - ปากน้ำโพ–ถนนโกสีย์: “Across the Ping River and the Chao Phraya River: 43% …”, the bridge of Phahon Yothin Road (1.9 km),
+    75,000 against 89,000, 8 marks, 245 hatched cells.
+  - สายลวด: 14 %, เรือข้ามฟากพระสมุทรเจดีย์-วิบูลย์ศรี (2.2 กม.), 239,000 against 258,000, 2 marks, 204 hatched cells.
+  - ธานี–ประเวศนคร สุโขทัย: “อีกฝั่งแม่น้ำยม 54% …”, สะพานพระร่วง at the edge, 7 marks, 23 hatched cells; CMN-TH-E184AACBEC:
+    “อีกฝั่งแม่น้ำน้อย 43% …” (one name; it read “แม่น้ำน้อย และ” before).
 - Not checked: the live site (not published), Safari and phone browsers; the basemap does not load in the container, so
   the 3D map was not seen.
 

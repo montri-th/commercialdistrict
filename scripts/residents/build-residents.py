@@ -257,8 +257,9 @@ def main():
                 if not within.any():
                     no_buildings.setdefault(str(s), []).append(r['id'])
                 if bank is not None:
-                    # across the river within the straight distance; counted through a crossing; the crossing most of
-                    # those counted come through (its OSM way id and kind) — for the page's line under the tiles
+                    # across the river within the straight distance; counted through a crossing; the crossing through
+                    # which the distance of most of those counted is measured (its OSM way id and kind) — for the page's
+                    # line under the tiles (a distance, never people the crossing carries)
                     ws = straight <= s
                     acr = float(people[idx][across & ws].sum())
                     cnt = float(people[idx][across & within].sum())
@@ -295,10 +296,11 @@ def main():
                         dc = shapely.distance(gp, shapely.points(ccx, ccy))
                         far = np.zeros(len(ks), dtype=bool)
                         if bank is not None:
-                            # a cell across the river takes its centre's distance through the crossings; band 4: across
-                            # and beyond 5 km that way (drawn, hatched, left out of the table); a rim cell stays band 3
+                            # a cell across the river takes its centre's distance through the crossings; band 4: across,
+                            # within 5 km in a straight line and beyond it that way, in tens of metres as map.x.k writes
+                            # them (drawn, hatched, left out of the table); a rim cell stays band 3 on either bank
                             dr, acr, _vl = bank.measure(ccx, ccy, dc)
-                            far = acr & (dr > 5000)
+                            far = acr & (np.round(dr / 10) > 500) & (np.round(dc / 10) <= 500)
                             dc = np.where(acr, dr, dc)
                         band = np.where(far, 4, np.where(dc <= 0, 0, np.where(dc <= 1000, 1, np.where(dc <= 3000, 2, 3))))
                         grid[r['id']] = [[int(k_), round(cells[k_], 1), int(b_)] for k_, b_ in zip(ks, band)]

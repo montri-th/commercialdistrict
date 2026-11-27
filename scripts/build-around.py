@@ -27,7 +27,8 @@ Outputs:
   data/rings/<id>.json  the line 400 m and 800 m out from the outline, for the map (display only).
 
 Rules (DATA_METHOD.md §12):
-  * Around = outside the outline and no farther than the distance from its edge, straight line. A record the data build
+  * Around = outside the outline and no farther than the distance from its edge: a straight line on the neighbourhood's
+    bank, and with --crossing (0.7.5, D-13) across a river the distance through the nearest crossing. A record the data build
     counted inside is never around (data/records). The 800 m figure holds the 400 m one. Figures of two neighbourhoods
     can share records (a record between two outlines is around both), so they are never added across neighbourhoods;
     counts of two datasets are never added.
@@ -51,7 +52,7 @@ from shapely.ops import unary_union
 warnings.simplefilter('ignore')
 
 SCHEMA = 'citymeter-commercialdistrict-around/1'
-RELEASE = '0.6.1'
+RELEASE = '0.7.5'   # the page's release, as data/people/meta.json (0.7.5: the around counts take the river rule)
 # D-8: the reference set stays until a release names the one it replaces; a neighbourhood added later is ranked against
 # it. 0.5.0 adds the outlines of the registry's commercial screen (rows[].kind 'screen') and keeps the set of 0.4.0;
 # 0.6.1 adds the ones the owner's answers of 2026-11-26 10:02 outline, and keeps it too.
