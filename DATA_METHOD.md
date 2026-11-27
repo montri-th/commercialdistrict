@@ -23,7 +23,7 @@ makes).
 - จำนวนรายการไม่ใช่ยอดขาย คนเดิน รายได้ หรือความต้องการ
 - **ในย่านนี้** (0.4.0) = แถว 4 ช่องใต้ตัวเลขของย่าน ช่องละหนึ่งชุดข้อมูล: คนอยู่ (แบบจำลอง ยังไม่ถึงรอบข้อมูล) · นักเรียนที่ชุดสถานศึกษาบันทึก · ห้องที่ชุดที่พักบันทึก · ศูนย์การค้าและตลาด
   มาตรวัด 5 ขั้นคือระดับเทียบกับชุดย่านอ้างอิงของรุ่น (§12) ไม่ใช่คะแนน
-- **ขอบเดินถึง 400 ม. / 800 ม.** (0.4.0 ชื่อ «รอบย่าน»; ชื่อนี้ตั้งแต่ 0.4.1, D-10) = รายการที่อยู่นอกขอบย่าน และห่างจากเส้นขอบไม่เกินระยะนั้น วัดเส้นตรง ไม่ใช่ระยะเดิน · ไม่ใช่พื้นที่ให้บริการของย่าน (พื้นที่ให้บริการ 1 · 3 · 5 กม. จากขอบ สำหรับตัวเลขคน อยู่ในแผนรอบ 2) · ค่า 800 ม. รวมค่า 400 ม. ·
+- **ขอบเดินถึง 400 ม. / 800 ม.** (0.4.0 ชื่อ «รอบย่าน»; ชื่อนี้ตั้งแต่ 0.4.1, D-10) = รายการที่อยู่นอกขอบย่าน และห่างจากเส้นขอบไม่เกินระยะนั้น วัดเส้นตรง อีกฝั่งแม่น้ำวัดผ่านทางข้าม (0.7.5, §17) ไม่ใช่ระยะเดิน · ไม่ใช่พื้นที่ให้บริการของย่าน (พื้นที่ให้บริการ 1 · 3 · 5 กม. จากขอบ สำหรับตัวเลขคน อยู่ในแผนรอบ 2) · ค่า 800 ม. รวมค่า 400 ม. ·
   รวมรายการที่อยู่ในย่านข้างเคียง · ไม่บวกกับค่าในย่าน และไม่บวกข้ามย่าน (§12)
 - **อันดับร่วม** (0.4.0) = ย่านที่มีค่าเท่ากันได้อันดับเดียวกัน จุดเด่นจึงบอกว่ากี่ย่านได้อันดับนั้นร่วมกัน (“มากอันดับ 4 ร่วม 5 ย่าน”, §5)
 - **\*** (0.4.0) = ชุดข้อมูลที่มีพิกัดไม่ถึง 90% ของรายการ ในส่วน «ในย่านนี้» และ «รอบย่านนี้» แสดงจำนวนที่พบ ไม่จัดอันดับหรือระดับ (§12)
@@ -599,7 +599,8 @@ changed with Python's string hashing before).
 ## 12. Surroundings «รอบย่านนี้» (on the page «ขอบเดินถึง» since 0.4.1) and the glance «ในย่านนี้» (0.4.0)
 
 (0.4.1, owner 2026-11-25 23:01 “ทำตามที่พี่เสนอเลยครับ”, D-10) The 400 m and 800 m from the outline's edge are named «ขอบเดินถึง» on
-the page — a straight line from the edge, not a walking route — so they are not read as the neighbourhood's service area.
+the page — a straight line from the edge (across a river through the crossings since 0.7.5, §17), not a walking route —
+so they are not read as the neighbourhood's service area.
 The service area, 1, 3 and 5 km from the edge for the figures of people, is round 2 (handoff/implementation-plan.json
 `around.amendments`): a neighbourhood is larger than any venue in it, and from the edge its service area holds every
 such venue's at the same distance. Measured (data/rings, 0.4.0): the median outline (0.21 km²) grown by 800 m covers
@@ -611,7 +612,8 @@ D-9 of the proposal `02-CityMETER__commercialdistrict-neighbourhood-locale-insig
 (`handoff/around/`: `decisions.json`, `contracts.json`, the plan byte for byte in `plan.json`).
 
 **Around (Observed fact, counted).** For each neighbourhood and each dataset in scope (a key of `rows[].c`), the located
-records outside its outline and no farther than 400 m and 800 m from its edge, straight line (D-1): `data/around.json`
+records outside its outline and no farther than 400 m and 800 m from its edge, straight line (D-1; across a river through
+the crossings since 0.7.5, §17): `data/around.json`
 `rows[<id>].a[<dataset>] = [r400, r800]`, cumulative (r800 holds r400). Built by `scripts/build-around.py`:
 
 - the record points are read from the 16 files `data/neighborhoods.json` pins (`datasets[].source`, every SHA-256
@@ -806,16 +808,17 @@ reads “ยังนับไม่ได้ (n มหาวิทยาลั�
 1 km for 35 neighbourhoods, at 3 km for 56, at 5 km for 70. Lodging without any room figure leaves rooms and guests unknown in the same way. None is
 footfall, a number of customers or sales.
 
-**Where (D-13; straight line for now).** ในย่าน = inside the outline the map draws (for a dataset, the records the data
-build counted inside); 1 · 3 · 5 km = inside and within that distance of the edge (`f.reach`, 1 km by default); the axis
-rows read the same file at 400 and 800 m («ขอบเดินถึง», §12), whose counts equal `data/around.json` record for record
-(`tests/people.test.js`). Distances are straight lines in an azimuthal equidistant projection centred on the
-neighbourhood's reference point, measured from the edge, so a figure does not compare one to one with a centre's circle
-of «รอบศูนย์นี้». Distances along real paths — bridges, crossings, expressways, rivers and rail — come with the
-OpenStreetMap file and method of the Shopping Center page, the same file by its SHA-256 (D-14, V7-09); until then the page
-says “วัดเส้นตรงจากขอบย่าน (รอระยะตามทางจริง)”. The walk edges of 400 and 800 m («ขอบเดินถึง») take the same barrier rule
-then: owner 2026-11-27 06:51, VERBATIM “คิดด้วย”, under the question “ระยะ 400/800 ม. จะคิดเรื่องสิ่งกีดขวางด้วยไหม”
-(D-13; before it, an author judgement).
+**Where (D-13; the river rule of §17 since 0.7.5).** ในย่าน = inside the outline the map draws (for a dataset, the
+records the data build counted inside); 1 · 3 · 5 km = inside and within that distance of the edge (`f.reach`, 1 km by
+default); the axis rows read the same file at 400 and 800 m («ขอบเดินถึง», §12), whose counts equal `data/around.json`
+record for record (`tests/people.test.js`). Distances are measured in an azimuthal equidistant projection centred on the
+neighbourhood's reference point, from the edge, so a figure does not compare one to one with a centre's circle of
+«รอบศูนย์นี้». On the neighbourhood's bank they are straight lines; across a barrier river they go through the nearest
+crossing (§17, the Shopping Center page's D70 rule from the same OpenStreetMap file by its SHA-256, D-14), and the page
+says “วัดจากขอบย่าน อีกฝั่งแม่น้ำนับผ่านทางข้าม”. Expressways, rail lines and canals are not barriers, and no distance is a
+walking or driving time. The walk edges of 400 and 800 m («ขอบเดินถึง») take the same rule: owner 2026-11-27 06:51,
+VERBATIM “คิดด้วย”, under the question “ระยะ 400/800 ม. จะคิดเรื่องสิ่งกีดขวางด้วยไหม” (D-13; before it, an author
+judgement). From 0.7.0 to 0.7.4 every distance was a straight line from the edge.
 
 **คนอยู่ (modelled).** The method of «รอบศูนย์นี้» (variant A): production's `popCount` of each subdistrict, the civil
 register's total of the latest month, spread over every building of CityMETER Building V4 in it by floor area —
@@ -838,7 +841,8 @@ run's for every neighbourhood). 0.7.3 adds 3 and 5 km and the residents map (V7-
 none without an estimated floor, the register's total equal to `popCount` in all 2,105 that carry one; the figures inside
 and within 400 m, 800 m and 1 km equal the 1 km run's for every neighbourhood). Every neighbourhood has residents within
 3 and 5 km (the fewest, 41 within 5 km on an island; the median 61,603; the most 1,010,976 in central Bangkok, all
-modelled); the tiles round them as above. The run's plan takes the subdistricts' extents as one array (0.7.3): the same
+modelled, in a straight line; across a river through the crossings since 0.7.5, §17: 41, 60,830 and 1,010,475); the tiles
+round them as above. The run's plan takes the subdistricts' extents as one array (0.7.3): the same
 requests, in seconds rather than minutes.
 
 **คนมาทำงานและเรียน (at least; D-12 amends INV-01 for this group only).** The sum of the parts the sources record, each
@@ -878,7 +882,8 @@ insight เท่าที่ควร พวก heatmap กลมๆก็ไ�
 (D-V6b in `handoff/visual/decisions.json`; D-16 in `handoff/around/decisions.json`).
 
 **The round maps (D-16, Claude's reading under his 14:03 words; his check pending).** As «รอบศูนย์นี้» draws them (D55,
-D59 of the Shopping Center page): the places within 5 km of the edge, straight line, counted in cells of 250 × 250 m of
+D59 of the Shopping Center page): the places within 5 km of the edge, straight line (a cell across a river beyond 5 km
+through the crossings is hatched and kept out of the directions, §17), counted in cells of 250 × 250 m of
 the neighbourhood's local projection (a cell on the 5 km line can have its centre a little beyond it). ที่ผู้มาเยือนใช้ = located places of eight datasets per cell (lodging, centres and
 markets, groceries, restaurants, pharmacies, fitness, luxury brands, camera shops) on the LDS `activity` scale ·
 ที่ทำงานและที่เรียน = places of seven (offices, government offices, factories, industrial estates, universities,
@@ -915,9 +920,8 @@ an earlier one in that order, a ring label or the north mark, would sit on the o
 own 25 m units. The file is the Shopping Center page's (D-14): Geofabrik's extract `thailand-261124.osm.pbf`, data to
 2026-11-24T21:21:23Z, SHA-256 `62b496bf2383ddd266cfcd3456cd03064db1887399f2a4c869bbf953bfd12d24`, checked by the build and
 kept outside the repository; © OpenStreetMap contributors, ODbL 1.0, credited on the map's provenance line with its
-date. The lines are to read the map by: they are never counted, never a distance and never a barrier the page measures
-with — the walk edges and the 1 · 3 · 5 km lines stay straight from the outline until the method along real paths
-(D-13). The key names only what the map draws. Rebuild: `python3 -I scripts/build-context-map.py --repo . --osm <the
+date. The lines are to read the map by: they are never counted and never a distance. The barrier rivers and crossings the
+distances go through (§17, since 0.7.5) are built apart from the same file by `scripts/crossing/`, not from these lines. The key names only what the map draws. Rebuild: `python3 -I scripts/build-context-map.py --repo . --osm <the
 extract> --out <outside the repository> [--cache <outside>]`, then `scripts/build-people.py … --context <that file>`;
 the same inputs give the same bytes, and a context drawn on another frame stops the people build.
 
@@ -941,3 +945,108 @@ picker of D-15: “ยังไม่มีข้อมูล” until the page 
 a dataset a row reads that does not reach the province is named on the row (“ยังไม่มีข้อมูลในจังหวัดนี้: …”); the modelled
 figures say แบบจำลอง. The datasets' levels of §14 fold under the rows of each axis. The sentences of the people block, the
 maps and the rows are 14 px; tags, keys and table heads 13 px; the provenance lines keep the panel's 12 px (V7-05).
+
+<a id="river-crossings"></a>
+
+## 17. Across a river: distances through the crossings (0.7.5, 2026-11-27)
+
+Owner 2026-11-27 07:09, VERBATIM, with his screenshot of ปุณณวิถี's residents map: “คนอยู่ไม่น่าจะข้ามแม่น้ำจากบางกระเจ้า
+มาที่ปุณณวิถีได้นะครับ” — the straight line of 0.7.0–0.7.4 counted the people of Bang Krachao, across the Chao Phraya,
+within 3 and 5 km of ปุณณวิถี. The rule that answers it is the Shopping Center page's D70 (its DATA_METHOD §32), the one
+D-13 already asked for (1 · 3 · 5 km on 26 Nov 14:40; 400/800 m on 27 Nov 06:51, “คิดด้วย”). Ferries count as that page
+counts them: owner 2026-11-27, the option «นับเรือแบบหน้าศูนย์การค้า» in Claude's question, over «ไม่นับเรือ» (D-18 in
+`handoff/around/decisions.json`).
+
+**The rule (Inference: a model of reach, not a route).** On the neighbourhood's bank, the straight line from the edge as
+before. Across a barrier river, a place, a building or a cell is reached through the nearest crossing — edge → crossing
+→ place, each leg a straight line, crossings chained when the way runs over more than one river — and it counts at a
+distance only when that sum is within it; it is never nearer than the straight line. Not walking or driving time, not a
+timetable: a ferry counts whatever its hours.
+
+- **Barrier rivers**: OpenStreetMap `waterway=river` ways whose name is “แม่น้ำ…” (and the misspelling “แม้น้ำ…”) or whose
+  English name holds “River”, a Thai name that is not คลอง or ห้วย; the name of a river relation when the way has none; an
+  unnamed way that closes the gap between named parts of one river; a mouth within 2 km of the coast drawn on 20 km
+  along its last segment, so the sea end leaves no way round.
+- **Crossings**: highways of every class that cross a barrier river (not marked under construction, proposed, planned,
+  abandoned, disused, razed or demolished, nor `highway=no`; a way marked `access=no` or `private` only when a tag opens
+  it to people on foot, bicycles or vehicles), footbridges, fords, metro
+  lines (subway, light rail, monorail) and rail tunnels, and ferries up to 1.6 km long that are not express boats (a name
+  with “ด่วน” or “express”, or a way in an express route).
+- **Banks**: per neighbourhood, a window of its outline's bounds plus 10 km on each side, the rivers drawn on a 20 m raster
+  (lines 8-connected) and the banks the regions between them (4-connected). A crossing links two banks at each change
+  of bank along it (the Shopping Center's §32 speaks of a crossing's two ends; a crossing over two rivers links three
+  banks here), at its exact intersection with the river nearest that change. The neighbourhood's own banks are the banks
+  of the raster cells inside its outline; a bank holding fewer than 6 of them or under 2 % — a sliver where an outline
+  is drawn over the river's line — is left out, and an outline too small to hold a cell takes the bank of a point inside
+  it. (Until the independent review of 27 November, points on the edge added banks too, and for four riverside outlines
+  that took in the far bank: ธานี–ประเวศนคร สุโขทัย, วัดเกต–เจริญเมือง, จันทนิมิต–ตรีรัตน์ and ถนนแม่น้ำแคว–แกนเกสต์เฮาส์บ้านเหนือ.)
+
+**Counts (Observed fact, of the file).** The extract of the Shopping Center page (D-14): `thailand-261124.osm.pbf`,
+SHA-256 `62b496bf2383ddd266cfcd3456cd03064db1887399f2a4c869bbf953bfd12d24`, 330,871,226 bytes, © OpenStreetMap
+contributors, ODbL 1.0; the file and the cache built from it stay outside the repository (cache SHA-256 in
+`data/people/meta.json` `crossing.cacheSha256`). Barriers: 1,277 named ways, 42 gap ways, 29 mouths; crossings 3,264 —
+2,744 bridges, 190 other roads, 227 footways, 5 fords, 8 metro lines and tunnels, 90 ferries. The Shopping Center page
+publishes 1,437 named ways, 209 gap ways, 33 mouths and 3,411 crossings from the same file (bridges 2,840, other roads 243,
+footways 225, fords 4, metro 8, ferries 91). The scripts here are this repository's own reading of the written rule, not
+that page's scripts, and the difference is not traced to a rule; so the agreement is measured on what both publish, and
+one place does not always give the same figure on both pages.
+
+**Agreement with the Shopping Center page (Observed fact, `scripts/crossing/parity.py`).** From each of its 267 centres
+with a river within 5 km, over the 250 m cells of its residents map: of the 73,460 cells it publishes across a river,
+73,187 are across here too (99.63 %), and 229 more are across here only; of the 73,187, the distance through the crossings
+is the same to 10 m for 94.50 %, within 20 m for 99.55 %, farther apart for 294, and reached through a crossing on one
+side only for 35 (on the other side no crossing in the window reaches that bank).
+
+**What changes in 0.7.5 (Observed fact, against 0.7.3).** 208 neighbourhoods have land across a barrier river in their
+5 km map (a cell on another bank).
+
+- Residents (§15) within 400 m, 800 m, 1, 3 and 5 km lose the people across a river whose way through the crossings is
+  longer than the distance: the figure is lower than 0.7.3's in 70, 94, 100, 154 and 189 neighbourhoods, higher in
+  none; inside the outline nothing changes. The other people figures (students, workers, rooms and guests, centres and
+  markets) take the same rule, and the levels are computed again from the new figures. Within 5 km the fewest residents
+  are 41 (on an island), the median 60,830 and the most 1,010,475 (modelled).
+- The 400/800 m counts of `data/around.json` («ขอบเดินถึง»): 178 dataset figures in 65 neighbourhoods are lower (222 of
+  their 400 m and 800 m values), none higher; the centres near the edge take the same rule.
+- The four riverside outlines whose far bank the first build of 27 November took as home now count it through the
+  crossings: within 1 km ธานี–ประเวศนคร สุโขทัย 16,435 → 14,763, วัดเกต–เจริญเมือง 29,569 → 28,440, จันทนิมิต–ตรีรัตน์ 19,501 →
+  18,273, ถนนแม่น้ำแคว–แกนเกสต์เฮาส์บ้านเหนือ 19,115 → 19,034 (0.7.3 → 0.7.5).
+- The round maps (§16): the cells across a river within the distance the tiles read in a straight line but beyond it
+  through the crossings (or reached by none) are hatched in the map's ink — a cell already beyond it in a straight line
+  is not the river's doing and stays plain, as on the neighbourhood's own bank; the nearest crossings within 5 km, at
+  most 12, are small diamonds; and a cell across, within 5 km in a straight line and beyond it through the crossings
+  (both read in tens of metres, as the hatch reads them), carries band 4 in its record and is left out of the
+  directions, while a rim cell past 5 km in a straight line stays band 3 on either bank. Under the tiles, when at least
+  1 % of the straight-line residents live across a river, a line names the river (nearest first, one name per river; a
+  river OpenStreetMap names only in English keeps that name on the Thai page), that share and the crossing through which
+  the distance of most of those still counted is measured — “วัดระยะผ่าน …”, a distance and never people the crossing
+  carries (owner 2026-11-27 08:57, VERBATIM “เรือขนได้ 16,000 คนเลยเหรอ”; the line read “ข้ามที่ …” before) — or the
+  nearest crossing when none is counted at that distance; a fold sets the four figures through the crossings beside the
+  straight ones (`st` in `data/people/<id>.json`: the straight figures at every distance where one differs; the fold
+  reads 1, 3 and 5 km).
+- ปุณณวิถี within 5 km: 18,777 of the 453,771 residents of the straight line live across the Chao Phraya; 16,588 still
+  count through the crossings, the distance of 15,494 of them measured through เรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก
+  (way 40346702) — how far they live by that way, not how many the ferry carries — so the figure is 451,583. Without ferries it would be 434,994 (built for the owner's question, not published).
+
+**Records.** `data/people/meta.json` `crossing` {rule, kinds, osm, counts, method, cacheSha256, neighbourhoods} and
+`maps.x`; per neighbourhood `map.x` {k: [cell, tens of metres through the crossings (−1: no crossing in the window
+reaches that bank), tens of metres in a straight line] for the cells across; c: the nearest crossings reached within
+5 km, at most 12, in the map's 25 m units; r: the rivers within 5 km, nearest first, one entry per river; a: the share
+across per distance; u: the crossing through which the distance of most of those counted is measured}; `data/around.json`
+`meta.crossing`, and `meta.release` the page's release (it read 0.6.1, the release that first built the file, until the
+review of 27 November).
+
+**Limits (Inference).** A building within about 20 m of a river's line can be read on the wrong bank (the 20 m raster).
+190 crossings are ways OpenStreetMap draws over a barrier river without a bridge or tunnel tag — dams, weirs, culverts
+or drawing errors among them — and they count as crossings, named on the page as a bridge or by the road they carry, as
+on the Shopping Center page. A ferry counts whatever its timetable or capacity. Expressways, rail lines and canals are
+not barriers. A neighbourhood whose 5 km holds a barrier river but no land across it (the river ends there, or the
+outline sits on both banks) has no river line and no `map.x`.
+
+**Rebuild.** Outside the repository: `python3 -I scripts/crossing/rivers.py --osm <thailand-261124.osm.pbf> --out
+<rivers cache>` (about 90 s), then `scripts/residents/build-residents.py … --reach 5000 --crossing <rivers cache>` (the
+request cache of §15; about 10 minutes), `scripts/build-people.py … --residents <that file> --crossing <rivers cache>` and
+`scripts/build-around.py … --crossing <rivers cache>`; `--crossing-kinds no-ferry` builds the variant without ferries.
+The people build reads the cache only when its SHA-256 is the one the residents file was built with, and stops when the
+residents file was built from another cache or other kinds. `python3 -I
+scripts/crossing/parity.py --cache <rivers cache> --shoppingcenter <a checkout of montri-th/shoppingcenter>` prints the
+agreement above.

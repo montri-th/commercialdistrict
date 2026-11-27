@@ -156,7 +156,8 @@ test('every neighbourhood renders «ใครอยู่ตรงนี้» wi
       for (const f of fills) assert.ok(allowed.has(f), `${r.id} ${tab}: ${f} is not a sample of ${lut[tab].scaleId}`);
       const {cells} = mapModel(p.map, tab);
       if (cells.length) assert.ok(fills.size > 0, `${r.id} ${tab}: cells drawn`);
-      assert.ok(cells.every(c => c.v > 0 && c.band >= 0 && c.band <= 3), `${r.id} ${tab}`);
+      // 0.7.5: band 4 = across a river and beyond 5 km through the crossings, only where the map carries its river record
+      assert.ok(cells.every(c => c.v > 0 && c.band >= 0 && c.band <= (p.map.x ? 4 : 3)), `${r.id} ${tab}`);
     }
   }
 });

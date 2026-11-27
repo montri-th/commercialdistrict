@@ -410,7 +410,9 @@ function aroundProvenance(r, model, around, distance, peopleMeta = null) {
   const dates = model.datasets.filter(ds => ds.id in (r.c || {})).map(dsDate).filter(Boolean).sort();
   const when = dates.length ? daySpan(dates[0], dates.at(-1)) : '';
   const dataset = meta ? L(`CityMETER Commercial District · ขอบเดินถึง รุ่น ${meta.release}`, `CityMETER Commercial District · walkable edge ${meta.release}`) : 'CityMETER Commercial District';
-  const boundary = meta ? L(`${r.name} · ขอบร่าง ${rai(r.areaM2)} ไร่ และนอกขอบไม่เกิน ${num(reach)} ม. วัดเส้นตรง`, `${r.name} · draft outline ${rai(r.areaM2)} rai and up to ${num(reach)} m beyond it, straight line`)
+  // (0.7.5) the around file says whether it counted across a river through the crossings (owner 2026-11-27 06:51: “คิดด้วย”)
+  const how = meta?.crossing ? L('อีกฝั่งแม่น้ำนับผ่านทางข้าม', 'across a river, through a crossing') : L('วัดเส้นตรง', 'straight line');
+  const boundary = meta ? L(`${r.name} · ขอบร่าง ${rai(r.areaM2)} ไร่ และนอกขอบไม่เกิน ${num(reach)} ม. ${how}`, `${r.name} · draft outline ${rai(r.areaM2)} rai and up to ${num(reach)} m beyond it, ${how}`)
     : L(`${r.name} · ขอบร่าง ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline ${rai(r.areaM2)} rai`);
   return `<p class="hint panel-foot provenance"><span class="prov-part" data-prov="dataset">${pic('dataset')}<span class="sr-only">${L('ชุดข้อมูล ', 'Dataset ')}</span>${esc(dataset)}</span> <span class="prov-part" data-prov="source"><span class="sr-only">${L('แหล่ง', 'Source')}</span>${esc(L(`จาก ${num(model.datasets.length)} ชุดข้อมูล CityMETER ตามรุ่นที่ตรึง`, `from ${num(model.datasets.length)} CityMETER datasets at pinned versions`))}${peopleMeta ? esc(L(` · คนอยู่: ทะเบียนราษฎร ${monthOf(peopleMeta.residents?.populationMonth)} แบ่งลงอาคาร CityMETER · ผู้มาเยือน: กระทรวงการท่องเที่ยวและกีฬา ${peopleMeta.gst?.source?.year ? peopleMeta.gst.source.year + 543 : ''}`, ` · residents: civil register ${monthOf(peopleMeta.residents?.populationMonth)} over CityMETER buildings · visitors: Ministry of Tourism and Sports ${peopleMeta.gst?.source?.year || ''}`)) : ''}</span><span class="prov-part" data-prov="date">${pic('date')}<span class="sr-only">${L('ข้อมูล ', 'Data ')}</span>${esc(when)}</span><span class="prov-part" data-prov="boundary">${pic('area')}<span class="sr-only">${L('ขอบเขต ', 'Boundary ')}</span>${esc(boundary)}</span><span class="prov-part prov-method"><a href="${METHOD_URL}#${peopleMeta ? 'maps-and-topics' : '12'}" target="_blank" rel="noopener">${L('วิธีนับ', 'Method')}</a></span></p>`;
 }
@@ -429,7 +431,9 @@ function peopleProvenance(r, model, meta, reach) {
   const when = dates.length ? daySpan(dates[0], dates.at(-1)) : '';
   const pm = meta?.residents?.populationMonth, yr = meta?.gst?.source?.year;
   const date = [pm ? L(`ทะเบียน ${monthOf(pm)}`, `register ${monthOf(pm)}`) : '', yr ? L(`ผู้เข้าพัก พ.ศ. ${yr + 543}`, `guests ${yr}`) : '', when ? L(`ชุดข้อมูล ${when}`, `datasets ${when}`) : ''].filter(Boolean).join(' · ');
-  const far = reach === 'in' ? '' : L(` และพื้นที่ไม่เกิน ${num(+reach / 1000)} กม. จากขอบ วัดเส้นตรง (รอระยะตามทางจริง)`, ` and up to ${num(+reach / 1000)} km from the edge, straight line (distances along real paths to come)`);
+  const far = reach === 'in' ? '' : meta?.crossing
+    ? L(` และพื้นที่ไม่เกิน ${num(+reach / 1000)} กม. จากขอบ อีกฝั่งแม่น้ำนับผ่านทางข้าม`, ` and up to ${num(+reach / 1000)} km from the edge, across a river through a crossing`)
+    : L(` และพื้นที่ไม่เกิน ${num(+reach / 1000)} กม. จากขอบ วัดเส้นตรง`, ` and up to ${num(+reach / 1000)} km from the edge, straight line`);
   return provLine({
     dataset: L(`CityMETER Commercial District · ใครอยู่ตรงนี้ รุ่น ${meta?.release || ''}`.trim(), `CityMETER Commercial District · who is here ${meta?.release || ''}`.trim()),
     source: L('คนอยู่: ทะเบียนราษฎรรายแขวง/ตำบลจาก CityMETER แบ่งลงอาคาร Building V4 · คนมาทำงานและเรียน: ชุดข้อมูล CityMETER สถานศึกษา มหาวิทยาลัย โรงงาน หน่วยงานรัฐ และสำนักงาน (แบบจำลองของหน้าศูนย์การค้า) · ผู้มาเยือนค้างคืน: กระทรวงการท่องเที่ยวและกีฬา ตาราง 17.1 กับห้องพักในชุดข้อมูลที่พัก · ศูนย์และตลาด: ชุดข้อมูลศูนย์การค้าและตลาด',
@@ -504,8 +508,9 @@ function aroundTable(d, model, around, {distance = 'in', fillOf = () => ''} = {}
   };
   // one row group per pillar, so each pillar's header heads its own rows only
   const body = groups.map(g => `<tbody><tr class="pillar-row"><th scope="rowgroup" colspan="${cols.length + 1}"><span class="pillar-label eyebrow-cue">${cueMarkup(PILLAR_SERIES[g.pillar])}${esc(g.pillar.toUpperCase())}</span></th></tr>${g.items.map(row).join('')}</tbody>`).join('');
-  const caption = loaded ? L('จำนวนรายการของแต่ละชุดข้อมูลในหน่วยของชุดนั้น: ในขอบย่าน และนอกขอบไม่เกิน 400 ม. และ 800 ม. วัดเส้นตรงจากขอบ · ค่า 800 ม. รวมค่า 400 ม. · ไม่รวมข้ามชุดข้อมูล',
-    'Records of each dataset in its own unit: inside the outline, and outside it within 400 m and 800 m of the edge, straight line · the 800 m figure holds the 400 m one · never added across datasets')
+  const ruled = Boolean(around?.meta?.crossing);
+  const caption = loaded ? L(`จำนวนรายการของแต่ละชุดข้อมูลในหน่วยของชุดนั้น: ในขอบย่าน และนอกขอบไม่เกิน 400 ม. และ 800 ม. ${ruled ? 'จากขอบ อีกฝั่งแม่น้ำนับผ่านทางข้าม' : 'วัดเส้นตรงจากขอบ'} · ค่า 800 ม. รวมค่า 400 ม. · ไม่รวมข้ามชุดข้อมูล`,
+    `Records of each dataset in its own unit: inside the outline, and outside it within 400 m and 800 m of the edge, ${ruled ? 'across a river through a crossing' : 'straight line'} · the 800 m figure holds the 400 m one · never added across datasets`)
     : L('จำนวนรายการของแต่ละชุดข้อมูลในขอบย่าน ในหน่วยของชุดนั้น · ไม่รวมข้ามชุดข้อมูล', 'Records of each dataset inside the outline, in its own unit · never added across datasets');
   const colHead = k => `<th scope="col" class="num col-${k}${distance === k ? ' is-chosen' : ''}">${esc(k === 'in' ? distanceWords('in') : distanceWords(k, {short: true}))}</th>`;
   const table = `<div class="table-scroll around-scroll"><table class="around-table" data-around="${esc(loaded ? distance : 'in')}"><caption class="sr-only">${esc(caption)}</caption>
@@ -700,7 +705,7 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
   const refN = around?.meta.referenceSet?.n || 395;
   const peopleHTML = peopleSection(r, people, peopleMeta, {reach, refN, state: people ? 'ready' : peopleState === 'error' ? 'error' : 'loading',
     prov: people ? peopleProvenance(r, model, peopleMeta, reach) : ''});
-  const mapHTML = people ? mapSection(r, people, peopleMeta, {tab: mapTab, prov: tab => mapProvenance(r, model, peopleMeta, tab, {context: Boolean(people.map?.ctx)}), outOfScope: ids => model.datasets.filter(ds => ids.includes(ds.id) && !(ds.id in (r.c || {}))).map(ds => dsName(ds))}) : '';
+  const mapHTML = people ? mapSection(r, people, peopleMeta, {tab: mapTab, reach, prov: tab => mapProvenance(r, model, peopleMeta, tab, {context: Boolean(people.map?.ctx)}), outOfScope: ids => model.datasets.filter(ds => ids.includes(ds.id) && !(ds.id in (r.c || {}))).map(ds => dsName(ds))}) : '';
   return `${aha}${metrics}${peopleHTML}${mapHTML}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${aroundSection(d, model, around, {distance, fillOf, venueLogo, people, peopleMeta, peopleState: people ? 'ready' : peopleState === 'error' ? 'error' : 'loading'})}${recordsHTML}${similarSection(d, model, around)}
     ${actionBar({kind: 'neighborhood', name: r.name, province, point: {lat: r.ref[1], lon: r.ref[0]}})}
     ${registryDetails(d, model)}

@@ -15,6 +15,9 @@ footprint × estimated floors from production's vector tiles, or production's ow
 OpenStreetMap parts — over production's GFA total of the subdistrict. A building counts where the centre of its footprint
 (of the union of its parts) lies: inside the outline the map draws (`in`) or, with --reach, within 400 m · 800 m ·
 1 · 3 · 5 km of it (the distances up to the reach), straight line in an azimuthal equidistant projection centred on the neighbourhood's reference point.
+With --crossing (0.7.5, V7-09; owner 2026-11-27 06:51 on 400/800 m, VERBATIM “คิดด้วย”, and 07:09 “คนอยู่ไม่น่าจะข้ามแม่น้ำจาก
+บางกระเจ้ามาที่ปุณณวิถีได้นะครับ”): a building across a river counts by its distance through the crossings
+(scripts/crossing/, the Shopping Center page's rule D70) — the same bank as the outline keeps the straight distance.
 Buildings without an estimated floor count carry no floor area and are left out (counted in the meta). This is a model of
 where registered people are, not a census of who lives there: people living here without being registered are not in it,
 and a commercial building takes people by its floor area like any other.
@@ -53,6 +56,8 @@ def args():
     ap.add_argument('--built-on', default=time.strftime('%Y-%m-%d'))
     ap.add_argument('--plan-only', action='store_true', help='print the requests the run needs and how many are cached, then stop')
     ap.add_argument('--only', default='', help='comma-separated neighbourhood ids: a trial on a few (the output says so)')
+    ap.add_argument('--crossing', default='', help='rivers cache of scripts/crossing/rivers.py (outside the repository): across a river, through the crossings')
+    ap.add_argument('--crossing-kinds', default='all', choices=('all', 'no-ferry'))
     return ap.parse_args()
 
 
@@ -87,6 +92,9 @@ def main():
     if {r['id'] for r in rows} != set(outl):
         sys.exit('data/boundaries.geojson and data/neighborhoods.json do not hold the same neighbourhoods')
     only = [x for x in a.only.split(',') if x]
+    # the subdistricts of every province a neighbourhood is in (0.7.5): a trial on a few takes the same pairs near them
+    # as the full run, so a reach that crosses into the next province finds its buildings there too
+    all_provs = sorted({r['province'] for r in rows})
     if only:
         rows = [r for r in rows if r['id'] in set(only)]
         if len(rows) != len(set(only)):
@@ -97,7 +105,7 @@ def main():
     month = f"{tr['maxY']:04d}-{tr['maxM']:02d}"
     lv0 = crawl.get(f'{crawl.API}/base/info/lv0')['value']['provinceInfos']
     pid = {p['abbrEn']: p['id'] for p in lv0}
-    provs = sorted({r['province'] for r in rows})
+    provs = all_provs
     missing = [p for p in provs if p not in pid]
     if missing:
         sys.exit(f'provinces not in production: {missing}')
@@ -203,8 +211,16 @@ def main():
     people = np.where(np.isnan(share), 0.0, gfa * np.nan_to_num(share))
     print(f'buildings {len(lon)} ({n_tiles} from tiles, {len(need)} from parts) · without floors {nofloor} · subdistricts without a GFA total {len(no_total)}', flush=True)
 
+    # ---- the banks of the rivers (0.7.5): optional
+    rivers = crossing_meta = None
+    if a.crossing:
+        outside_repo(a.repo, a.crossing, '--crossing')
+        sys.path.insert(0, os.path.join(os.path.abspath(a.repo), 'scripts', 'crossing'))
+        import banks as banks_mod
+        rivers, crossing_meta = banks_mod.load(a.crossing, a.crossing_kinds)
+
     # ---- per neighbourhood
-    out, no_buildings, grid, frames = {}, {}, {}, {}
+    out, no_buildings, grid, frames, xs = {}, {}, {}, {}, {}
     for r in rows:
         g = outl[r['id']]
         x0, y0, x1, y1 = g.bounds
@@ -224,11 +240,40 @@ def main():
             bx, by = fwd.transform(lon[idx], lat[idx])
             d = shapely.distance(gp, shapely.points(bx, by))
             d[inside] = 0.0
+            straight = d
+            bank = None
+            if rivers is not None:
+                bank = banks_mod.Banks(rivers, lambda lo, la: fwd.transform(lo, la), gp, g.bounds)
+                if bank.has_river:
+                    d, across, via_link = bank.measure(np.asarray(bx), np.asarray(by), straight)
+                    d[inside] = 0.0
+                    across &= ~inside
+                else:
+                    bank = None
+            xr = {}
             for s in [x for x in SCALES if x <= reach]:   # a scale beyond the run's reach is not read, so not written
                 within = d <= s
                 o[str(s)] = int(round(float(people[idx][within].sum()))) if within.any() else None
                 if not within.any():
                     no_buildings.setdefault(str(s), []).append(r['id'])
+                if bank is not None:
+                    # across the river within the straight distance; counted through a crossing; the crossing through
+                    # which the distance of most of those counted is measured (its OSM way id and kind) — for the page's
+                    # line under the tiles (a distance, never people the crossing carries)
+                    ws = straight <= s
+                    acr = float(people[idx][across & ws].sum())
+                    cnt = float(people[idx][across & within].sum())
+                    via = {}
+                    for li, v in zip(via_link[across & within], people[idx][across & within]):
+                        if li >= 0:
+                            key = bank.links[li][0]
+                            via[key] = via.get(key, 0.0) + float(v)
+                    top = max(via.items(), key=lambda kv: kv[1]) if via else None
+                    st = int(round(float(people[idx][ws].sum()))) if ws.any() else None
+                    xr[str(s)] = {'straight': st, 'across': round(acr), 'counted': round(cnt),
+                                  'via': [int(rivers.crossings[top[0]][4]), rivers.crossings[top[0]][0], round(top[1])] if top else None}
+            if xr and any(v['across'] for v in xr.values()):
+                xs[r['id']] = xr
             # the residents map (reach 5 km): people per 250 m cell of the frame the people file's maps use
             if reach >= 5000:
                 pf = os.path.join(a.repo, 'data', 'people', f"{r['id']}.json")
@@ -236,7 +281,7 @@ def main():
                 if frame:
                     frames[r['id']] = frame
                     m_, ix0, iy1, W = frame['m'], frame['x0'], frame['y1'], frame['w']
-                    keep = d <= 5000
+                    keep = straight <= 5000   # the map draws every building within 5 km in a straight line
                     cx = np.floor(np.asarray(bx)[keep] / m_).astype(int)
                     cy = np.floor(np.asarray(by)[keep] / m_).astype(int)
                     vals = people[idx][keep]
@@ -249,7 +294,15 @@ def main():
                         ccx = (np.array([k_ % W for k_ in ks]) + ix0 + 0.5) * m_
                         ccy = (iy1 - np.array([k_ // W for k_ in ks]) + 0.5) * m_
                         dc = shapely.distance(gp, shapely.points(ccx, ccy))
-                        band = np.where(dc <= 0, 0, np.where(dc <= 1000, 1, np.where(dc <= 3000, 2, 3)))
+                        far = np.zeros(len(ks), dtype=bool)
+                        if bank is not None:
+                            # a cell across the river takes its centre's distance through the crossings; band 4: across,
+                            # within 5 km in a straight line and beyond it that way, in tens of metres as map.x.k writes
+                            # them (drawn, hatched, left out of the table); a rim cell stays band 3 on either bank
+                            dr, acr, _vl = bank.measure(ccx, ccy, dc)
+                            far = acr & (np.round(dr / 10) > 500) & (np.round(dc / 10) <= 500)
+                            dc = np.where(acr, dr, dc)
+                        band = np.where(far, 4, np.where(dc <= 0, 0, np.where(dc <= 1000, 1, np.where(dc <= 3000, 2, 3))))
                         grid[r['id']] = [[int(k_), round(cells[k_], 1), int(b_)] for k_, b_ in zip(ks, band)]
                     else:
                         grid[r['id']] = []
@@ -268,12 +321,13 @@ def main():
                    'noBuildings': no_buildings},
         'populationCheck': {'month': month, 'compared': compared, 'differ': differ},
         **({'frame': frames} if frames else {}),
+        **({'crossing': crossing_meta} if crossing_meta else {}),
         'responses': hashlib.sha256('\n'.join(f'{u}\t{h}' for u, h in sorted(used.items())).encode()).hexdigest(),
         'responseCount': len(used),
     }
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     with open(a.out, 'w', encoding='utf-8', newline='\n') as f:
-        json.dump({'meta': meta, 'rows': out, **({'grid': grid} if grid else {})}, f, ensure_ascii=False, separators=(',', ':'))
+        json.dump({'meta': meta, 'rows': out, **({'grid': grid} if grid else {}), **({'across': xs} if rivers is not None else {})}, f, ensure_ascii=False, separators=(',', ':'))
         f.write('\n')
     print(f'wrote {a.out}: {len(out)} neighbourhoods · population month {month} · {len(used)} responses', flush=True)
     if differ:

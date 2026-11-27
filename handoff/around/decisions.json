@@ -109,6 +109,27 @@
    "channel": "Claude chat, Project 02 CityMETER",
    "verbatim": "ระยะ 400/800 ม. จะคิดเรื่องสิ่งกีดขวางด้วยไหม\nคิดด้วย",
    "note": "two lines in one message: the first is the open question as he wrote it, the second (“คิดด้วย”) is his answer; it arrived while Claude was publishing 0.7.3"
+  },
+  {
+   "at": "2026-11-27T07:09:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "คนอยู่ไม่น่าจะข้ามแม่น้ำจากบางกระเจ้ามาที่ปุณณวิถีได้นะครับ",
+   "note": "with his screenshot of ปุณณวิถี's residents map (0.7.3 live): the cells of Bang Krachao across the Chao Phraya were counted within 3 and 5 km in a straight line"
+  },
+  {
+   "at": "2026-11-27",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "นับเรือแบบหน้าศูนย์การค้า",
+   "note": "the option chosen in Claude's question “กฎข้ามแม่น้ำของย่าน: นับเรือข้ามฟากเป็นทางข้ามไหม?”, answered between 08:31 and 08:40 (the minute was not recorded). The question showed ปุณณวิถี within 5 km: 18,777 residents across the river (modelled); with ferries 16,588 still counted (453,771 → 451,583), without them none (434,994). It named the ferry as บางกะเจ้า–วัดคลองเตยนอก, which was wrong: the build brings 15,494 of the 16,588 through เรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก (OpenStreetMap way 40346702); Claude told the owner after the answer. The other option was «ไม่นับเรือ». On whether the Shopping Center page should change too, asked only for «ไม่นับเรือ», he gave no answer."
+  },
+  {
+   "at": "2026-11-27T08:57:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "เรือขนได้ 16,000 คนเลยเหรอ",
+   "note": "after Claude's correction that the distance of most of the 16,588 is measured through เรือข้ามฟากวัดบางน้ำผึ้งนอก–วัดบางนานอก (Claude had written “พาคนส่วนใหญ่ข้าม”). Claude answered that the figure is how many registered residents live within 5 km of the edge when the way is measured through the ferry's crossing — never people carried, trips or capacity — and offered «ไม่นับเรือ» again (434,994); the page's line now reads “วัดระยะผ่าน …” instead of “ข้ามที่ …”. D-18 stands unless he changes it."
   }
  ],
  "reading": {
@@ -321,8 +342,14 @@
    "ownerConfirmed": {
     "at": "2026-11-27T06:51:00+07:00",
     "verbatim": "คิดด้วย",
-    "meaning": "400/800 ม. «ขอบเดินถึง» คิดเรื่องสะพานและสิ่งกีดขวางด้วย ชุดกติกาเดียวกับ 1 · 3 · 5 กม. — authorJudgement ข้อนี้กลายเป็นคำตัดสินของเจ้าของ · ทำใน V7-09 (0.7.4) จนกว่าจะถึงตอนนั้นทุกระยะยังวัดเส้นตรงจากขอบ"
-   }
+    "meaning": "400/800 ม. «ขอบเดินถึง» คิดเรื่องสะพานและสิ่งกีดขวางด้วย ชุดกติกาเดียวกับ 1 · 3 · 5 กม. — authorJudgement ข้อนี้กลายเป็นคำตัดสินของเจ้าของ · ทำใน V7-09 (แผนเดิม 0.7.4 ทำจริงใน 0.7.5) จนกว่าจะถึงตอนนั้นทุกระยะยังวัดเส้นตรงจากขอบ"
+   },
+   "applied": {
+    "release": "0.7.5",
+    "how": "the Shopping Center page's D70 rule (its DATA_METHOD §32) on every neighbourhood: on the neighbourhood's bank the straight line from the edge; across a barrier river the distance through the nearest crossing, edge → crossing → place, each leg straight, never shorter than straight; residents, the people figures and their levels, the round maps and the 400/800 m counts (DATA_METHOD.md §17); with this repository's own scripts reading the written rule (scripts/crossing/), not the Shopping Center's: 3,264 crossings against its 3,411, its across cells found for 99.63 % and the same distance to 10 m for 94.50 %",
+    "interimEnded": "the straight line across rivers (0.7.0–0.7.4)"
+   },
+   "meaningAsApplied": "ไฟล์ OSM และกติกาเดียวกัน แต่สคริปต์เขียนใหม่ตามกติกา ที่เดียวกันจึงได้ตัวเลขใกล้กันแต่ไม่เท่ากันทุกครั้ง (ช่องอีกฝั่งแม่น้ำพบตรงกัน 99.63% ระยะเท่ากันถึง 10 ม. 94.50%) — ข้อความ meaning เดิมว่า “สคริปต์…เดียวกัน ที่เดียวกันได้ตัวเลขเดียวกัน” เป็นความตั้งใจตอนตัดสิน ไม่ใช่สิ่งที่ได้ (ผู้ตรวจอิสระ 27 พ.ย.)"
   },
   {
    "id": "D-14",
@@ -387,6 +414,21 @@
    ],
    "where": "scripts/build-context-map.py · scripts/build-people.py --context (map.ctx, meta.context) · js/people.js (ctxUnder · ctxOver · ctxLabels · mapKey) · js/panel.js (mapProvenance) · js/lang.js (registerPlaceNames) · styles.css (.pm-sea … .pm-lab) · DATA_METHOD.md §16b · js/people.js (fitMapNames · watchMapNames, 0.7.2) · js/app.js (renderPanel)",
    "followUp": "0.7.2 (2026-11-26, after the live check of 0.7.1): the page fits the names again at the width it draws the map (250–440 px) and hides one that would cover an earlier name, a ring label, the north mark or the outline, or leave the map; found on a map 325 px wide at a 1280 px window"
+  },
+  {
+   "id": "D-18",
+   "question": "เรือข้ามฟากนับเป็นทางข้ามแม่น้ำไหม (กฎข้ามแม่น้ำของย่าน 0.7.5)",
+   "status": "decided",
+   "decision": "นับ ตามกติกาหน้าศูนย์การค้า (D70): เรือข้ามฟากยาวไม่เกิน 1.6 กม. ที่ไม่ใช่เรือด่วน",
+   "decidedAt": "2026-11-27",
+   "decidedBy": "owner",
+   "ownerWords": "นับเรือแบบหน้าศูนย์การค้า",
+   "delegatedToAuthor": false,
+   "rejectedAlternatives": [
+    "ไม่นับเรือ (ปุณณวิถี 5 กม. 434,994 แทน 451,583; built for the question with --crossing-kinds no-ferry, not published)"
+   ],
+   "meaning": "ทั้งสองหน้าใช้กติกาทางข้ามเดียวกัน (ทางข้าม 3,264 กับ 3,411 ของหน้าศูนย์การค้า เรือข้ามฟาก 90 กับ 91) คนฝั่งบางกระเจ้าที่ระยะจากบ้านถึงขอบปุณณวิถีเมื่อวัดผ่านท่าเรือข้ามฟากไม่เกินระยะ ยังนับอยู่ (16,588 จาก 18,777 ใน 5 กม. ระยะของ 15,494 คนวัดผ่านเรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก) — เป็นระยะ ไม่ใช่จำนวนคนที่เรือขน ไม่ดูความจุหรือตารางเดินเรือ",
+   "where": "scripts/crossing/banks.py KINDS_ALL · build-residents.py / build-people.py / build-around.py --crossing-kinds all (default)"
   }
  ],
  "release": {
@@ -446,5 +488,14 @@
    "D-13"
   ],
   "scope": "the owner confirms the barrier rule for 400/800 m (2026-11-27 06:51, “คิดด้วย”); no page change until V7-09"
+ },
+ "amendedIn7": {
+  "version": "0.7.5",
+  "decisions": [
+   "D-13",
+   "D-14",
+   "D-18"
+  ],
+  "scope": "river crossings on every distance from the edge (V7-09), from the Shopping Center's OpenStreetMap file by SHA-256 (D-14); ferries counted as that page counts them (D-18)"
  }
 }

@@ -27,7 +27,8 @@ Outputs:
   data/rings/<id>.json  the line 400 m and 800 m out from the outline, for the map (display only).
 
 Rules (DATA_METHOD.md §12):
-  * Around = outside the outline and no farther than the distance from its edge, straight line. A record the data build
+  * Around = outside the outline and no farther than the distance from its edge: a straight line on the neighbourhood's
+    bank, and with --crossing (0.7.5, D-13) across a river the distance through the nearest crossing. A record the data build
     counted inside is never around (data/records). The 800 m figure holds the 400 m one. Figures of two neighbourhoods
     can share records (a record between two outlines is around both), so they are never added across neighbourhoods;
     counts of two datasets are never added.
@@ -51,7 +52,7 @@ from shapely.ops import unary_union
 warnings.simplefilter('ignore')
 
 SCHEMA = 'citymeter-commercialdistrict-around/1'
-RELEASE = '0.6.1'
+RELEASE = '0.7.5'   # the page's release, as data/people/meta.json (0.7.5: the around counts take the river rule)
 # D-8: the reference set stays until a release names the one it replaces; a neighbourhood added later is ranked against
 # it. 0.5.0 adds the outlines of the registry's commercial screen (rows[].kind 'screen') and keeps the set of 0.4.0;
 # 0.6.1 adds the ones the owner's answers of 2026-11-26 10:02 outline, and keeps it too.
@@ -135,6 +136,8 @@ def main():
     ap.add_argument('--out', default=None)
     ap.add_argument('--built-on', default=date.today().isoformat())
     ap.add_argument('--pilot', default=None, help='pilot cells of the proposal (optional): report the cells that differ')
+    ap.add_argument('--crossing', default=None, help='rivers cache of scripts/crossing/rivers.py (outside the repository): across a river, through the crossings (0.7.5)')
+    ap.add_argument('--crossing-kinds', default='all', choices=('all', 'no-ferry'))
     a = ap.parse_args()
     repo = os.path.abspath(a.repo)
     out = os.path.abspath(a.out or os.path.join(repo, 'data'))
@@ -192,8 +195,23 @@ def main():
         }
         sources[d['id']] = {'repo': d['source']['repo'], 'commit': d['source']['commit'], 'file': d['source']['file'], 'sha256': got}
 
+    # ---- the banks of the rivers (0.7.5, V7-09; owner 2026-11-27 06:51 on 400/800 m, VERBATIM “คิดด้วย”): optional
+    rivers = crossing_meta = None
+    if a.crossing:
+        spec_b = importlib.util.spec_from_file_location('banks', os.path.join(repo, 'scripts', 'crossing', 'banks.py'))
+        banks_mod = importlib.util.module_from_spec(spec_b)
+        spec_b.loader.exec_module(banks_mod)
+        rivers, crossing_meta = banks_mod.load(a.crossing, a.crossing_kinds)
+
+    def bank_of(fwd, g, lonlat_bounds):
+        if rivers is None:
+            return None
+        b = banks_mod.Banks(rivers, lambda lo, la: fwd.transform(lo, la), g, lonlat_bounds)
+        return b if b.has_river else None
+
     # ---- surroundings of every outline
     around, rings = {}, {}
+    moved = 0
     # records whose side of the drawn line differs from the data build's membership (the 1.5 m simplification):
     # inside the drawn line but not counted inside (they are around, at 0 m) · counted inside but just outside the line
     in_line_not_counted, counted_off_line = 0, 0
@@ -204,6 +222,7 @@ def main():
         g = polygonal(project(outl[i], fwd))
         minx, miny, maxx, maxy = outl[i].bounds
         mine = inside_keys[i]
+        bank = bank_of(fwd, g, outl[i].bounds)
         a_ = {}
         for d in datasets:
             if d['id'] not in r['c']:
@@ -222,7 +241,13 @@ def main():
             in_line_not_counted += int(np.sum(geo_in & ~counted))
             counted_off_line += int(np.sum(counted & ~geo_in))
             outside = ~counted
+            if bank is not None:
+                # across a river: the distance through the crossings, never under the straight one
+                line = [int(np.sum(outside & (dist <= RINGS[0]))), int(np.sum(outside & (dist <= RINGS[1])))]
+                dist = bank.measure(np.asarray(x), np.asarray(y), dist)[0]
             a_[d['id']] = [int(np.sum(outside & (dist <= RINGS[0]))), int(np.sum(outside & (dist <= RINGS[1])))]
+            if bank is not None and a_[d['id']] != line:
+                moved += 1
         around[i] = a_
         ring = {}
         for k in RINGS:
@@ -292,11 +317,14 @@ def main():
         fwd, _ = local(*r['ref'])
         g = polygonal(project(outl[i], fwd))
         minx, miny, maxx, maxy = outl[i].bounds
+        bank = bank_of(fwd, g, outl[i].bounds)
         m = (vlon >= minx - PAD_DEG) & (vlon <= maxx + PAD_DEG) & (vlat >= miny - PAD_DEG) & (vlat <= maxy + PAD_DEG)
         for k in np.nonzero(m)[0]:
             x, y = fwd.transform(vlon[k], vlat[k])
             pt = Point(x, y)
             dist = g.distance(pt)
+            if bank is not None and not g.covers(pt):
+                dist = float(bank.measure(np.array([x]), np.array([y]), np.array([dist]))[0][0])
             if dist <= RINGS[1]:
                 hits[k].append((i, round(dist), g.covers(pt)))
     # the located records of the Shopping Center file the data build pinned: a centre among them is inside an outline
@@ -334,8 +362,10 @@ def main():
         'schema': SCHEMA, 'release': RELEASE, 'builtOn': a.built_on,
         'ringsM': list(RINGS),
         'measure': {
-            'th': 'นอกขอบของย่านนั้น และห่างจากเส้นขอบไม่เกินระยะที่บอก วัดเส้นตรง · ค่า 800 ม. รวมค่า 400 ม. · รายการเดียวกันอยู่รอบหลายย่านได้ จึงห้ามบวกข้ามย่าน',
-            'en': 'outside the neighbourhood\'s outline and no farther than the distance from its edge, straight line · the 800 m figure holds the 400 m one · one record can be around several neighbourhoods, so figures are never added across neighbourhoods',
+            'th': ('นอกขอบของย่านนั้น และห่างจากเส้นขอบไม่เกินระยะที่บอก ' + ('อีกฝั่งแม่น้ำวัดผ่านทางข้าม' if crossing_meta else 'วัดเส้นตรง')
+                   + ' · ค่า 800 ม. รวมค่า 400 ม. · รายการเดียวกันอยู่รอบหลายย่านได้ จึงห้ามบวกข้ามย่าน'),
+            'en': ('outside the neighbourhood\'s outline and no farther than the distance from its edge, ' + ('across a river through the crossings' if crossing_meta else 'straight line')
+                   + ' · the 800 m figure holds the 400 m one · one record can be around several neighbourhoods, so figures are never added across neighbourhoods'),
             'projection': 'azimuthal equidistant, centred on the neighbourhood\'s reference point',
             'notTheSameAs': ['the registry\'s lodging screen: walking distance along the path network from its own start points (DATA_METHOD.md §2a)',
                              'Yolk MCP: a straight radius from the neighbourhood\'s reference point'],
@@ -367,6 +397,8 @@ def main():
         'acrossTheDrawnLine': {'insideTheLineNotCountedInside': in_line_not_counted, 'countedInsideOffTheLine': counted_off_line,
                                'note': 'the drawn outline is the delivered one simplified at 1.5 m: a record this close to it can fall on the other side; membership follows the data build (a record it did not count inside is around, at 0 m), distance follows the drawn outline'},
         'rings': {'dir': 'rings', 'simplifyM': RING_SIMPLIFY_M, 'quadSegs': RING_QUAD_SEGS, 'note': 'display only: the line the map draws, the outline grown by the distance and simplified at 2 m, so it can sit a few metres off the exact distance; every count above is measured on the outline itself'},
+        **({'crossing': {**crossing_meta, 'datasetCountsMoved': moved,
+                         'owner': '2026-11-27 06:51, VERBATIM: “ระยะ 400/800 ม. จะคิดเรื่องสิ่งกีดขวางด้วยไหม / คิดด้วย” (D-13)'}} if crossing_meta else {}),
     }
     rows_out = {}
     for i in order:

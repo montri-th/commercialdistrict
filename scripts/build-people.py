@@ -36,9 +36,10 @@ Outputs:
                         on the map's own frame; never a count.
 
 Rules (DATA_METHOD.md §15):
-  * Distances: straight line from the outline the map draws, in an azimuthal equidistant projection centred on the
-    neighbourhood's reference point (as scripts/build-around.py), until the Shopping Center's method along real paths is
-    in hand (D-13, D-14). The page says so.
+  * Distances: from the outline the map draws, in an azimuthal equidistant projection centred on the neighbourhood's
+    reference point (as scripts/build-around.py): a straight line on the neighbourhood's bank; with --crossing (0.7.5,
+    D-13, D-14, D-18) across a barrier river the distance through the nearest crossing (scripts/crossing/, DATA_METHOD.md
+    §17). The page says which.
   * A part whose dataset has no located record in the neighbourhood's province is unknown (null), never 0.
   * University students count in a scale only when every site of the university is located and within it.
   * Guests a year: each lodging record's recorded rooms × its province's guests ÷ the province's recorded rooms (records
@@ -60,7 +61,7 @@ warnings.simplefilter('ignore')
 SCHEMA = 'citymeter-commercialdistrict-people/1'
 MAPS_SCHEMA = 'citymeter-commercialdistrict-maps/1'
 CONTEXT_SCHEMA = 'citymeter-commercialdistrict-context/1'
-RELEASE = '0.7.4'
+RELEASE = '0.7.5'
 SCALES = (400, 800, 1000, 3000, 5000)   # 400 · 800: the walkable edges, inside included, for the axis rows; 1 · 3 · 5 km: the service area (D-10)
 CELL_M = 250
 UNIT_M = 25                      # drawn lines in 25 m units (as «รอบศูนย์นี้»)
@@ -184,6 +185,8 @@ def main():
     ap.add_argument('--shoppingcenter', required=True)
     ap.add_argument('--residents', default=None)
     ap.add_argument('--context', default=None)
+    ap.add_argument('--crossing', default=None, help='rivers cache of scripts/crossing/rivers.py (outside the repository): across a river, through the crossings (0.7.5)')
+    ap.add_argument('--crossing-kinds', default='all', choices=('all', 'no-ferry'))
     ap.add_argument('--out', default=None)
     ap.add_argument('--built-on', default=date.today().isoformat())
     a = ap.parse_args()
@@ -294,8 +297,20 @@ def main():
     context = json.load(open(a.context, encoding='utf-8')) if a.context else None
     if context and context['meta'].get('schema') != CONTEXT_SCHEMA:
         sys.exit(f"{a.context}: schema {context['meta'].get('schema')}, not {CONTEXT_SCHEMA}")
+    # ---- the banks of the rivers (0.7.5, V7-09, scripts/crossing/): across a river, a place counts through the crossings;
+    #      the residents file must have been built with the very same cache and kinds
+    rivers = crossing_meta = None
+    if a.crossing:
+        banks_mod = load_module('banks', os.path.join(repo, 'scripts', 'crossing', 'banks.py'))
+        rc = (residents or {}).get('meta', {}).get('crossing')
+        rivers, crossing_meta = banks_mod.load(a.crossing, a.crossing_kinds, expect_sha256=(rc or {}).get('cacheSha256'))
+        if residents and (not rc or rc['cacheSha256'] != crossing_meta['cacheSha256'] or rc['kinds'] != crossing_meta['kinds']):
+            sys.exit('the residents file was not built with this --crossing cache and kinds: build it again with them')
+    elif residents and residents.get('meta', {}).get('crossing'):
+        sys.exit('the residents file counts through the crossings: give --crossing with the same cache')
 
     people, maps, maps_written = {}, {}, 0
+    straight_of = {}
     check = defaultdict(int)
     for i in order:
         r = by_id[i]
@@ -303,6 +318,9 @@ def main():
         g = polygonal(project(outl[i], fwd))
         minx, miny, maxx, maxy = outl[i].bounds
         mine = inside[i]
+        bank = banks_mod.Banks(rivers, lambda lo, la: fwd.transform(lo, la), g, outl[i].bounds) if rivers is not None else None
+        if bank is not None and not bank.has_river:
+            bank = None
         scales = {'in': {}, **{str(s): {} for s in SCALES}}
         dist_of = {}
         for d in datasets:
@@ -318,74 +336,98 @@ def main():
             else:
                 x = y = dist = np.zeros(0)
                 cin = np.zeros(0, dtype=bool)
-            dist_of[d['id']] = (idx, np.asarray(x), np.asarray(y), dist, cin)
+            straight = dist
+            if bank is not None and len(idx):
+                # across a river: the distance through the crossings (never under the straight one); inside stays 0
+                dist = np.where(cin, 0.0, bank.measure(np.asarray(x), np.asarray(y), straight)[0])
+            dist_of[d['id']] = (idx, np.asarray(x), np.asarray(y), dist, cin, straight)
 
-        def select(ds_id, scale):
-            idx, _x, _y, dist, cin = dist_of[ds_id]
-            return idx[cin] if scale == 'in' else idx[dist <= scale]
+        def select(ds_id, scale, line=False):
+            idx, _x, _y, dist, cin, straight = dist_of[ds_id]
+            return idx[cin] if scale == 'in' else idx[(straight if line else dist) <= scale]
 
-        for sc in ['in', *SCALES]:
-            key = 'in' if sc == 'in' else str(sc)
-            o = scales[key]
-            # a recorded part: the sum over the records that carry the figure; none within the scale is a measured 0;
-            # records there without any figure leave the part unknown (None), never 0 — `<part>N` = [with a figure, all]
-            for part, ds_id in RECORDED:
-                if ds_id not in r['c']:
-                    o[part] = None
-                    continue
-                sel = select(ds_id, sc)
-                known = int(np.sum(pts[ds_id]['has'][sel]))
-                o[part] = int(pts[ds_id]['m'][sel].sum()) if known or not len(sel) else None
-                if len(sel):
-                    o[part + 'N'] = [known, int(len(sel))]
-            # university students: every site of the university located and within the scale
-            # (a university with a site within the scale that cannot be counted leaves the part unknown when none can)
-            if 'university' in r['c']:
-                sel = set(pts['university']['id'][k] for k in select('university', sc))
-                near = {site_uni[k] for k in sel if k in site_uni}
-                counted = [u for u in near if uni_students.get(u) and uni_sites[u] <= located_sites and uni_sites[u] <= sel]
-                o['uni'] = sum(uni_students[u] for u in counted) if counted or not near else None
-                if near:
-                    o['uniN'] = [len(counted), len(near)]
-            else:
-                o['uni'] = None
-            # office workers: area × occupancy ÷ 12–10 m² per person, rounded outward (the Shopping Center's code)
-            if 'office' in r['c']:
-                sel = select('office', sc)
-                share = float(np.sum(pts['office']['area'][sel] * pts['office']['rate'][sel]))
-                with_area = int(np.sum(pts['office']['area'][sel] > 0))
-                lo_sqm, hi_sqm = scm.OFFICE_MODEL['sqmPerPerson'][1], scm.OFFICE_MODEL['sqmPerPerson'][0]
-                o['off'] = [scm.rounded(share / lo_sqm, False), scm.rounded(share / hi_sqm, True)] if with_area else None
-                o['offN'] = [with_area, int(len(sel))]
-            else:
-                o['off'] = None
-            parts = [o['stu'], o['uni'], o['fac'], o['gov'], o['off'][0] if o['off'] else None]
-            o['com'] = None if all(v is None for v in parts) else int(sum(v or 0 for v in parts))
-            # the share of the at-least figure that comes from datasets located under 90 %
-            low_share = 0
-            for v, ds_id in ((o['stu'], 'school'), (o['uni'], 'university'), (o['fac'], 'factory'), (o['gov'], 'governmentoffice'),
-                             (o['off'][0] if o['off'] else None, 'office')):
-                if v and ds_id in low:
-                    low_share += v
-            o['comLow'] = bool(o['com']) and low_share * 2 >= o['com']
-            # rooms and guests a year
-            # (lodging within the scale without any room figure leaves rooms and guests unknown, never 0)
-            if 'hotel' in r['c']:
-                sel = select('hotel', sc)
-                known = int(np.sum(pts['hotel']['has'][sel]))
-                if known or not len(sel):
-                    o['rooms'] = int(pts['hotel']['m'][sel].sum())
-                    o['gst'] = int(round(float(np.sum(pts['hotel']['m'][sel] * pts['hotel']['gpr'][sel]))))
+        def fill(scales, line=False):
+            _sel = (lambda ds_id, scale: select(ds_id, scale, line))
+            for sc in ['in', *SCALES]:
+                key = 'in' if sc == 'in' else str(sc)
+                o = scales[key]
+                # a recorded part: the sum over the records that carry the figure; none within the scale is a measured 0;
+                # records there without any figure leave the part unknown (None), never 0 — `<part>N` = [with a figure, all]
+                for part, ds_id in RECORDED:
+                    if ds_id not in r['c']:
+                        o[part] = None
+                        continue
+                    sel = _sel(ds_id, sc)
+                    known = int(np.sum(pts[ds_id]['has'][sel]))
+                    o[part] = int(pts[ds_id]['m'][sel].sum()) if known or not len(sel) else None
+                    if len(sel):
+                        o[part + 'N'] = [known, int(len(sel))]
+                # university students: every site of the university located and within the scale
+                # (a university with a site within the scale that cannot be counted leaves the part unknown when none can)
+                if 'university' in r['c']:
+                    sel = set(pts['university']['id'][k] for k in _sel('university', sc))
+                    near = {site_uni[k] for k in sel if k in site_uni}
+                    counted = [u for u in near if uni_students.get(u) and uni_sites[u] <= located_sites and uni_sites[u] <= sel]
+                    o['uni'] = sum(uni_students[u] for u in counted) if counted or not near else None
+                    if near:
+                        o['uniN'] = [len(counted), len(near)]
+                else:
+                    o['uni'] = None
+                # office workers: area × occupancy ÷ 12–10 m² per person, rounded outward (the Shopping Center's code)
+                if 'office' in r['c']:
+                    sel = _sel('office', sc)
+                    share = float(np.sum(pts['office']['area'][sel] * pts['office']['rate'][sel]))
+                    with_area = int(np.sum(pts['office']['area'][sel] > 0))
+                    lo_sqm, hi_sqm = scm.OFFICE_MODEL['sqmPerPerson'][1], scm.OFFICE_MODEL['sqmPerPerson'][0]
+                    o['off'] = [scm.rounded(share / lo_sqm, False), scm.rounded(share / hi_sqm, True)] if with_area else None
+                    o['offN'] = [with_area, int(len(sel))]
+                else:
+                    o['off'] = None
+                parts = [o['stu'], o['uni'], o['fac'], o['gov'], o['off'][0] if o['off'] else None]
+                o['com'] = None if all(v is None for v in parts) else int(sum(v or 0 for v in parts))
+                # the share of the at-least figure that comes from datasets located under 90 %
+                low_share = 0
+                for v, ds_id in ((o['stu'], 'school'), (o['uni'], 'university'), (o['fac'], 'factory'), (o['gov'], 'governmentoffice'),
+                                 (o['off'][0] if o['off'] else None, 'office')):
+                    if v and ds_id in low:
+                        low_share += v
+                o['comLow'] = bool(o['com']) and low_share * 2 >= o['com']
+                # rooms and guests a year
+                # (lodging within the scale without any room figure leaves rooms and guests unknown, never 0)
+                if 'hotel' in r['c']:
+                    sel = _sel('hotel', sc)
+                    known = int(np.sum(pts['hotel']['has'][sel]))
+                    if known or not len(sel):
+                        o['rooms'] = int(pts['hotel']['m'][sel].sum())
+                        o['gst'] = int(round(float(np.sum(pts['hotel']['m'][sel] * pts['hotel']['gpr'][sel]))))
+                    else:
+                        o['rooms'] = o['gst'] = None
+                    if len(sel):
+                        o['roomsN'] = [known, int(len(sel))]
                 else:
                     o['rooms'] = o['gst'] = None
-                if len(sel):
-                    o['roomsN'] = [known, int(len(sel))]
-            else:
-                o['rooms'] = o['gst'] = None
-            # located records per dataset within the scale (inside included), for the axis rows at a service distance
-            o['n'] = {d['id']: int(len(select(d['id'], sc))) for d in datasets if d['id'] in r['c']}
-            if residents and i in residents.get('rows', {}):
-                o['res'] = residents['rows'][i].get(key)
+                # located records per dataset within the scale (inside included), for the axis rows at a service distance
+                o['n'] = {d['id']: int(len(_sel(d['id'], sc))) for d in datasets if d['id'] in r['c']}
+                if residents and i in residents.get('rows', {}):
+                    o['res'] = residents['rows'][i].get(key)
+                    acr = residents.get('across', {}).get(i, {}).get(key)
+                    if line and acr:
+                        o['res'] = acr['straight']   # the straight figure of the same run, for the comparison
+        fill(scales)
+        # the same figures in a straight line where a river comes near (the panel's folded comparison, as «รอบศูนย์นี้»)
+        if bank is not None:
+            line_scales = {'in': {}, **{str(sc_): {} for sc_ in SCALES}}
+            fill(line_scales, line=True)
+            st = {}
+            for key in map(str, SCALES):
+                diff = {f: line_scales[key].get(f) for f in ('res', 'com', 'gst') if line_scales[key].get(f) != scales[key].get(f)}
+                c0, c1 = line_scales[key].get('n', {}).get('shoppingcenter'), scales[key].get('n', {}).get('shoppingcenter')
+                if c0 != c1:
+                    diff['ctr'] = c0
+                if diff:
+                    st[key] = diff
+            if st:
+                straight_of[i] = st
         # the inside figures equal the data build's measures (rows[].m)
         for part, ds_id in RECORDED + (('rooms', 'hotel'),):
             # rows[].m holds [sum, records with a figure] only when some record inside has one
@@ -410,10 +452,10 @@ def main():
         for grp, members in MAP_GROUPS.items():
             cells = defaultdict(int)
             for ds_id in members:
-                idx, x, y, dist, _cin = dist_of[ds_id]
+                idx, x, y, dist, _cin, straight = dist_of[ds_id]
                 if not len(idx):
                     continue
-                keep = dist <= 5000
+                keep = straight <= 5000   # the map draws every place within 5 km in a straight line (0.7.5)
                 cx = np.floor(x[keep] / CELL_M).astype(int)
                 cy = np.floor(y[keep] / CELL_M).astype(int)
                 for a_, b_ in zip(cx, cy):
@@ -423,7 +465,15 @@ def main():
                 cx_ = (np.array([k % W for k in ks]) + ix0 + 0.5) * CELL_M
                 cy_ = (iy1 - np.array([k // W for k in ks]) + 0.5) * CELL_M
                 dc = shapely.distance(g, shapely.points(cx_, cy_))
-                band = np.where(dc <= 0, 0, np.where(dc <= 1000, 1, np.where(dc <= 3000, 2, 3)))
+                far = np.zeros(len(ks), dtype=bool)
+                if bank is not None:
+                    # a cell across a river takes its centre's distance through the crossings; band 4: across, within
+                    # 5 km in a straight line and beyond it that way, both read in tens of metres as map.x.k writes them
+                    # (a rim cell, past 5 km in a straight line, stays band 3 on either bank)
+                    dr, acr, _vl = bank.measure(cx_, cy_, dc)
+                    far = acr & (np.round(dr / 10) > 500) & (np.round(dc / 10) <= 500)
+                    dc = np.where(acr, dr, dc)
+                band = np.where(far, 4, np.where(dc <= 0, 0, np.where(dc <= 1000, 1, np.where(dc <= 3000, 2, 3))))
             else:
                 band = []
             grids[grp] = [[int(k), int(cells[k]), int(b)] for k, b in zip(ks, band)]
@@ -457,6 +507,38 @@ def main():
         lines['lab'] = lab
         maps[i] = {'cell': {'m': CELL_M, 'x0': int(ix0), 'y1': int(iy1), 'w': int(W), 'h': int(Hh)}, 'unit': UNIT_M,
                    'mask': mask_runs, 'visit': grids['visit'], 'work': grids['work'], 'lines': lines}
+        # ---- the river (0.7.5): the cells of the 5 km across a river with their centre's distance through the crossings
+        #      (tens of metres, -1: no crossing in the window reaches that bank), the crossings reached within 5 km, the
+        #      rivers, and from the residents run the share across within each distance and the crossing through which the
+        #      distance of most of those counted is measured
+        if bank is not None:
+            drawn = set(np.nonzero(inmask)[0].tolist())
+            for grp in ('visit', 'work'):
+                drawn |= {c[0] for c in grids[grp]}
+            drawn |= {c[0] for c in ((residents or {}).get('grid', {}).get(i) or [])}
+            # a building at the very rim can fall a cell past the frame (the map clips it): it has no centre to measure
+            kk = np.array(sorted(k for k in drawn if 0 <= k < W * Hh), dtype=np.int64)
+            px_, py_ = gx.ravel()[kk], gy.ravel()[kk]
+            s_all = shapely.distance(g, shapely.points(px_, py_))
+            d_all, acr_all, _vl = bank.measure(px_, py_, s_all)
+            xk = [[int(k), int(round(v / 10)) if np.isfinite(v) else -1, int(round(s / 10))]
+                  for k, v, s, a_ in zip(kk, d_all, s_all, acr_all) if a_]
+            if xk:
+                xc, ways = [], []
+                for dd, li in bank.reached(5000):
+                    kx, q, _a, _b = bank.links[li]
+                    kind, th, en, _c, wid = rivers.crossings[kx]
+                    if len(xc) < 12:
+                        xc.append([round(q[0] / UNIT_M), round(-q[1] / UNIT_M), kind, th, en, int(round(dd))])
+                        ways.append(int(wid))
+                ax = (residents or {}).get('across', {}).get(i, {})
+                a_share, u_ = {}, {}
+                for key, v in ax.items():
+                    a_share[key] = round(v['across'] / v['straight'] * 100, 1) if v['straight'] else 0.0
+                    if v.get('via') and v['counted']:
+                        wid = v['via'][0]
+                        u_[key] = [ways.index(wid) if wid in ways else -1, round(v['via'][2] / v['counted'] * 100)]
+                maps[i]['x'] = {'k': xk, 'c': xc, 'r': bank.rivers_within(s5), **({'a': a_share} if a_share else {}), **({'u': u_} if u_ else {})}
         # the residents map, from a run over 5 km of scripts/residents/ on this very frame (people per cell, modelled)
         rg = (residents or {}).get('grid', {}).get(i)
         if rg is not None:
@@ -490,8 +572,13 @@ def main():
     meta = {
         'schema': SCHEMA, 'release': RELEASE, 'builtOn': a.built_on,
         'scales': {'in': 'the records the data build counted inside the outline',
-                   'km': 'the service area so far from the drawn outline, inside included; straight line until the method along real paths of the Shopping Center page is in hand (D-13, D-14)'},
-        'distance': {'th': 'เส้นตรงจากขอบย่าน (รอวิธีวัดตามทางจริงชุดเดียวกับหน้าศูนย์การค้า)', 'en': 'straight line from the outline (waiting for the Shopping Center page’s method along real paths)'},
+                   'km': ('the service area so far from the drawn outline, inside included; across a river through the crossings (0.7.5, V7-09: the Shopping Center page’s rule D70, scripts/crossing/)'
+                          if crossing_meta else 'the service area so far from the drawn outline, inside included; straight line')},
+        'distance': ({'th': crossing_meta['rule']['th'], 'en': crossing_meta['rule']['en']} if crossing_meta
+                     else {'th': 'เส้นตรงจากขอบย่าน', 'en': 'straight line from the outline'}),
+        **({'crossing': {**crossing_meta, 'neighbourhoods': {'acrossInMap': sum(1 for m_ in maps.values() if m_.get('x')),
+                                                              'figuresChanged': len(straight_of),
+                                                              'note': 'acrossInMap: maps with land across a barrier river in their 5 km (a cell on another bank); figuresChanged: people files with a figure through the crossings other than the straight one'}}} if crossing_meta else {}),
         'parts': {
             'stu': {'dataset': 'school', 'th': 'นักเรียนที่บันทึกปี 2569', 'en': 'students recorded for 2026'},
             'uni': {'dataset': 'university', 'th': 'นักศึกษาของมหาวิทยาลัยที่ทุกวิทยาเขตอยู่ในระยะ', 'en': 'students of universities whose every site is within the distance'},
@@ -507,9 +594,10 @@ def main():
                 'lodgingOutsideProvinces': unplaced_lodging},
         'levels': {'reference': ba.REFERENCE, 'rule': 'mid-rank percentile among the reference set; none for a figure half or more of which comes from datasets located under 90 %', 'lowLocated': sorted(low)},
         'maps': {'schema': MAPS_SCHEMA, 'cellM': CELL_M, 'reachM': 5000, 'groups': {k: list(v) for k, v in MAP_GROUPS.items()},
-                 'what': 'places per 250 m cell (listed places, not people or visits), cells within 5 km of the drawn outline, straight line',
+                 'what': 'places per 250 m cell (listed places, not people or visits), cells within 5 km of the drawn outline, straight line (the cells across a river beyond the distance through the crossings are drawn and marked by `x`)',
                  'order': 'cell k = row × w + column; rows north to south from y1, columns west to east from x0; mask = run lengths of cells inside 5 km, starting outside',
-                 'cellRecord': '[k, places, band]: band 0 = the cell centre inside the outline, 1 within 1 km of it, 2 within 3 km, 3 within 5 km'},
+                 'cellRecord': '[k, places, band]: band 0 = the cell centre inside the outline, 1 within 1 km of it, 2 within 3 km, 3 within 5 km, 4 (0.7.5) across a river, within 5 km in a straight line and beyond 5 km through the crossings (tens of metres, as map.x.k)',
+                 'x': 'where a barrier river comes within the window (0.7.5): k [[cell, tens of metres through the crossings (-1: no crossing in the window reaches that bank), tens of metres in a straight line]] of the cells across it; c [[x, y (25 m units, y down), kind, name th, name en, metres]] the nearest crossings reached within 5 km (at most 12); r [[th, en]] the rivers within 5 km, nearest first; a {distance: % of the straight-line residents across the river}; u {distance: [index in c or -1, % of those counted across whose distance is measured through it]} — distances, never people a crossing carries'},
         'sources': {d['id']: d['source'] for d in datasets if d['id'] in {'school', 'factory', 'governmentoffice', 'university', 'office', 'hotel'} | set(sum(MAP_GROUPS.values(), ()))},
         'shoppingcenterModel': {'file': SC_MODEL, 'sha256': sha256_file(sc_model_path)},
         'residents': residents.get('meta') if residents else None,
@@ -519,7 +607,8 @@ def main():
     # one file per neighbourhood (the panel loads the one it opens) and the meta beside them
     for i in order:
         dump(os.path.join(out, 'people', f'{i}.json'), {'id': i, 's': {k: v for k, v in people[i].items() if k != 'p'},
-                                                         'p': people[i].get('p', {}), 'map': maps[i]})
+                                                         'p': people[i].get('p', {}), 'map': maps[i],
+                                                         **({'st': straight_of[i]} if i in straight_of else {})})
     dump(os.path.join(out, 'people', 'meta.json'), meta)
     print(f'people: {len(people)} neighbourhoods · maps: {maps_written} · lodging outside every province: {unplaced_lodging}')
 

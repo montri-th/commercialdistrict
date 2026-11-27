@@ -3,8 +3,8 @@
   "schemaVersion": "1.5.0",
   "documentType": "implementation-plan",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.7.4",
-  "updatedOn": "2026-11-26",
+  "productVersion": "0.7.5",
+  "updatedOn": "2026-11-27",
   "language": "en",
   "architecture": {
     "runtime": "static site, ES modules with one cache tag through the import map; MapLibre GL 5.6.2 from unpkg (SRI); OpenFreeMap tiles",
@@ -89,7 +89,9 @@
       "0.7.1": "done 2026-11-26: V7-11 (D-17, owner 17:51) roads, rail, water and the sea on the round maps from the Shopping Center page's OpenStreetMap file, which is now in hand (same SHA-256)",
       "0.7.2": "done 2026-11-26: the names of V7-11 fitted again at the width the panel draws the map (found on the live check of 0.7.1)",
       "0.7.3": "done 2026-11-27: V7-07, the residents within 3 · 5 km and the residents map, from the night crawl of Building V4",
-      "0.7.4": "V7-08 (the business type and brand picker, D-15) and V7-09 (the same OpenStreetMap file and the Shopping Center page's method along real paths)",
+      "0.7.4": "done 2026-11-27: V7-12, the groups in the owner's order (D-V9)",
+      "0.7.5": "done 2026-11-27: V7-09, distances across a river through the crossings by the Shopping Center page's D70 rule from the same OpenStreetMap file (D-13, D-14, D-18; DATA_METHOD.md §17)",
+      "0.7.6": "V7-08 (the business type and brand picker, D-15)",
       "later": "V7-10, in the order the owner picks"
     },
     "tasks": [
@@ -247,21 +249,26 @@
       {
         "id": "V7-09",
         "release": "0.7.5",
-        "title": "ระยะตามทางจริง 400/800 ม. และ 1 · 3 · 5 กม. ด้วยไฟล์และวิธีของหน้าศูนย์การค้า (D-13 D-14)",
+        "title": "ระยะ 400/800 ม. และ 1 · 3 · 5 กม. อีกฝั่งแม่น้ำผ่านทางข้ามที่ใกล้ที่สุด (กติกา D70 ของหน้าศูนย์การค้า) ด้วยไฟล์เดียวกัน (D-13 D-14)",
         "dependsOn": [
           "the Shopping Center's file and method"
         ],
         "files": [
-          "scripts/build-around.py",
+          "scripts/crossing/rivers.py",
+          "scripts/crossing/banks.py",
+          "scripts/crossing/parity.py",
+          "scripts/residents/build-residents.py",
           "scripts/build-people.py",
-          "scripts/build-maps.py"
+          "scripts/build-around.py",
+          "js/people.js",
+          "tests/crossing.test.js"
         ],
-        "status": "the file in hand since 0.7.1 (thailand-261124.osm.pbf, the same SHA-256, outside the repository); the method to adopt. 400/800 m take the barrier rule too: owner 2026-11-27 06:51, VERBATIM “คิดด้วย” (D-13)",
+        "status": "done 2026-11-27 (0.7.5): the Shopping Center page's D70 rule (its DATA_METHOD §32) from the same file (thailand-261124.osm.pbf, the same SHA-256, outside the repository) — on the neighbourhood's bank straight, across a barrier river through the nearest crossing; 400/800 m too (owner 2026-11-27 06:51, VERBATIM “คิดด้วย”, D-13); ferries as that page counts them (D-18); after the owner's 07:09 words on ปุณณวิถี and Bang Krachao. The rule, not a route along every road: expressways, rail and canals are not barriers (DATA_METHOD.md §17)",
         "acceptance": [
           "the same SHA-256 as the Shopping Center's OpenStreetMap file",
           "the same rules for bridges, crossings, expressways, rivers and rail",
           "«ขอบเดินถึง» 400/800 m along the same paths as 1 · 3 · 5 km (owner 2026-11-27: “คิดด้วย”)",
-          "the page drops the words “เส้นตรง” only then"
+          "the page drops the words “เส้นตรง” only then (0.7.5: “วัดจากขอบย่าน อีกฝั่งแม่น้ำนับผ่านทางข้าม”)"
         ]
       },
       {
@@ -345,7 +352,7 @@
       {
         "id": "AC22",
         "scenario": "a distance",
-        "expected": "says straight line from the edge until V7-09 ships"
+        "expected": "says straight line from the edge until V7-09 ships; since 0.7.5 says the far bank of a river is reached through a crossing"
       }
     ]
   }

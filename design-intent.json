@@ -1,7 +1,7 @@
 {
   "artifact": "CityMETER Commercial District — 3D map of the central neighbourhood registry's closed draft outlines against the located records of 16 CityMETER demo datasets (Land · Location · Living): what each neighbourhood stands out for, what comes together, similar mixes and side-by-side comparison",
-  "productVersion": "0.7.4",
-  "updatedOn": "2026-11-25",
+  "productVersion": "0.7.5",
+  "updatedOn": "2026-11-27",
   "ldsVersion": "0.9.7",
   "release": "v0.9.7-owner.1",
   "revision": "standalone-0.9.7-r1",

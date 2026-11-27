@@ -349,7 +349,11 @@ function setDistance(value) {
   document.querySelector(`#panel-view [data-action="set-around"][data-value="${next}"]`)?.focus({preventScroll: true});
   // one camera move: fitNb frames now when the line is known (or inside), else once it arrives (ensureRing)
   if (state.nb) { const r = openRow(); ensureRing(r); if (state.loaded) fitNb(r); }
-  announce(next === 'in' ? L('ในย่าน', 'Inside') : L(`ขอบเดินถึง ${num(+next)} ม. · เส้นตรงจากขอบย่าน ไม่ใช่ระยะเดินจริง`, `Walkable edge ${num(+next)} m · a straight line from the outline, not a walking route`));
+  // (0.7.5) the line is drawn straight from the outline; the figures count across a river through the crossings
+  const ruled = Boolean(state.around?.meta?.crossing);
+  announce(next === 'in' ? L('ในย่าน', 'Inside') : ruled
+    ? L(`ขอบเดินถึง ${num(+next)} ม. · เส้นวาดตรงจากขอบย่าน ตัวเลขนับอีกฝั่งแม่น้ำผ่านทางข้าม ไม่ใช่ระยะเดินจริง`, `Walkable edge ${num(+next)} m · the line is drawn straight from the outline; the figures count across a river through a crossing, not a walking route`)
+    : L(`ขอบเดินถึง ${num(+next)} ม. · เส้นตรงจากขอบย่าน ไม่ใช่ระยะเดินจริง`, `Walkable edge ${num(+next)} m · a straight line from the outline, not a walking route`));
 }
 
 /** A glance tile goes to its dataset's row of the table and moves the focus there (the row's own button). */
@@ -555,7 +559,9 @@ function renderLegend() {
     aroundItem.hidden = !on;
     if (on) {
       $('legend-around-label').textContent = L(`แนวขอบเดินถึง ${num(+state.distance)} ม.`, `Walkable edge ${num(+state.distance)} m`);
-      aroundItem.title = L(`เส้นตรงจากขอบย่าน ${num(+state.distance)} ม. ไม่ใช่ระยะเดินจริง · ตัวเลขอยู่ในตาราง «ขอบเดินถึง» ของแผงข้อมูล`, `Straight line ${num(+state.distance)} m from the outline's edge, not a walking route · the figures are in the panel's table “The walkable edge”`);
+      aroundItem.title = state.around?.meta?.crossing
+        ? L(`เส้นวาดตรงจากขอบย่าน ${num(+state.distance)} ม. ไม่ใช่ระยะเดินจริง · ตัวเลขในตาราง «ขอบเดินถึง» นับอีกฝั่งแม่น้ำผ่านทางข้าม`, `Drawn straight ${num(+state.distance)} m from the outline's edge, not a walking route · the figures in the panel's table “The walkable edge” count across a river through a crossing`)
+        : L(`เส้นตรงจากขอบย่าน ${num(+state.distance)} ม. ไม่ใช่ระยะเดินจริง · ตัวเลขอยู่ในตาราง «ขอบเดินถึง» ของแผงข้อมูล`, `Straight line ${num(+state.distance)} m from the outline's edge, not a walking route · the figures are in the panel's table “The walkable edge”`);
     }
   }
   const railItem = $('legend-rail'), rail = state.railData?.meta;
