@@ -292,7 +292,7 @@
       {
         "id": "V7-12",
         "release": "0.7.4",
-        "title": "กลุ่มคนเรียง คนอยู่ › ผู้มาเยือน › คนมาทำงานและเรียน คำอังกฤษของเจ้าของบนหน้าไทย และช่องตัวเลขที่เปิดแผนที่ของกลุ่ม (D-V9)",
+        "title": "กลุ่มคนเรียง คนอยู่ › ผู้มาเยือน › คนมาทำงานและเรียน ทั้งช่องตัวเลขและแท็บแผนที่ (D-V9)",
         "dependsOn": [
           "V7-05",
           "V7-07"
@@ -300,15 +300,12 @@
         "files": [
           "js/people.js",
           "js/app.js",
-          "js/panel.js",
-          "styles.css",
           "tests/people.test.js"
         ],
-        "status": "done 2026-11-27 (0.7.4); the English words and the tiles that open the maps are Claude's reading, for the owner to confirm",
+        "status": "done 2026-11-27 (0.7.4)",
         "acceptance": [
-          "the tiles and the map tabs in the owner's order (owner 2026-11-27 07:15: “Resident > Visitor > Commutor”)",
-          "on the Thai page his English words beside the names, lang=\"en\"; none added on the English page",
-          "a group's tile opens its map: the tab chosen, the map in view, the focus on the tab; keyboard and pointer alike"
+          "the tiles and the map tabs in the owner's order (owner 2026-11-27 07:15: “Resident > Visitor > Commutor”), the residents map first",
+          "no English words added on the Thai page; English is the English page behind EN (owner 2026-11-27 08:23: “EN บนเวบผมคลิกไม่ได้”)"
         ]
       },
       {

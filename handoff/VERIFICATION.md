@@ -2,26 +2,34 @@
 
 ## Release 0.7.4 — 27 พ.ย. 2569 (not published)
 
-The owner's words of 07:15 (VERBATIM): “ควรจะเรียงลำดับ Resident > Visitor > Commutor และให้มีภาษาอังกฤษด้วย
-ตอนนี้คลิกไม่ได้”. The order is his; the English words beside the Thai names and the tiles that open the maps are Claude's
-reading, waiting for his confirmation (D-V9 in `handoff/visual/decisions.json`).
+The owner's words (VERBATIM): 07:15 “ควรจะเรียงลำดับ Resident > Visitor > Commutor และให้มีภาษาอังกฤษด้วย
+ตอนนี้คลิกไม่ได้”; 08:23, after each of Claude's two questions, “EN บนเวบผมคลิกไม่ได้”. The release is the order only;
+Claude's first reading (English words beside the Thai names, tiles that open their maps; pull request #44 at `b6920fb`)
+was taken out before release (D-V9 in `handoff/visual/decisions.json`).
 
 ### Local (container, 27 Nov)
 
-- `npm test`: 221 tests, 221 pass, 0 fail (new: for each of the three tabs at ปุณณวิถี, a tile per group opens its map
-  in the owner's order and the centres' tile none; only the open map's tile is marked; his English words stand beside the
-  Thai names in the tiles and the tabs).
+- `npm test`: 220 tests, 220 pass, 0 fail (the order of the tiles in every neighbourhood and of the map tabs, the
+  residents tab first, in the tests changed by `008749e`).
 - Data: only `release` in `data/people/meta.json` changed (0.7.3 → 0.7.4); no other file under `data/`.
-- Playwright with Google Chrome on `python3 -m http.server` over this tree, cache tag `20261127-r2` (the server's log
-  shows the files requested with it), ปุณณวิถี (`CMN-TH-FC9F0B73B3`), Thai 1,440 light, English 1,440 dark, Thai 393 dark,
-  English 393 light:
-  - the tiles read residents, visitors, commuters, centres; the tabs residents, visitors' places, work and study, the
-    residents tab pressed on opening; Thai tabs “คนอยู่ Residents”, “ที่ผู้มาเยือนใช้ Visitors”, “ที่ทำงานและที่เรียน
-    Commuters”; English tabs “Residents”, “Places visitors use”, “Work and study”;
-  - a pointer click on the visitors tile's figure pressed the visitors tab and brought the map to 119 px from the top
-    (1,440) and 177 px (393), the address carrying `f.map=visit`; Enter on the commuters tile's button pressed the work
-    tab, `f.map=work`, the focus on that tab;
-  - `__citymeterI18n.missing` empty, no tile wider than its box, no page error.
+- Playwright with Google Chrome on `python3 -m http.server` over this tree, cache tag `20261127-r2`, ปุณณวิถี
+  (`CMN-TH-FC9F0B73B3`), Thai 1,440 light, English 1,440 dark, Thai 393 dark, English 393 light: the tiles read
+  residents, visitors, commuters, centres, with no control inside a tile; the tabs residents, visitors' places, work and
+  study, the residents tab pressed on opening; a pointer click on the visitors' tab pressed it and wrote `f.map=visit`;
+  `__citymeterI18n.missing` empty, no tile wider than its box, no page error.
+
+### The EN link on citymeter.pages.dev (0.7.3 live, Claude in Chrome, 27 Nov 08:2x)
+
+- The tab at 1,710 × 875 and same-origin frames at 768 × 1,024, 820 × 1,180, 1,024 × 768, 1,180 × 820, 1,280 × 720,
+  1,280 × 800, 1,366 × 768, 1,440 × 900 and 1,536 × 864, ปุณณวิถี: the EN link (`a.lang-link`, 44 × 44 px in the header)
+  is the element at its own centre.
+- Frames at 393 × 740, 430 × 932 and 375 × 667 (portrait, below 761 px): EN sits in the menu “Commercial District ▾”, in
+  the theme row at 147, 65 (44 × 44 px); with the menu open it is the element at its own centre while the note
+  «แผนที่แบบเบา» is folded or absent. With the note open (393 × 740; the note opens once per tab when the map stops and
+  restarts light), the note's body (8, 50, 377 × 142 px) lies over the menu's first row and its text is the element at
+  EN's centre: EN cannot be tapped until the note is folded. Frames in desktop Chrome, not a phone's browser.
+- The note and the menu belong to the shared shell (`navigation.css`, `js/shell/launch.js`, `js/shell/header.js`), so
+  the fix is a shell release for every demo (D-V9b, open for the owner).
 
 ## Release 0.7.3 — live (2026-11-27)
 

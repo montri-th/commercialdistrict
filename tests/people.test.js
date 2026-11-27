@@ -137,7 +137,7 @@ test('every neighbourhood renders «ใครอยู่ตรงนี้» wi
       // dataset · source · date · boundary on the block's own line
       for (const part of ['dataset', 'source', 'date', 'boundary']) assert.match(sec, new RegExp(`data-prov="${part}"`), `${r.id} ${reach} ${part}`);
       // a measured 0 has no level beside it
-      for (const m of sec.matchAll(/<li class="people-tile is-ready[^"]*" data-people="(\w+)">([\s\S]*?)<\/li>/g)) {
+      for (const m of sec.matchAll(/<li class="people-tile is-ready" data-people="(\w+)">([\s\S]*?)<\/li>/g)) {
         if (/<b class="data-number">0<\/b>/.test(m[2])) assert.ok(!/people-level/.test(m[2]), `${r.id} ${reach} ${m[1]}: a level beside 0`);
       }
       assert.ok(!/รวมสามกลุ่ม|ยอดรวม|total/i.test(text(sec)), r.id);
@@ -256,28 +256,4 @@ test('0.7.3: the residents map reads its modelled figures “ราว”, round
   const empty = text(mapSection(r, {...base, map: {...base.map, res: []}}, meta, {tab: 'res'}));
   assert.match(empty, /ยังไม่มีข้อมูลอาคารในระยะ 5 กม\./);
   assert.doesNotMatch(empty, /\(0\)/);
-});
-
-test('0.7.4: the groups in the owner’s order open their maps, with his English words on the Thai page', () => {
-  // owner 2026-11-27 07:15, VERBATIM: “ควรจะเรียงลำดับ Resident > Visitor > Commutor และให้มีภาษาอังกฤษด้วย ตอนนี้คลิกไม่ได้”
-  const {model} = load();
-  const around = A();
-  const meta = readJSON('data/people/meta.json');
-  const r = model.byId.get('CMN-TH-FC9F0B73B3');
-  const p = people(r.id);
-  for (const mapTab of MAP_TABS) {
-    const html = renderNeighborhood(buildNeighborhood(model, r), model, {ctx: ctx(), around, people: p, peopleMeta: meta, reach: '1000', mapTab});
-    const sec = html.slice(html.indexOf('id="nb-people"'), html.indexOf('id="nb-map"'));
-    // a tile per group opens its map; centres and markets have no map
-    assert.deepEqual([...sec.matchAll(/data-action="show-map" data-value="(\w+)"/g)].map(m => m[1]), ['res', 'visit', 'work']);
-    assert.ok(!/data-people="ctr"[^>]*>[\s\S]*?show-map/.test(sec.slice(sec.indexOf('data-people="ctr"'))), 'no map for the centres tile');
-    // the tile of the open map is marked, one at a time
-    const on = [...sec.matchAll(/class="people-tile[^"]*is-on[^"]*" data-people="(\w+)"/g)].map(m => m[1]);
-    assert.deepEqual(on, [{res: 'res', visit: 'gst', work: 'com'}[mapTab]]);
-    // the owner's English words beside the Thai names, in the tiles and the tabs
-    for (const w of ['Residents', 'Visitors', 'Commuters']) {
-      assert.match(sec, new RegExp(`<span class="people-en" lang="en">${w}</span>`));
-      assert.match(html.slice(html.indexOf('id="nb-map"')), new RegExp(`<span class="pm-tab-en" lang="en">${w}</span>`));
-    }
-  }
 });

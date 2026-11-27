@@ -90,12 +90,12 @@ export function peopleTiles(rec, reach, meta = null) {
   // residents: built at this scale (a figure, or none where Building V4 has no building here) or not built yet
   const resState = s.res != null ? 'ready' : (meta?.residents?.scales || []).includes(reach) ? 'none' : 'pending';
   return [
-    {key: 'res', icon: 'home', th: 'คนอยู่', en: 'Residents', term: 'Residents', map: 'res', tag: ['แบบจำลอง', 'modelled'], state: resState, count: s.res ?? null,
+    {key: 'res', icon: 'home', th: 'คนอยู่', en: 'Living here', tag: ['แบบจำลอง', 'modelled'], state: resState, count: s.res ?? null,
       value: s.res == null ? '' : s.res === 0 ? '0' : aboutPeople(s.res) || L(...UNDER_10), about: Boolean(aboutPeople(s.res)), unit: ['คน', 'people'], star: false, p: p.res ?? null},
-    {key: 'gst', icon: 'luggage', th: 'ผู้มาเยือนค้างคืน', en: 'Overnight visitors', term: 'Visitors', map: 'visit', tag: ['แบบจำลอง', 'modelled'], state: s.gst == null ? 'none' : 'ready', count: s.gst ?? null,
+    {key: 'gst', icon: 'luggage', th: 'ผู้มาเยือนค้างคืน', en: 'Overnight visitors', tag: ['แบบจำลอง', 'modelled'], state: s.gst == null ? 'none' : 'ready', count: s.gst ?? null,
       value: s.gst == null ? '' : s.gst === 0 ? '0' : aboutPeople(s.gst) || L(...UNDER_10), about: Boolean(aboutPeople(s.gst)), unit: ['คนต่อปี', 'a year'], star: false, p: p.gst ?? null, roomsN: s.roomsN || null},
     // at least: rounded down, never “ราว”
-    {key: 'com', icon: 'office', th: 'คนมาทำงานและเรียน', en: 'Commuters: work and study', term: 'Commuters', map: 'work', tag: ['อย่างน้อย', 'at least'], state: s.com == null ? 'none' : 'ready', count: s.com ?? null,
+    {key: 'com', icon: 'office', th: 'คนมาทำงานและเรียน', en: 'Come to work and study', tag: ['อย่างน้อย', 'at least'], state: s.com == null ? 'none' : 'ready', count: s.com ?? null,
       value: s.com == null ? '' : atLeastPeople(s.com), about: false, unit: ['คน', 'people'], star: Boolean(s.comLow), p: s.comLow ? null : p.com ?? null},
     {key: 'ctr', icon: 'venue', th: 'ศูนย์และตลาด', en: 'Centres and markets', tag: null, state: s.n?.shoppingcenter == null ? 'none' : 'ready', count: s.n?.shoppingcenter ?? null,
       value: s.n?.shoppingcenter == null ? '' : num(s.n.shoppingcenter), about: false, unit: ['แห่ง', 'places'], star: false, p: p.ctr ?? null},
@@ -137,7 +137,7 @@ function partsLine(key, s, meta) {
 }
 
 /** «ใครอยู่ตรงนี้»: the scale switch, four tiles, the key, the parts, one source line and the method, folded. */
-export function peopleSection(row, rec, meta, {reach = DEFAULT_REACH, refN = 395, state = 'ready', prov = '', mapTab = DEFAULT_MAP} = {}) {
+export function peopleSection(row, rec, meta, {reach = DEFAULT_REACH, refN = 395, state = 'ready', prov = ''} = {}) {
   const head = `<div class="section-heading"><h3 id="nb-people-title">${pic('home')}${esc(L('ใครอยู่ตรงนี้', 'Who is here'))}</h3></div>`;
   if (state !== 'ready' || !rec) {
     const words = state === 'error' ? L('โหลดตัวเลขคนไม่สำเร็จ', 'The people figures did not load') : L('กำลังโหลดตัวเลขคน…', 'Loading the people figures…');
@@ -147,8 +147,6 @@ export function peopleSection(row, rec, meta, {reach = DEFAULT_REACH, refN = 395
   const switcher = `<div class="people-switch" role="group" aria-label="${esc(L('อ่านตัวเลขที่ระยะ', 'Read the figures at'))}">${REACHES.map(v => `<button type="button" class="seg" data-action="set-reach" data-value="${v}" aria-pressed="${reach === v}">${esc(reachWords(v, {short: true}))}</button>`).join('')}</div>`;
   const s = rec.s[reach] || {};
   const tiles = peopleTiles(rec, reach, meta);
-  // which maps this file can open (the residents map waits for its round where it is missing)
-  const map = {res: Array.isArray(rec.map?.res) ? true : false, visit: Boolean(rec.map), work: Boolean(rec.map)};
   const tile = t => {
     const ready = t.state === 'ready', level = ready && !t.star && t.count > 0 && t.p != null ? levelOf(t.p, t.count) : null;
     const star = t.star ? `<sup aria-hidden="true">*</sup><span class="sr-only">${esc(L('ส่วนใหญ่มาจากชุดที่มีพิกัดไม่ครบ จึงไม่จัดระดับ', 'mostly from datasets without points for every record, so no level'))}</span>` : '';
@@ -158,16 +156,7 @@ export function peopleSection(row, rec, meta, {reach = DEFAULT_REACH, refN = 395
         : t.key === 'gst' && t.roomsN ? L(`ไม่มีตัวเลขห้องพัก (${num(t.roomsN[1])} แห่ง)`, `No room figures (${num(t.roomsN[1])} places)`) : L(...(NONE_WORDS[t.key] || NONE_WORDS.any)))}</span>`;
     const meter = level == null ? '' : `<span class="people-level">${levelMeter(level, t.count > 0 ? t.p : null)}<span>${esc(L(`ระดับเทียบ ${num(Math.round(t.p ?? 0))}/100`, `level ${num(Math.round(t.p ?? 0))}/100`))}</span><span class="sr-only">${esc(L(`${LEVEL_WORDS[level][0]} ระดับ ${num(level)} จาก 5 เทียบ ${num(refN)} ย่าน`, `${LEVEL_WORDS[level][1]}, level ${num(level)} of 5 among ${num(refN)} neighbourhoods`))}</span></span>`;
     const parts = ready ? partsLine(t.key, s, meta) : '';
-    // (0.7.4; owner 2026-11-27 07:15 “… และให้มีภาษาอังกฤษด้วย ตอนนี้คลิกไม่ได้”) the Thai page carries the owner's English
-    // word beside the name, and a group's tile opens its map below (the whole tile is the button's target)
-    const term = !EN && t.term ? ` <span class="people-en" lang="en">${esc(t.term)}</span>` : '';
-    const name = `${esc(L(t.th, t.en))}${term}`;
-    const opens = t.map && map?.[t.map] !== false;
-    const label = opens
-      ? `<button type="button" class="people-go" data-action="show-map" data-value="${t.map}" aria-controls="nb-map">${name}<span class="sr-only">${esc(L(` · เปิด${MAP_WORDS[t.map][0]}`, ` · open the map of ${MAP_WORDS[t.map][1]}`))}</span></button>`
-      : name;
-    const go = opens ? `<span class="people-go-mark" aria-hidden="true">${pic('maps')}</span>` : '';
-    return `<li class="people-tile is-${t.state}${opens ? ' has-map' : ''}${opens && t.map === mapTab ? ' is-on' : ''}" data-people="${t.key}">${pic(t.icon)}<span class="people-label">${label}${t.tag ? ` <span class="glance-tag">${esc(L(...t.tag))}</span>` : ''}</span>${go}${figure}${meter}${parts ? `<small class="people-parts">${parts}</small>` : ''}</li>`;
+    return `<li class="people-tile is-${t.state}" data-people="${t.key}">${pic(t.icon)}<span class="people-label">${esc(L(t.th, t.en))}${t.tag ? ` <span class="glance-tag">${esc(L(...t.tag))}</span>` : ''}</span>${figure}${meter}${parts ? `<small class="people-parts">${parts}</small>` : ''}</li>`;
   };
   const starred = tiles.some(t => t.state === 'ready' && t.star);
   const key = `<p class="hint people-key">${levelMeter(3)}<span>${esc(L(`ระดับเทียบ ${num(refN)} ย่าน · น้อย → มาก`, `Level among ${num(refN)} neighbourhoods · low → high`))}</span>${starred ? `<span>${esc(L('* ส่วนใหญ่มาจากชุดที่มีพิกัดไม่ครบ จึงไม่จัดระดับ', '* mostly from datasets without points for every record, so no level'))}</span>` : ''}</p>`;
@@ -205,13 +194,12 @@ export function peopleMethod(meta) {
 
 /* ---------- the round 250 m maps ---------- */
 
-const MAP_WORDS = {res: ['แผนที่คนอยู่', 'residents'], visit: ['แผนที่ที่ผู้มาเยือนใช้', 'places visitors use'], work: ['แผนที่ที่ทำงานและที่เรียน', 'work and study']};
 const MAP_CFG = {
   visit: {th: 'ที่ผู้มาเยือนใช้', en: 'Places visitors use', scale: ACTIVITY_SCALE, unit: ['แห่งต่อช่อง', 'places per cell'],
     what: ['ที่พัก ศูนย์การค้าและตลาด ร้านของชำ ร้านอาหาร ร้านยา ฟิตเนส แบรนด์หรู และร้านกล้อง ต่อช่อง 250 × 250 ม.', 'stays, centres and markets, groceries, restaurants, pharmacies, fitness, luxury brands and camera shops per 250 × 250 m cell']},
   work: {th: 'ที่ทำงานและที่เรียน', en: 'Work and study', scale: COUNT_SCALE, unit: ['แห่งต่อช่อง', 'places per cell'],
     what: ['สำนักงาน หน่วยงานรัฐ โรงงาน นิคมอุตสาหกรรม มหาวิทยาลัย สถานพยาบาล และสถานศึกษา ต่อช่อง 250 × 250 ม.', 'offices, government offices, factories, industrial estates, universities, hospitals and schools per 250 × 250 m cell']},
-  res: {th: 'คนอยู่', en: 'Residents', scale: DENSITY_SCALE, unit: ['คนต่อช่อง', 'people per cell'],
+  res: {th: 'คนอยู่', en: 'Living here', scale: DENSITY_SCALE, unit: ['คนต่อช่อง', 'people per cell'],
     what: ['คนในทะเบียนบ้าน (แบบจำลอง) ต่อช่อง 250 × 250 ม.', 'registered residents (modelled) per 250 × 250 m cell']},
 };
 // the datasets of each place map (scripts/build-people.py#MAP_GROUPS)
@@ -432,8 +420,7 @@ export function mapSection(row, rec, meta, {tab = DEFAULT_MAP, prov = null, outO
   const has = t => t !== 'res' || Array.isArray(map.res);
   const current = mapTabOf(map, tab);
   const cfg = MAP_CFG[current];
-  const TERM = {res: 'Residents', visit: 'Visitors', work: 'Commuters'};
-  const tabs = `<div class="pm-tabs" role="group" aria-label="${esc(L('แผนที่ของ', 'Map of'))}">${MAP_TABS.map(t => `<button type="button" class="seg" data-action="set-map" data-value="${t}" aria-pressed="${t === current}"${has(t) ? '' : ' disabled'}>${esc(L(MAP_CFG[t].th, MAP_CFG[t].en))}${EN ? '' : ` <span class="pm-tab-en" lang="en">${TERM[t]}</span>`}${has(t) ? '' : ` <small>${esc(L('รอบถัดไป', 'next round'))}</small>`}</button>`).join('')}</div>`;
+  const tabs = `<div class="pm-tabs" role="group" aria-label="${esc(L('แผนที่ของ', 'Map of'))}">${MAP_TABS.map(t => `<button type="button" class="seg" data-action="set-map" data-value="${t}" aria-pressed="${t === current}"${has(t) ? '' : ' disabled'}>${esc(L(MAP_CFG[t].th, MAP_CFG[t].en))}${has(t) ? '' : ` <small>${esc(L('รอบถัดไป', 'next round'))}</small>`}</button>`).join('')}</div>`;
   const {cells, ramp} = mapModel(map, current);
   const sec = mapSectors(map, current);
   // no name in the title: the panel names the neighbourhood, and a name in an English sentence would leave Thai in it
