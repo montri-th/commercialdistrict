@@ -17,7 +17,7 @@
   sheet expanded — the map 361 × 369 px, the same checks, no horizontal overflow.
 - Not verified: Safari, a real iPhone. The owner's test on his phone is the check; he was asked after the publish.
 
-## Release 0.7.9 — 27 พ.ย. 2569 (not published): the round map without url(#…) references
+## Release 0.7.9 — 27 พ.ย. 2569: the round map without url(#…) references
 
 The owner's words (VERBATIM): 16:10 “heatmap นี้ไม่ขึ้นใน mobile นะครับ (safari) เช็คที่ citymeter.pages.dev”; he chose
 «แก้แบบกันไว้ก่อนเลย» in Claude's question (the option: the map stops depending on clip-path and pattern referenced
@@ -73,7 +73,7 @@ through url(#…), he tries it on his iPhone once it is live, and this may not b
   `__citymeterI18n.missing` empty, no horizontal overflow.
 - Not verified: a real phone (393 px was a frame in desktop Chrome), browsers other than Chrome.
 
-## Release 0.7.8 — 27 พ.ย. 2569 (not published): the owner's ticks on the commercial screen's outlines
+## Release 0.7.8 — 27 พ.ย. 2569: the owner's ticks on the commercial screen's outlines
 
 The owner's words (VERBATIM): 10:44 “1 แก้แล้วในช่องสีเหลือง / 2 รับ / 3 แก้ / 4 ลบ”, on Claude's four questions of 26 Nov
 (`amendments/outline-new-choices-2026-11-27.json`, `owner.asked_th`); then, on Claude's questions that morning, «ส่งต่อแชท
@@ -152,7 +152,39 @@ The owner's words (VERBATIM): 10:44 “1 แก้แล้วในช่อง
 - 0.7.8 (above) was in progress when it landed: merged into it in `8dbad62`, the two release fields the only conflicts;
   the shell tests of 0.6.6 pass on 0.7.8.
 
-## Release 0.7.6 — 27 พ.ย. 2569 (not published): citymeter-shell 0.6.5
+## Releases 0.7.4 · 0.7.5 · 0.7.6 — live (2026-11-27)
+
+- Merged on the owner's word (10:13, VERBATIM: “merge and publish”): pull requests #44 (0.7.4, merge `7b32e7a`, 10:14:25),
+  #45 (0.7.5, `63262ee`, 10:14:31) and #46 (0.7.6, `879a4cf`, 10:14:38); citymeter-shell 0.6.5 in the 16 other demo
+  repositories (10:14:42 – 10:15:27) and in the hub (montri-th/CityMETER #37, `5c6bde7`, 10:15:30). Pull request #43
+  (the 0.7.3 live record and D-13) shows as merged at 10:14:27: #44 carried its commits (`fb1f363`).
+- GitHub Pages: deployment 8100855570 of `879a4cf`, success at 10:15:29 (03:15:29 UTC). `npm run verify:live` against a
+  manifest made at `879a4cf` (2,839 files, 51,704,836 bytes; the 74 files under `tests/` and `scripts/`, the dotfiles
+  and `package.json` are not compared): 2,765 ok, 0 failed (10:21:48).
+- Cloudflare: run 45933263316 (workflow_dispatch with publish, 10:17:05 – 10:18:07, success); 114 / 114 live checks
+  passed; the demo family check passed on the site and live: 18 in the hub, every demo on citymeter-shell 0.6.5, this
+  demo at `879a4cf`.
+- Claude in Chrome on citymeter.pages.dev (10:22 – 10:28), cache tag `20261127-r4`; `js/shell/manifest.json` 0.6.5,
+  `data/people/meta.json` and `data/around.json` release 0.7.6. ปุณณวิถี (`CMN-TH-FC9F0B73B3`) in Thai on desktop: the
+  tiles read residents, overnight visitors, work and study, centres and markets; the residents tab pressed; at 5 km the
+  residents tile “ราว 452,000 คน”, under the tiles “อีกฝั่งแม่น้ำเจ้าพระยา 4.1% ของคนอยู่ใน 5 กม. · วัดระยะผ่าน
+  เรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก (2.1 กม.)”, and in the fold «ข้ามแม่น้ำ: เทียบกับนับแบบเส้นตรง» residents
+  452,000 through a crossing and 454,000 in a straight line.
+- EN, a real click (the pointer onto the link, then a press): the English page at the same neighbourhood and 5 km,
+  `__citymeterI18n.missing` empty, under the tiles “Across the Chao Phraya River: 4.1% of the residents within 5 km ·
+  measured through Wat Bang Namphueng Nok - Wat Bang Na Nok Ferry (2.1 km)”; «ไทย» drops `lang`. Before the pointer
+  reached it the link's address lacked the 5 km just chosen; the shell refreshes it on `pointerenter`, `focus`,
+  `pointerdown` and `click`, and the English page opened at 5 km.
+- A 393 × 740 frame of the same origin (Thai, 5 km): EN in the menu “Commercial District ▾” at 147, 65 (44 × 44 px); a
+  click there opened the English page at the same neighbourhood and 5 km, `__citymeterI18n.missing` empty. In the
+  frame the note «แผนที่แบบเบา» opened, and its text was the element at EN's centre until it was folded with «ย่อ», as
+  at 0.7.3 (D-V9c in `handoff/visual/decisions.json`, open).
+- Hotel (`/hotel/`): `js/shell/manifest.json` 0.6.5; a real click on EN opened “Rooms in Thailand · CityMETER”,
+  `__citymeterI18n.missing` empty.
+- Not checked: Safari, where the owner could not click EN (WebKit cannot be installed in the container), and phone
+  browsers; the frames are desktop Chrome.
+
+## Release 0.7.6 — 27 พ.ย. 2569: citymeter-shell 0.6.5
 
 The owner's words (VERBATIM): 08:23 “EN บนเวบผมคลิกไม่ได้”; 08:47 “citymeter.pages.dev ใน Safari”; he chose «แก้ทุกเดโมพร้อมกัน»
 in Claude's question. On citymeter.pages.dev (0.7.3, Claude in Chrome, his Chrome at 1,710 px) a real click on EN opened the
@@ -171,7 +203,7 @@ text (WebKit bug 244559) and drops a click whose press landed on a text node rem
   `textContent`); on this tree with Playwright and Google Chrome, the same press wrote them 0 times and opened the English
   page at the same neighbourhood, at 1,440 px and in the phone's menu at 393 px.
 
-## Release 0.7.5 — 27 พ.ย. 2569 (not published)
+## Release 0.7.5 — 27 พ.ย. 2569
 
 The owner's words (VERBATIM): 07:09, with his screenshot of ปุณณวิถี's residents map, “คนอยู่ไม่น่าจะข้ามแม่น้ำจากบางกระเจ้า
 มาที่ปุณณวิถีได้นะครับ”; on ferries, the option «นับเรือแบบหน้าศูนย์การค้า» (D-18, between 08:31 and 08:40); 08:57 “เรือขนได้
@@ -241,7 +273,7 @@ The owner's words (VERBATIM): 07:09, with his screenshot of ปุณณวิ�
 - Not checked: the live site (not published), Safari and phone browsers; the basemap does not load in the container, so
   the 3D map was not seen.
 
-## Release 0.7.4 — 27 พ.ย. 2569 (not published)
+## Release 0.7.4 — 27 พ.ย. 2569
 
 The owner's words (VERBATIM): 07:15 “ควรจะเรียงลำดับ Resident > Visitor > Commutor และให้มีภาษาอังกฤษด้วย
 ตอนนี้คลิกไม่ได้”; 08:23, after each of Claude's two questions, “EN บนเวบผมคลิกไม่ได้”. The release is the order only;

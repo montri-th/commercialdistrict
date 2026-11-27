@@ -78,6 +78,20 @@
       "channel": "Claude chat, Project 02 CityMETER",
       "verbatim": "EN บนเวบผมคลิกไม่ได้",
       "note": "his answer, written after each of Claude's two questions, which he sent back with it: (1) whether “ให้มีภาษาอังกฤษด้วย” meant Residents · Visitors · Commuters beside the Thai names on the Thai page, (2) which part “คลิกไม่ได้” meant — the people tiles or the round map. Read as: the English he means is the English page, and the EN link cannot be clicked where he uses the site."
+    },
+    {
+      "at": "2026-11-27T08:47:00+07:00",
+      "by": "owner (Montri)",
+      "channel": "Claude chat, Project 02 CityMETER",
+      "verbatim": "citymeter.pages.dev ใน Safari",
+      "note": "D-V9b: where EN could not be clicked; with his choices in Claude’s questions, «คอมพิวเตอร์» (the device) and «แก้ทุกเดโมพร้อมกัน (แนะนำ)» (citymeter-shell 0.6.5 in every demo, release 0.7.6)"
+    },
+    {
+      "at": "2026-11-27T10:13:00+07:00",
+      "by": "owner (Montri)",
+      "channel": "Claude chat, Project 02 CityMETER",
+      "verbatim": "merge and publish",
+      "note": "pull requests #44 (0.7.4), #45 (0.7.5) and #46 (0.7.6) and citymeter-shell 0.6.5 in every demo and the hub; live 10:15 – 10:18 (handoff/VERIFICATION.md)"
     }
   ],
   "reading": {
@@ -311,6 +325,19 @@
       "found": "On citymeter.pages.dev (2026-11-27 08:2x, Claude in Chrome): the EN link is on top at every width from 768 to 1,710 px. On a phone in portrait (393 × 740) EN sits in the menu “Commercial District ▾”, and the note “แผนที่แบบเบา” (opened once per tab when the map stops and restarts light) lies over the menu's first row, so EN cannot be tapped until the note is folded. The note and the menu are the shared shell's (navigation.css z-index 35 over the header's menu), so the fix is a shell release for every demo.",
       "where": "js/people.js MAP_TABS · DEFAULT_MAP · mapTabOf · peopleTiles (order) · js/app.js",
       "release": "0.7.4"
+    },
+    {
+      "id": "D-V9b",
+      "question": "ปุ่ม EN ที่คลิกไม่ได้ เปิดจากอะไร (มือถือ/iPad/คอม และเบราว์เซอร์) — บนมือถือพบกล่อง «แผนที่แบบเบา» ทับปุ่ม EN ในเมนู การแก้อยู่ในชุดกลางของทุกเดโม",
+      "since": "2026-11-27",
+      "ownerWords": "«คอมพิวเตอร์» (his choice in Claude’s question) · 08:47 “citymeter.pages.dev ใน Safari” · «แก้ทุกเดโมพร้อมกัน (แนะนำ)» (his choice)",
+      "decidedBy": "owner",
+      "decision": "แก้ในชุดกลางของทุกเดโมพร้อมกัน: citymeter-shell 0.6.5 เขียนเฉพาะสิ่งที่เปลี่ยนบนปุ่มภาษา และเขียนคำ “EN” ครั้งเดียว",
+      "cause": "The shell wrote the words “EN” again on every press; Safari replaces a text node even for the same text (WebKit bug 244559) and drops a click whose press landed on a text node removed before the release (WebKit bug 252810). Not reproduced in Safari: WebKit cannot be installed in the container.",
+      "release": "0.7.6 (citymeter-shell 0.6.5, every demo and the hub)",
+      "live": "2026-11-27 10:15 – 10:18 (GitHub Pages; Cloudflare run 45933263316, 114 / 114 live checks, every demo on 0.6.5); a real click on EN in Chrome opened the English page (handoff/VERIFICATION.md)",
+      "status": "decided · live · Safari, the owner’s browser, not yet checked",
+      "phone": "the note «แผนที่แบบเบา» over EN in the phone’s menu is D-V9c"
     }
   ],
   "authorJudgements": [
@@ -413,8 +440,18 @@
       "status": "open"
     },
     {
-      "id": "D-V9b",
-      "question": "ปุ่ม EN ที่คลิกไม่ได้ เปิดจากอะไร (มือถือ/iPad/คอม และเบราว์เซอร์) — บนมือถือพบกล่อง «แผนที่แบบเบา» ทับปุ่ม EN ในเมนู การแก้อยู่ในชุดกลางของทุกเดโม",
+      "id": "D-V9c",
+      "question": "บนมือถือ (จอแนวตั้งแคบกว่า 761 px) เมื่อกล่อง «แผนที่แบบเบา» เปิดอยู่ กล่องทับแถวแรกของเมนู “Commercial District ▾” ที่มีปุ่ม EN จนกว่าจะกด «ย่อ» — แก้ในชุดกลางรุ่นถัดไปไหม",
+      "found": "citymeter.pages.dev, Claude in Chrome, a 393 × 740 frame of the same origin, at 0.7.3 (shell 0.6.4, 2026-11-27 08:2x) and again at 0.7.6 (shell 0.6.5, 10:22 – 10:28): with the note open its text is the element at EN’s centre (147, 65, 44 × 44 px); folded with «ย่อ», EN is on top and a click opens the English page. Desktop Chrome frames, not a phone’s browser. The owner’s own case (D-V9b) was a computer in Safari.",
+      "options": [
+        "A พับกล่องเมื่อเปิดเมนู",
+        "B ให้เมนูอยู่เหนือกล่อง (ลำดับชั้นใน navigation.css)",
+        "C คงไว้: กด «ย่อ» เพื่อพับกล่องก่อน"
+      ],
+      "recommendation": "A",
+      "why": "คนที่เปิดเมนูกำลังจะไปทำอย่างอื่น การพับกล่องที่เปิดค้างเป็นแบบที่เมนูทั่วไปทำ และกันกล่องไม่ให้ทับรายการอื่นในเมนูด้วย ส่วน B แก้เฉพาะชั้น กล่องยังค้างอยู่ใต้เมนู",
+      "where": "the shared shell: navigation.css (the note at z-index 35 over the header’s menu), js/shell/launch.js, js/shell/header.js — a shell release for every demo, as 0.6.5 was",
+      "status": "open",
       "since": "2026-11-27"
     }
   ]
