@@ -77,14 +77,16 @@ test('water lies under the cells and the lines over them; no cell changes its co
       const svg = mapSVG(r, map, tab), bare = mapSVG(r, {...map, ctx: undefined}, tab);
       const cells = s => [...s.matchAll(/<path d="[^"]+" fill="#[0-9A-F]{6}"[^>]*\/>/g)].map(m => m[0]);
       assert.deepEqual(cells(svg), cells(bare), `${id} ${tab}: the cells are the same with and without the context`);
-      const clip = svg.slice(svg.indexOf('clip-path='), svg.indexOf('</g>', svg.indexOf('class="pm-ctx"')));
+      const clip = svg.slice(svg.indexOf('class="pm-cells"'), svg.indexOf('</g>', svg.indexOf('class="pm-ctx"')));
       const firstCell = clip.search(/ fill="#[0-9A-F]{6}"/), lastCell = clip.lastIndexOf(' fill="#');
       if (map.ctx.c) assert.ok(clip.indexOf('class="pm-sea"') < firstCell, `${id}: the sea under the cells`);
       if (map.ctx.a) assert.ok(clip.indexOf('class="pm-water"') < firstCell, `${id}: water under the cells`);
       assert.ok(clip.indexOf('class="pm-ctx"') > lastCell, `${id}: roads, rail, rivers and stations over the cells`);
       const ctxPart = svg.slice(svg.indexOf('class="pm-ctx"'), svg.indexOf('</g>', svg.indexOf('class="pm-ctx"')));
       assert.doesNotMatch(ctxPart, /fill="#|stroke="#|style=/, `${id}: the context takes its colours from the stylesheet only`);
-      // within the clip of the 5 km ground, before the service lines and the outline
+      // with the cells, under the frame past the 5 km ground (0.7.9), before the service lines and the outline
+      assert.ok(svg.indexOf('class="pm-ctx"') < svg.indexOf('class="pm-frame"'));
+      assert.ok(svg.indexOf('class="pm-frame"') < svg.indexOf('class="pm-edge"'));
       assert.ok(svg.indexOf('class="pm-ctx"') < svg.indexOf('class="pm-edge"'));
       assert.ok(svg.indexOf('class="pm-ctx"') < svg.indexOf('class="pm-outline"'));
     }
