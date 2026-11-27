@@ -236,7 +236,11 @@ test('handoff/around: the plan byte for byte, the owner’s words verbatim, the 
   assert.ok(dec.ownerWords.some(w => w.verbatim === 'ทำตามที่พี่เสนอเลยครับ'), 'D-10 and D-11 (2026-11-25 23:01)');
   // 0.7.0 (2026-11-26 14:03–14:40): D-12 people figures, D-13 distances, D-14 the shared OSM file, D-15 business type and brand
   // 0.7.1 (2026-11-26 17:51): D-17 the roads, rail, water and the sea of the round maps, from the same OSM file
-  assert.deepEqual(dec.decisions.slice(11).map(d => [d.id, d.status]), [...['D-12', 'D-13', 'D-14', 'D-15'].map(id => [id, 'decided']), ['D-16', 'authorJudgement'], ['D-17', 'decided']]);
+  // 0.7.5 (2026-11-27): D-18 ferries count as crossings, as the Shopping Center page counts them
+  assert.deepEqual(dec.decisions.slice(11).map(d => [d.id, d.status]), [...['D-12', 'D-13', 'D-14', 'D-15'].map(id => [id, 'decided']), ['D-16', 'authorJudgement'], ['D-17', 'decided'], ['D-18', 'decided']]);
+  assert.ok(dec.ownerWords.some(w => w.verbatim === 'คนอยู่ไม่น่าจะข้ามแม่น้ำจากบางกระเจ้ามาที่ปุณณวิถีได้นะครับ'), 'V7-09 in the owner’s words (07:09)');
+  assert.ok(dec.ownerWords.some(w => w.verbatim === 'นับเรือแบบหน้าศูนย์การค้า'), 'D-18 in the owner’s words');
+  assert.equal(dec.decisions.find(d => d.id === 'D-13').applied?.release, '0.7.5');
   assert.ok(dec.ownerWords.some(w => w.verbatim === 'แผนที่รัศมีควรจะมี โครงร่างถนน ทะเล ลำน้ำ กายภาพ ให้ดูแบบเดียวกับ shopping center ด้วยได้มั้ยครับ'), 'D-17 in the owner’s words');
   assert.ok(dec.ownerWords.some(w => w.verbatim === 'ดึงจาก Mac ของผม (แนะนำ)'), 'the file, in the owner’s words');
   // D-16 is Claude's reading under the owner's 14:03 words until he checks it: it says so and names what it amends

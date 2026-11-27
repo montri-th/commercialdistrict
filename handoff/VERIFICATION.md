@@ -1,5 +1,49 @@
 # CityMETER Commercial District — verification
 
+## Release 0.7.5 — 27 พ.ย. 2569 (not published)
+
+The owner's words (VERBATIM): 07:09, with his screenshot of ปุณณวิถี's residents map, “คนอยู่ไม่น่าจะข้ามแม่น้ำจากบางกระเจ้า
+มาที่ปุณณวิถีได้นะครับ”; on ferries, the option «นับเรือแบบหน้าศูนย์การค้า» (D-18, between 08:31 and 08:40). The rule and the
+counts are in `DATA_METHOD.md` §17.
+
+### Data (container, 27 Nov)
+
+- `scripts/crossing/rivers.py` on `thailand-261124.osm.pbf` (SHA-256 `62b496bf…2d24`, outside the repository): 1,277 named
+  ways, 42 gap ways, 29 mouths, 3,264 crossings; the cache (SHA-256 `cd1e1442…69fc`) outside the repository.
+- `scripts/crossing/parity.py` against `montri-th/shoppingcenter` `data/crossing/`: 267 centres; 73,187 of the 73,460
+  published cells across a river found (99.63 %), 229 more here; distance equal to 10 m 94.50 %, within 20 m 99.55 %,
+  294 farther, 35 within 5 km on one side only.
+- `build-residents.py --reach 5000 --crossing <cache>` (the same 59,219 requests and 62,196 responses as 0.7.3, their
+  digest `acdfd81e…b2df` equal), `build-people.py
+  --crossing`, `build-around.py --crossing`: 206 neighbourhoods with a barrier river within 5 km; residents changed in 66,
+  90, 95, 151 and 186 neighbourhoods at 400 m, 800 m, 1, 3 and 5 km; 161 dataset figures of «ขอบเดินถึง» lower in 61
+  neighbourhoods, none higher. The straight figures the build keeps — inside (469) and 400 m to 5 km of the 188
+  neighbourhoods with residents across a river (940) — equal 0.7.3's, and so do the 590 of `st`.
+- ปุณณวิถี within 5 km: 453,771 in a straight line, 18,777 of them across the Chao Phraya, 16,588 counted through the
+  crossings (15,494 through เรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก, way 40346702): 451,583. Built with `--crossing-kinds
+  no-ferry --only CMN-TH-FC9F0B73B3` for the owner's question: 0 counted, 434,994 (not published).
+- `data/people/meta.json` release 0.7.5; the people files equal the commit `7b956c1` byte for byte but `meta.json`.
+
+### Local (container, 27 Nov)
+
+- `npm test`: 227 tests, 227 pass, 0 fail (new: `tests/crossing.test.js`, 7 tests; the records test now holds D-18 and the
+  owner's 07:09 words).
+- Playwright with Google Chrome on `python3 -m http.server` over this tree, cache tag `20261127-r3`, at 5 km, the fold
+  opened: ปุณณวิถี in Thai 1,440 light, English 1,440 dark, Thai 393 dark and English 393 light; สุรศักดิ์ in Thai 1,280
+  dark; ปากน้ำโพ–ถนนโกสีย์ in English 1,280 light; สายลวด in Thai 393 light. In every case: the tiles residents, visitors,
+  commuters, centres; the tabs with the residents map first; `__citymeterI18n.missing` empty; no element wider than its
+  box; no page error.
+  - ปุณณวิถี: “อีกฝั่งแม่น้ำเจ้าพระยา 4.1% ของคนอยู่ใน 5 กม. · ข้ามที่ เรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก (2.1 กม.)”;
+    English “Across the Chao Phraya River: 4.1% of the residents within 5 km · crossing at Wat Bang Namphueng Nok - Wat
+    Bang Na Nok Ferry (2.1 km)”; the fold: residents about 452,000 through the crossings, 454,000 straight; 4 crossing
+    marks and 32 hatched cells on the residents map.
+  - สุรศักดิ์: 32 % across, crossing at a footbridge (750 m), residents 703,000 against 724,000, 13 marks, 83 hatched cells.
+  - ปากน้ำโพ–ถนนโกสีย์: “Across the Chao Phraya River and the Ping River: 43% …”, the bridge of Phahon Yothin Road (1.9 km),
+    75,000 against 89,000, 9 marks, 260 hatched cells.
+  - สายลวด: 14 % across, เรือข้ามฟากพระสมุทรเจดีย์-วิบูลย์ศรี (2.2 กม.), 239,000 against 258,000, 3 marks, 213 hatched cells.
+- Not checked: the live site (not published), Safari and phone browsers; the basemap does not load in the container, so
+  the 3D map was not seen.
+
 ## Release 0.7.4 — 27 พ.ย. 2569 (not published)
 
 The owner's words (VERBATIM): 07:15 “ควรจะเรียงลำดับ Resident > Visitor > Commutor และให้มีภาษาอังกฤษด้วย
