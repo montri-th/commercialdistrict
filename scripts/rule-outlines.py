@@ -770,6 +770,115 @@ def cmd_revise(a):
     print(json.dumps({f'{k[0]}:{k[1]}': v for k, v in sorted(tally.items())}), f'{len(feats)} outlines', file=sys.stderr)
 
 
+CUT_M = 1000  # (0.7.7) owner 2026-11-27 10:44 “2 รับ”: an outline may be cut to the part within 1 km of its reference point
+
+
+def cut_within(drawn, lon, lat, metres=CUT_M):
+    """(0.7.7) The rule the owner accepted, «ตัดเหลือในวง 1 กม.»: the drawing cut by a circle of `metres` round the reference
+    point (UTM, 128 segments a quarter), the part that holds the point (or, when the point lies in no part, the nearest);
+    the other parts the cut leaves are dropped. Returns (geometry, parts dropped)."""
+    from shapely.geometry import Point, Polygon
+    from shapely.ops import transform, unary_union
+    from shapely.validation import make_valid
+    fwd, back = utm(drawn)
+    m, s = transform(fwd, drawn), transform(fwd, Point(lon, lat))
+    cut = make_valid(m.intersection(s.buffer(metres, 128)))
+    parts = [g for g in getattr(cut, 'geoms', [cut]) if isinstance(g, Polygon) and g.area > 0]
+    if not parts:
+        sys.exit('cut_within: the drawing has nothing within the circle')
+    hold = [g for g in parts if g.buffer(1).intersects(s)] or sorted(parts, key=lambda g: g.distance(s))[:1]
+    return transform(back, unary_union(hold)), len(parts) - len(hold)
+
+
+def cmd_ticks(a):
+    """(0.7.7) The owner's ticks of 2026-11-27 (amendments/outline-new-choices-2026-11-27.json) on the outlines 0.6.1 left
+    waiting (--prior, status review): each code as the tick sheet recommended it — used as drawn; narrow arms taken off
+    (trim_arms_seed, as `revise`); cut to the part within 1 km of its reference point (cut_within, the rule he accepted)
+    — and the code he took off the commercial screen, listed under `removed` with his words: no outline, and the build
+    neither draws nor lists it. Every outline the prior file applied keeps its geometry and its words."""
+    import os
+    from shapely.geometry import shape, mapping, Point
+    from shapely.validation import make_valid
+    ch = json.load(open(a.choices, encoding='utf-8'))
+    prior_sha = hashlib.sha256(open(a.prior, 'rb').read()).hexdigest()
+    if prior_sha != ch['reviewed']['sha256']:
+        sys.exit(f"the owner's ticks are on {ch['reviewed']['file']} ({ch['reviewed']['sha256'][:8]}…), not {a.prior} ({prior_sha[:8]}…)")
+    prior = json.load(open(a.prior, encoding='utf-8'))
+    t = ch['ticks']
+    use, trim, cut = set(t['use']), set(t['trimArms']), set(t['cut1km'])
+    remove = {r['code']: r for r in t['remove']}
+    named = [*t['use'], *t['trimArms'], *t['cut1km'], *remove]
+    waiting = {f['properties']['canonical_id'] for f in prior['features'] if f['properties']['status'] == 'review'}
+    if set(named) != waiting or len(named) != len(waiting):
+        sys.exit(f'the ticks name {len(set(named))} codes ({len(named)} entries), the prior file waits on {len(waiting)}: each once')
+    owner = ch['owner']
+    # the registry's reference point he had set to the point the outline is drawn from (“3 แก้”): its words change, not the point
+    fixed = {k: v['reference_th'] for k, v in (ch.get('registry') or {}).items() if v.get('reference_th')}
+    lost = [k for k in fixed if k not in {f['properties']['canonical_id'] for f in prior['features']}]
+    if lost:
+        sys.exit(f'{lost[0]}: the registry note names a code with no outline in {a.prior}')
+    feats, report, removed = [], [], []
+    for f in prior['features']:
+        p = dict(f['properties'])
+        code = p['canonical_id']
+        if code in fixed:
+            p['reference_point_th'] = fixed[code]
+        if p['status'] != 'review':
+            feats.append(f if code not in fixed else {**f, 'properties': p})
+            continue
+        if code in remove:
+            removed.append({'canonical_id': code, 'name_th': p['name_th'], 'province_th': p.get('province_th'),
+                            'removed_on': a.on, 'by': 'owner', 'owner_th': remove[code]['owner_th'],
+                            'note_en': 'taken off the commercial screen by the owner: not a commercial neighbourhood; no outline, not listed'})
+            report.append({'code': code, 'tick': 'remove'})
+            continue
+        lon, lat = p['reference_point']
+        drawn = shape(f['geometry'])
+        seed = seed_polygon(lat, lon, (p.get('seed') or {}).get('radius_m'))
+        if code in use:
+            new, left, choice = drawn, 0, 'use'
+        elif code in trim:
+            new, left = trim_arms_seed(drawn, lon, lat)
+            choice = 'trimArms'
+        else:
+            new, left = cut_within(drawn, lon, lat)
+            choice = 'cut1km'
+        new = make_valid(new)
+        if not new.buffer(1e-7).contains(Point(lon, lat)):
+            sys.exit(f'{code}: the {choice} outline does not hold its reference point')
+        if choice != 'use':
+            p['area_m2'] = round(utm_area(new), 2)
+            if not p.get('seed', {}).get('points'):
+                p['reach_m'] = reach_m(new, seed)
+            p['rules'] = list(p.get('rules') or []) + ['TRIM-ARMS' if choice == 'trimArms' else 'CUT-1KM']
+            p['method'] = p['method'] + ('; scripts/rule-outlines.py ticks: narrow arms taken off (opening of 75 m, the part '
+                                         'nearest the point and the strip joining the point to it)' if choice == 'trimArms' else
+                                         f'; scripts/rule-outlines.py ticks: cut to the part within {CUT_M} m of the reference point')
+        if choice == 'cut1km' and p['reach_m'] > CUT_M:
+            sys.exit(f"{code}: cut to {CUT_M} m but reaches {p['reach_m']} m")
+        words = {'use': ('ใช้ตามภาพ', 'used as drawn'), 'trimArms': ('ตัดแขนแคบ', 'narrow arms taken off'),
+                 'cut1km': ('ตัดเหลือในวง 1 กม. จากจุดอ้างอิง', 'cut to within 1 km of the reference point')}[choice]
+        p['status'] = 'apply'
+        p['ticked'] = {'on': owner['on'], 'choice': choice, 'recommended_th': words[0], 'owner_th': t.get('ownerWords', {}).get(code, t['ownerWordsDefault']),
+                       'sheet': f"{ch['sheet']['title']} · {ch['sheet']['tab']}", 'left': left}
+        p['status_th'] = (f'ขอบวาดตามหลักที่เจ้าของกำหนด ด้วยอาคาร CityMETER (Building V4) · เจ้าของติ๊ก 27 พ.ย. 2569: {words[0]} '
+                          '· รอทะเบียนรับในรุ่นถัดไป') if p.get('buildings', {}).get('cm') else (
+                          f'ขอบวาดตามหลักที่เจ้าของกำหนด · เจ้าของติ๊ก 27 พ.ย. 2569: {words[0]} · รอทะเบียนรับในรุ่นถัดไป')
+        p['status_en'] = f"drawn by the owner's rule; ticked by the owner on 2026-11-27: {words[1]}; awaiting the registry's next release"
+        feats.append({'type': 'Feature', 'geometry': mapping(new), 'properties': p})
+        report.append({'code': code, 'tick': choice, 'areaM2': p['area_m2'], 'reachM': p['reach_m'], 'left': left})
+    file_ = lambda p_: {'file': os.path.basename(p_), 'sha256': hashlib.sha256(open(p_, 'rb').read()).hexdigest()}
+    out = {'type': 'FeatureCollection', 'drawing': {'prior': {**file_(a.prior), 'drawing': prior.get('drawing')}, 'ticks': file_(a.choices)},
+           'removed': removed, 'features': feats}
+    open(a.out, 'w', encoding='utf-8').write(json.dumps(out, ensure_ascii=False, separators=(',', ':')) + '\n')
+    json.dump(report, open(a.report, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    tally = defaultdict(int)
+    for r in report:
+        tally[r['tick']] += 1
+    print(json.dumps(dict(sorted(tally.items()))), f'{len(feats)} outlines,', f'{sum(1 for f in feats if f["properties"]["status"] == "apply")} applied,',
+          f'{len(removed)} removed', file=sys.stderr)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest='cmd', required=True)
@@ -823,10 +932,16 @@ def main():
     v.add_argument('--on', required=True)
     v.add_argument('--out', required=True)
     v.add_argument('--report', required=True)
+    k = sub.add_parser('ticks', help="(0.7.7) the owner's ticks of 2026-11-27 on the outlines 0.6.1 left waiting")
+    k.add_argument('--prior', required=True, help="0.6.1's file: amendments/outline-new-2026-11-26-r2.geojson")
+    k.add_argument('--choices', required=True, help='his ticks: amendments/outline-new-choices-2026-11-27.json')
+    k.add_argument('--on', required=True)
+    k.add_argument('--out', required=True)
+    k.add_argument('--report', required=True)
     a = ap.parse_args()
     if a.cmd == 'amend' and not a.display and not (a.bundle and a.lodging):
         sys.exit('amend needs --bundle and --lodging (or --display for a preview)')
-    {'decode': cmd_decode, 'review': cmd_review, 'amend': cmd_amend, 'new': cmd_new, 'revise': cmd_revise}[a.cmd](a)
+    {'decode': cmd_decode, 'review': cmd_review, 'amend': cmd_amend, 'new': cmd_new, 'revise': cmd_revise, 'ticks': cmd_ticks}[a.cmd](a)
 
 
 if __name__ == '__main__':
