@@ -1,5 +1,27 @@
 # CityMETER Commercial District — verification
 
+## Release 0.7.8 — live (2026-11-27)
+
+- Merged on the owner's word of that morning (the option he chose: «ส่งต่อแชท 0.7.x (แนะนำ)», whose text ended “แล้วผมตรวจและ
+  ขึ้นเว็บ”): pull request #49, merge commit `a3c68ea`, 14:17.
+- Preview first: deploy run 45956822440 (14:12–14:13, Commercial District at `c31e367` as the override): family check pass
+  (hub 19, shell 0.6.6), 120 / 120 live checks on preview.citymeter.pages.dev. There, in the owner's Chrome: ตลาดแม่กลอง
+  (cut to 1 km) in Thai on desktop — the outline words “ตัดเหลือในวง 1 กม. จากจุดอ้างอิง ตามที่เจ้าของติ๊ก 27 พ.ย. 2569”,
+  «ใครอยู่ตรงนี้» at 1 km with the line “อีกฝั่งแม่น้ำแม่กลอง 16% … วัดระยะผ่าน เรือข้ามฟาก (90 ม.)”, the residents map; ย่านตลาดไท
+  in English, `__citymeterI18n.missing` empty; CMN-TH-33E737E0D0 in the address opens no neighbourhood and “พหลโยธิน 94”
+  finds none; ชุมชนตลาดขลุง in a 393 × 740 frame of the same origin at 5 km, no horizontal overflow.
+- GitHub Pages: deployment 8104116604 of `a3c68ea`, success at 14:18. `npm run verify:live` against a manifest made at
+  `a3c68ea` (3,100 files, 55,782,097 bytes): 3,025 ok, 1 failed — `assets/logos/91824921ae70b5430943.svg` answered 503;
+  fetched again it answered 200 with the manifest's bytes (a logo of 0.5.0, unchanged since).
+- Cloudflare: run 45957892276 (workflow_dispatch, publish, 14:21–14:22): 19 sources from their latest GitHub Pages
+  deployments, Commercial District at `a3c68ea`, 14,774 files, release SHA-256 `41e895ca…`; the family check passed before
+  upload and live (hub 19, shell 0.6.6); 120 / 120 live checks.
+- Claude in Chrome on citymeter.pages.dev, cache tag `20261127-r6`: ชุมชนตลาดบ้านนา (cut to 1 km) in Thai on desktop — the
+  outline words with the owner's tick, «ใครอยู่ตรงนี้ รุ่น 0.7.8», about 11,000 residents within 1 km, level 43/100;
+  ย่านตลาดไท in English in a 393 × 740 frame of the same origin at 5 km — about 180,000 living here, level 75/100,
+  `__citymeterI18n.missing` empty, no horizontal overflow.
+- Not verified: a real phone (393 px was a frame in desktop Chrome), browsers other than Chrome.
+
 ## Release 0.7.8 — 27 พ.ย. 2569 (not published): the owner's ticks on the commercial screen's outlines
 
 The owner's words (VERBATIM): 10:44 “1 แก้แล้วในช่องสีเหลือง / 2 รับ / 3 แก้ / 4 ลบ”, on Claude's four questions of 26 Nov
