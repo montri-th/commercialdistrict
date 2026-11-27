@@ -7,7 +7,7 @@
  * 0.6.1 — the owner's answers of 2026-11-26 10:02 (“1) ตามที่พี่แนะนำ” · “2) ใช้ Building v4” · “3) … อยากคงไว้ …”): the
  * outlines over 1 km he chose to use are neighbourhoods too, the codes without buildings were drawn again with CityMETER
  * Building V4, and ย่านตลาดไท is kept (no longer held); amendments/outline-new-2026-11-26-r2.geojson.
- * 0.7.7 — the owner's ticks of 2026-11-27 10:44 (“1 แก้แล้วในช่องสีเหลือง / 2 รับ / 3 แก้ / 4 ลบ”) on the 66 outlines 0.6.1
+ * 0.7.8 — the owner's ticks of 2026-11-27 10:44 (“1 แก้แล้วในช่องสีเหลือง / 2 รับ / 3 แก้ / 4 ลบ”) on the 66 outlines 0.6.1
  * left waiting: 13 used as drawn (ย่านตลาดไท among them), 11 with their narrow arms off, 41 cut to the part within 1 km of
  * their reference point (the rule he accepted), and CMN-TH-33E737E0D0 taken off the screen — neither drawn nor listed;
  * amendments/outline-new-2026-11-27-r3.geojson. The 0.5.0 drawing exports are deleted from the repository (“4 ลบ”).
@@ -24,7 +24,7 @@ const holes = /undefined|NaN|\[object Object\]|Infinity/;
 const ctx = model => ({meta: model.meta, datasetCount: 16});
 const TALAD = 'CMN-TH-BAFFB5235F'; // ย่านตลาดไท: held in 0.5.0; kept by the owner on 2026-11-26 10:02 (“อยากคงไว้”)
 const REMOVED = 'CMN-TH-33E737E0D0'; // ชุมชนซอยพหลโยธิน 94: “ไม่นับเป็นย่านการค้า ลบทิ้ง” (owner's tick, 2026-11-27)
-// 0.7.7 (0.6.1: 74, 66, 88, 0, 0 · 0.5.0: 56, 17, 154, 1, 0)
+// 0.7.8 (0.6.1: 74, 66, 88, 0, 0 · 0.5.0: 56, 17, 154, 1, 0)
 const SCREEN = {admitted: 228, drawn: 139, review: 0, undrawn: 88, heldOwner: 0, removedOwner: 1};
 const usedAsDrawn = () => new Set([...readJSON('amendments/outline-new-choices-2026-11-26.json').ticks.use,
   ...readJSON('amendments/outline-new-choices-2026-11-27.json').ticks.use]);
@@ -94,7 +94,7 @@ test('a drawn code of the screen is a neighbourhood like the others: its row, pr
   assert.ok(model.rows.slice(0, model.meta.totals.closed).every(r => r.kind === 'registry'), 'the registry\'s outlines stay first');
 });
 
-test('ย่านตลาดไท is a neighbourhood (0.7.7): no code is held; the codes without an outline on the map are searchable names that say why', () => {
+test('ย่านตลาดไท is a neighbourhood (0.7.8): no code is held; the codes without an outline on the map are searchable names that say why', () => {
   const {model} = load();
   assert.equal(model.meta.screen.heldOwner, 0);
   assert.equal(model.meta.totals.screenHeld, 0);
@@ -180,7 +180,7 @@ test('0.6.1: the owner\'s answers of 26 Nov 10:02 — the outlines he chose to u
     assert.ok(!model.byId.has(id), id);
     assert.equal(model.pendingById.get(id)?.wait, 'undrawn', id);
   }
-  // the one he wanted to see with its narrow arms off is the one he took off the screen on 27 Nov (0.7.7)
+  // the one he wanted to see with its narrow arms off is the one he took off the screen on 27 Nov (0.7.8)
   assert.deepEqual(answers.ticks.trimArms, [REMOVED]);
   assert.ok(!model.byId.has(REMOVED) && !model.pendingById.has(REMOVED));
   const v4 = model.rows.filter(r => r.screen?.cm);
@@ -191,7 +191,7 @@ test('0.6.1: the owner\'s answers of 26 Nov 10:02 — the outlines he chose to u
   assert.doesNotMatch(renderNeighborhood(buildNeighborhood(model, other), model, {ctx: ctx(model)}), /Building V4\)/);
 });
 
-test('0.7.7: the owner\'s ticks of 27 Nov 10:44 — each outline once; cut ones within 1 km of their point; the one he took off is nowhere', () => {
+test('0.7.8: the owner\'s ticks of 27 Nov 10:44 — each outline once; cut ones within 1 km of their point; the one he took off is nowhere', () => {
   const {model} = load();
   const ticks = readJSON('amendments/outline-new-choices-2026-11-27.json');
   assert.equal(ticks.owner.words_th, '1 แก้แล้วในช่องสีเหลือง\n2 รับ\n3 แก้\n4 ลบ');

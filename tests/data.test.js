@@ -8,14 +8,14 @@ import {load} from './helpers.js';
 import {readFileSync} from 'node:fs';
 import {cell, rai, km2Text} from '../js/model.js';
 
-test('one row per outline: the registry\'s 358 closed outlines, the 37 lodging areas with a draft and the outlines of the commercial screen (0.5.0: 56; 0.6.1: 74; 0.7.7: 139), unique codes, a display outline and a province each', () => {
+test('one row per outline: the registry\'s 358 closed outlines, the 37 lodging areas with a draft and the outlines of the commercial screen (0.5.0: 56; 0.6.1: 74; 0.7.8: 139), unique codes, a display outline and a province each', () => {
   const {model, outlines} = load();
   const ids = model.rows.map(r => r.id);
   const t = model.meta.totals;
   assert.equal(t.closed, 358);
   assert.equal(t.lodgingDrawn, 37);
   assert.equal(model.rows.length, t.outlined);
-  // 0.6.1: the 56 of 0.5.0, 13 over 1 km the owner chose to use, 5 drawn with CityMETER Building V4 (74); 0.7.7: the 65 he
+  // 0.6.1: the 56 of 0.5.0, 13 over 1 km the owner chose to use, 5 drawn with CityMETER Building V4 (74); 0.7.8: the 65 he
   // ticked on 27 Nov 10:44 (13 used as drawn, 11 narrow arms off, 41 cut to 1 km)
   assert.equal(t.screenDrawn, 139);
   assert.equal(t.outlined, t.closed + t.lodgingDrawn + t.screenDrawn);
@@ -122,7 +122,7 @@ test('metadata names the registry read, its export and the bundle by SHA-256, an
   assert.match(m.bundle.boundariesSha256, /^[0-9a-f]{64}$/);
   // (0.2.1) every code of the registry: closed outlines, the admitted lodging areas with a draft outline, held codes
   // (the registry's 2 and the 42 admitted lodging areas without an outline) and collection names; (0.5.0) the commercial
-  // screen's outlines, its codes without one (held) and the one held until the owner decides (not on the page); (0.7.7)
+  // screen's outlines, its codes without one (held) and the one held until the owner decides (not on the page); (0.7.8)
   // the one he took off the screen (“ไม่นับเป็นย่านการค้า ลบทิ้ง”): still a code of the registry, not on the page
   assert.equal(m.totals.closed + m.totals.lodgingDrawn + m.totals.screenDrawn + m.totals.held + m.totals.collections + m.totals.screenHeld + m.totals.screenRemoved, m.totals.codes);
   assert.equal(m.totals.codes, 677);

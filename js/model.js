@@ -65,7 +65,7 @@ const lower = s => String(s || '').toLocaleLowerCase('th');
 /**
  * Python's round(x, n), as scripts/build-data.py rounds a highlight: the nearest multiple of 10^-n to the double's exact
  * value, an exact tie to the even digit (0.8125 → 0.812). toFixed sends a tie up (0.813), so a tie is settled here from
- * the exact decimal value (toFixed(100) holds every digit of the shares and strengths it rounds). (0.7.7: the first tie,
+ * the exact decimal value (toFixed(100) holds every digit of the shares and strengths it rounds). (0.7.8: the first tie,
  * 1 − 24/128, came with the outlines the owner ticked.)
  */
 const fixed = (x, n) => {

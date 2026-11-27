@@ -1,6 +1,6 @@
 # CityMETER Commercial District — verification
 
-## Release 0.7.7 — 27 พ.ย. 2569 (not published): the owner's ticks on the commercial screen's outlines
+## Release 0.7.8 — 27 พ.ย. 2569 (not published): the owner's ticks on the commercial screen's outlines
 
 The owner's words (VERBATIM): 10:44 “1 แก้แล้วในช่องสีเหลือง / 2 รับ / 3 แก้ / 4 ลบ”, on Claude's four questions of 26 Nov
 (`amendments/outline-new-choices-2026-11-27.json`, `owner.asked_th`); then, on Claude's questions that morning, «ส่งต่อแชท
@@ -34,6 +34,50 @@ The owner's words (VERBATIM): 10:44 “1 แก้แล้วในช่อง
   0.813 on the page and 0.812 in the file. Checked on 326,407 values against Python: no difference.
 - `npm test` before the rebuild of the people files: the tests of the outlines, the screen and the data pass; the 22 that
   read `data/around.json`, `data/rings/`, `data/logos/` and `data/people/` wait for them.
+
+### «รอบย่านนี้», the logos and «ใครอยู่ตรงนี้» (the 0.7.x session, merged here)
+
+- Built from `6cf2e28` in the session that made 0.7.4–0.7.6 (session_012D2wn48aQKvsMjMiuv91Wt), branch
+  `release-0.7.7-people` (`f6666fc`, 13:48), on this release's prompt: around (`--crossing`), logos, residents
+  (`--reach 5000 --crossing`), context maps and people, with the river cache of `thailand-261124.osm.pbf` (`62b496bf…`;
+  cache `cd1e1442…`, as in 0.7.5). Added: 65 rings, 65 logo shards, 65 people files, one logo image (a Restaurant brand
+  mark); rebuilt: `data/around.json`, `data/logos-report.json`, `data/people/meta.json`; pinned numbers in
+  `tests/around.test.js` and `tests/logos.test.js`. Merged here in `dead6c4`.
+- Where it went beside the prompt (its report, relayed by the owner at 13:56): the Shopping Center model of
+  «ใครอยู่ตรงนี้» is `scripts/build-visitors-map.py` as main's meta records it (`e2218957…`), not the file at `dfcc6cd`
+  (`dd9d0f9f…`) that `build-around.py` checks by its pin — 0.7.6 was built with the first, the second would change the
+  model's figures; the pin did not move and Shopping Center 0.13.0 was not used. The context maps take their frames from
+  the people files, which the 65 did not have: a first people build with the context of 0.7.6 gave the frames, the
+  context was then drawn for all 534, then the final people build; the result is the prompt's order. Its OpenStreetMap
+  cache and residents output stay outside the repository, in its container.
+- Figures (Observed fact, from the files; main in brackets): residents for 534 outlines from 74,280 requests (59,219) over
+  2,500 subdistricts (2,106), 8,044,674 buildings (7,213,960) of which 644 from parts (638), month 2026-10, the register's
+  total equal to `popCount` in all 2,499 compared; within 5 km the fewest 41, the median 48,609.5 (60,830), the most
+  1,010,475, the 65 new ones 8,986–179,961, each with residents inside. Across a river: 227 maps with land across (208),
+  207 people files with a figure through the crossings (189), 195 dataset figures of `data/around.json` moved (178).
+  Context maps with a main road 488 (423), rail 252 (234), stations 196 (189), a river 485 (428), water 508 (445), the sea
+  136 (127). Logos: 3,700 of the 14,513 records inside (3,353 of 13,407), 166 of the 544 centre names around (166 of
+  543), 459 files, no SHA-256 issue. Around: 534 rows, three centres added to its list (one inside a new outline, two
+  nearest to one); the reference set of D-8 unchanged (395, `d9ae2a5b…`), 139 ranked against it.
+
+### Checks on the merged tree (container, 27 Nov)
+
+- The 469 against main `55187e2`: `data/rings/`, `data/logos/` and `data/people/` 469 of 469 byte for byte (git blob
+  ids); `data/around.json` rows 469 of 469 equal, main's centres and their `byVenue` entries equal; in
+  `data/people/meta.json` the frames of the 469 equal, the other fields that moved are counts over 534 and the release.
+- `npm test`: 230 of 230 pass, the 22 that waited for the rebuild among them. LDS parity (`check:lds`, LDS 0.9.7
+  `d3085cbc…`): 145 ok, 0 failed.
+- The release number: main took 0.7.7 at 13:30 (citymeter-shell 0.6.6, below), so this release is 0.7.8 with cache tag
+  `20261127-r6` (main's 0.7.7 serves r5), and the roadmap's V7-08 moves to 0.7.9.
+
+## Release 0.7.7 — 27 พ.ย. 2569: citymeter-shell 0.6.6 (main, another session)
+
+- Recorded from commit `a27559a` (PR #48, merged 13:30 from session_012D2wn6355CHPN75KZ8qKG7): the dataset picker lists
+  Tourism (Location; montri-th/tourism), so the menu matches the 19 demos of the hub; `js/shell/datasets.js`, its
+  manifest and `tests/shell.test.js`; cache tag `20261127-r4` → `20261127-r5`; the release field of `data/around.json`
+  and `data/people/meta.json`; no count changes.
+- 0.7.8 (above) was in progress when it landed: merged into it in `8dbad62`, the two release fields the only conflicts;
+  the shell tests of 0.6.6 pass on 0.7.8.
 
 ## Release 0.7.6 — 27 พ.ย. 2569 (not published): citymeter-shell 0.6.5
 

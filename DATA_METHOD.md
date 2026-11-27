@@ -44,7 +44,7 @@ in §9 are published.
 
 ## 2. Neighbourhoods
 
-**Observed fact.** 534 outlines in 77 provinces since 0.7.7, 318.09 km² as the page draws them (§2d–§2f: 139 of the registry's commercial screen, 111.46 km²; in 0.6.1, 469 and 233.03 km² with 74 of them, 26.39 km²; in 0.5.0, 451 and 212.11 km² with 56 of them, 5.48 km²). The 395 before it, 95.03 km²: the registry's 358 closed outlines (80.86 km², registry
+**Observed fact.** 534 outlines in 77 provinces since 0.7.8, 318.09 km² as the page draws them (§2d–§2f: 139 of the registry's commercial screen, 111.46 km²; in 0.6.1, 469 and 233.03 km² with 74 of them, 26.39 km²; in 0.5.0, 451 and 212.11 km² with 56 of them, 5.48 km²). The 395 before it, 95.03 km²: the registry's 358 closed outlines (80.86 km², registry
 `area_m2` in its metric CRS, 473 m² to 2.17 km² — 0.3 to 1,358 ไร่ as the page writes it since 0.2.5; since 0.2.4 one of them extended on the owner's word, §2b) and, since
 0.2.0, 37 lodging areas of its lodging screen (14.18 km², §2a). Since 0.3.0, 235 of the 395 (220 of the registry's, 15 lodging
 areas) are redrawn by the owner's rule (§2c): as drawn, 206.63 km² (the registry's 182.83, the lodging areas 23.80), 1,592 m² to
@@ -254,7 +254,7 @@ the reference point (the discrete Hausdorff distance in UTM from the 8 m seed): 
 (`kind: 'screen'`), drawn dotted like the lodging drafts, counted, ranked and compared like every other outline, marked
 new. Beyond 1 km it waits for the owner's tick, as on 2026-11-24 (“ให้ผมติ๊กรายย่าน”). The file:
 `amendments/outline-new-2026-11-26.geojson` (both drawings' SHA-256 in `drawing.exports`; derived from OpenStreetMap,
-ODbL). The two drawings sat beside it in `amendments/` until 0.7.7, when the owner had them deleted: their grids locate the
+ODbL). The two drawings sat beside it in `amendments/` until 0.7.8, when the owner had them deleted: their grids locate the
 reference points of the codes without an outline (§2f).
 
 **The count (Observed fact).** 56 codes take an outline (44 from the point, 12 from the 40 m
@@ -312,7 +312,7 @@ reference point here is the market's OpenStreetMap point; the registry is not wr
 
 **What it changes.** 469 outlines in 77 provinces, 233.0 km² (0.045% of the provinces' area): the 358 of the registry, the 37 lodging drafts and 74 of the screen (the 56 of 0.5.0, the 13 he chose to use, 5 drawn with V4). Of the screen's 228 codes, 66 wait for his tick (64 drawn with V4, the trimmed one, ย่านตลาดไท) and 88 have no outline (the 3 he set aside, 25 without buildings, 47 in a fabric, and the 13 of 0.5.0 in a fabric, not drawn again); none is held. The glance still ranks against the 395 of 0.4.0 (D-8). The registry sheet is not written: the outline status and ย่านตลาดไท's reference point there stay as they are until his word. The logo shards are built again for the 469 (§13).
 
-## 2f. The owner's ticks on the outlines over 1 km (0.7.7)
+## 2f. The owner's ticks on the outlines over 1 km (0.7.8)
 
 Owner 2026-11-27 10:44, VERBATIM: “1 แก้แล้วในช่องสีเหลือง / 2 รับ / 3 แก้ / 4 ลบ” — on Claude's four questions of 26 Nov
 (VERBATIM in `amendments/outline-new-choices-2026-11-27.json`, `owner.asked_th`): (1) the 66 outlines 0.6.1 left waiting,
@@ -350,7 +350,7 @@ is the registry's since 27 Nov.
 
 **The exports (“4 ลบ”).** `amendments/outline-new-2026-11-26-point.json` and `-wide.json` are deleted: their grids locate,
 within about 20 m, the reference points of the codes without an outline. Their SHA-256 stay in `drawing.exports` of the
-0.5.0 file and git history before 0.7.7 keeps their bytes; the V4 drawings of 0.6.1 stayed private all along.
+0.5.0 file and git history before 0.7.8 keeps their bytes; the V4 drawings of 0.6.1 stayed private all along.
 
 **What it changes (Observed fact).** 534 outlines in 77 provinces, 318.1 km² (0.062% of the provinces' area): the 358 of
 the registry, the 37 lodging drafts and 139 of the screen (the 74 of 0.6.1 and the 65 he ticked; 70 drawn with V4). Of the
@@ -615,7 +615,7 @@ python3 -I scripts/rule-outlines.py amend amendments/outline-rule-2026-11-24-r2.
   --on 2026-11-24 --choices amendments/outline-rule-choices-2026-11-24.json   # the owner's picks (§2c); the drawing is the
 #    one the choices name as `drawing` (r2: his limits and industrial land), and amend refuses while a redraw is pending
 # 8a. (0.5.0) the commercial screen's codes (§2d): drawn twice in the live demo from seeds round their reference points
-#    (8 m, and 40 m), both exports in amendments/ until 0.7.7 (deleted on the owner's word, §2f: git history before it
+#    (8 m, and 40 m), both exports in amendments/ until 0.7.8 (deleted on the owner's word, §2f: git history before it
 #    keeps them); then, with the registry's export read privately for names and points,
 python3 -I scripts/rule-outlines.py new amendments/outline-new-2026-11-26-point.json --wide amendments/outline-new-2026-11-26-wide.json \
   --seeds <[code, lat, lon] list the page drew from> --seeds-sha <16 hex digits the page reported> --info <names, provinces, districts> \
@@ -631,7 +631,7 @@ python3 -I scripts/rule-outlines.py revise --prior amendments/outline-new-2026-1
   --seeds <[code, lat, lon] list the page drew from> --seeds-sha <16 hex digits the page reported> --info <names, provinces, districts> \
   --bundle <outlines dir> --lodging <lodging folder> --on 2026-11-26 --out amendments/outline-new-2026-11-26-r2.geojson --report <report.json>
 #    and step 5 takes --screen amendments/outline-new-2026-11-26-r2.geojson --screen-on 2026-11-26 (nothing held)
-# 8c. (0.7.7) the owner's ticks of 2026-11-27 on the r2 file (§2f): used as drawn, narrow arms off, cut to 1 km, or taken off
+# 8c. (0.7.8) the owner's ticks of 2026-11-27 on the r2 file (§2f): used as drawn, narrow arms off, cut to 1 km, or taken off
 python3 -I scripts/rule-outlines.py ticks --prior amendments/outline-new-2026-11-26-r2.geojson \
   --choices amendments/outline-new-choices-2026-11-27.json --on 2026-11-27 --out amendments/outline-new-2026-11-27-r3.geojson --report <report.json>
 #    and step 5 takes --screen amendments/outline-new-2026-11-27-r3.geojson --screen-on 2026-11-26 (nothing held, one removed)
@@ -748,6 +748,7 @@ Owner 2026-11-26 06:14, VERBATIM: “เช็คหน่อยว่า โล
 - Build of 2026-11-26 (on the 451 neighbourhoods of 0.5.0): 3,186 of the 12,975 records inside the outlines carry a logo — every Grocery, Luxury Brands and Fitness record, 108 of 109 Camera Shops, 88 of 94 station records, 519 of 3,403 restaurants, 139 of 5,053 accommodation records (most have no brand), 135 of 278 pharmacies, 56 of 691 centres and markets, 29 of 189 offices; Factory, Government Office, Hospital, School and University records have no logo source yet (University's 13 sites belong to universities without a collected logo). 163 of the 537 centre names «รอบย่านนี้» lists carry one, counted per neighbourhood (73 of the 270 distinct centres). 452 files, 5.1 MB in all, 329 of 451 neighbourhoods with at least one.
 - Display (the family rule): SVG and rasters ≤ 512 px and ≤ 64 KB keep their bytes; larger rasters are scaled uniformly to 384 px on the longest side as WebP (119 files; `sourceSha256` keeps the original's). Plates: the family's (`#FFFFFF`, `#E5E9E6`, `#182327`) as the source registry chose them, the same in both themes; never recoloured.
 - Build of 2026-11-26 for 0.6.1 (on its 469 neighbourhoods, the family's checkouts at the commits of the 0.5.1 build, `data/logos-report.json` `inputs`): 3,353 of the 13,407 records inside the outlines carry a logo, 166 of the 543 centre names around them, 458 files, no SHA-256 issue; the shards of the 451 earlier neighbourhoods are byte for byte those of 0.5.1. Since 0.6.1 a raster still over 64 KB once scaled and saved lossless is saved at the first WebP quality of 90, 80, 70 that fits, alpha kept (one University mark, 76 KB lossless); no file of 0.5.1 changes by it.
+- Build of 2026-11-27 for 0.7.8 (on its 534 neighbourhoods, the same checkouts: `inputs` equal to 0.6.1's): 3,700 of the 14,513 records inside the outlines carry a logo, 166 of the 544 centre names around them, 459 files (one Restaurant brand mark new), no SHA-256 issue; 410 of the 534 shards hold a logo; the shards of the 469 earlier neighbourhoods are byte for byte main's.
 - Where: the card's head (32 px), the tip of one record (20 px), the names at a point and the panel's names (16 px), a spot's name on the map (14 px, only when every record of the spot has the same logo), and the centres «รอบย่านนี้» names (16 px). Decorative (`alt=""`): the name beside it is the identity. One shard per neighbourhood (`data/logos/<id>.json`, empty maps where none), loaded when the neighbourhood opens; a shard that fails to load is said (`partial('logos')`) and the names show alone.
 - A logo identifies a brand or a place. It counts nothing, ranks nothing and is never evidence of a tenancy, an operator or a status beyond what its own demo says. The marks belong to their owners; showing one is not a trademark licence.
 
@@ -890,9 +891,13 @@ of 2026-11-26, `--reach 1000`: 10,697 tile × subdistrict requests over 1,063 su
 run's for every neighbourhood). 0.7.3 adds 3 and 5 km and the residents map (V7-07; a run of 26–27 November 2026,
 `--reach 5000`: 59,219 tile × subdistrict requests over 2,106 subdistricts, 7,213,960 buildings of which 638 from parts,
 none without an estimated floor, the register's total equal to `popCount` in all 2,105 that carry one; the figures inside
-and within 400 m, 800 m and 1 km equal the 1 km run's for every neighbourhood). Every neighbourhood has residents within
+and within 400 m, 800 m and 1 km equal the 1 km run's for every neighbourhood). 0.7.8 adds the 65 outlines of the owner's
+ticks (§2f) from a run of 27 November 2026 in the session that built 0.7.4–0.7.6 (population month 2026-10, as before):
+74,280 requests over 2,500 subdistricts, 8,044,674 buildings of which 644 from parts, the register's total equal to
+`popCount` in all 2,499 compared; the people files of the 469 others are byte for byte main's. Every neighbourhood has residents within
 3 and 5 km (the fewest, 41 within 5 km on an island; the median 61,603; the most 1,010,976 in central Bangkok, all
-modelled, in a straight line; across a river through the crossings since 0.7.5, §17: 41, 60,830 and 1,010,475); the tiles
+modelled, in a straight line; across a river through the crossings since 0.7.5, §17: 41, 60,830 and 1,010,475; in 0.7.8,
+on 534 outlines: 41, 48,609.5 and 1,010,475, the 65 new ones between 8,986 and 179,961); the tiles
 round them as above. The run's plan takes the subdistricts' extents as one array (0.7.3): the same
 requests, in seconds rather than minutes.
 
@@ -1077,6 +1082,11 @@ side only for 35 (on the other side no crossing in the window reaches that bank)
 - ปุณณวิถี within 5 km: 18,777 of the 453,771 residents of the straight line live across the Chao Phraya; 16,588 still
   count through the crossings, the distance of 15,494 of them measured through เรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก
   (way 40346702) — how far they live by that way, not how many the ferry carries — so the figure is 451,583. Without ferries it would be 434,994 (built for the owner's question, not published).
+
+**0.7.8 (Observed fact, against main).** With the 65 outlines of §2f, from the same OpenStreetMap file and river cache:
+227 of the 534 neighbourhoods have land across a barrier river in their 5 km map (19 of the 65), 207 people files have a
+figure through the crossings other than the straight one (18 of the 65), and 195 dataset figures of `data/around.json`
+are moved by the rule (17 in the new rows). The 469 earlier rows, people files and maps are byte for byte main's.
 
 **Records.** `data/people/meta.json` `crossing` {rule, kinds, osm, counts, method, cacheSha256, neighbourhoods} and
 `maps.x`; per neighbourhood `map.x` {k: [cell, tens of metres through the crossings (−1: no crossing in the window

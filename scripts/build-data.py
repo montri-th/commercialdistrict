@@ -649,7 +649,7 @@ def main():
         if stray:
             sys.exit(f'{stray[0]}: an outline of {a.screen} has no row of the commercial screen in the registry')
         held_owner = set(a.screen_hold.split(',')) if a.screen_hold else set()
-        # (0.7.7) a code the owner took off the commercial screen (the outline file's `removed`, his words with it): not a
+        # (0.7.8) a code the owner took off the commercial screen (the outline file's `removed`, his words with it): not a
         # commercial neighbourhood — neither drawn nor listed, counted apart so the registry's codes still add up
         removed_ = {r_['canonical_id']: r_ for r_ in sc.get('removed', [])}
         lost = [k for k in removed_ if k not in {c_ for c_, *_ in scr_codes}]
@@ -679,7 +679,7 @@ def main():
                     '_screen': {'on': f['properties']['outlined_on'], 'reachM': f['properties']['reach_m'], 'role': role_th,
                                 # (0.6.1) drawn on the owner's word of 2026-11-26 10:02 over CityMETER Building V4 footprints
                                 'cm': ((f['properties'].get('buildings') or {}).get('cm') or 0) > 0,
-                                # (0.7.7) his tick of 2026-11-27 when it changed the drawing (narrow arms off, cut to 1 km)
+                                # (0.7.8) his tick of 2026-11-27 when it changed the drawing (narrow arms off, cut to 1 km)
                                 'tick': (f['properties'].get('ticked') or {}).get('choice'),
                                 'tickedOn': ((f['properties'].get('ticked') or {}).get('on') or '')[:10] or None}}})
                 tally['drawn'] += 1

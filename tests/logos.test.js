@@ -50,8 +50,8 @@ test('one shard per records shard; every link points at a record of that neighbo
     records += Object.keys(shard.records).length;
     venues += Object.keys(shard.venues).length;
   }
-  // snapshot of the 2026-11-26 build (fixtures, never UI constants)
-  assert.equal(report.shards, 534); // 0.7.7 (469 in 0.6.1, 451 in 0.5.1)
+  // snapshot of the 2026-11-27 build (fixtures, never UI constants)
+  assert.equal(report.shards, 534); // 0.7.8 (469 in 0.6.1, 451 in 0.5.1)
   assert.equal(report.counts.grocery.own, report.counts.grocery.records, 'every grocery record is a brand with a logo');
   assert.equal(report.counts.shoppingcenter.venue_specific + report.counts.shoppingcenter.parent_complex, 58); // 0.6.1 (56 in 0.5.1)
   assert.ok(!report.counts.shoppingcenter.shared_chain_banner && !report.counts.shoppingcenter.shared_department_store_banner, 'a shared banner is never a centre\'s logo here');

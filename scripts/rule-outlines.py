@@ -770,11 +770,11 @@ def cmd_revise(a):
     print(json.dumps({f'{k[0]}:{k[1]}': v for k, v in sorted(tally.items())}), f'{len(feats)} outlines', file=sys.stderr)
 
 
-CUT_M = 1000  # (0.7.7) owner 2026-11-27 10:44 “2 รับ”: an outline may be cut to the part within 1 km of its reference point
+CUT_M = 1000  # (0.7.8) owner 2026-11-27 10:44 “2 รับ”: an outline may be cut to the part within 1 km of its reference point
 
 
 def cut_within(drawn, lon, lat, metres=CUT_M):
-    """(0.7.7) The rule the owner accepted, «ตัดเหลือในวง 1 กม.»: the drawing cut by a circle of `metres` round the reference
+    """(0.7.8) The rule the owner accepted, «ตัดเหลือในวง 1 กม.»: the drawing cut by a circle of `metres` round the reference
     point (UTM, 128 segments a quarter), the part that holds the point (or, when the point lies in no part, the nearest);
     the other parts the cut leaves are dropped. Returns (geometry, parts dropped)."""
     from shapely.geometry import Point, Polygon
@@ -791,7 +791,7 @@ def cut_within(drawn, lon, lat, metres=CUT_M):
 
 
 def cmd_ticks(a):
-    """(0.7.7) The owner's ticks of 2026-11-27 (amendments/outline-new-choices-2026-11-27.json) on the outlines 0.6.1 left
+    """(0.7.8) The owner's ticks of 2026-11-27 (amendments/outline-new-choices-2026-11-27.json) on the outlines 0.6.1 left
     waiting (--prior, status review): each code as the tick sheet recommended it — used as drawn; narrow arms taken off
     (trim_arms_seed, as `revise`); cut to the part within 1 km of its reference point (cut_within, the rule he accepted)
     — and the code he took off the commercial screen, listed under `removed` with his words: no outline, and the build
@@ -932,7 +932,7 @@ def main():
     v.add_argument('--on', required=True)
     v.add_argument('--out', required=True)
     v.add_argument('--report', required=True)
-    k = sub.add_parser('ticks', help="(0.7.7) the owner's ticks of 2026-11-27 on the outlines 0.6.1 left waiting")
+    k = sub.add_parser('ticks', help="(0.7.8) the owner's ticks of 2026-11-27 on the outlines 0.6.1 left waiting")
     k.add_argument('--prior', required=True, help="0.6.1's file: amendments/outline-new-2026-11-26-r2.geojson")
     k.add_argument('--choices', required=True, help='his ticks: amendments/outline-new-choices-2026-11-27.json')
     k.add_argument('--on', required=True)

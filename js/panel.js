@@ -591,7 +591,7 @@ export function kindBadges(r) {
   return out.length ? `<p class="kind-badges">${out.join('')}</p>` : '';
 }
 
-/** (0.7.7) The owner's ticks of 2026-11-27 that changed a drawn outline (`row.screen.tick`); “use as drawn” says nothing. */
+/** (0.7.8) The owner's ticks of 2026-11-27 that changed a drawn outline (`row.screen.tick`); “use as drawn” says nothing. */
 const TICK_TH = {trimArms: 'ตัดแขนแคบ', cut1km: 'ตัดเหลือในวง 1 กม. จากจุดอ้างอิง'};
 const TICK_EN = {trimArms: 'its narrow arms taken off', cut1km: 'cut to within 1 km of the reference point'};
 
