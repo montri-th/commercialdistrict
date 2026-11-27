@@ -1,5 +1,22 @@
 # CityMETER Commercial District — verification
 
+## Release 0.7.9 — live (2026-11-27)
+
+- Merged on the owner's choice «แก้แบบกันไว้ก่อนเลย» (its option ended with his test on his iPhone once live): pull
+  request #51, merge commit `7637696`, 16:54.
+- GitHub Pages: deployment 8106814514 of `7637696`, success at 16:55. `npm run verify:live` against a manifest made at
+  `7637696` (3,101 files, 55,797,044 bytes): 3,025 ok, 1 failed — `data/records/CMN-TH-F2FFCDDB3B.json` answered 503;
+  fetched again at 17:00 it answered 200 with the manifest's bytes (a file of 0.1.3, unchanged since).
+- Cloudflare: run 45977726994 (workflow_dispatch, publish, 16:55–16:56): 19 sources from their latest GitHub Pages
+  deployments, Commercial District at `7637696`, 14,774 files, release SHA-256 `f2d0e3e7…`; the family check passed
+  before upload and live; 120 / 120 live checks.
+- Claude in Chrome on citymeter.pages.dev, cache tag `20261127-r7`, his Chrome at 1,710 px in dark: โขงเจียม–ภู่กำชัย–
+  แก้วประดิษฐ์ in Thai — the panel names release 0.7.9, the map carries no url(#…), its frame's fill equals the panel's
+  background, the hatch in the map and in the key; ปุณณวิถี at 5 km in English — the same, the key's words “Across the
+  river …”, `__citymeterI18n.missing` empty; ปุณณวิถี at 5 km in Thai in a 393 × 740 frame of the same origin with the
+  sheet expanded — the map 361 × 369 px, the same checks, no horizontal overflow.
+- Not verified: Safari, a real iPhone. The owner's test on his phone is the check; he was asked after the publish.
+
 ## Release 0.7.9 — 27 พ.ย. 2569 (not published): the round map without url(#…) references
 
 The owner's words (VERBATIM): 16:10 “heatmap นี้ไม่ขึ้นใน mobile นะครับ (safari) เช็คที่ citymeter.pages.dev”; he chose
