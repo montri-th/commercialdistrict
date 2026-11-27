@@ -464,8 +464,8 @@ function busyProvenance(r, model, meta) {
   const date = [pm ? L(`ทะเบียน ${monthOf(pm)}`, `register ${monthOf(pm)}`) : '', when ? L(`ชุดข้อมูล ${when}`, `datasets ${when}`) : ''].filter(Boolean).join(' · ');
   return provLine({
     dataset: L(`CityMETER Commercial District · ช่วงไหนน่าจะคึก รุ่น ${meta?.release || ''}`.trim(), `CityMETER Commercial District · when it is likely busy ${meta?.release || ''}`.trim()),
-    source: L('สมมติฐานจากกฎ บนระดับคนอยู่ ผู้มาเยือนค้างคืน ศูนย์และตลาด และจำนวนที่ทำงาน ที่เรียน และสถานีราง จาก «ใครอยู่ตรงนี้» (กฎแบบหน้าศูนย์การค้า)',
-      'A hypothesis from rules on the levels of residents, overnight visitors, centres and markets and the counts of places of work, study and rail of «who is here» (rules like the Shopping Center page’s)'),
+    source: L('สมมติฐานจากกฎ บนระดับคนอยู่ ผู้มาเยือนค้างคืน ศูนย์และตลาด และจำนวนที่ทำงาน ที่เรียน และสถานีราง จาก «ใครอยู่ตรงนี้» (หน้าตาแบบหน้าศูนย์การค้า ใช้กฎของหน้านี้เอง)',
+      'A hypothesis from rules on the levels of residents, overnight visitors, centres and markets and the counts of places of work, study and rail of «who is here» (laid out as on the Shopping Center page, with this page’s own rules)'),
     date, boundary: L(`${r.name} · ในย่านและพื้นที่ไม่เกิน ${num(+DAYPART_REACH / 1000)} กม. จากขอบ`, `${r.name} · inside and up to ${num(+DAYPART_REACH / 1000)} km from the edge`), anchor: 'daypart'});
 }
 const MAP_DS = {visit: ['hotel', 'shoppingcenter', 'grocery', 'restaurant', 'pharmacy', 'fitness', 'luxurybrands', 'camera'],

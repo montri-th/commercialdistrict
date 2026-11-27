@@ -39,13 +39,22 @@ test('strengths: (level − 40) / 50 as the Shopping Center page, counts in thre
   assert.equal(levelStrength(65), 0.5);
   assert.equal(levelStrength(95), 1);
   assert.equal(levelStrength(null), 0);
-  assert.deepEqual([0, 1, 2, 3, 9, 10, 400].map(countStrength), [0, 0.33, 0.33, 0.66, 0.66, 1, 1]);
+  assert.deepEqual([0, 1, 2, 3, 9, 10, 400].map(countStrength), [0, 0.25, 0.25, 0.5, 0.5, 1, 1]);
   const rec = people('CMN-TH-FC9F0B73B3'), s = rec.s[DAYPART_REACH], p = rec.p[DAYPART_REACH];
   const sig = signalsOf(rec);
   assert.equal(sig.res, levelStrength(p.res));
   assert.equal(sig.work, countStrength(s.n.office + s.n.governmentoffice));
   const zero = {...rec, s: {...rec.s, [DAYPART_REACH]: {...s, n: {...s.n, shoppingcenter: 0}}}};
   assert.equal(signalsOf(zero).ctr, 0, 'no centre counted: no centres rule');
+  // the fold's word for a count is the one the method gives it: 1–2 slight, 3–9 moderate, 10 or more none (the whole shift)
+  const word = offices => {
+    const r = {...rec, s: {...rec.s, [DAYPART_REACH]: {...s, n: {...s.n, office: offices, governmentoffice: 0}}}};
+    const li = busySection(r).match(/<li>พักกลางวันของคนทำงาน(?: <span class="fact-rank">\(([^)]*)\)<\/span>)?<\/li>/);
+    return li && li[1];
+  };
+  assert.equal(word(2), 'เล็กน้อย · สำนักงานและหน่วยงานรัฐ 2 แห่ง');
+  assert.equal(word(7), 'ปานกลาง · สำนักงานและหน่วยงานรัฐ 7 แห่ง');
+  assert.equal(word(12), 'สำนักงานและหน่วยงานรัฐ 12 แห่ง');
 });
 
 test('the grid reads in days and hours as the Shopping Center page words it', () => {

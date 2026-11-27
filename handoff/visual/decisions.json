@@ -497,7 +497,7 @@
     },
     {
       "what": "the rules of «ช่วงไหนน่าจะคึก» (D-V10)",
-      "chosen": "the Shopping Center page’s rule family read for an area: a base pattern (no closed hours), Friday evening and Sunday night, then residents, visitors and centres by their levels at 1 km ((level − 40) / 50, as there) and offices, factories, schools, universities and rail stations within 1 km by count (1–2 slight, 3–9 moderate, 10 or more strong); the cut points of its five levels",
+      "chosen": "the Shopping Center page’s rule family read for an area: a base pattern (no closed hours), Friday evening and Sunday night, then residents, visitors and centres by their levels at 1 km ((level − 40) / 50, as there) and offices, factories, schools, universities and rail stations within 1 km by count (1–2 a quarter of the shift, 3–9 half, 10 or more the whole shift, so the fold's words read slight, moderate and none, as the Shopping Center page's words at those strengths); the cut points of its five levels",
       "why": "the centre builder’s hour weights are not in this repository; the rules are written out in js/daypart.js and DATA_METHOD.md §19 so they can be read and changed",
       "rejected": "copying a centre’s grid onto its neighbourhood; a grid per distance of the tiles"
     },

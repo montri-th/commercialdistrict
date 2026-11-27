@@ -13,7 +13,7 @@
  * the rules folded. A neighbourhood never closes, so the grid has no level 0. The rules and their hours are this page's
  * own reading of that family for an area (DATA_METHOD.md §19): a base pattern, then shifts from the residents', overnight
  * visitors' and centres' levels and from the places of work, study and rail within 1 km of the edge (s = (level − 40) /
- * 50 as there; counts in three steps). The grid does not change with the distance the tiles read.
+ * 50 as there; counts in three steps: a quarter, half, whole). The grid does not change with the distance the tiles read.
  */
 import {LANG} from './shell/i18n.js';
 import {num} from './model.js';
@@ -64,8 +64,9 @@ export const RULES = Object.freeze([
 const clamp01 = v => Math.max(0, Math.min(1, v));
 /** Strength of a level (0–100) as the Shopping Center page reads its signals: (level − 40) / 50, within 0–1. */
 export const levelStrength = p => (p == null ? 0 : clamp01((Number(p) - 40) / 50));
-/** Strength of a count of places: none 0 · 1–2 slight · 3–9 moderate · 10 or more strong. */
-export const countStrength = n => (!(n > 0) ? 0 : n >= 10 ? 1 : n >= 3 ? 0.66 : 0.33);
+/** Strength of a count of places: none 0 · 1–2 a quarter (the fold reads slight) · 3–9 half (moderate) · 10 or more the whole
+ * shift (no word, as the Shopping Center page at full strength). Steps clear of the words' cut points 0.33 and 0.66. */
+export const countStrength = n => (!(n > 0) ? 0 : n >= 10 ? 1 : n >= 3 ? 0.5 : 0.25);
 
 /** The signals of a people record at the grid's distance: {res, gst, ctr, work, factory, school, university, rail} in 0–1. */
 export function signalsOf(rec) {

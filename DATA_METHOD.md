@@ -1174,8 +1174,9 @@ then shifts whose strength comes from the people record within 1 km of the edge:
 families at weekends), overnight visitors (every day, evenings) and centres and markets (late morning to evening) by their
 levels, as (level − 40) / 50 within 0–1 as there; offices and government offices (lunch, after work, fewer at weekends),
 factories and industrial estates (after the shift, Sunday), schools (after school, weekend classes), universities
-(afternoon to evening) and rail stations (weekday mornings and evenings) by how many there are — 1–2 slight, 3–9
-moderate, 10 or more strong. The hours each rule shifts and by how much are written in `RULES`; the Shopping Center
+(afternoon to evening) and rail stations (weekday mornings and evenings) by how many there are — 1–2 a quarter of the
+rule's shift (the fold reads เล็กน้อย, slight), 3–9 half (ปานกลาง, moderate), 10 or more the whole shift (no word, as the
+Shopping Center page names none at full strength). The hours each rule shifts and by how much are written in `RULES`; the Shopping Center
 builder's own weights are not in this repository, so this grid is not that page's numbers, only its kind. The grid reads
 1 km whatever distance the tiles read. A count of a dataset with points for under 90 % of its records only switches a
 rule on and sets its step; it is never shown as a level.
