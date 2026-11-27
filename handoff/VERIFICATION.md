@@ -1,5 +1,56 @@
 # CityMETER Commercial District — verification
 
+## Release 0.7.9 — live (2026-11-27)
+
+- Merged on the owner's choice «แก้แบบกันไว้ก่อนเลย» (its option ended with his test on his iPhone once live): pull
+  request #51, merge commit `7637696`, 16:54.
+- GitHub Pages: deployment 8106814514 of `7637696`, success at 16:55. `npm run verify:live` against a manifest made at
+  `7637696` (3,101 files, 55,797,044 bytes): 3,025 ok, 1 failed — `data/records/CMN-TH-F2FFCDDB3B.json` answered 503;
+  fetched again at 17:00 it answered 200 with the manifest's bytes (a file of 0.1.3, unchanged since).
+- Cloudflare: run 45977726994 (workflow_dispatch, publish, 16:55–16:56): 19 sources from their latest GitHub Pages
+  deployments, Commercial District at `7637696`, 14,774 files, release SHA-256 `f2d0e3e7…`; the family check passed
+  before upload and live; 120 / 120 live checks.
+- Claude in Chrome on citymeter.pages.dev, cache tag `20261127-r7`, his Chrome at 1,710 px in dark: โขงเจียม–ภู่กำชัย–
+  แก้วประดิษฐ์ in Thai — the panel names release 0.7.9, the map carries no url(#…), its frame's fill equals the panel's
+  background, the hatch in the map and in the key; ปุณณวิถี at 5 km in English — the same, the key's words “Across the
+  river …”, `__citymeterI18n.missing` empty; ปุณณวิถี at 5 km in Thai in a 393 × 740 frame of the same origin with the
+  sheet expanded — the map 361 × 369 px, the same checks, no horizontal overflow.
+- Not verified: Safari, a real iPhone. The owner's test on his phone is the check; he was asked after the publish.
+
+## Release 0.7.9 — 27 พ.ย. 2569 (not published): the round map without url(#…) references
+
+The owner's words (VERBATIM): 16:10 “heatmap นี้ไม่ขึ้นใน mobile นะครับ (safari) เช็คที่ citymeter.pages.dev”; he chose
+«แก้แบบกันไว้ก่อนเลย» in Claude's question (the option: the map stops depending on clip-path and pattern referenced
+through url(#…), he tries it on his iPhone once it is live, and this may not be the cause).
+
+- Before the change, on citymeter.pages.dev (0.7.8) in Claude in Chrome: at 393 px the map draws once the sheet is
+  expanded; at rest the sheet hides the section, by design. Cause in Safari not confirmed. Hypotheses: the clip past the
+  5 km line and the hatch were url(#…) references, which can stop resolving after a page rewrites its address (this page
+  calls history.replaceState right after drawing the panel); the inline map had a viewBox but no width or height.
+- `js/people.js`: no `<defs>`, `<clipPath>` or `<pattern>`; a frame (`.pm-frame`, a rectangle round the map with the
+  5 km line as its hole, `fill-rule="evenodd"`) in the panel's paper `--surface-card` covers what lies past the line,
+  over the cells and the context, under the lines; the hatch of 0.7.5 drawn as its 45° lines square by square
+  (`hatchSquare`), the same lines as the pattern (4.2 units apart on the map, 3 in the key); `width` and `height` equal
+  to the viewBox; `fitMapNames` takes a failing `isPointInFill` as “not on the outline”. `styles.css`: `.pm-frame`, and
+  the hatch's stroke moves to `.pm-cross-out`.
+- `npm test`: 233 of 233 pass (0.7.8's 230 and the 3 of `tests/round-map-refs.test.js`, which draws 2,961 maps — every
+  tab with data of the 534 neighbourhoods at 5 km, and in · 1 km · 5 km for the 227 with a crossing — none with a
+  reference, 1,716 of them hatched, every crossed-out cell hatched). LDS parity (`check:lds`, LDS 0.9.7 `d3085cbc…`):
+  145 ok, 0 failed. `data/around.json` and `data/people/meta.json` differ from main only in the release field.
+- Old against new in headless Chromium (Playwright; main's markup with main's CSS, this tree's with its own; 9 maps, light
+  and dark, at 2×): the same size; pixels apart by more than 24 levels 0 to 0.43 % of a map, all on the hatch lines,
+  none along the 5 km line.
+- The page served locally (Playwright Chromium; โขงเจียม–ภู่กำชัย–แก้วประดิษฐ์, อุบลราชธานี, at 1 km; 393 × 740 with
+  the sheet expanded and 1,440 × 900, light and dark): no url(#…) in the section; the map 365 × 350 px on the phone and
+  370 × 355 on desktop; the frame's fill equal to the panel's background (rgb(252, 252, 250) light, rgb(32, 41, 45)
+  dark); the hatch in the map and in the key; no page error (only the outside requests the container cannot reach).
+- Preview: deploy run 45977210851 (16:51–16:52, Commercial District at `8690169` as the override): family check pass,
+  120 / 120 live checks on preview.citymeter.pages.dev. There, in the owner's Chrome (1,710 px, and a 393 × 740 frame of
+  the same origin in dark with the sheet expanded): cache tag `20261127-r7`, no url(#…) in the map's section, the frame's
+  fill equal to the panel's background, the hatch in the map and in the key, no horizontal overflow.
+- Not verified: Safari or any WebKit (not installable here), a real iPhone. The owner's test on his iPhone is the check.
+- The roadmap's V7-08 moves to 0.7.10.
+
 ## Release 0.7.8 — live (2026-11-27)
 
 - Merged on the owner's word of that morning (the option he chose: «ส่งต่อแชท 0.7.x (แนะนำ)», whose text ended “แล้วผมตรวจและ
