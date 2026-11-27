@@ -1,5 +1,35 @@
 # CityMETER Commercial District — verification
 
+## Release 0.7.9 — 27 พ.ย. 2569 (not published): the round map without url(#…) references
+
+The owner's words (VERBATIM): 16:10 “heatmap นี้ไม่ขึ้นใน mobile นะครับ (safari) เช็คที่ citymeter.pages.dev”; he chose
+«แก้แบบกันไว้ก่อนเลย» in Claude's question (the option: the map stops depending on clip-path and pattern referenced
+through url(#…), he tries it on his iPhone once it is live, and this may not be the cause).
+
+- Before the change, on citymeter.pages.dev (0.7.8) in Claude in Chrome: at 393 px the map draws once the sheet is
+  expanded; at rest the sheet hides the section, by design. Cause in Safari not confirmed. Hypotheses: the clip past the
+  5 km line and the hatch were url(#…) references, which can stop resolving after a page rewrites its address (this page
+  calls history.replaceState right after drawing the panel); the inline map had a viewBox but no width or height.
+- `js/people.js`: no `<defs>`, `<clipPath>` or `<pattern>`; a frame (`.pm-frame`, a rectangle round the map with the
+  5 km line as its hole, `fill-rule="evenodd"`) in the panel's paper `--surface-card` covers what lies past the line,
+  over the cells and the context, under the lines; the hatch of 0.7.5 drawn as its 45° lines square by square
+  (`hatchSquare`), the same lines as the pattern (4.2 units apart on the map, 3 in the key); `width` and `height` equal
+  to the viewBox; `fitMapNames` takes a failing `isPointInFill` as “not on the outline”. `styles.css`: `.pm-frame`, and
+  the hatch's stroke moves to `.pm-cross-out`.
+- `npm test`: 233 of 233 pass (0.7.8's 230 and the 3 of `tests/round-map-refs.test.js`, which draws 2,961 maps — every
+  tab with data of the 534 neighbourhoods at 5 km, and in · 1 km · 5 km for the 227 with a crossing — none with a
+  reference, 1,716 of them hatched, every crossed-out cell hatched). LDS parity (`check:lds`, LDS 0.9.7 `d3085cbc…`):
+  145 ok, 0 failed. `data/around.json` and `data/people/meta.json` differ from main only in the release field.
+- Old against new in headless Chromium (Playwright; main's markup with main's CSS, this tree's with its own; 9 maps, light
+  and dark, at 2×): the same size; pixels apart by more than 24 levels 0 to 0.43 % of a map, all on the hatch lines,
+  none along the 5 km line.
+- The page served locally (Playwright Chromium; โขงเจียม–ภูก้ำชัย–แก้วประดิษฐ์, อุบลราชธานี, at 1 km; 393 × 740 with
+  the sheet expanded and 1,440 × 900, light and dark): no url(#…) in the section; the map 365 × 350 px on the phone and
+  370 × 355 on desktop; the frame's fill equal to the panel's background (rgb(252, 252, 250) light, rgb(32, 41, 45)
+  dark); the hatch in the map and in the key; no page error (only the outside requests the container cannot reach).
+- Not verified: Safari or any WebKit (not installable here), a real iPhone. The owner's test on his iPhone is the check.
+- The roadmap's V7-08 moves to 0.7.10.
+
 ## Release 0.7.8 — 27 พ.ย. 2569 (not published): the owner's ticks on the commercial screen's outlines
 
 The owner's words (VERBATIM): 10:44 “1 แก้แล้วในช่องสีเหลือง / 2 รับ / 3 แก้ / 4 ลบ”, on Claude's four questions of 26 Nov
