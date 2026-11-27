@@ -423,7 +423,7 @@ export function fitMapNames(wrap) {
   const onOutline = (x, y) => {
     if (!inv || typeof outline?.isPointInFill !== 'function') return false;
     const u = {x: inv.a * x + inv.c * y + inv.e, y: inv.b * x + inv.d * y + inv.f};
-    return outline.isPointInFill(typeof DOMPoint === 'function' ? new DOMPoint(u.x, u.y) : u);
+    try { return outline.isPointInFill(typeof DOMPoint === 'function' ? new DOMPoint(u.x, u.y) : u); } catch { return false; }
   };
   const taken = [...wrap.querySelectorAll('.pm-ring-label, .pm-north')].map(e => e.getBoundingClientRect());
   let hid = 0;
@@ -459,19 +459,44 @@ export function watchMapNames(root) {
  * the map's labels (never a data colour). A cell already beyond the distance in a straight line is not the river's doing
  * and stays plain, as on the neighbourhood's own bank. `reach`: the distance the tiles read (inside reads the map's 5 km).
  */
-export function crossOutPath(map, reach) {
+function crossOutCells(map, reach) {
   const x = crossOf(map);
-  if (!x) return '';
+  if (!x) return [];
   const R = REACHES.includes(String(reach)) && reach !== 'in' ? +reach : 5000;
   const {x0, y1, w} = map.cell, U = 10;
-  let d = '';
+  const out = [];
   for (const [k, d10, s10] of x.k) {
     if (d10 >= 0 && d10 * 10 <= R) continue;
     if (s10 != null && s10 * 10 > R) continue;
     const r = Math.floor(k / w), c = k % w;
-    d += `M${(x0 + c) * U} ${(r - y1 - 1) * U}h${U}v${U}h${-U}z`;
+    out.push([(x0 + c) * U, (r - y1 - 1) * U]);
+  }
+  return out;
+}
+export function crossOutPath(map, reach) {
+  return crossOutCells(map, reach).map(([x, y]) => `M${x} ${y}h10v10h-10z`).join('');
+}
+
+/**
+ * (0.7.9) The hatch as lines, not a <pattern>: the 45° lines x + y = c0 + n·step that cross the square [x, x + u] ×
+ * [y, y + u], cut at its sides. Neighbouring squares meet on the same lines, so a run of hatched cells reads as one hatch.
+ * The map's lines are the 0.7.5 pattern's (4.2 units apart, the first 2.1 from the origin), the key's 3 apart.
+ */
+export const HATCH = Object.freeze({map: Object.freeze({c0: 2.1 * Math.SQRT2, step: 4.2 * Math.SQRT2}), key: Object.freeze({c0: 1.5 * Math.SQRT2, step: 3 * Math.SQRT2})});
+const r2 = v => +v.toFixed(2);
+export function hatchSquare(x, y, u, {c0, step}) {
+  let d = '';
+  const lo = x + y;
+  for (let n = Math.ceil((lo - c0) / step); c0 + n * step < lo + 2 * u; n++) {
+    const s = c0 + n * step - lo;
+    if (s <= 1e-6 || s >= 2 * u - 1e-6) continue;
+    const [ax, ay, bx, by] = s <= u ? [x, y + s, x + s, y] : [x + s - u, y + u, x + u, y + s - u];
+    d += `M${r2(ax)} ${r2(ay)}L${r2(bx)} ${r2(by)}`;
   }
   return d;
+}
+export function crossOutHatch(map, reach) {
+  return crossOutCells(map, reach).map(([x, y]) => hatchSquare(x, y, 10, HATCH.map)).join('');
 }
 function crossingMarks(map, {max = 12} = {}) {
   return (crossOf(map)?.c || []).slice(0, max)
@@ -500,22 +525,27 @@ export function mapSVG(row, map, tab, {title = '', reach = null} = {}) {
   const L_ = map.lines || {};
   const ctx = ctxOf(map);
   const id = `pm-${tab}-${String(row.id).replace(/[^\w-]/g, '')}`;
-  const out = reach == null ? '' : crossOutPath(map, reach), marks = reach == null ? '' : crossingMarks(map);
+  const out = reach == null ? '' : crossOutHatch(map, reach), marks = reach == null ? '' : crossingMarks(map);
   const labels = ['s1', 's3', 's5'].filter(k => L_.lab?.[k]).map(k => {
     const [lx, ly] = at(...L_.lab[k]);
     return `<span class="pm-ring-label" style="left:${lx}%;top:${ly}%">${esc(L(`${k.slice(1)} กม.`, `${k.slice(1)} km`))}</span>`;
   }).join('');
-  return `<div class="pm-wrap"><svg class="pm-map" viewBox="${vx} ${vy} ${vw} ${vh}" role="img" aria-labelledby="${id}-t"><title id="${id}-t">${esc(title)}</title>`
-    + `<defs><clipPath id="${id}-c"><path d="${esc(L_.s5 || '')}"/></clipPath>${out ? `<pattern id="${id}-x" width="4.2" height="4.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path class="pm-cross-line" d="M2.1 0V4.2"/></pattern>` : ''}</defs>`
-    + `<path class="pm-bg" d="${esc(L_.s5 || '')}"/><g clip-path="url(#${id}-c)">`
+  // (0.7.9) No url(#…) anywhere in the map, a guard whose cause is not confirmed: the owner saw no map in Safari on his
+  // phone (2026-11-27 16:10) where Chrome draws it. What lies past the 5 km line is covered by a frame in the panel's own
+  // paper (--surface-card) instead of a <clipPath>, the hatch is drawn as lines instead of a <pattern>, and the map
+  // carries its width and height beside its viewBox.
+  const s5 = L_.s5 || '', F = 1000;
+  const frame = s5 ? `<path class="pm-frame" d="M${vx - F} ${vy - F}h${vw + 2 * F}v${vh + 2 * F}h${-(vw + 2 * F)}z${esc(s5)}" fill-rule="evenodd"/>` : '';
+  return `<div class="pm-wrap"><svg class="pm-map" viewBox="${vx} ${vy} ${vw} ${vh}" width="${vw}" height="${vh}" role="img" aria-labelledby="${id}-t"><title id="${id}-t">${esc(title)}</title>`
+    + `<path class="pm-bg" d="${esc(s5)}"/><g class="pm-cells">`
     + ctxUnder(ctx)
     + [...paths].map(([f, d]) => `<path d="${d}" fill="${f}" shape-rendering="crispEdges"${isPale(f) ? ' class="pm-pale"' : ''}/>`).join('')
-    + (out ? `<path class="pm-cross-out" d="${out}" fill="url(#${id}-x)"/>` : '')
+    + (out ? `<path class="pm-cross-out" d="${out}"/>` : '')
     + ctxOver(ctx)
     + (marks ? `<g class="pm-crossings">${marks}</g>` : '')
-    + '</g>'
+    + '</g>' + frame
     + ['s3', 's1'].filter(k => L_[k]).map(k => `<path class="pm-line" d="${esc(L_[k])}"/>`).join('')
-    + `<path class="pm-edge" d="${esc(L_.s5 || '')}"/>`
+    + `<path class="pm-edge" d="${esc(s5)}"/>`
     + ['w800', 'w400'].filter(k => L_[k]).map(k => `<path class="pm-walk" d="${esc(L_[k])}"/>`).join('')
     + `${L_.o ? `<path class="pm-outline-case" d="${esc(L_.o)}"/><path class="pm-outline" d="${esc(L_.o)}"/>` : ''}</svg>`
     + `${labels}${ctxLabels(ctx, at)}<span class="pm-north" aria-hidden="true">↑ ${esc(L('เหนือ', 'N'))}</span></div>`;
@@ -536,7 +566,7 @@ function mapKey(map, reach = null) {
     water,
   ].join('') : '';
   const R = REACHES.includes(String(reach)) && reach !== 'in' ? +reach : 5000;
-  const hatch = reach != null && crossOutPath(map, reach) ? `<span class="pm-key-item"><svg class="pm-key-cell" viewBox="0 0 12 12" aria-hidden="true"><defs><pattern id="pm-key-x" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path class="pm-cross-line" d="M1.5 0V3"/></pattern></defs><rect class="pm-bg" x="0.5" y="0.5" width="11" height="11"/><rect class="pm-cross-out" x="0" y="0" width="12" height="12" fill="url(#pm-key-x)"/></svg>${esc(L(`อีกฝั่งแม่น้ำ เกิน ${num(R / 1000)} กม. เมื่อนับผ่านทางข้าม`, `Across the river, beyond ${num(R / 1000)} km through a crossing`))}</span>` : '';
+  const hatch = reach != null && crossOutPath(map, reach) ? `<span class="pm-key-item"><svg class="pm-key-cell" viewBox="0 0 12 12" aria-hidden="true"><rect class="pm-bg" x="0.5" y="0.5" width="11" height="11"/><path class="pm-cross-out" d="${hatchSquare(0, 0, 12, HATCH.key)}"/></svg>${esc(L(`อีกฝั่งแม่น้ำ เกิน ${num(R / 1000)} กม. เมื่อนับผ่านทางข้าม`, `Across the river, beyond ${num(R / 1000)} km through a crossing`))}</span>` : '';
   const marks = reach != null && crossOf(map)?.c?.length ? `<span class="pm-key-item"><svg class="pm-key-line" viewBox="0 0 24 8" aria-hidden="true"><path class="pm-cross" d="M12 0.6l3.4 3.4l-3.4 3.4l-3.4-3.4z"/></svg>${esc(L('ทางข้ามแม่น้ำ', 'River crossing'))}</span>` : '';
   return `<p class="pm-key">${line('pm-outline', 'ขอบย่าน', 'Neighbourhood outline', true)}${line('pm-walk', 'ขอบเดินถึง 400 · 800 ม.', 'Walkable edge 400 · 800 m')}${line('pm-line', '1 · 3 · 5 กม. จากขอบ', '1 · 3 · 5 km from the edge')}${cell}${context}${hatch}${marks}</p>`;
 }

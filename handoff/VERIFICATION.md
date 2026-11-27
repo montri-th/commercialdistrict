@@ -1,5 +1,157 @@
 # CityMETER Commercial District — verification
 
+## Release 0.7.9 — live (2026-11-27)
+
+- Merged on the owner's choice «แก้แบบกันไว้ก่อนเลย» (its option ended with his test on his iPhone once live): pull
+  request #51, merge commit `7637696`, 16:54.
+- GitHub Pages: deployment 8106814514 of `7637696`, success at 16:55. `npm run verify:live` against a manifest made at
+  `7637696` (3,101 files, 55,797,044 bytes): 3,025 ok, 1 failed — `data/records/CMN-TH-F2FFCDDB3B.json` answered 503;
+  fetched again at 17:00 it answered 200 with the manifest's bytes (a file of 0.1.3, unchanged since).
+- Cloudflare: run 45977726994 (workflow_dispatch, publish, 16:55–16:56): 19 sources from their latest GitHub Pages
+  deployments, Commercial District at `7637696`, 14,774 files, release SHA-256 `f2d0e3e7…`; the family check passed
+  before upload and live; 120 / 120 live checks.
+- Claude in Chrome on citymeter.pages.dev, cache tag `20261127-r7`, his Chrome at 1,710 px in dark: โขงเจียม–ภู่กำชัย–
+  แก้วประดิษฐ์ in Thai — the panel names release 0.7.9, the map carries no url(#…), its frame's fill equals the panel's
+  background, the hatch in the map and in the key; ปุณณวิถี at 5 km in English — the same, the key's words “Across the
+  river …”, `__citymeterI18n.missing` empty; ปุณณวิถี at 5 km in Thai in a 393 × 740 frame of the same origin with the
+  sheet expanded — the map 361 × 369 px, the same checks, no horizontal overflow.
+- Not verified: Safari, a real iPhone. The owner's test on his phone is the check; he was asked after the publish.
+
+## Release 0.7.9 — 27 พ.ย. 2569 (not published): the round map without url(#…) references
+
+The owner's words (VERBATIM): 16:10 “heatmap นี้ไม่ขึ้นใน mobile นะครับ (safari) เช็คที่ citymeter.pages.dev”; he chose
+«แก้แบบกันไว้ก่อนเลย» in Claude's question (the option: the map stops depending on clip-path and pattern referenced
+through url(#…), he tries it on his iPhone once it is live, and this may not be the cause).
+
+- Before the change, on citymeter.pages.dev (0.7.8) in Claude in Chrome: at 393 px the map draws once the sheet is
+  expanded; at rest the sheet hides the section, by design. Cause in Safari not confirmed. Hypotheses: the clip past the
+  5 km line and the hatch were url(#…) references, which can stop resolving after a page rewrites its address (this page
+  calls history.replaceState right after drawing the panel); the inline map had a viewBox but no width or height.
+- `js/people.js`: no `<defs>`, `<clipPath>` or `<pattern>`; a frame (`.pm-frame`, a rectangle round the map with the
+  5 km line as its hole, `fill-rule="evenodd"`) in the panel's paper `--surface-card` covers what lies past the line,
+  over the cells and the context, under the lines; the hatch of 0.7.5 drawn as its 45° lines square by square
+  (`hatchSquare`), the same lines as the pattern (4.2 units apart on the map, 3 in the key); `width` and `height` equal
+  to the viewBox; `fitMapNames` takes a failing `isPointInFill` as “not on the outline”. `styles.css`: `.pm-frame`, and
+  the hatch's stroke moves to `.pm-cross-out`.
+- `npm test`: 233 of 233 pass (0.7.8's 230 and the 3 of `tests/round-map-refs.test.js`, which draws 2,961 maps — every
+  tab with data of the 534 neighbourhoods at 5 km, and in · 1 km · 5 km for the 227 with a crossing — none with a
+  reference, 1,716 of them hatched, every crossed-out cell hatched). LDS parity (`check:lds`, LDS 0.9.7 `d3085cbc…`):
+  145 ok, 0 failed. `data/around.json` and `data/people/meta.json` differ from main only in the release field.
+- Old against new in headless Chromium (Playwright; main's markup with main's CSS, this tree's with its own; 9 maps, light
+  and dark, at 2×): the same size; pixels apart by more than 24 levels 0 to 0.43 % of a map, all on the hatch lines,
+  none along the 5 km line.
+- The page served locally (Playwright Chromium; โขงเจียม–ภู่กำชัย–แก้วประดิษฐ์, อุบลราชธานี, at 1 km; 393 × 740 with
+  the sheet expanded and 1,440 × 900, light and dark): no url(#…) in the section; the map 365 × 350 px on the phone and
+  370 × 355 on desktop; the frame's fill equal to the panel's background (rgb(252, 252, 250) light, rgb(32, 41, 45)
+  dark); the hatch in the map and in the key; no page error (only the outside requests the container cannot reach).
+- Preview: deploy run 45977210851 (16:51–16:52, Commercial District at `8690169` as the override): family check pass,
+  120 / 120 live checks on preview.citymeter.pages.dev. There, in the owner's Chrome (1,710 px, and a 393 × 740 frame of
+  the same origin in dark with the sheet expanded): cache tag `20261127-r7`, no url(#…) in the map's section, the frame's
+  fill equal to the panel's background, the hatch in the map and in the key, no horizontal overflow.
+- Not verified: Safari or any WebKit (not installable here), a real iPhone. The owner's test on his iPhone is the check.
+- The roadmap's V7-08 moves to 0.7.10.
+
+## Release 0.7.8 — live (2026-11-27)
+
+- Merged on the owner's word of that morning (the option he chose: «ส่งต่อแชท 0.7.x (แนะนำ)», whose text ended “แล้วผมตรวจและ
+  ขึ้นเว็บ”): pull request #49, merge commit `a3c68ea`, 14:17.
+- Preview first: deploy run 45956822440 (14:12–14:13, Commercial District at `c31e367` as the override): family check pass
+  (hub 19, shell 0.6.6), 120 / 120 live checks on preview.citymeter.pages.dev. There, in the owner's Chrome: ตลาดแม่กลอง
+  (cut to 1 km) in Thai on desktop — the outline words “ตัดเหลือในวง 1 กม. จากจุดอ้างอิง ตามที่เจ้าของติ๊ก 27 พ.ย. 2569”,
+  «ใครอยู่ตรงนี้» at 1 km with the line “อีกฝั่งแม่น้ำแม่กลอง 16% … วัดระยะผ่าน เรือข้ามฟาก (90 ม.)”, the residents map; ย่านตลาดไท
+  in English, `__citymeterI18n.missing` empty; CMN-TH-33E737E0D0 in the address opens no neighbourhood and “พหลโยธิน 94”
+  finds none; ชุมชนตลาดขลุง in a 393 × 740 frame of the same origin at 5 km, no horizontal overflow.
+- GitHub Pages: deployment 8104116604 of `a3c68ea`, success at 14:18. `npm run verify:live` against a manifest made at
+  `a3c68ea` (3,100 files, 55,782,097 bytes): 3,025 ok, 1 failed — `assets/logos/91824921ae70b5430943.svg` answered 503;
+  fetched again it answered 200 with the manifest's bytes (a logo of 0.5.0, unchanged since).
+- Cloudflare: run 45957892276 (workflow_dispatch, publish, 14:21–14:22): 19 sources from their latest GitHub Pages
+  deployments, Commercial District at `a3c68ea`, 14,774 files, release SHA-256 `41e895ca…`; the family check passed before
+  upload and live (hub 19, shell 0.6.6); 120 / 120 live checks.
+- Claude in Chrome on citymeter.pages.dev, cache tag `20261127-r6`: ชุมชนตลาดบ้านนา (cut to 1 km) in Thai on desktop — the
+  outline words with the owner's tick, «ใครอยู่ตรงนี้ รุ่น 0.7.8», about 11,000 residents within 1 km, level 43/100;
+  ย่านตลาดไท in English in a 393 × 740 frame of the same origin at 5 km — about 180,000 living here, level 75/100,
+  `__citymeterI18n.missing` empty, no horizontal overflow.
+- Not verified: a real phone (393 px was a frame in desktop Chrome), browsers other than Chrome.
+
+## Release 0.7.8 — 27 พ.ย. 2569 (not published): the owner's ticks on the commercial screen's outlines
+
+The owner's words (VERBATIM): 10:44 “1 แก้แล้วในช่องสีเหลือง / 2 รับ / 3 แก้ / 4 ลบ”, on Claude's four questions of 26 Nov
+(`amendments/outline-new-choices-2026-11-27.json`, `owner.asked_th`); then, on Claude's questions that morning, «ส่งต่อแชท
+0.7.x (แนะนำ)» (the session that built 0.7.4–0.7.6 rebuilds «รอบย่านนี้», the logos and «ใครอยู่ตรงนี้» with its caches),
+«บันทึกช่อง «พี่ตัดสิน» (แนะนำ)» and, the column taking four words only, «เลือก «ไม่ใช่ย่าน» (แนะนำ)». Method: `DATA_METHOD.md` §2f.
+
+### The sheets (his Chrome, read back)
+
+- Tick sheet `02-CityMETER__outline-rule-screen-check__v1__2026-11-26`, tab «ติ๊กขอบ V4 (0.6.1)», read at 10:55: 66 rows,
+  column «พี่ตัดสิน» “ตามข้อเสนอ” × 65 and “ไม่นับเป็นย่านการค้า ลบทิ้ง” × 1 (CMN-TH-33E737E0D0); the rows as read hash to
+  `13f3f9c5…` (`sheet.readBack` of the ticks file).
+- Registry, tab 05_REVIEW_QUEUE (“3 แก้”), 11:01: the row whose รหัสกลางที่รับ is CMN-TH-BAFFB5235F (checked in the row first):
+  «จุดอ้างอิงย่าน» set to the OpenStreetMap point of ตลาดไท its outline starts from, «หมายเหตุ» a dated note with the old
+  point (in the sheet only); read back, both cells as written, the rows above and below as in the export of 26 Nov.
+- Registry, tab 05_REVIEW_QUEUE, about 11:55: the row of CMN-TH-33E737E0D0 (checked first): «พี่ตัดสิน» = «ไม่ใช่ย่าน» (his
+  free words were refused by the column's list, nothing written, nothing spilled; the list itself not touched), his words
+  and the date added at the end of «หมายเหตุ» (read back: the old note plus the new words, character for character); the
+  notes of the rows above and below equal the export of 26 Nov (SHA-256 of both).
+
+### Outlines and data (container, 27 Nov)
+
+- `scripts/rule-outlines.py ticks` on `outline-new-2026-11-26-r2.geojson` (`09129f0e…`): use 13 · trimArms 11 · cut1km 41 ·
+  remove 1; 139 outlines, every one applied, each holding its point; cut ones 992 m and trimmed ones at most 985 m from
+  their 8 m seeds; the 74 of 0.6.1 unchanged. → `outline-new-2026-11-27-r3.geojson` (`e90f1c4c…`), ticks file `6c0b5a77…`.
+- `scripts/build-data.py` with the inputs of 0.6.1 (registry export of 26 Nov `3b9cabbd…`, the bundle, the 16 clones at
+  the same commits) and `--screen` r3: 534 outlines (screen 139 drawn, 88 without an outline, 1 removed, none held or
+  waiting); 14,513 records inside; 65 new records shards, the 469 others byte for byte unchanged, `data/boundaries.geojson`
+  only grows by the 65. The same command with the r2 file gave main's `data/neighborhoods.json` again except `builtOn`,
+  and main's `data/boundaries.geojson` and records byte for byte.
+- `js/model.js#fixed` now rounds as Python's `round` (ties to even): the first exact tie of the data, 1 − 24/128, read
+  0.813 on the page and 0.812 in the file. Checked on 326,407 values against Python: no difference.
+- `npm test` before the rebuild of the people files: the tests of the outlines, the screen and the data pass; the 22 that
+  read `data/around.json`, `data/rings/`, `data/logos/` and `data/people/` wait for them.
+
+### «รอบย่านนี้», the logos and «ใครอยู่ตรงนี้» (the 0.7.x session, merged here)
+
+- Built from `6cf2e28` in the session that made 0.7.4–0.7.6 (session_012D2wn48aQKvsMjMiuv91Wt), branch
+  `release-0.7.7-people` (`f6666fc`, 13:48), on this release's prompt: around (`--crossing`), logos, residents
+  (`--reach 5000 --crossing`), context maps and people, with the river cache of `thailand-261124.osm.pbf` (`62b496bf…`;
+  cache `cd1e1442…`, as in 0.7.5). Added: 65 rings, 65 logo shards, 65 people files, one logo image (a Restaurant brand
+  mark); rebuilt: `data/around.json`, `data/logos-report.json`, `data/people/meta.json`; pinned numbers in
+  `tests/around.test.js` and `tests/logos.test.js`. Merged here in `dead6c4`.
+- Where it went beside the prompt (its report, relayed by the owner at 13:56): the Shopping Center model of
+  «ใครอยู่ตรงนี้» is `scripts/build-visitors-map.py` as main's meta records it (`e2218957…`), not the file at `dfcc6cd`
+  (`dd9d0f9f…`) that `build-around.py` checks by its pin — 0.7.6 was built with the first, the second would change the
+  model's figures; the pin did not move and Shopping Center 0.13.0 was not used. The context maps take their frames from
+  the people files, which the 65 did not have: a first people build with the context of 0.7.6 gave the frames, the
+  context was then drawn for all 534, then the final people build; the result is the prompt's order. Its OpenStreetMap
+  cache and residents output stay outside the repository, in its container.
+- Figures (Observed fact, from the files; main in brackets): residents for 534 outlines from 74,280 requests (59,219) over
+  2,500 subdistricts (2,106), 8,044,674 buildings (7,213,960) of which 644 from parts (638), month 2026-10, the register's
+  total equal to `popCount` in all 2,499 compared; within 5 km the fewest 41, the median 48,609.5 (60,830), the most
+  1,010,475, the 65 new ones 8,986–179,961, each with residents inside. Across a river: 227 maps with land across (208),
+  207 people files with a figure through the crossings (189), 195 dataset figures of `data/around.json` moved (178).
+  Context maps with a main road 488 (423), rail 252 (234), stations 196 (189), a river 485 (428), water 508 (445), the sea
+  136 (127). Logos: 3,700 of the 14,513 records inside (3,353 of 13,407), 166 of the 544 centre names around (166 of
+  543), 459 files, no SHA-256 issue. Around: 534 rows, three centres added to its list (one inside a new outline, two
+  nearest to one); the reference set of D-8 unchanged (395, `d9ae2a5b…`), 139 ranked against it.
+
+### Checks on the merged tree (container, 27 Nov)
+
+- The 469 against main `55187e2`: `data/rings/`, `data/logos/` and `data/people/` 469 of 469 byte for byte (git blob
+  ids); `data/around.json` rows 469 of 469 equal, main's centres and their `byVenue` entries equal; in
+  `data/people/meta.json` the frames of the 469 equal, the other fields that moved are counts over 534 and the release.
+- `npm test`: 230 of 230 pass, the 22 that waited for the rebuild among them. LDS parity (`check:lds`, LDS 0.9.7
+  `d3085cbc…`): 145 ok, 0 failed.
+- The release number: main took 0.7.7 at 13:30 (citymeter-shell 0.6.6, below), so this release is 0.7.8 with cache tag
+  `20261127-r6` (main's 0.7.7 serves r5), and the roadmap's V7-08 moves to 0.7.9.
+
+## Release 0.7.7 — 27 พ.ย. 2569: citymeter-shell 0.6.6 (main, another session)
+
+- Recorded from commit `a27559a` (PR #48, merged 13:30 from session_012D2wn6355CHPN75KZ8qKG7): the dataset picker lists
+  Tourism (Location; montri-th/tourism), so the menu matches the 19 demos of the hub; `js/shell/datasets.js`, its
+  manifest and `tests/shell.test.js`; cache tag `20261127-r4` → `20261127-r5`; the release field of `data/around.json`
+  and `data/people/meta.json`; no count changes.
+- 0.7.8 (above) was in progress when it landed: merged into it in `8dbad62`, the two release fields the only conflicts;
+  the shell tests of 0.6.6 pass on 0.7.8.
+
 ## Releases 0.7.4 · 0.7.5 · 0.7.6 — live (2026-11-27)
 
 - Merged on the owner's word (10:13, VERBATIM: “merge and publish”): pull requests #44 (0.7.4, merge `7b32e7a`, 10:14:25),

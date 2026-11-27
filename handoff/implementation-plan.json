@@ -3,7 +3,7 @@
   "schemaVersion": "1.5.0",
   "documentType": "implementation-plan",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.7.6",
+  "productVersion": "0.7.9",
   "updatedOn": "2026-11-27",
   "language": "en",
   "architecture": {
@@ -91,7 +91,11 @@
       "0.7.3": "done 2026-11-27: V7-07, the residents within 3 · 5 km and the residents map, from the night crawl of Building V4",
       "0.7.4": "done 2026-11-27: V7-12, the groups in the owner's order (D-V9)",
       "0.7.5": "done 2026-11-27: V7-09, distances across a river through the crossings by the Shopping Center page's D70 rule from the same OpenStreetMap file (D-13, D-14, D-18; DATA_METHOD.md §17)",
-      "0.7.6": "V7-08 (the business type and brand picker, D-15)",
+      "0.7.6": "done 2026-11-27: citymeter-shell 0.6.5 (the EN link in Safari, D-V9b)",
+      "0.7.7": "done 2026-11-27: citymeter-shell 0.6.6 (Tourism in the dataset picker; another session, PR #48)",
+      "0.7.8": "done 2026-11-27: the owner's ticks of 27 Nov 10:44 on the commercial screen's outlines (65 used, narrow arms off or cut to 1 km; one taken off the screen), with «รอบย่านนี้» and «ใครอยู่ตรงนี้» for them",
+      "0.7.9": "done 2026-11-27: the round map without url(#…) references (frame in the panel's paper, hatch as lines, width and height), a guard for Safari on the owner's phone (owner 16:10), cause not confirmed",
+      "0.7.10": "V7-08 (the business type and brand picker, D-15)",
       "later": "V7-10, in the order the owner picks"
     },
     "tasks": [
@@ -230,7 +234,7 @@
       },
       {
         "id": "V7-08",
-        "release": "0.7.6",
+        "release": "0.7.10",
         "title": "น่าค้าขาย: เลือกประเภทธุรกิจและแบรนด์ — คู่แข่ง พันธมิตร สาขาของเรา (D-15)",
         "dependsOn": [
           "V7-06"

@@ -57,13 +57,13 @@ test('the lodging screen: 268 proposals, 193 supported, 75 held; its 79 new area
   for (const p of undrawn) { assert.ok(p.lodging && !p.lodging.draft, p.id); assert.match(p.id, /^CMN-TH-[0-9A-F]{10}$/); assert.match(p.province, /^[A-Z]{3}$/, p.id); }
 });
 
-test('what is new since the data of 16 Nov: 15 newly closed registry outlines, the 37 drawn lodging areas and the commercial screen\'s 74 (0.5.0: 56)', () => {
+test('what is new since the data of 16 Nov: 15 newly closed registry outlines, the 37 drawn lodging areas and the commercial screen\'s 139 (0.5.0: 56; 0.6.1: 74)', () => {
   const {model} = load();
   const added = model.rows.filter(r => r.added);
   assert.equal(added.length, model.meta.totals.added);
   assert.equal(added.filter(r => r.kind === 'registry').length, 15);
   assert.equal(added.filter(r => r.kind === 'lodging').length, 37);
-  assert.equal(added.filter(r => r.kind === 'screen').length, 74);
+  assert.equal(added.filter(r => r.kind === 'screen').length, 139);
   for (const id of ['CMN-TH-50A0A3D023', 'CMN-TH-C87FDE144B', 'CMN-TH-F61C48CB7C']) assert.ok(model.byId.get(id)?.added, id);
   assert.ok(!model.byId.get('CMN-TH-0001').added, 'Siam was drawn before');
 });
@@ -72,8 +72,8 @@ test('the kind filter: registry, lodging, screen, added; pending names follow it
   const {model} = load();
   assert.equal(scopeRows(model, {kind: 'registry'}).length, 358);
   assert.equal(scopeRows(model, {kind: 'lodging'}).length, 37);
-  assert.equal(scopeRows(model, {kind: 'added'}).length, 126);
-  assert.equal(scopeRows(model).length, 469);
+  assert.equal(scopeRows(model, {kind: 'added'}).length, 191);   // 15 + 37 + 139 (0.6.1: 126)
+  assert.equal(scopeRows(model).length, 534);   // 0.6.1: 469
   assert.ok(model.rows.every(r => kindMatch(r, '')));
   const lp = model.pending.find(p => p.screen === 'lodging');
   assert.deepEqual(scopePending(model, {search: lp.name, kind: 'registry'}).filter(p => p.id === lp.id), []);
