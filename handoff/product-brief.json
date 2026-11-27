@@ -3,7 +3,7 @@
   "schemaVersion": "1.5.0",
   "documentType": "product-brief",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.7.5",
+  "productVersion": "0.7.6",
   "updatedOn": "2026-11-26",
   "datasetCheckedOn": "2026-11-16",
   "language": "th",
@@ -166,7 +166,7 @@
     "states": "ranked · few · starred · edge · zero · out (js/levels.js#CELL_KINDS), each with a mark that is not colour"
   },
   "delivery": {
-    "cacheTag": "?v=20261127-r3",
+    "cacheTag": "?v=20261127-r4",
     "shell": "citymeter-shell 0.6.4 (since release 0.2.6: Shopping Center marked as a demo with English; unchanged in 0.4.0)"
   }
 }
