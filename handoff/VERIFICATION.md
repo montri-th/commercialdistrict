@@ -1,6 +1,25 @@
 # CityMETER Commercial District — verification
 
-## Release 0.7.10 — 27 พ.ย. 2569 (not published): «ความเป็นย่าน» and «ช่วงไหนน่าจะคึก»
+## Release 0.7.10 — live (2026-11-27)
+
+- Merged on the owner's word (19:13, VERBATIM: “merge and publish”): pull request #53, merge commit `63898cf`, 19:14.
+- GitHub Pages: deployment 8109495662 of `63898cf`, success at 19:15. `npm run verify:live` against a manifest made at
+  `63898cf` (3,107 files, 55,991,051 bytes): 3,027 ok, 2 failed — `assets/logos/6a08fb0728fec98e1151.svg` and
+  `data/people/CMN-TH-D8434E6568.json` answered 503; fetched again at 19:20 both answered 200 with the manifest's bytes
+  (files this release did not change).
+- Cloudflare: run 45997114412 (workflow_dispatch, publish, 19:15–19:16): 19 sources from their latest GitHub Pages
+  deployments, Commercial District at `63898cf`, 14,779 files, release SHA-256 `dd47ac56…`; the family check passed
+  before upload and live; 120 / 120 live checks.
+- Claude in Chrome did not answer two calls after the publish, so citymeter.pages.dev was not walked in the owner's
+  Chrome. In its place, Playwright Chromium on the live GitHub Pages site (montri-th.github.io/commercialdistrict) at
+  19:21–19:22, ปุณณวิถี, cache tag `20261127-r8`, the panel naming release 0.7.10 — Thai and English at 1,440 × 900 and
+  Thai at 393 × 740 with the sheet full: the sections in the order of the release record, the triangle 300 × 259 px with
+  no url(#…), corners 88 · 82 · 67 (อยู่ · เที่ยว · ค้าขาย / Live · Visit · Trade), 168 cells, the busiest line จ.–พฤ.
+  17:00–18:00, 19:00–20:00 น. · ศ. 17:00–20:00 น., the workers' rule ปานกลาง / moderate with 7 places, the provenance's
+  words of the fix, no page error, no horizontal overflow, `__citymeterI18n.missing` empty.
+- Not verified: citymeter.pages.dev in a browser (its deploy's live checks only), Safari, a real phone.
+
+## Release 0.7.10 — 27 พ.ย. 2569: «ความเป็นย่าน» and «ช่วงไหนน่าจะคึก»
 
 The owner's words (VERBATIM): 18:04 “และ side panel ยังขาด heatmap ใน 7x24 daypart”; 18:05 “และ x-y plot แสดงความเป็นย่าน
 แต่รอบนี้ควรเป็น น่าอยู่ น่าเที่ยว น่าค้าขาย ทำยังไงดีมี 3 แกน”; his answers to Claude's three questions, received by 18:23:
@@ -30,7 +49,7 @@ The owner's words (VERBATIM): 18:04 “และ side panel ยังขาด h
   0.66 and 0.33 sat on the words' cut points), so the steps are now a quarter, half and the whole shift (เล็กน้อย ·
   ปานกลาง · no word, `tests/daypart.test.js` holds the three words); and the provenance line said “กฎแบบหน้าศูนย์การค้า”,
   now “หน้าตาแบบหน้าศูนย์การค้า ใช้กฎของหน้านี้เอง”. The figures above are after the fix.
-- Not verified: the live site (not published), Safari and a real phone.
+- Not verified before the merge: the live site (above), Safari and a real phone.
 - The roadmap's V7-08 moves to 0.7.11.
 
 ## Release 0.7.9 — live (2026-11-27)
