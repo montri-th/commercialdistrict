@@ -1,5 +1,40 @@
 # CityMETER Commercial District — verification
 
+## Release 0.7.7 — 27 พ.ย. 2569 (not published): the owner's ticks on the commercial screen's outlines
+
+The owner's words (VERBATIM): 10:44 “1 แก้แล้วในช่องสีเหลือง / 2 รับ / 3 แก้ / 4 ลบ”, on Claude's four questions of 26 Nov
+(`amendments/outline-new-choices-2026-11-27.json`, `owner.asked_th`); then, on Claude's questions that morning, «ส่งต่อแชท
+0.7.x (แนะนำ)» (the session that built 0.7.4–0.7.6 rebuilds «รอบย่านนี้», the logos and «ใครอยู่ตรงนี้» with its caches),
+«บันทึกช่อง «พี่ตัดสิน» (แนะนำ)» and, the column taking four words only, «เลือก «ไม่ใช่ย่าน» (แนะนำ)». Method: `DATA_METHOD.md` §2f.
+
+### The sheets (his Chrome, read back)
+
+- Tick sheet `02-CityMETER__outline-rule-screen-check__v1__2026-11-26`, tab «ติ๊กขอบ V4 (0.6.1)», read at 10:55: 66 rows,
+  column «พี่ตัดสิน» “ตามข้อเสนอ” × 65 and “ไม่นับเป็นย่านการค้า ลบทิ้ง” × 1 (CMN-TH-33E737E0D0); the rows as read hash to
+  `13f3f9c5…` (`sheet.readBack` of the ticks file).
+- Registry, tab 05_REVIEW_QUEUE (“3 แก้”), 11:01: the row whose รหัสกลางที่รับ is CMN-TH-BAFFB5235F (checked in the row first):
+  «จุดอ้างอิงย่าน» set to the OpenStreetMap point of ตลาดไท its outline starts from, «หมายเหตุ» a dated note with the old
+  point (in the sheet only); read back, both cells as written, the rows above and below as in the export of 26 Nov.
+- Registry, tab 05_REVIEW_QUEUE, about 11:55: the row of CMN-TH-33E737E0D0 (checked first): «พี่ตัดสิน» = «ไม่ใช่ย่าน» (his
+  free words were refused by the column's list, nothing written, nothing spilled; the list itself not touched), his words
+  and the date added at the end of «หมายเหตุ» (read back: the old note plus the new words, character for character); the
+  notes of the rows above and below equal the export of 26 Nov (SHA-256 of both).
+
+### Outlines and data (container, 27 Nov)
+
+- `scripts/rule-outlines.py ticks` on `outline-new-2026-11-26-r2.geojson` (`09129f0e…`): use 13 · trimArms 11 · cut1km 41 ·
+  remove 1; 139 outlines, every one applied, each holding its point; cut ones 992 m and trimmed ones at most 985 m from
+  their 8 m seeds; the 74 of 0.6.1 unchanged. → `outline-new-2026-11-27-r3.geojson` (`e90f1c4c…`), ticks file `6c0b5a77…`.
+- `scripts/build-data.py` with the inputs of 0.6.1 (registry export of 26 Nov `3b9cabbd…`, the bundle, the 16 clones at
+  the same commits) and `--screen` r3: 534 outlines (screen 139 drawn, 88 without an outline, 1 removed, none held or
+  waiting); 14,513 records inside; 65 new records shards, the 469 others byte for byte unchanged, `data/boundaries.geojson`
+  only grows by the 65. The same command with the r2 file gave main's `data/neighborhoods.json` again except `builtOn`,
+  and main's `data/boundaries.geojson` and records byte for byte.
+- `js/model.js#fixed` now rounds as Python's `round` (ties to even): the first exact tie of the data, 1 − 24/128, read
+  0.813 on the page and 0.812 in the file. Checked on 326,407 values against Python: no difference.
+- `npm test` before the rebuild of the people files: the tests of the outlines, the screen and the data pass; the 22 that
+  read `data/around.json`, `data/rings/`, `data/logos/` and `data/people/` wait for them.
+
 ## Release 0.7.6 — 27 พ.ย. 2569 (not published): citymeter-shell 0.6.5
 
 The owner's words (VERBATIM): 08:23 “EN บนเวบผมคลิกไม่ได้”; 08:47 “citymeter.pages.dev ใน Safari”; he chose «แก้ทุกเดโมพร้อมกัน»

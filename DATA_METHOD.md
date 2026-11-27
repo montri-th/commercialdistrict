@@ -44,7 +44,7 @@ in §9 are published.
 
 ## 2. Neighbourhoods
 
-**Observed fact.** 469 outlines in 77 provinces since 0.6.1, 233.03 km² as the page draws them (§2d and §2e: 74 of the registry's commercial screen, 26.39 km²; in 0.5.0, 451 and 212.11 km² with 56 of them, 5.48 km²). The 395 before it, 95.03 km²: the registry's 358 closed outlines (80.86 km², registry
+**Observed fact.** 534 outlines in 77 provinces since 0.7.7, 318.09 km² as the page draws them (§2d–§2f: 139 of the registry's commercial screen, 111.46 km²; in 0.6.1, 469 and 233.03 km² with 74 of them, 26.39 km²; in 0.5.0, 451 and 212.11 km² with 56 of them, 5.48 km²). The 395 before it, 95.03 km²: the registry's 358 closed outlines (80.86 km², registry
 `area_m2` in its metric CRS, 473 m² to 2.17 km² — 0.3 to 1,358 ไร่ as the page writes it since 0.2.5; since 0.2.4 one of them extended on the owner's word, §2b) and, since
 0.2.0, 37 lodging areas of its lodging screen (14.18 km², §2a). Since 0.3.0, 235 of the 395 (220 of the registry's, 15 lodging
 areas) are redrawn by the owner's rule (§2c): as drawn, 206.63 km² (the registry's 182.83, the lodging areas 23.80), 1,592 m² to
@@ -254,7 +254,8 @@ the reference point (the discrete Hausdorff distance in UTM from the 8 m seed): 
 (`kind: 'screen'`), drawn dotted like the lodging drafts, counted, ranked and compared like every other outline, marked
 new. Beyond 1 km it waits for the owner's tick, as on 2026-11-24 (“ให้ผมติ๊กรายย่าน”). The file:
 `amendments/outline-new-2026-11-26.geojson` (both drawings' SHA-256 in `drawing.exports`; derived from OpenStreetMap,
-ODbL).
+ODbL). The two drawings sat beside it in `amendments/` until 0.7.7, when the owner had them deleted: their grids locate the
+reference points of the codes without an outline (§2f).
 
 **The count (Observed fact).** 56 codes take an outline (44 from the point, 12 from the 40 m
 circle), 3,424 ไร่ in all, 2.0 to 426 ไร่; 17 reach further than 1 km and wait for his tick; 141
@@ -310,6 +311,51 @@ are the buildings the rule reaches within 250 m of that area and of the line to 
 reference point here is the market's OpenStreetMap point; the registry is not written. It takes 1,245 ไร่ over 1,124 V4 buildings and reaches 1,040 m from those points: over 1 km, so it waits for his tick with a picture, as the other outlines over 1 km do; its name is listed meanwhile, no longer held.
 
 **What it changes.** 469 outlines in 77 provinces, 233.0 km² (0.045% of the provinces' area): the 358 of the registry, the 37 lodging drafts and 74 of the screen (the 56 of 0.5.0, the 13 he chose to use, 5 drawn with V4). Of the screen's 228 codes, 66 wait for his tick (64 drawn with V4, the trimmed one, ย่านตลาดไท) and 88 have no outline (the 3 he set aside, 25 without buildings, 47 in a fabric, and the 13 of 0.5.0 in a fabric, not drawn again); none is held. The glance still ranks against the 395 of 0.4.0 (D-8). The registry sheet is not written: the outline status and ย่านตลาดไท's reference point there stay as they are until his word. The logo shards are built again for the 469 (§13).
+
+## 2f. The owner's ticks on the outlines over 1 km (0.7.7)
+
+Owner 2026-11-27 10:44, VERBATIM: “1 แก้แล้วในช่องสีเหลือง / 2 รับ / 3 แก้ / 4 ลบ” — on Claude's four questions of 26 Nov
+(VERBATIM in `amendments/outline-new-choices-2026-11-27.json`, `owner.asked_th`): (1) the 66 outlines 0.6.1 left waiting,
+in the tab «ติ๊กขอบ V4 (0.6.1)» of the tick sheet with Claude's recommendation per code, his column in yellow and four
+pictures; (2) a new rule, an outline cut to the part within 1 km of its reference point; (3) ย่านตลาดไท's reference point
+in the registry set to the OpenStreetMap point its outline is drawn from; (4) the 0.5.0 drawing exports deleted from this
+repository. His answers and ticks are kept in that file and read by `scripts/rule-outlines.py ticks`, which writes
+`amendments/outline-new-2026-11-27-r3.geojson` from the file of 0.6.1; every outline 0.6.1 applied keeps its geometry.
+
+**The recommendation (Inference, Claude's, shown to him in the sheet).** Measured on each drawing: 85% or more of the
+outline within 1 km of its point — use it as drawn; within 1 km once its narrow arms are off (`trim_arms_seed`, §2e) —
+take them off; else cut it to the part within 1 km. Two were written apart: ย่านตลาดไท, drawn on his words of 26 Nov, and
+ชุมชนซอยพหลโยธิน 94, already trimmed — use as drawn.
+
+**His ticks (Owner-stated).** “ตามข้อเสนอ” in 65 rows and “ไม่นับเป็นย่านการค้า ลบทิ้ง” in the row of ชุมชนซอยพหลโยธิน 94
+(CMN-TH-33E737E0D0); the column was read back at 10:55 (SHA-256 of the 66 rows in the file). Each code once: 13 used as
+drawn (ย่านตลาดไท among them; 1,015 to 1,580 m from their seeds, 13.32 km²), 11 with their narrow arms off (at most 985 m,
+6.16 km²), 41 cut to the part within 1,000 m of the reference point (`cut_within`: the drawing intersected with the circle
+of 1 km in UTM, 128 segments a quarter, keeping the parts that hold the point; 992 m from the 8 m seed, 65.58 km²) — 65
+outlines, 85.07 km², 82 to 1,663 ไร่. Every one holds its point. The page says when his tick changed a drawing: “ตัดแขนแคบ
+ตามที่เจ้าของติ๊ก 27 พ.ย. 2569” or “ตัดเหลือในวง 1 กม. จากจุดอ้างอิง ตามที่เจ้าของติ๊ก 27 พ.ย. 2569” in the outline words
+(`rows[].screen.tick`, `tickedOn`); used as drawn says nothing more.
+
+**The code he took off (Owner-stated).** Not a commercial neighbourhood: neither drawn, listed nor searchable (the outline
+file's `removed`, with his words); `meta.screen.removedOwner` and `meta.totals.screenRemoved` count it so the registry's
+677 codes still add up on the page (“เจ้าของให้ไม่นับเป็นย่านการค้า 1”). On his answers the same morning (“บันทึกช่อง «พี่
+ตัดสิน» (แนะนำ)”, then “เลือก «ไม่ใช่ย่าน» (แนะนำ)”, that column taking four words only) the registry's review row
+(05_REVIEW_QUEUE) carries «ไม่ใช่ย่าน» in «พี่ตัดสิน» and his words with the date at the end of «หมายเหตุ», written in his
+Chrome and read back about 11:55; the code stays in the registry.
+
+**ย่านตลาดไท's point (“3 แก้”).** The registry's reference point of the code (05_REVIEW_QUEUE, «จุดอ้างอิงย่าน») is now
+the OpenStreetMap point of ตลาดไท its outline starts from, with a note that keeps the old point in the sheet; written in
+his Chrome and read back at 11:01. The outline and the point the page uses do not change; the outline file says the point
+is the registry's since 27 Nov.
+
+**The exports (“4 ลบ”).** `amendments/outline-new-2026-11-26-point.json` and `-wide.json` are deleted: their grids locate,
+within about 20 m, the reference points of the codes without an outline. Their SHA-256 stay in `drawing.exports` of the
+0.5.0 file and git history before 0.7.7 keeps their bytes; the V4 drawings of 0.6.1 stayed private all along.
+
+**What it changes (Observed fact).** 534 outlines in 77 provinces, 318.1 km² (0.062% of the provinces' area): the 358 of
+the registry, the 37 lodging drafts and 139 of the screen (the 74 of 0.6.1 and the 65 he ticked; 70 drawn with V4). Of the
+screen's 228 codes, 88 have no outline and are searchable names, one is taken off; none waits for a tick and none is held.
+14,513 records inside the outlines (13,407 in 0.6.1). The glance still ranks against the 395 of 0.4.0 (D-8).
 
 ## 3. Datasets and their default scope
 
@@ -569,7 +615,8 @@ python3 -I scripts/rule-outlines.py amend amendments/outline-rule-2026-11-24-r2.
   --on 2026-11-24 --choices amendments/outline-rule-choices-2026-11-24.json   # the owner's picks (§2c); the drawing is the
 #    one the choices name as `drawing` (r2: his limits and industrial land), and amend refuses while a redraw is pending
 # 8a. (0.5.0) the commercial screen's codes (§2d): drawn twice in the live demo from seeds round their reference points
-#    (8 m, and 40 m), both exports in amendments/; then, with the registry's export read privately for names and points,
+#    (8 m, and 40 m), both exports in amendments/ until 0.7.7 (deleted on the owner's word, §2f: git history before it
+#    keeps them); then, with the registry's export read privately for names and points,
 python3 -I scripts/rule-outlines.py new amendments/outline-new-2026-11-26-point.json --wide amendments/outline-new-2026-11-26-wide.json \
   --seeds <[code, lat, lon] list the page drew from> --seeds-sha <16 hex digits the page reported> --info <names, provinces, districts> \
   --bundle <outlines dir> --lodging <lodging folder> --hold CMN-TH-BAFFB5235F --on 2026-11-26 \
@@ -584,6 +631,10 @@ python3 -I scripts/rule-outlines.py revise --prior amendments/outline-new-2026-1
   --seeds <[code, lat, lon] list the page drew from> --seeds-sha <16 hex digits the page reported> --info <names, provinces, districts> \
   --bundle <outlines dir> --lodging <lodging folder> --on 2026-11-26 --out amendments/outline-new-2026-11-26-r2.geojson --report <report.json>
 #    and step 5 takes --screen amendments/outline-new-2026-11-26-r2.geojson --screen-on 2026-11-26 (nothing held)
+# 8c. (0.7.7) the owner's ticks of 2026-11-27 on the r2 file (§2f): used as drawn, narrow arms off, cut to 1 km, or taken off
+python3 -I scripts/rule-outlines.py ticks --prior amendments/outline-new-2026-11-26-r2.geojson \
+  --choices amendments/outline-new-choices-2026-11-27.json --on 2026-11-27 --out amendments/outline-new-2026-11-27-r3.geojson --report <report.json>
+#    and step 5 takes --screen amendments/outline-new-2026-11-27-r3.geojson --screen-on 2026-11-26 (nothing held, one removed)
 # 9. (0.4.0) the surroundings (§12): after data/neighborhoods.json, data/boundaries.geojson and data/records/ are built,
 #    from the same 16 files (flat, <dataset id>.json; the estates with the demo's boundaries.geojson in industrialestate_dir/)
 python3 -I scripts/build-around.py --sources <the 16 files> --shoppingcenter <clone of montri-th/shoppingcenter> --built-on <YYYY-MM-DD>
