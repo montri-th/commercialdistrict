@@ -3,7 +3,7 @@
   "schemaVersion": "1.5.0",
   "documentType": "implementation-plan",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.7.9",
+  "productVersion": "0.7.10",
   "updatedOn": "2026-11-27",
   "language": "en",
   "architecture": {
@@ -95,7 +95,8 @@
       "0.7.7": "done 2026-11-27: citymeter-shell 0.6.6 (Tourism in the dataset picker; another session, PR #48)",
       "0.7.8": "done 2026-11-27: the owner's ticks of 27 Nov 10:44 on the commercial screen's outlines (65 used, narrow arms off or cut to 1 km; one taken off the screen), with «รอบย่านนี้» and «ใครอยู่ตรงนี้» for them",
       "0.7.9": "done 2026-11-27: the round map without url(#…) references (frame in the panel's paper, hatch as lines, width and height), a guard for Safari on the owner's phone (owner 16:10), cause not confirmed",
-      "0.7.10": "V7-08 (the business type and brand picker, D-15)",
+      "0.7.10": "done 2026-11-27: «ความเป็นย่าน», the level triangle of residents, overnight visitors and centres (D-V11, D-V12), and «ช่วงไหนน่าจะคึก», the 7 × 24 hypothesis in the Shopping Center page’s style (D-V10); owner 18:04–18:23",
+      "0.7.11": "V7-08 (the business type and brand picker, D-15)",
       "later": "V7-10, in the order the owner picks"
     },
     "tasks": [
@@ -234,7 +235,7 @@
       },
       {
         "id": "V7-08",
-        "release": "0.7.10",
+        "release": "0.7.11",
         "title": "น่าค้าขาย: เลือกประเภทธุรกิจและแบรนด์ — คู่แข่ง พันธมิตร สาขาของเรา (D-15)",
         "dependsOn": [
           "V7-06"

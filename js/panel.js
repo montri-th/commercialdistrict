@@ -28,6 +28,8 @@ import {lowLocated} from './model.js';
 import {cellsOf} from './levels.js';
 import {dsPic, fingerprint, matrix, matrixAnswer, matrixHead, matrixLegend, levelScopeLine, axisCards, axisKey, axisFoldIntro, compareDots, shapeMark, areaWords, provinceWords} from './visual.js';
 import {peopleSection, mapSection, DEFAULT_REACH, DEFAULT_MAP} from './people.js';
+import {characterSection} from './character.js';
+import {busySection, DAYPART_REACH} from './daypart.js';
 import {topicsHTML} from './indicators.js';
 import {AXES} from './axes.js';
 
@@ -440,6 +442,32 @@ function peopleProvenance(r, model, meta, reach) {
       'Living here: the civil register by subdistrict from CityMETER spread over Building V4 · work and study: CityMETER datasets of schools, universities, factories, government offices and offices (the Shopping Center page’s model) · overnight visitors: Ministry of Tourism and Sports, Table 17.1, with the rooms of the lodging dataset · centres and markets: the Shopping Center dataset'),
     date, boundary: L(`${r.name} · ขอบร่าง ${rai(r.areaM2)} ไร่${far}`, `${r.name} · draft outline ${rai(r.areaM2)} rai${far}`), anchor: 'people'});
 }
+/** (0.7.10, D-V11) «ความเป็นย่าน»: the three levels of the tiles, among the neighbourhoods of data/character.json. */
+function characterProvenance(r, model, meta, char, reach) {
+  const dates = model.datasets.filter(ds => ['hotel', 'shoppingcenter'].includes(ds.id) && ds.id in (r.c || {})).map(dsDate).filter(Boolean).sort();
+  const when = dates.length ? daySpan(dates[0], dates.at(-1)) : '';
+  const pm = meta?.residents?.populationMonth, yr = meta?.gst?.source?.year;
+  const date = [pm ? L(`ทะเบียน ${monthOf(pm)}`, `register ${monthOf(pm)}`) : '', yr ? L(`ผู้เข้าพัก พ.ศ. ${yr + 543}`, `guests ${yr}`) : '', when ? L(`ชุดข้อมูล ${when}`, `datasets ${when}`) : ''].filter(Boolean).join(' · ');
+  const far = reach === 'in' ? L('ในขอบร่างของแต่ละย่าน', 'inside each draft outline') : L(`ในย่านและพื้นที่ไม่เกิน ${num(+reach / 1000)} กม. จากขอบของแต่ละย่าน`, `inside and up to ${num(+reach / 1000)} km from the edge of each`);
+  return provLine({
+    dataset: L(`CityMETER Commercial District · ความเป็นย่าน รุ่น ${char?.meta?.release || ''}`.trim(), `CityMETER Commercial District · what kind of place ${char?.meta?.release || ''}`.trim()),
+    source: L('ระดับเทียบของ «ใครอยู่ตรงนี้» — คนอยู่: ทะเบียนราษฎรรายแขวง/ตำบลจาก CityMETER แบ่งลงอาคาร Building V4 · ผู้มาเยือนค้างคืน: กระทรวงการท่องเที่ยวและกีฬา ตาราง 17.1 กับห้องพักในชุดข้อมูลที่พัก · ศูนย์และตลาด: ชุดข้อมูลศูนย์การค้าและตลาด',
+      'Levels of «who is here» — living here: the civil register by subdistrict from CityMETER spread over Building V4 · overnight visitors: Ministry of Tourism and Sports, Table 17.1, with the rooms of the lodging dataset · centres and markets: the Shopping Center dataset'),
+    date, boundary: L(`${r.name} · เทียบ ${num(char?.meta?.rows || 0)} ย่าน · ${far}`, `${r.name} · ${num(char?.meta?.rows || 0)} neighbourhoods compared · ${far}`), anchor: 'character'});
+}
+/** (0.7.10, D-V10) «ช่วงไหนน่าจะคึก»: a hypothesis from rules on the people record within 1 km. */
+function busyProvenance(r, model, meta) {
+  const ids = ['hotel', 'shoppingcenter', 'office', 'governmentoffice', 'factory', 'industrialestate', 'school', 'university', 'transit'];
+  const dates = model.datasets.filter(ds => ids.includes(ds.id) && ds.id in (r.c || {})).map(dsDate).filter(Boolean).sort();
+  const when = dates.length ? daySpan(dates[0], dates.at(-1)) : '';
+  const pm = meta?.residents?.populationMonth;
+  const date = [pm ? L(`ทะเบียน ${monthOf(pm)}`, `register ${monthOf(pm)}`) : '', when ? L(`ชุดข้อมูล ${when}`, `datasets ${when}`) : ''].filter(Boolean).join(' · ');
+  return provLine({
+    dataset: L(`CityMETER Commercial District · ช่วงไหนน่าจะคึก รุ่น ${meta?.release || ''}`.trim(), `CityMETER Commercial District · when it is likely busy ${meta?.release || ''}`.trim()),
+    source: L('สมมติฐานจากกฎ บนระดับคนอยู่ ผู้มาเยือนค้างคืน ศูนย์และตลาด และจำนวนที่ทำงาน ที่เรียน และสถานีราง จาก «ใครอยู่ตรงนี้» (หน้าตาแบบหน้าศูนย์การค้า ใช้กฎของหน้านี้เอง)',
+      'A hypothesis from rules on the levels of residents, overnight visitors, centres and markets and the counts of places of work, study and rail of «who is here» (laid out as on the Shopping Center page, with this page’s own rules)'),
+    date, boundary: L(`${r.name} · ในย่านและพื้นที่ไม่เกิน ${num(+DAYPART_REACH / 1000)} กม. จากขอบ`, `${r.name} · inside and up to ${num(+DAYPART_REACH / 1000)} km from the edge`), anchor: 'daypart'});
+}
 const MAP_DS = {visit: ['hotel', 'shoppingcenter', 'grocery', 'restaurant', 'pharmacy', 'fitness', 'luxurybrands', 'camera'],
   work: ['office', 'governmentoffice', 'factory', 'industrialestate', 'university', 'hospital', 'school']};
 function mapProvenance(r, model, meta, tab, {context = false} = {}) {
@@ -685,7 +713,7 @@ function registryDetails(d, model) {
  * while it loads or when it did not load); distance: the reading of «ขอบเดินถึง» (`f.around`: in · 400 · 800).
  */
 export function renderNeighborhood(d, model, {inCompare = false, compareFull = false, fillOf = () => '', ctx = {}, recordsHTML = '', around = null, distance = 'in', venueLogo = () => null,
-  people = null, peopleMeta = null, peopleState = 'idle', reach = DEFAULT_REACH, mapTab = DEFAULT_MAP} = {}) {
+  people = null, peopleMeta = null, peopleState = 'idle', reach = DEFAULT_REACH, mapTab = DEFAULT_MAP, character = null, characterState = 'loading'} = {}) {
   const r = d.row, province = provinceName(r.province), am = amendmentOf(r, model);
   const top = d.highlights[0];
   const names = d.highlights.map(x => `<span class="hl-chip">${dsPic(x.ds)}${dsLabel(x.ds)}</span>`).join('');
@@ -710,7 +738,13 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
   const peopleHTML = peopleSection(r, people, peopleMeta, {reach, refN, state: people ? 'ready' : peopleState === 'error' ? 'error' : 'loading',
     prov: people ? peopleProvenance(r, model, peopleMeta, reach) : ''});
   const mapHTML = people ? mapSection(r, people, peopleMeta, {tab: mapTab, reach, prov: tab => mapProvenance(r, model, peopleMeta, tab, {context: Boolean(people.map?.ctx)}), outOfScope: ids => model.datasets.filter(ds => ids.includes(ds.id) && !(ds.id in (r.c || {}))).map(ds => dsName(ds))}) : '';
-  return `${aha}${metrics}${peopleHTML}${mapHTML}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${aroundSection(d, model, around, {distance, fillOf, venueLogo, people, peopleMeta, peopleState: people ? 'ready' : peopleState === 'error' ? 'error' : 'loading'})}${recordsHTML}${similarSection(d, model, around)}
+  // (0.7.10) «ความเป็นย่าน» reads the tiles' levels against every neighbourhood (D-V11, D-V12) right under them; «ช่วงไหนน่าจะคึก»,
+  // a hypothesis, follows the measured topic rows (D-V10), as the Shopping Center page puts its grid after what it counts
+  const charHTML = characterSection(r, character, {reach, refN, state: character ? 'ready' : characterState === 'error' ? 'error' : 'loading',
+    rowInfo: id => { const x = model.byId.get(id); return x ? {name: x.name, place: provinceName(x.province)} : null; },
+    prov: character && peopleMeta ? characterProvenance(r, model, peopleMeta, character, reach) : ''});
+  const busyHTML = people ? busySection(people, {prov: busyProvenance(r, model, peopleMeta)}) : '';
+  return `${aha}${metrics}${peopleHTML}${charHTML}${mapHTML}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${aroundSection(d, model, around, {distance, fillOf, venueLogo, people, peopleMeta, peopleState: people ? 'ready' : peopleState === 'error' ? 'error' : 'loading'})}${busyHTML}${recordsHTML}${similarSection(d, model, around)}
     ${actionBar({kind: 'neighborhood', name: r.name, province, point: {lat: r.ref[1], lon: r.ref[0]}})}
     ${registryDetails(d, model)}
     ${provenance(ctx, {boundary: r.kind === 'lodging' && !am ? L(`${r.name} · ขอบร่างของผลคัดย่านที่พัก ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline of the lodging screen ${rai(r.areaM2)} rai`) : r.kind === 'screen' ? L(`${r.name} · ขอบร่างตามหลักของเจ้าของ ${thaiDate(r.screen?.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline by the owner's rule, ${thaiDate(r.screen?.on)}, from OpenStreetMap ${rai(r.areaM2)} rai`) : am ? L(`${r.name} · ขอบย่านฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline extended on ${thaiDate(am.on)} from OpenStreetMap ${rai(r.areaM2)} rai`) : L(`${r.name} · ขอบย่านฉบับร่าง ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline ${rai(r.areaM2)} rai`)})}`;

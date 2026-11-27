@@ -92,6 +92,27 @@
       "channel": "Claude chat, Project 02 CityMETER",
       "verbatim": "merge and publish",
       "note": "pull requests #44 (0.7.4), #45 (0.7.5) and #46 (0.7.6) and citymeter-shell 0.6.5 in every demo and the hub; live 10:15 – 10:18 (handoff/VERIFICATION.md)"
+    },
+    {
+      "at": "2026-11-27T18:04:00+07:00",
+      "by": "owner (Montri)",
+      "channel": "Claude chat, Project 02 CityMETER",
+      "verbatim": "merge เลย ผมจะตรวจบน iphon safari ให้ / และ side panel ยังขาด heatmap ใน 7x24 daypart",
+      "note": "“merge เลย”: the open live records #52, #50 and #47, merged 18:10:39, 18:11:48 and 18:14:42 (merge commits 011325e, 4d13789, 39b274c); the 7 × 24 grid is D-V10"
+    },
+    {
+      "at": "2026-11-27T18:05:00+07:00",
+      "by": "owner (Montri)",
+      "channel": "Claude chat, Project 02 CityMETER",
+      "verbatim": "และ x-y plot แสดงความเป็นย่าน แต่รอบนี้ควรเป็น น่าอยู่ น่าเที่ยว น่าค้าขาย ทำยังไงดีมี 3 แกน",
+      "note": "the Shopping Center page’s comparison of two ranks (คนอยู่ใกล้ × คนทำงานใกล้, its quarters) carried to three axes: D-V11 (the value of each axis) and D-V12 (the chart)"
+    },
+    {
+      "at": "2026-11-27T18:23:00+07:00",
+      "by": "owner (Montri)",
+      "channel": "Claude chat, Project 02 CityMETER (his answers to Claude’s three questions, received by 18:23)",
+      "verbatim": "เลือก 1 แต่ช่วยใช้ style เหมือน demo = shopping center · «คนอยู่ · ผู้มาเยือน · ศูนย์และตลาด (แนะนำ)» · «สามเหลี่ยมระดับ (แนะนำ)»",
+      "note": "D-V10, D-V11 and D-V12, release 0.7.10"
     }
   ],
   "reading": {
@@ -338,6 +359,67 @@
       "live": "2026-11-27 10:15 – 10:18 (GitHub Pages; Cloudflare run 45933263316, 114 / 114 live checks, every demo on 0.6.5); a real click on EN in Chrome opened the English page (handoff/VERIFICATION.md)",
       "status": "decided · live · Safari, the owner’s browser, not yet checked",
       "phone": "the note «แผนที่แบบเบา» over EN in the phone’s menu is D-V9c"
+    },
+    {
+      "id": "D-V10",
+      "question": "ตาราง 7 วัน × 24 ชั่วโมงในแผงย่าน: ชุดข้อมูลในครอบครัวแทบไม่มีเวลาเปิด จึงยังวัดเวลาจริงของย่านไม่ได้ (ตารางของหน้าศูนย์การค้าก็เป็นสมมติฐานจากกฎ) จะทำแบบไหน",
+      "options": [
+        "สมมติฐานแบบรอบศูนย์นี้ (แนะนำ): กฎจากคนอยู่ ผู้มาเยือน ศูนย์และตลาด และที่ทำงาน–เรียนในย่าน ติดป้ายสมมติฐาน เทียบชั่วโมงที่คึกที่สุดของย่านเอง ไม่ใช่จำนวนคน",
+        "รอข้อมูลเวลาจริงก่อน"
+      ],
+      "status": "decided",
+      "decision": "the hypothesis from rules, in the Shopping Center page’s style",
+      "decidedAt": "2026-11-27T18:23:00+07:00",
+      "decidedBy": "owner",
+      "ownerWords": "และ side panel ยังขาด heatmap ใน 7x24 daypart (18:04) · เลือก 1 แต่ช่วยใช้ style เหมือน demo = shopping center (his answer)",
+      "delegatedToAuthor": false,
+      "supersedes": "the proposal of 2026-11-25 (02-CityMETER__commercialdistrict-neighbourhood-locale-insight-proposal__v1) left the 7 × 24 grid out (“ย่านไม่มีข้อมูลเวลา”, VL-F-07); the owner now asks for it, as a hypothesis",
+      "meaning": "«ช่วงไหนน่าจะคึก»: levels 1–5 against the neighbourhood’s own busiest hour, neutral tones, the Shopping Center page’s busiest line, grid, legend and fold; never people, footfall, customers or sales",
+      "appliedAs": "js/daypart.js (daypartOf, busySection) · styles.css (.busy-peak, .dp-grid, .dp-legend, .prior-badge) · DATA_METHOD.md §19",
+      "release": "0.7.10"
+    },
+    {
+      "id": "D-V11",
+      "question": "กราฟความเป็นย่าน 3 แกน (อยู่ · เที่ยว · ค้าขาย) ต้องมีค่าหนึ่งค่าต่อแกนต่อย่าน ค่าที่แผงมีครบทั้ง 534 ย่านคือระดับเทียบของคนอยู่ ผู้มาเยือนค้างคืน และศูนย์และตลาด (คนมาทำงานและเรียนจัดระดับได้แค่ 73 ย่านที่ 1 กม.) จะให้แต่ละแกนใช้ค่าอะไร",
+      "options": [
+        "คนอยู่ · ผู้มาเยือน · ศูนย์และตลาด (แนะนำ): ระดับที่แผงแสดงอยู่แล้ว ไม่สร้างคะแนนใหม่ มุมกราฟชื่อ ย่านอยู่ · ย่านเที่ยว · ย่านค้าขาย",
+        "คะแนนรวมของชุดข้อมูลในแกน: ตรงชื่อ แต่ต้องยกเลิกกติกาห้ามคะแนนรายแกน และแกนค้าขายจัดระดับได้แค่มหาวิทยาลัยกับร้านกล้อง"
+      ],
+      "status": "decided",
+      "decision": "คนอยู่ · ผู้มาเยือนค้างคืน · ศูนย์และตลาด, the levels the tiles of «ใครอยู่ตรงนี้» print at the same distance",
+      "decidedAt": "2026-11-27T18:23:00+07:00",
+      "decidedBy": "owner",
+      "ownerWords": "«คนอยู่ · ผู้มาเยือน · ศูนย์และตลาด (แนะนำ)»",
+      "delegatedToAuthor": false,
+      "rejectedAlternatives": [
+        "a score per axis from its datasets’ levels: it would lift the binding rule of D-V6b (no score, total or rank of a neighbourhood per axis), and the trade axis has levels for two datasets only (university, camera)"
+      ],
+      "meaning": "the corners are measures, not scores of น่าอยู่ · น่าเที่ยว · น่าค้าขาย; the topic rows keep no score per axis (D-V6b stays); the three are never added",
+      "appliedAs": "scripts/build-character.py → data/character.json · js/character.js · DATA_METHOD.md §18",
+      "release": "0.7.10"
+    },
+    {
+      "id": "D-V12",
+      "question": "กราฟความเป็นย่าน 3 แกนจะวาดแบบไหน (หน้าศูนย์การค้าใช้จุด x-y 2 แกน: คนอยู่ใกล้ × คนทำงานใกล้)",
+      "options": [
+        "สามเหลี่ยมระดับ (แนะนำ): เห็นครบ 3 แกนในภาพเดียว ทับแถบกลางของย่านอื่น พร้อมชื่อแบบย่านและ 5 ย่านที่ใกล้กันที่สุด",
+        "จุด x-y สลับคู่แกน",
+        "สามเหลี่ยมส่วนผสม"
+      ],
+      "status": "decided",
+      "decision": "the level triangle",
+      "decidedAt": "2026-11-27T18:23:00+07:00",
+      "decidedBy": "owner",
+      "ownerWords": "«สามเหลี่ยมระดับ (แนะนำ)»",
+      "delegatedToAuthor": false,
+      "rejectedAlternatives": [
+        "x-y with a switch of the pair: two axes at a time",
+        "the mix triangle (ternary): a large and a small neighbourhood of the same mix share one point"
+      ],
+      "meaning": "«ความเป็นย่าน» under the tiles: the type with how many share it, the triangle over the middle ring (50) and the middle half (25–75) of the 395, the five nearest folded",
+      "supersedes": "the proposal of 2026-11-25 put the residents × workers chart off to round 2 (VL-F-06); this is its three-corner form",
+      "appliedAs": "js/character.js (characterModel, triangleSVG, characterSection) · styles.css (.chr-*)",
+      "release": "0.7.10"
     }
   ],
   "authorJudgements": [
@@ -412,6 +494,30 @@
       "chosen": "every number with its unit, ชุด / datasets, in the visible key and in the image’s name",
       "why": "“เฉพาะขอบเดินถึง 800 ม. 4” read as four records, the misreading INV-01 guards against",
       "rejected": "numbers without a unit"
+    },
+    {
+      "what": "the rules of «ช่วงไหนน่าจะคึก» (D-V10)",
+      "chosen": "the Shopping Center page’s rule family read for an area: a base pattern (no closed hours), Friday evening and Sunday night, then residents, visitors and centres by their levels at 1 km ((level − 40) / 50, as there) and offices, factories, schools, universities and rail stations within 1 km by count (1–2 a quarter of the shift, 3–9 half, 10 or more the whole shift, so the fold's words read slight, moderate and none, as the Shopping Center page's words at those strengths); the cut points of its five levels",
+      "why": "the centre builder’s hour weights are not in this repository; the rules are written out in js/daypart.js and DATA_METHOD.md §19 so they can be read and changed",
+      "rejected": "copying a centre’s grid onto its neighbourhood; a grid per distance of the tiles"
+    },
+    {
+      "what": "where the two blocks sit",
+      "chosen": "«ความเป็นย่าน» right under the tiles it reads; «ช่วงไหนน่าจะคึก» after the topic rows of น่าอยู่ · น่าเที่ยว · น่าค้าขาย",
+      "why": "measured, then benchmark, then interpretation (MBB §3.7); the Shopping Center page puts its grid after what it counts",
+      "rejected": "the grid at the top of the panel"
+    },
+    {
+      "what": "a corner where nothing is counted, and the type’s split",
+      "chosen": "a measured 0 reads ไม่มี and sits at the centre as a hollow ring; the type reads the numbers the page prints (Math.round) against 50, the Shopping Center page’s split",
+      "why": "the tile prints 0 with no level there; a corner and its tile must read the same number",
+      "rejected": "a level for nothing counted"
+    },
+    {
+      "what": "the grid’s icon",
+      "chosen": "the calendar of this page’s pictogram subset (date = event)",
+      "why": "the Shopping Center page uses a clock (schedule), which this subset lacks; adding a glyph needs the Material Symbols source font, not in the container",
+      "rejected": "a new glyph in this release"
     }
   ],
   "release": {
