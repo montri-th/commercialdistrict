@@ -698,7 +698,7 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
   // (0.7.0, D-12 and 2.4 of 2026-11-26) «ใครอยู่ตรงนี้» and the round maps follow the neighbourhood's figures, in the place of
   // the 0.4.0 glance (its students and rooms are parts of the people tiles now); «ขอบเดินถึง» keeps the place of the list
   const refN = around?.meta.referenceSet?.n || 395;
-  const peopleHTML = peopleSection(r, people, peopleMeta, {reach, refN, state: people ? 'ready' : peopleState === 'error' ? 'error' : 'loading',
+  const peopleHTML = peopleSection(r, people, peopleMeta, {reach, refN, mapTab, state: people ? 'ready' : peopleState === 'error' ? 'error' : 'loading',
     prov: people ? peopleProvenance(r, model, peopleMeta, reach) : ''});
   const mapHTML = people ? mapSection(r, people, peopleMeta, {tab: mapTab, prov: tab => mapProvenance(r, model, peopleMeta, tab, {context: Boolean(people.map?.ctx)}), outOfScope: ids => model.datasets.filter(ds => ids.includes(ds.id) && !(ds.id in (r.c || {}))).map(ds => dsName(ds))}) : '';
   return `${aha}${metrics}${peopleHTML}${mapHTML}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${aroundSection(d, model, around, {distance, fillOf, venueLogo, people, peopleMeta, peopleState: people ? 'ready' : peopleState === 'error' ? 'error' : 'loading'})}${recordsHTML}${similarSection(d, model, around)}

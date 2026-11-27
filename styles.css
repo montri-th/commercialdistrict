@@ -1461,6 +1461,19 @@ button.mx-who .mx-name { text-decoration: underline; text-underline-offset: 3px;
 .people-tile > :not(.pictogram) { grid-column: 2; }
 .people-label { font-size: 14px; line-height: 1.4; font-weight: 600; color: var(--text-secondary); }
 .people-tile .glance-tag { font-size: 13px; font-weight: 400; }
+/* (0.7.4) a group's tile opens its map: the label is the button, its area the whole tile; the open map's tile is outlined,
+   never a coloured rail; the focus ring goes round the tile */
+.people-tile.has-map { position: relative; grid-template-columns: 28px minmax(0, 1fr) auto; border: 1px solid transparent; }
+.people-tile.has-map:hover { border-color: var(--border-emphasis); }
+.people-tile.is-on { border-color: var(--border-emphasis); }
+.people-tile.has-map:focus-within { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; }
+.people-go { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; text-align: start; cursor: pointer; }
+.people-go::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.people-go:focus-visible { outline: none; }
+.people-tile > .people-go-mark { grid-column: 3; grid-row: 1; align-self: start; color: var(--text-secondary); }
+.people-go-mark .pictogram { width: 20px; height: 20px; font-size: 20px; }
+.people-en, .pm-tab-en { font-weight: 400; font-size: 13px; color: var(--text-metadata); }
+#nb-map { scroll-margin-top: 72px; }
 .people-fig { font-size: 14px; line-height: 1.25; color: var(--text-secondary); white-space: nowrap; }
 .people-fig small { font-size: 14px; }
 .people-fig b { font-size: 24px; font-weight: 600; color: var(--text-primary); }

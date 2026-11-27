@@ -1,5 +1,28 @@
 # CityMETER Commercial District — verification
 
+## Release 0.7.4 — 27 พ.ย. 2569 (not published)
+
+The owner's words of 07:15 (VERBATIM): “ควรจะเรียงลำดับ Resident > Visitor > Commutor และให้มีภาษาอังกฤษด้วย
+ตอนนี้คลิกไม่ได้”. The order is his; the English words beside the Thai names and the tiles that open the maps are Claude's
+reading, waiting for his confirmation (D-V9 in `handoff/visual/decisions.json`).
+
+### Local (container, 27 Nov)
+
+- `npm test`: 221 tests, 221 pass, 0 fail (new: for each of the three tabs at ปุณณวิถี, a tile per group opens its map
+  in the owner's order and the centres' tile none; only the open map's tile is marked; his English words stand beside the
+  Thai names in the tiles and the tabs).
+- Data: only `release` in `data/people/meta.json` changed (0.7.3 → 0.7.4); no other file under `data/`.
+- Playwright with Google Chrome on `python3 -m http.server` over this tree, cache tag `20261127-r2` (the server's log
+  shows the files requested with it), ปุณณวิถี (`CMN-TH-FC9F0B73B3`), Thai 1,440 light, English 1,440 dark, Thai 393 dark,
+  English 393 light:
+  - the tiles read residents, visitors, commuters, centres; the tabs residents, visitors' places, work and study, the
+    residents tab pressed on opening; Thai tabs “คนอยู่ Residents”, “ที่ผู้มาเยือนใช้ Visitors”, “ที่ทำงานและที่เรียน
+    Commuters”; English tabs “Residents”, “Places visitors use”, “Work and study”;
+  - a pointer click on the visitors tile's figure pressed the visitors tab and brought the map to 119 px from the top
+    (1,440) and 177 px (393), the address carrying `f.map=visit`; Enter on the commuters tile's button pressed the work
+    tab, `f.map=work`, the focus on that tab;
+  - `__citymeterI18n.missing` empty, no tile wider than its box, no page error.
+
 ## Release 0.7.3 — live (2026-11-27)
 
 - Merged on the owner's word (06:50, VERBATIM: “merge and publish”): pull request #42, merge commit `2c73636`.

@@ -408,6 +408,19 @@ function setMapTab(value) {
   document.querySelector(`#panel-view [data-action="set-map"][data-value="${next}"]`)?.focus({preventScroll: true});
 }
 
+/**
+ * A tile of «ใครอยู่ตรงนี้» opens its group's map (0.7.4; owner 2026-11-27 07:15, VERBATIM: “ควรจะเรียงลำดับ Resident >
+ * Visitor > Commutor และให้มีภาษาอังกฤษด้วย ตอนนี้คลิกไม่ได้”): the tab is chosen, the map comes into view, and the focus
+ * goes to the chosen tab, so the keyboard carries on from the map.
+ */
+function showMap(value) {
+  const next = validMap(value);
+  if (next !== state.mapTab) { state.mapTab = next; renderPanel(); saveURL(); }
+  const sec = document.getElementById('nb-map');
+  sec?.scrollIntoView({block: 'start', behavior: reduced() ? 'auto' : 'smooth'});
+  document.querySelector(`#panel-view [data-action="set-map"][data-value="${next}"]`)?.focus({preventScroll: true});
+}
+
 function ensureRing(r) {
   if (!r || state.distance === 'in' || state.rings.has(r.id) || state.ringsLoading.has(r.id)) return;
   state.ringsLoading.add(r.id);
@@ -469,6 +482,7 @@ function onPanelAction(event) {
   else if (action === 'set-around') setDistance(value);
   else if (action === 'set-reach') setReach(value);
   else if (action === 'set-map') setMapTab(value);
+  else if (action === 'show-map') showMap(value);
   else if (action === 'people-retry') { const r = openRow(); if (r) { state.peopleErr.delete(r.id); renderPanel(); $('nb-people')?.focus({preventScroll: true}); } }
   else if (action === 'around-jump') jumpToAround(value);
   else if (action === 'clear-lens') setLens('');
