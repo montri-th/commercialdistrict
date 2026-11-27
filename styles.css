@@ -1560,3 +1560,64 @@ button.mx-who .mx-name { text-decoration: underline; text-underline-offset: 3px;
 #panel .people-fig small, #panel .people-parts, #panel .tp-text small { font-size: 14px; }
 #panel .people-parts small, #panel .pm-tabs .seg small, #panel .pm-table td small { font-size: 13px; }
 #panel .people-method > summary, #panel .pm-table-fold > summary { min-height: 44px; display: flex; align-items: center; font-size: 14px; }
+
+/* ---------- «ความเป็นย่าน» (0.7.10; owner 2026-11-27 18:05 and D-V11, D-V12): the three levels of the tiles as one triangle,
+   the Shopping Center page's comparison of two ranks (.cmp-*) carried to three corners. The corner dots take the LDS count
+   sample of their level, outlined (as the tiles' meters); the rings, band and outline are foundation tones ---------- */
+.chr-lead { margin: 0; font-size: 14px; line-height: 1.45; font-weight: 600; }
+.chr-count { display: block; font-size: 13px; font-weight: 400; color: var(--text-secondary); }
+.chr-figure { margin: 0; display: grid; gap: 2px; justify-items: center; max-width: 440px; }
+.chr-top, .chr-bottom { margin: 0; width: 100%; max-width: 320px; display: flex; font-size: 14px; line-height: 1.4; }
+.chr-top { justify-content: center; }
+.chr-bottom { justify-content: space-between; gap: 8px; }
+.chr-v { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; color: var(--text-secondary); }
+.chr-v .pictogram { width: 18px; height: 18px; font-size: 18px; color: var(--text-primary); }
+.chr-v .data-number { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+.chr-wrap { width: 100%; max-width: 300px; }
+.chr-plot { display: block; width: 100%; height: auto; }
+.chr-plot .chr-band { fill: var(--surface-alt); }
+.chr-plot .chr-ring { fill: none; stroke: var(--border-default); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.chr-plot .chr-spoke { fill: none; stroke: var(--border-hairline); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.chr-plot .chr-mid { fill: none; stroke: var(--text-muted); stroke-width: 1px; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.chr-plot .chr-me { fill: none; stroke: var(--text-primary); stroke-width: 2px; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.chr-plot .chr-dot { stroke: var(--text-primary); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
+.chr-plot .chr-zero { fill: var(--surface-card); stroke: var(--text-primary); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
+.chr-axes { max-width: 440px; font-size: 13px; line-height: 1.45; color: var(--text-secondary); text-align: left; justify-self: start; }
+.chr-near-list { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 2px; }
+.chr-near-row { width: 100%; min-height: 44px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 8px; border: 0; border-radius: 10px; background: transparent; color: var(--text-primary); font: inherit; text-align: left; cursor: pointer; }
+.chr-near-row:hover { background: var(--surface-alt); }
+.chr-near-row:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; }
+.chr-near-name { display: grid; min-width: 0; font-size: 14px; line-height: 1.4; font-weight: 600; }
+.chr-near-name small { font-weight: 400; color: var(--text-secondary); }
+.chr-near-val { display: inline-flex; gap: 4px; align-items: center; font-size: 13px; white-space: nowrap; }
+.chr-near-val .pictogram { width: 16px; height: 16px; font-size: 16px; color: var(--text-secondary); }
+.chr-near-val .data-number { margin-right: 6px; }
+.chr-method-list { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; line-height: 1.55; color: var(--text-secondary); }
+
+/* ---------- «ช่วงไหนน่าจะคึก» (0.7.10; owner 2026-11-27 18:04, D-V10 “… ช่วยใช้ style เหมือน demo = shopping center”): the
+   Shopping Center page's busy block (montri-th/shoppingcenter styles.css .busy-peak, .dp-grid, .dp-legend) — a hypothesis in
+   neutral foundation tones, never a data colour; no level 0 (an area does not close); words at this panel's sizes ---------- */
+.prior-badge { margin-left: 6px; font-size: 13px; font-weight: 600; padding: 1px 8px; border-radius: 999px; border: 1px dashed var(--border-default); color: var(--text-secondary); white-space: nowrap; }
+.busy-peak { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.45; }
+.dp-wrap { margin-top: 2px; max-width: 440px; }
+.dp-grid { width: 100%; min-width: 0; table-layout: fixed; border-collapse: separate; border-spacing: 1px; }
+.dp-grid th, .dp-grid td { position: static; background: transparent; border: 0; }
+.dp-grid th { padding: 0 3px 0 0; font-size: 12px; font-weight: 600; color: var(--text-metadata); text-align: left; white-space: nowrap; overflow: visible; }
+.dp-grid thead th { font-weight: 400; font-variant-numeric: tabular-nums; }
+.dp-grid tbody th { width: 30px; }
+.dp-grid thead td { width: 30px; }
+.dp-grid td { height: 14px; padding: 0; border-radius: 2px; }
+.dp-grid td.g1, .dp-legend i.g1 { background: var(--surface-soft); }
+.dp-grid td.g2, .dp-legend i.g2 { background: var(--border-default); }
+.dp-grid td.g3, .dp-legend i.g3 { background: var(--text-muted); }
+.dp-grid td.g4, .dp-legend i.g4 { background: var(--text-metadata); }
+.dp-grid td.g5, .dp-legend i.g5 { background: var(--text-primary); }
+.dp-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--text-secondary); }
+.dp-legend li { display: inline-flex; align-items: center; gap: 4px; }
+.dp-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; }
+.dp-note { margin: 0; font-size: 13px; }
+.dp-peaks { margin: 8px 0 0; padding-left: 18px; font-size: 14px; line-height: 1.6; }
+.prior-targets { margin: 4px 0 0; padding-left: 18px; font-size: 14px; line-height: 1.6; }
+.prior-targets .fact-rank { color: var(--text-secondary); }
+#panel .chr-near-name small { font-size: 13px; }
+#panel .dp-why > summary, #panel .chr-near-fold > summary, #panel .chr-method > summary { min-height: 44px; display: flex; align-items: center; font-size: 14px; }

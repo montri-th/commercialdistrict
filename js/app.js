@@ -22,6 +22,7 @@ import {registerDataNames, registerPlaceNames} from './lang.js';
 import {provinces as provinceList, provinceByCode, provinceCodeFrom, provinceName, setProvinces, decodeData, scopeRows, scopePending, KINDS, kindMatch, cell, rowsBounds, dsName, dsUnit, dsUnitN, num, PILLARS, PILLAR_SERIES} from './model.js';
 import {buildOverview, buildNeighborhood, buildCompare} from './profile.js';
 import {decodeAround, aroundDistance, aroundMatches} from './around.js';
+import {decodeCharacter} from './character.js';
 import {renderOverview, renderNeighborhood, renderCompare, renderFilterChips, tableHeadHTML, tableRowHTML, esc, L, dens, sharePct, thaiDate} from './panel.js';
 import {decodePeople, validReach, validMap, mapTabOf, DEFAULT_REACH, DEFAULT_MAP, reachWords, watchMapNames} from './people.js';
 import {cellOf} from './levels.js';
@@ -77,6 +78,8 @@ const state = {
   // «ใครอยู่ตรงนี้» and the round maps (0.7.0): data/people/<id>.json by neighbourhood, its meta once, the scale (`f.reach`:
   // in · 1000 · 3000 · 5000, 1 km by default) and the map's tab (`f.map`: visit · work · res)
   people: new Map(), peopleLoading: new Set(), peopleErr: new Set(), peopleMeta: null, reach: DEFAULT_REACH, mapTab: DEFAULT_MAP,
+  // «ความเป็นย่าน» (0.7.10): data/character.json decoded once (null until it arrives), loading, failed
+  character: null, characterLoading: false, characterErr: false,
   map: null, loaded: false, mapTheme: '', initialCameraDone: false, tileTemplate: '', budget: null,
   layers: null, provinceLabels: null, nbLabels: null, massing: null, buildingUnits: null,
   readerPitch: false, readerMovedAt: 0,
@@ -223,7 +226,8 @@ function renderPanel() {
     html = renderNeighborhood(buildNeighborhood(state.model, r), state.model, {inCompare: state.compare.includes(r.id), compareFull: state.compare.length >= COMPARE_MAX,
       fillOf: ds => (state.lens === ds.id ? fillOfRow(r) : ''), ctx: panelCtx(), recordsHTML: panelListHTML(state.records.get(r.id) ?? null, {open: state.recordsOpen}),
       around: state.around, distance: state.distance, venueLogo: id => state.logoShards.get(r.id)?.venues.get(id) || null,
-      people: state.people.get(r.id) || null, peopleMeta: state.peopleMeta, peopleState: state.peopleErr.has(r.id) ? 'error' : 'loading', reach: state.reach, mapTab: state.mapTab});
+      people: state.people.get(r.id) || null, peopleMeta: state.peopleMeta, peopleState: state.peopleErr.has(r.id) ? 'error' : 'loading', reach: state.reach, mapTab: state.mapTab,
+      character: state.character, characterState: state.characterErr ? 'error' : 'loading'});
     $('map-aha').hidden = true;
   } else {
     state.overview = buildOverview(state.model, {rows: state.rows, province: state.province, ds: lensDs(), pending: state.pending});
@@ -238,7 +242,7 @@ function renderPanel() {
   view.innerHTML = html;
   if (kept) restorePlace(view, kept);
   watchMapNames(view);   // (0.7.2) the names over the round map, fitted at the width the panel draws it
-  if (r) { ensureLogos(r); ensurePeople(r); }
+  if (r) { ensureLogos(r); ensurePeople(r); ensureCharacter(); }
   const mode = r ? 'neighborhood' : 'overview';
   view.dataset.mode = mode;
   $('panel').dataset.mode = mode;
@@ -392,6 +396,15 @@ function ensurePeople(r) {
     .catch(e => { partial('people'); console.warn('People figures unavailable', r.id, e); state.peopleErr.add(r.id); })
     .finally(() => { state.peopleLoading.delete(r.id); if (state.nb === r.id) renderPanel(); });
 }
+/** «ความเป็นย่าน» (0.7.10): the three levels of every neighbourhood, once; on failure the section says so with a retry. */
+function ensureCharacter() {
+  if (state.character || state.characterLoading || state.characterErr) return;
+  state.characterLoading = true;
+  fetchJSON(`data/character.json${V()}`)
+    .then(json => { state.character = decodeCharacter(json); })
+    .catch(e => { partial('character'); console.warn('Character levels unavailable', e); state.characterErr = true; })
+    .finally(() => { state.characterLoading = false; if (state.nb) renderPanel(); });
+}
 /** The scale of «ใครอยู่ตรงนี้» (in · 1 · 3 · 5 km from the edge); the focus goes back to the button pressed. */
 function setReach(value) {
   const next = validReach(value);
@@ -474,6 +487,7 @@ function onPanelAction(event) {
   else if (action === 'set-reach') setReach(value);
   else if (action === 'set-map') setMapTab(value);
   else if (action === 'people-retry') { const r = openRow(); if (r) { state.peopleErr.delete(r.id); renderPanel(); $('nb-people')?.focus({preventScroll: true}); } }
+  else if (action === 'character-retry') { state.characterErr = false; renderPanel(); $('nb-character')?.focus({preventScroll: true}); }
   else if (action === 'around-jump') jumpToAround(value);
   else if (action === 'clear-lens') setLens('');
   else if (action === 'clear-search') { state.search = ''; update({fit: true}); }

@@ -638,6 +638,8 @@ python3 -I scripts/rule-outlines.py ticks --prior amendments/outline-new-2026-11
 # 9. (0.4.0) the surroundings (§12): after data/neighborhoods.json, data/boundaries.geojson and data/records/ are built,
 #    from the same 16 files (flat, <dataset id>.json; the estates with the demo's boundaries.geojson in industrialestate_dir/)
 python3 -I scripts/build-around.py --sources <the 16 files> --shoppingcenter <clone of montri-th/shoppingcenter> --built-on <YYYY-MM-DD>
+# 10. (0.7.10) «ความเป็นย่าน» (§18): after the people files of §15, from them alone (--check compares instead of writing)
+python3 -I scripts/build-character.py
 npm test
 node scripts/check-lds-parity.mjs --lds <Landometer-Design-System-v0.9.7.md>
 ```
@@ -1111,3 +1113,73 @@ The people build reads the cache only when its SHA-256 is the one the residents 
 residents file was built from another cache or other kinds. `python3 -I
 scripts/crossing/parity.py --cache <rivers cache> --shoppingcenter <a checkout of montri-th/shoppingcenter>` prints the
 agreement above.
+
+<a id="character"></a>
+
+## 18. «ความเป็นย่าน»: the three levels as one triangle (0.7.10, 2026-11-27)
+
+Owner 2026-11-27 18:05, VERBATIM: “และ x-y plot แสดงความเป็นย่าน แต่รอบนี้ควรเป็น น่าอยู่ น่าเที่ยว น่าค้าขาย ทำยังไงดีมี 3 แกน”;
+his answers to Claude's questions (received by 18:23): «คนอยู่ · ผู้มาเยือน · ศูนย์และตลาด (แนะนำ)» for the value of each
+axis (D-V11) and «สามเหลี่ยมระดับ (แนะนำ)» for the chart (D-V12; `handoff/visual/decisions.json`). The Shopping Center
+page places a centre on two ranks, people living and people working nearby, and names its quarter; this is the same
+reading on three corners.
+
+**What each corner reads (Observed fact and modelled figures, ranked).** อยู่ = คนอยู่ (residents, modelled, §15) ·
+เที่ยว = ผู้มาเยือนค้างคืน (guests a year, modelled, §15) · ค้าขาย = ศูนย์และตลาด (centres and markets counted, §15), each as the
+level the tile of «ใครอยู่ตรงนี้» prints at the same distance (inside · 1 · 3 · 5 km from the edge, `f.reach`): the mid-rank
+percentile among the reference set of 395 neighbourhoods (D-8). `scripts/build-character.py` copies those levels from
+`data/people/<id>.json` into `data/character.json` (`rows[<id>][<distance>] = [res, gst, ctr]`) so the page can compare
+one neighbourhood with all 534: the tile's own number (`p`, rounded by the page as the tile rounds it), 0 where nothing is
+counted at that distance (the tile prints 0 with no level; the corner reads ไม่มี), null where the tile has no figure —
+inside their outline 8 neighbourhoods have no triangle, 7 without a building of Building V4 there and 1 without a figure
+of overnight visitors; the page says which figure is missing.
+The corners are measures, not scores of น่าอยู่ · น่าเที่ยว · น่าค้าขาย: the topic rows keep no score, total or rank per axis
+(D-V6b). People who come to work and study are not a corner: their figure has no level where half or more of it comes
+from datasets with points for under 90 % of their records — at 1 km, all but 73 of the 534 (D-V11).
+
+**The triangle.** Each corner at its level (0 at the centre, 100 at the outer line), the corner's dot in the LDS
+`count` sample of its level with an outline (as the tiles' meters), a hollow ring where nothing is counted; the dashed
+line is the middle level (50) and the grey band the middle half (25–75) of the reference set, which a mid-rank
+percentile makes so by construction. No url(#…) reference (the guard of 0.7.9), width and height beside the viewBox,
+the three numbers and the type in its title and beside it.
+
+**The type (Inference).** Which corners reach 50 on the numbers the page prints: eight types — ครบสามด้าน, อยู่ + เที่ยว,
+อยู่ + ค้าขาย, เที่ยว + ค้าขาย, ย่านอยู่, ย่านเที่ยว, ย่านค้าขาย, เบาบาง — with how many of the neighbourhoods drawn at that
+distance share it. At 1 km in this release (534 drawn): ครบสามด้าน 136 · อยู่ + เที่ยว 15 · อยู่ + ค้าขาย 49 · เที่ยว + ค้าขาย 19 · ย่านอยู่ 46 · ย่านเที่ยว 42 · ย่านค้าขาย 24 · เบาบาง 203. The three levels rise together with the size of a place,
+so most neighbourhoods are high on all three or low on all three.
+
+**The five nearest (Inference).** The five neighbourhoods closest on the three levels at the same distance (straight
+distance in level points; ties by code), each opening its own panel. Close levels do not make shoppers, sales or a
+location alike, and a higher level does not make a better location.
+
+<a id="daypart"></a>
+
+## 19. «ช่วงไหนน่าจะคึก»: the 7 × 24 grid of a neighbourhood (0.7.10, 2026-11-27)
+
+Owner 2026-11-27 18:04, VERBATIM: “และ side panel ยังขาด heatmap ใน 7x24 daypart”; his answer to Claude's question, VERBATIM:
+“เลือก 1 แต่ช่วยใช้ style เหมือน demo = shopping center” (D-V10). The proposal of 25 November left the grid out because no
+hour of a neighbourhood is measured; that still holds — the family's datasets carry almost no opening hours — so the grid
+is a **Hypothesis**: a generated prior on observed and modelled figures, read relative to the neighbourhood's own busiest
+hour, never people, footfall, customers or sales (MBB §3.7).
+
+**Look and reading (the Shopping Center page's busy block).** One line for the busiest hours of the week, the grid of
+seven days by 24 hours in neutral foundation tones (a prior never takes a data colour), its five levels — เงียบ ·
+ค่อนข้างเงียบ · ปานกลาง · คึก · คึกที่สุดของสัปดาห์ — and, folded, each day's busiest hours and the rules with their
+strength. An area does not close, so there is no level 0. A cell's level is its share of the week's highest value: under
+0.35, 0.55, 0.75 and 0.9, then 0.9 and above (the Shopping Center page's cut points).
+
+**The rules (`js/daypart.js`, this page's reading of the Shopping Center page's rule family for an area).** A base pattern
+of an area — the day into the evening, weekends fuller than weekdays — then Friday evening busier and Sunday night quieter,
+then shifts whose strength comes from the people record within 1 km of the edge: residents (after work on weekdays,
+families at weekends), overnight visitors (every day, evenings) and centres and markets (late morning to evening) by their
+levels, as (level − 40) / 50 within 0–1 as there; offices and government offices (lunch, after work, fewer at weekends),
+factories and industrial estates (after the shift, Sunday), schools (after school, weekend classes), universities
+(afternoon to evening) and rail stations (weekday mornings and evenings) by how many there are — 1–2 slight, 3–9
+moderate, 10 or more strong. The hours each rule shifts and by how much are written in `RULES`; the Shopping Center
+builder's own weights are not in this repository, so this grid is not that page's numbers, only its kind. The grid reads
+1 km whatever distance the tiles read. A count of a dataset with points for under 90 % of its records only switches a
+rule on and sets its step; it is never shown as a level.
+
+**Limits.** The grid says when activity is likely higher or lower than at this neighbourhood's own busiest hour; it does
+not compare two neighbourhoods, count people or measure hours. Check it by walking the area in the hours it calls busiest
+and in those it calls quiet.

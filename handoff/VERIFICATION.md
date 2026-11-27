@@ -1,5 +1,31 @@
 # CityMETER Commercial District — verification
 
+## Release 0.7.10 — 27 พ.ย. 2569 (not published): «ความเป็นย่าน» and «ช่วงไหนน่าจะคึก»
+
+The owner's words (VERBATIM): 18:04 “และ side panel ยังขาด heatmap ใน 7x24 daypart”; 18:05 “และ x-y plot แสดงความเป็นย่าน
+แต่รอบนี้ควรเป็น น่าอยู่ น่าเที่ยว น่าค้าขาย ทำยังไงดีมี 3 แกน”; his answers to Claude's three questions, received by 18:23:
+“เลือก 1 แต่ช่วยใช้ style เหมือน demo = shopping center” (D-V10), «คนอยู่ · ผู้มาเยือน · ศูนย์และตลาด (แนะนำ)» (D-V11),
+«สามเหลี่ยมระดับ (แนะนำ)» (D-V12). Method: `DATA_METHOD.md` §18–§19.
+
+- New: `js/character.js` (the triangle under the tiles), `js/daypart.js` (the 7 × 24 hypothesis after the topic rows),
+  `scripts/build-character.py` → `data/character.json` (534 neighbourhoods, 88,472 bytes, SHA-256 `b5e9f480b48b2bac…`;
+  `--check` matches the people files); both modules in the import map; their styles at the end of `styles.css`.
+- `npm test`: 241 of 241 pass (0.7.9's 233 and the 8 of `tests/character.test.js` and `tests/daypart.test.js`). LDS parity
+  (`check:lds`, LDS 0.9.7 `d3085cbc…`): 145 ok, 0 failed. `data/around.json` and `data/people/meta.json` differ from main
+  only in the release field.
+- The figures of this release, from `data/character.json` at 1 km (534 drawn): ครบสามด้าน 136 · อยู่ + เที่ยว 15 · อยู่ +
+  ค้าขาย 49 · เที่ยว + ค้าขาย 19 · ย่านอยู่ 46 · ย่านเที่ยว 42 · ย่านค้าขาย 24 · เบาบาง 203; inside the outline 8 have no
+  triangle (7 without a building of Building V4, 1 without a figure of overnight visitors). The 534 grids hold 50 different
+  busiest-of-the-week lines; their 89,712 cells read levels 1–5 as 34,041 · 15,798 · 18,715 · 16,205 · 4,953.
+- The page served locally (Playwright Chromium; ปุณณวิถี at 1 km; 393 × 740 with the sheet expanded and 1,440 × 900, light
+  and dark): the sections in the order «ใครอยู่ตรงนี้» → «ความเป็นย่าน» → the round map → น่าอยู่ · น่าเที่ยว · น่าค้าขาย →
+  «ช่วงไหนน่าจะคึก»; the triangle 300 × 259 px with no url(#…), its corners อยู่ 88 · เที่ยว 82 · ค้าขาย 67 as the tiles print,
+  “ครบสามด้าน” with 136 of 534, five nearest; 168 cells, the busiest line จ.–พฤ. 17:00–18:00 น. · ศ. 17:00–20:00 น.; no
+  horizontal overflow, no page error. English (`lang=en`), three neighbourhoods at inside, 1 and 5 km with every fold open:
+  `__citymeterI18n.missing` empty.
+- Not verified: the live site (not published), Safari and a real phone.
+- The roadmap's V7-08 moves to 0.7.11.
+
 ## Release 0.7.9 — live (2026-11-27)
 
 - Merged on the owner's choice «แก้แบบกันไว้ก่อนเลย» (its option ended with his test on his iPhone once live): pull
