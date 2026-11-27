@@ -649,11 +649,20 @@ def main():
         if stray:
             sys.exit(f'{stray[0]}: an outline of {a.screen} has no row of the commercial screen in the registry')
         held_owner = set(a.screen_hold.split(',')) if a.screen_hold else set()
+        # (0.7.8) a code the owner took off the commercial screen (the outline file's `removed`, his words with it): not a
+        # commercial neighbourhood — neither drawn nor listed, counted apart so the registry's codes still add up
+        removed_ = {r_['canonical_id']: r_ for r_ in sc.get('removed', [])}
+        lost = [k for k in removed_ if k not in {c_ for c_, *_ in scr_codes}]
+        if lost:
+            sys.exit(f'{lost[0]}: removed in {a.screen} but no row of the commercial screen in the registry')
         tally = Counter()
         for code, name, prov_th, role_th in scr_codes:
             f = drawn_.get(code)
             if code in held_owner:
                 tally['heldOwner'] += 1
+                continue
+            if code in removed_:
+                tally['removedOwner'] += 1
                 continue
             if f is not None and f['properties']['status'] == 'apply':
                 if f['properties']['name_th'] and f['properties']['name_th'] != name:
@@ -669,7 +678,10 @@ def main():
                     'name_status': 'draft_pending_local_name_validation', 'field_verified': False, '_kind': 'screen',
                     '_screen': {'on': f['properties']['outlined_on'], 'reachM': f['properties']['reach_m'], 'role': role_th,
                                 # (0.6.1) drawn on the owner's word of 2026-11-26 10:02 over CityMETER Building V4 footprints
-                                'cm': ((f['properties'].get('buildings') or {}).get('cm') or 0) > 0}}})
+                                'cm': ((f['properties'].get('buildings') or {}).get('cm') or 0) > 0,
+                                # (0.7.8) his tick of 2026-11-27 when it changed the drawing (narrow arms off, cut to 1 km)
+                                'tick': (f['properties'].get('ticked') or {}).get('choice'),
+                                'tickedOn': ((f['properties'].get('ticked') or {}).get('on') or '')[:10] or None}}})
                 tally['drawn'] += 1
             else:
                 why = (f['properties']['status'] if f is not None else 'none')
@@ -679,11 +691,11 @@ def main():
             'title': 'ผลคัดย่านการค้า', 'titleEn': 'Commercial neighbourhood screen',
             'source': f'ทะเบียนย่านกลาง CityMETER: แท็บ «{REGISTRY_TAB_READ.get("ชื่อกลาง", "ชื่อกลาง")}» แถวที่มาของชื่อ “{SCREEN_NAME_SOURCE}”',
             'admitted': len(scr_codes), 'admittedOn': ['2026-11-25', '2026-11-26'], 'drawn': tally['drawn'], 'review': tally['review'],
-            'undrawn': tally['undrawn'], 'heldOwner': tally['heldOwner'], 'outlinedOn': a.screen_on,
+            'undrawn': tally['undrawn'], 'heldOwner': tally['heldOwner'], 'removedOwner': tally['removedOwner'], 'outlinedOn': a.screen_on,
             'outlines': {'file': os.path.relpath(a.screen), 'sha256': sha256_file(a.screen), 'drawing': sc.get('drawing')},
             'reviewM': 1000,
         }
-        print(f"screen            admitted={len(scr_codes)} drawn={tally['drawn']} review={tally['review']} undrawn={tally['undrawn']} heldOwner={tally['heldOwner']}", file=sys.stderr)
+        print(f"screen            admitted={len(scr_codes)} drawn={tally['drawn']} review={tally['review']} undrawn={tally['undrawn']} heldOwner={tally['heldOwner']} removedOwner={tally['removedOwner']}", file=sys.stderr)
     polys = [shape(f['geometry']) for f in closed]
     prepared = [prep(p) for p in polys]
     tree = STRtree(polys)
@@ -854,7 +866,8 @@ def main():
         if pr['_kind'] in ('lodging', 'screen') or (prev_closed and pr['canonical_id'] not in prev_closed):
             row['added'] = True  # first drawn in this data release (0.2.0; the commercial screen's 0.5.0)
         if pr['_kind'] == 'screen':
-            row['screen'] = {'on': pr['_screen']['on'], 'reachM': pr['_screen']['reachM'], **({'cm': True} if pr['_screen']['cm'] else {})}
+            row['screen'] = {'on': pr['_screen']['on'], 'reachM': pr['_screen']['reachM'], **({'cm': True} if pr['_screen']['cm'] else {}),
+                             **({'tick': pr['_screen']['tick'], 'tickedOn': pr['_screen']['tickedOn']} if pr['_screen']['tick'] in ('trimArms', 'cut1km') else {})}
             if not row['roles']:  # the roles the registry proposed for the code (ชื่อกลาง, “บทบาทที่เสนอจากหลักฐาน”, joined by ' · ')
                 row['roles'] = [role_th_to_id[th] for th in (s_.strip() for s_ in pr['_screen']['role'].split('·')) if th in role_th_to_id]
         if pr['canonical_id'] in lodging:
@@ -967,10 +980,11 @@ def main():
         'addedRegistry': sum(1 for r in out_rows if r.get('added') and r['kind'] == 'registry'),
         'screenDrawn': sum(1 for f in closed if f['properties']['_kind'] == 'screen'), 'screenUndrawn': len(scr_pending),
         'screenHeld': sum(1 for c_, *_ in scr_codes if c_ in (set(a.screen_hold.split(',')) if a.screen_hold else set())),
+        'screenRemoved': (scr_meta or {}).get('removedOwner', 0),
         'codes': len(feats) + len(admit) + len(scr_codes), 'admitted': len(admit), 'areaKm2': round(sum(area) / 1e6, 2), 'provinces': len(set(nprov)),
         'thailandKm2': round(sum(f['properties']['areaSqm'] for f in prov['features']) / 1e6, 1), 'insidePoints': len(inside_points),
     }
-    if totals['closed'] + totals['lodgingDrawn'] + totals['screenDrawn'] + totals['held'] + totals['collections'] + totals['screenHeld'] != totals['codes']:
+    if totals['closed'] + totals['lodgingDrawn'] + totals['screenDrawn'] + totals['held'] + totals['collections'] + totals['screenHeld'] + totals['screenRemoved'] != totals['codes']:
         sys.exit(f'totals do not add up: {totals}')
     meta = {
         'dataset': 'CityMETER Commercial District', 'datasetTh': 'ย่านกลางและสิ่งที่อยู่ในย่าน', 'builtOn': date.today().isoformat(),

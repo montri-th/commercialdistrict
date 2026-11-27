@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "builtOn": "2026-11-26",
+ "builtOn": "2026-11-27",
  "kit": "citymeter-logos 1.1.0",
  "rule": "ids only: record key → the brand id its own demo gives → the logo that demo ships (kit own / same-id); centres by venue id (roles venue_specific, parent_complex); offices by Office ID; stations by line",
  "display": "SVG and rasters ≤ 512 px and ≤ 64 KB keep their bytes; larger rasters → 384 px longest side WebP; plates ['#182327', '#E5E9E6', '#FFFFFF'] on both themes",
@@ -158,18 +158,18 @@
   }
  },
  "issues": [],
- "shards": 469,
- "shardsWithLogo": 345,
- "files": 458,
+ "shards": 534,
+ "shardsWithLogo": 410,
+ "files": 459,
  "counts": {
   "around venues": {
-   "none: none": 351,
+   "none: none": 352,
    "none: role shared_chain_banner": 12,
    "none: role shared_department_store_banner": 4,
    "none: role-conflict": 10,
    "parent_complex": 1,
    "venue_specific": 165,
-   "venues": 543
+   "venues": 544
   },
   "camera": {
    "none: brand without logo": 1,
@@ -177,30 +177,30 @@
    "records": 114
   },
   "factory": {
-   "none: no logo source": 128,
-   "records": 128
+   "none: no logo source": 157,
+   "records": 157
   },
   "fitness": {
    "own": 72,
    "records": 72
   },
   "governmentoffice": {
-   "none: no logo source": 466,
-   "records": 466
+   "none: no logo source": 659,
+   "records": 659
   },
   "grocery": {
-   "own": 1917,
-   "records": 1917
+   "own": 2255,
+   "records": 2255
   },
   "hospital": {
-   "none: no logo source": 188,
-   "records": 188
+   "none: no logo source": 227,
+   "records": 227
   },
   "hotel": {
    "none: brand without logo": 2,
-   "none: no brand": 5014,
-   "own": 142,
-   "records": 5158
+   "none: no brand": 5189,
+   "own": 143,
+   "records": 5334
   },
   "luxurybrands": {
    "own": 245,
@@ -212,27 +212,27 @@
    "records": 189
   },
   "pharmacy": {
-   "none: no brand": 156,
-   "own": 147,
-   "records": 303
+   "none: no brand": 211,
+   "own": 153,
+   "records": 364
   },
   "restaurant": {
    "none: brand without logo": 16,
-   "none: no brand": 2906,
-   "own": 541,
-   "records": 3463
+   "none: no brand": 2919,
+   "own": 543,
+   "records": 3478
   },
   "school": {
-   "none: no logo source": 332,
-   "records": 332
+   "none: no logo source": 452,
+   "records": 452
   },
   "shoppingcenter": {
-   "none: none": 655,
+   "none: none": 789,
    "none: role shared_chain_banner": 7,
    "none: role shared_department_store_banner": 1,
    "none: role-conflict": 2,
    "parent_complex": 1,
-   "records": 723,
+   "records": 857,
    "venue_specific": 57
   },
   "transit": {
@@ -241,9 +241,9 @@
    "records": 94
   },
   "university": {
-   "none: brand without logo": 14,
+   "none: brand without logo": 15,
    "own": 1,
-   "records": 15
+   "records": 16
   }
  },
  "logos": {
@@ -5836,6 +5836,19 @@
    "origin": "montri-th/hotel brand logo",
    "sourceSha256": "edd3f1f1db285929d3cf4764102e07f7fb90359b0c265afd1b0e5e4b5feafca8",
    "transformation": "none"
+  },
+  "LG-edec3173f3a5d423": {
+   "file": "assets/logos/edec3173f3a5d423b6df.webp",
+   "sha256": "edec3173f3a5d423b6dfc07d37a8fad2677c4ee5fa7220a63d0c55144977c127",
+   "mime": "image/webp",
+   "bytes": 8328,
+   "width": 384.0,
+   "height": 384.0,
+   "plate": "#FFFFFF",
+   "label": "",
+   "origin": "montri-th/restaurant brand logo",
+   "sourceSha256": "508892f6673341d426bf97e729a7f125a13c363a45be22623c80516cddf7f39c",
+   "transformation": "uniform scale to 384 px longest side, WebP quality 90"
   },
   "LG-eef48faabfb11506": {
    "file": "assets/logos/eef48faabfb115067174.webp",

@@ -44,7 +44,7 @@ test('every neighbourhood: a figure pair for every dataset in scope and none out
       assert.ok(v[0] >= 0 && v[0] <= v[1], `${r.id} ${ds}: the 800 m figure holds the 400 m one`);
     }
   }
-  assert.equal(cells, 5747); // 0.6.1: 469 outlines (5,533 for the 451 of 0.5.0; 4,806 for the 395 of 0.4.0)
+  assert.equal(cells, 6478); // 0.7.8: 534 outlines (5,747 for the 469 of 0.6.1; 5,533 for the 451 of 0.5.0; 4,806 for the 395 of 0.4.0)
   assert.ok(!/"total"|"sum"/i.test(JSON.stringify(rows)), 'no total or sum anywhere');
 });
 
@@ -145,10 +145,10 @@ test('centres with a «รอบศูนย์นี้» page: one outline at 
     const keys = new Set(readJSON(`data/records/${id}.json`).rows.map(rec => String(rec[4])));
     assert.ok(keys.has(v) || notPinned.has(v), `${v} listed inside ${id} but not counted there`);
   }
-  assert.equal(seen.size, 180); // 0.6.1 (176 in 0.5.0, 166 in 0.4.0)
+  assert.equal(seen.size, 181); // 0.7.8: 534 outlines (180 in 0.6.1, 176 in 0.5.0, 166 in 0.4.0)
   // 0.7.5: across a river through the crossings — บางพลัด no longer has ศูนย์การค้าสุพรีม and ไฮมอลล์ สามเสน (across the
   // Chao Phraya) within 800 m; 363 in a straight line (0.6.1), 361 in 0.5.0, 356 in 0.4.0
-  assert.equal(Object.values(A.rows).reduce((s, x) => s + (x.v?.near.length || 0), 0), 361);
+  assert.equal(Object.values(A.rows).reduce((s, x) => s + (x.v?.near.length || 0), 0), 363); // 0.7.8: 534 outlines (361 for the 469 of 0.7.5)
   assert.equal(A.meta.venues.n, 492);
 });
 
@@ -170,13 +170,13 @@ test('the lines of the map: one file per neighbourhood, 400 m inside 800 m, both
   }
 });
 
-test('ties: a count highlight says how many neighbourhoods share its rank (363 of 467 have at least 3)', () => {
+test('ties: a count highlight says how many neighbourhoods share its rank (454 of 558 have at least 3)', () => {
   const {model} = load();
   // the file's own highlights (hlBuild); since 0.6.0 the page draws them again without the starred datasets (D-V2)
   let count = 0, three = 0;
   for (const r of model.rows) for (const h of r.hlBuild || []) if (h.k === 'count') { count++; if (sharedBy(model, r, h) >= 3) three++; }
-  assert.equal(count, 467); // 0.6.1: 469 outlines (437 in 0.5.0 and 0.6.0, 390 in 0.4.0)
-  assert.equal(three, 363); // 0.6.1 (336 in 0.5.0 and 0.6.0, 289 in 0.4.0)
+  assert.equal(count, 558); // 0.7.8: 534 outlines (467 for the 469 of 0.6.1, 437 in 0.5.0 and 0.6.0, 390 in 0.4.0)
+  assert.equal(three, 454); // 0.7.8 (363 in 0.6.1, 336 in 0.5.0 and 0.6.0, 289 in 0.4.0)
   const siam = model.rows.find(r => r.name === 'สยาม'), fit = siam.hlBuild.find(h => h.d === 'fitness');
   assert.ok(!siam.hl.some(h => h.d === 'fitness'), 'fitness, a starred dataset, is no highlight on the page (D-V2)');
   const t = sharedBy(model, siam, fit);
@@ -255,7 +255,7 @@ test('a neighbourhood with no highlight says what there is, inside and within 80
   const {model} = load();
   const A = around();
   const thin = model.rows.filter(r => !(r.hl || []).length);
-  assert.equal(thin.length, 198); // 0.6.1: 469 outlines (196 in 0.6.0), D-V2: highlights only on datasets with points for ≥ 90 % (183 with every dataset in 0.5.0)
+  assert.equal(thin.length, 205); // 0.7.8: 534 outlines (198 for the 469 of 0.6.1, 196 in 0.6.0), D-V2: highlights only on datasets with points for ≥ 90 % (183 with every dataset in 0.5.0)
   for (const r of thin) {
     const html = renderNeighborhood(buildNeighborhood(model, r), model, {ctx: ctx(), around: A});
     const head = html.slice(0, html.indexOf('</section>'));

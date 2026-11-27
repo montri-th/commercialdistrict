@@ -1,0 +1,167 @@
+{
+ "schema": "citymeter-commercialdistrict-outline-ticks/1",
+ "owner": {
+  "on": "2026-11-27T10:44:00+07:00",
+  "words_th": "1 แก้แล้วในช่องสีเหลือง\n2 รับ\n3 แก้\n4 ลบ",
+  "asked_th": [
+   "ถ้าเห็นด้วยกับข้อเสนอทั้งหมด ตอบว่า \"ตามที่พี่แนะนำ\" ได้เลยครับ ถ้าไม่เห็นด้วยบางย่าน ให้แก้ในช่องสีเหลือง",
+   "รับหลักใหม่ «ตัดเหลือในวง 1 กม. จากจุดอ้างอิง» หรือไม่",
+   "ให้ผมแก้จุดอ้างอิงของย่านตลาดไทในทะเบียนเป็นจุดของตลาดไทใน OpenStreetMap ไหมครับ ตอนนี้จุดในทะเบียนห่างตลาด 2.8 กม. ผมยังไม่ได้แก้",
+   "ไฟล์ผลวาดของรุ่น 0.5.0 ที่อยู่ใน repo บอกตำแหน่งของย่านที่ยังไม่มีขอบได้ใกล้ราว 20 ม. จะให้ลบออกจาก repo ไหมครับ (แต่ประวัติใน git ยังเก็บไว้)"
+  ],
+  "asked_on": "2026-11-26",
+  "asked_by": "Claude, in the chat of the 0.6.1 release"
+ },
+ "reviewed": {
+  "file": "outline-new-2026-11-26-r2.geojson",
+  "sha256": "09129f0eca20cb70730c10310d1569d8a0c7af6e6c5d0f825ad1605571964ff7"
+ },
+ "sheet": {
+  "title": "02-CityMETER__outline-rule-screen-check__v1__2026-11-26",
+  "tab": "ติ๊กขอบ V4 (0.6.1)",
+  "kind": "Google Sheet (the owner's Drive)",
+  "readOn": "2026-11-27T10:55:00+07:00",
+  "rows": 66,
+  "columns": {
+   "recommended": "N ข้อเสนอ",
+   "owner": "O พี่ตัดสิน"
+  },
+  "readBack": {
+   "what": "the 66 rows as picture number, code, column N and column O, tab-separated, one row a line",
+   "sha256": "13f3f9c5d1b80b4731b7083b8eefe3eebd606405d3530e1473b7f802cc3847fa"
+  },
+  "ownerCells": {
+   "ตามข้อเสนอ": 65,
+   "ไม่นับเป็นย่านการค้า ลบทิ้ง": 1
+  },
+  "pictures": [
+   "02-CityMETER__outline-rule-screen-review-66-p1__v1__2026-11-26.jpg",
+   "02-CityMETER__outline-rule-screen-review-66-p2__v1__2026-11-26.jpg",
+   "02-CityMETER__outline-rule-screen-review-66-p3__v1__2026-11-26.jpg",
+   "02-CityMETER__outline-rule-screen-review-66-p4__v1__2026-11-26.jpg"
+  ]
+ },
+ "recommendation": {
+  "by": "Claude (an Inference, shown to the owner in the sheet and on the pictures)",
+  "th": "ขอบอยู่ในวง 1 กม. จากจุดอ้างอิงตั้งแต่ 85% ให้ใช้ตามภาพ · ตัดแขนแคบ (แขนกว้างไม่ถึง 150 ม.) แล้วไม่เกิน 1 กม. ให้ตัดแขนแคบ · ที่เหลือให้ตัดเหลือส่วนที่อยู่ในวง 1 กม.",
+  "specials_th": {
+   "CMN-TH-BAFFB5235F": "ใช้ตามภาพ (ร่างตามคำของเจ้าของ 26 พ.ย. 2569)",
+   "CMN-TH-33E737E0D0": "ใช้ตามภาพ (ร่างหลังตัดแขนแคบ)"
+  }
+ },
+ "rule": {
+  "cut1km": {
+   "th": "ตัดเหลือในวง 1 กม. จากจุดอ้างอิง: ส่วนของขอบที่อยู่ในวง 1,000 ม. รอบจุดอ้างอิง (ส่วนที่มีจุดอ้างอิง)",
+   "accepted_th": "2 รับ",
+   "metres": 1000
+  }
+ },
+ "ticks": {
+  "use": [
+   "CMN-TH-BAFFB5235F",
+   "CMN-TH-B88BF611DE",
+   "CMN-TH-DE9807EFA3",
+   "CMN-TH-F10EFAD890",
+   "CMN-TH-CAA42B79E5",
+   "CMN-TH-D85932D16C",
+   "CMN-TH-16FD20F8F2",
+   "CMN-TH-29EC73F3A4",
+   "CMN-TH-A2279D9E85",
+   "CMN-TH-9C863D9F7E",
+   "CMN-TH-71CEA4974C",
+   "CMN-TH-0116CA2E9A",
+   "CMN-TH-06F17FBA27"
+  ],
+  "trimArms": [
+   "CMN-TH-DC932F0291",
+   "CMN-TH-0C3CEA74D9",
+   "CMN-TH-DE7A4EE2C8",
+   "CMN-TH-1C62F98D63",
+   "CMN-TH-B6C625E1C8",
+   "CMN-TH-BE9C51489A",
+   "CMN-TH-66458DD640",
+   "CMN-TH-A2C4768097",
+   "CMN-TH-D9CBB45D37",
+   "CMN-TH-59378069CE",
+   "CMN-TH-9F97339582"
+  ],
+  "cut1km": [
+   "CMN-TH-9FECDA07BA",
+   "CMN-TH-AA326DF8E0",
+   "CMN-TH-B5607E3800",
+   "CMN-TH-911C438729",
+   "CMN-TH-0AA0F28426",
+   "CMN-TH-F1016A4197",
+   "CMN-TH-7DBC49A438",
+   "CMN-TH-27ADBCEA8B",
+   "CMN-TH-726CC54D5C",
+   "CMN-TH-E5BDF795BF",
+   "CMN-TH-38B24C00C4",
+   "CMN-TH-1C0F314D04",
+   "CMN-TH-D58ABBF9F9",
+   "CMN-TH-0C0F1369E7",
+   "CMN-TH-EAA778583B",
+   "CMN-TH-3B8E31A659",
+   "CMN-TH-6B4EFD8321",
+   "CMN-TH-8981C7862B",
+   "CMN-TH-6A66FDA3C6",
+   "CMN-TH-19929EBB6D",
+   "CMN-TH-EB64EBBEA3",
+   "CMN-TH-9E7CC8327A",
+   "CMN-TH-00FFD16EE4",
+   "CMN-TH-F81C9477DF",
+   "CMN-TH-F8670631E3",
+   "CMN-TH-B994F81A89",
+   "CMN-TH-ED7DC87DB9",
+   "CMN-TH-17D059A4DA",
+   "CMN-TH-9CE349DBC4",
+   "CMN-TH-AC2D323F8B",
+   "CMN-TH-E1875FCE92",
+   "CMN-TH-814A23D815",
+   "CMN-TH-D74EAC6AD9",
+   "CMN-TH-8174912457",
+   "CMN-TH-3911A0793F",
+   "CMN-TH-48849646FB",
+   "CMN-TH-42F5ADB631",
+   "CMN-TH-9677D4C8B9",
+   "CMN-TH-76896898D6",
+   "CMN-TH-D52013BF6D",
+   "CMN-TH-3DED0BC693"
+  ],
+  "remove": [
+   {
+    "code": "CMN-TH-33E737E0D0",
+    "owner_th": "ไม่นับเป็นย่านการค้า ลบทิ้ง"
+   }
+  ],
+  "ownerWordsDefault": "ตามข้อเสนอ",
+  "ownerWords": {
+   "CMN-TH-33E737E0D0": "ไม่นับเป็นย่านการค้า ลบทิ้ง"
+  }
+ },
+ "registry": {
+  "CMN-TH-BAFFB5235F": {
+   "words_th": "3 แก้",
+   "what": "the registry's reference point of ย่านตลาดไท set to the point of ตลาดไท in OpenStreetMap that its outline is drawn from (reference_point of the outline file); written in the owner's Chrome and read back, the old value not kept here",
+   "written": {
+    "on": "2026-11-27T11:01:00+07:00",
+    "tab": "05_REVIEW_QUEUE",
+    "row": "the row whose รหัสกลางที่รับ is CMN-TH-BAFFB5235F (checked in the row before writing)",
+    "cells": {
+     "จุดอ้างอิงย่าน (ละติจูด, ลองจิจูด)": "14.08191, 100.62655",
+     "หมายเหตุ": "the date, the owner's words “3 แก้”, why, and the old point (in the sheet only)"
+    },
+    "readBack": "the row read back after writing: both cells as written, the rows above and below unchanged"
+   },
+   "reference_th": "จุดของตลาดไทใน OpenStreetMap ซึ่งทะเบียนใช้เป็นจุดอ้างอิงของย่านตั้งแต่ 27 พ.ย. 2569 (คำเจ้าของ “3 แก้”)"
+  }
+ },
+ "exports": {
+  "words_th": "4 ลบ",
+  "removed": [
+   "amendments/outline-new-2026-11-26-point.json",
+   "amendments/outline-new-2026-11-26-wide.json"
+  ],
+  "why": "their grids locate, within about 20 m, the reference points of the codes that have no outline; their SHA-256 stay in drawing.exports of the 0.5.0 file and in git history before this release"
+ }
+}
