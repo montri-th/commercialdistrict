@@ -4,7 +4,8 @@
 
 - Merged on the owner's word (10:13, VERBATIM: “merge and publish”): pull requests #44 (0.7.4, merge `7b32e7a`, 10:14:25),
   #45 (0.7.5, `63262ee`, 10:14:31) and #46 (0.7.6, `879a4cf`, 10:14:38); citymeter-shell 0.6.5 in the 16 other demo
-  repositories (10:14:42 – 10:15:27) and in the hub (montri-th/CityMETER #37, `5c6bde7`, 10:15:30).
+  repositories (10:14:42 – 10:15:27) and in the hub (montri-th/CityMETER #37, `5c6bde7`, 10:15:30). Pull request #43
+  (the 0.7.3 live record and D-13) shows as merged at 10:14:27: #44 carried its commits (`fb1f363`).
 - GitHub Pages: deployment 8100855570 of `879a4cf`, success at 10:15:29 (03:15:29 UTC). `npm run verify:live` against a
   manifest made at `879a4cf` (2,839 files, 51,704,836 bytes; the 74 files under `tests/` and `scripts/`, the dotfiles
   and `package.json` are not compared): 2,765 ok, 0 failed (10:21:48).
@@ -24,7 +25,7 @@
   `pointerdown` and `click`, and the English page opened at 5 km.
 - A 393 × 740 frame of the same origin (Thai, 5 km): EN in the menu “Commercial District ▾” at 147, 65 (44 × 44 px); a
   click there opened the English page at the same neighbourhood and 5 km, `__citymeterI18n.missing` empty. In the
-  frame the note «แผนที่แบบเบา» opened, and its text was the element at EN's centre until it was folded with «ต่อ», as
+  frame the note «แผนที่แบบเบา» opened, and its text was the element at EN's centre until it was folded with «ย่อ», as
   at 0.7.3 (D-V9c in `handoff/visual/decisions.json`, open).
 - Hotel (`/hotel/`): `js/shell/manifest.json` 0.6.5; a real click on EN opened “Rooms in Thailand · CityMETER”,
   `__citymeterI18n.missing` empty.

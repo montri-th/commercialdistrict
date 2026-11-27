@@ -441,12 +441,12 @@
     },
     {
       "id": "D-V9c",
-      "question": "บนมือถือ (จอแนวตั้งแคบกว่า 761 px) เมื่อกล่อง «แผนที่แบบเบา» เปิดอยู่ กล่องทับแถวแรกของเมนู “Commercial District ▾” ที่มีปุ่ม EN จนกว่าจะกด «ต่อ» — แก้ในชุดกลางรุ่นถัดไปไหม",
-      "found": "citymeter.pages.dev, Claude in Chrome, a 393 × 740 frame of the same origin, at 0.7.3 (shell 0.6.4, 2026-11-27 08:2x) and again at 0.7.6 (shell 0.6.5, 10:22 – 10:28): with the note open its text is the element at EN’s centre (147, 65, 44 × 44 px); folded with «ต่อ», EN is on top and a click opens the English page. Desktop Chrome frames, not a phone’s browser. The owner’s own case (D-V9b) was a computer in Safari.",
+      "question": "บนมือถือ (จอแนวตั้งแคบกว่า 761 px) เมื่อกล่อง «แผนที่แบบเบา» เปิดอยู่ กล่องทับแถวแรกของเมนู “Commercial District ▾” ที่มีปุ่ม EN จนกว่าจะกด «ย่อ» — แก้ในชุดกลางรุ่นถัดไปไหม",
+      "found": "citymeter.pages.dev, Claude in Chrome, a 393 × 740 frame of the same origin, at 0.7.3 (shell 0.6.4, 2026-11-27 08:2x) and again at 0.7.6 (shell 0.6.5, 10:22 – 10:28): with the note open its text is the element at EN’s centre (147, 65, 44 × 44 px); folded with «ย่อ», EN is on top and a click opens the English page. Desktop Chrome frames, not a phone’s browser. The owner’s own case (D-V9b) was a computer in Safari.",
       "options": [
         "A พับกล่องเมื่อเปิดเมนู",
         "B ให้เมนูอยู่เหนือกล่อง (ลำดับชั้นใน navigation.css)",
-        "C คงไว้: กด «ต่อ» เพื่อพับกล่องก่อน"
+        "C คงไว้: กด «ย่อ» เพื่อพับกล่องก่อน"
       ],
       "recommendation": "A",
       "why": "คนที่เปิดเมนูกำลังจะไปทำอย่างอื่น การพับกล่องที่เปิดค้างเป็นแบบที่เมนูทั่วไปทำ และกันกล่องไม่ให้ทับรายการอื่นในเมนูด้วย ส่วน B แก้เฉพาะชั้น กล่องยังค้างอยู่ใต้เมนู",
