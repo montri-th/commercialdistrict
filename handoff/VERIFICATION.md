@@ -1,5 +1,18 @@
 # CityMETER Commercial District — verification
 
+## Release 0.7.3 — live (2026-11-27)
+
+- Merged on the owner's word (06:50, VERBATIM: “merge and publish”): pull request #42, merge commit `2c73636`.
+- GitHub Pages: deployment of `2c73636` success at 06:51. `npm run verify:live` against a manifest made at `2c73636`
+  (2,835 files, 50,048,951 bytes): 2,765 checks, all equal at the first fetch.
+- Cloudflare: run 45913366195 (dispatched 06:51, success 06:52) published `2c73636`; the demo family check passed on the
+  site and live; 114 / 114 live checks passed.
+- Claude in Chrome on citymeter.pages.dev, cache tag `20261127-r1`: พร้อมพงษ์ in Thai at 1,710 px, 5 km and the residents
+  tab: the tile “ราว 565,000 คน · ระดับเทียบ 87/100”, the lead “1,503 ช่องที่มี · มากสุด ราว 2,400 คนต่อช่อง”, the
+  provenance with the register's month, Building V4 and OpenStreetMap, no names overlapping; นิมมาน–เมญ่า in English in a
+  393 × 740 frame of the same origin (dark), 5 km: “about 147,000 people · level 71/100”, the map 363 px, the table rounded
+  (“1,800 · 1,700 · 6,500”), no names overlapping, `__citymeterI18n.missing` empty.
+
 ## Release 0.7.3 — 27 พ.ย. 2569
 
 The night run of V7-07 (scheduled 26 Nov 21:30 ICT; the plan as told to the owner: the buildings within 5 km, then the

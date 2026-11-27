@@ -102,6 +102,13 @@
    "channel": "Claude chat, Project 02 CityMETER",
    "verbatim": "ดึงจาก Mac ของผม (แนะนำ)",
    "note": "the option chosen, minutes after 17:51, on where the OpenStreetMap file comes from: the copy in his Downloads folder, staged with his approval and checked by SHA-256 against the Shopping Center page's (the minute of the answer was not recorded)"
+  },
+  {
+   "at": "2026-11-27T06:51:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, Project 02 CityMETER",
+   "verbatim": "ระยะ 400/800 ม. จะคิดเรื่องสิ่งกีดขวางด้วยไหม\nคิดด้วย",
+   "note": "two lines in one message: the first is the open question as he wrote it, the second (“คิดด้วย”) is his answer; it arrived while Claude was publishing 0.7.3"
   }
  ],
  "reading": {
@@ -310,7 +317,12 @@
    "authorJudgement": "400/800 ม. «ขอบเดินถึง» คงไว้ (D-10) และใช้กติกาสะพานและสิ่งกีดขวางชุดเดียวกัน ตามที่เจ้าของบอก 14:13 ว่าควรคิดเรื่องนี้ เจ้าของไม่ได้สั่งให้ตัดระยะนี้ และได้แจ้งในแชทแล้วว่าถ้าจะตัดให้บอก",
    "interim": "until the Shopping Center's file and method are in hand, every distance stays a straight line from the edge and the page says it waits for distances along real paths",
    "meaning": "ทั้งสองหน้าใช้ไฟล์ OSM สคริปต์ และกติกาเดียวกัน ที่เดียวกันได้ตัวเลขเดียวกัน · ตัวเลขของย่านวัดจากขอบ จึงเทียบตรง ๆ กับวงจากจุดของศูนย์ไม่ได้ และหน้าเว็บเขียนกำกับไว้",
-   "where": "scripts/build-people.py · scripts/build-around.py (when the method arrives)"
+   "where": "scripts/build-people.py · scripts/build-around.py (when the method arrives)",
+   "ownerConfirmed": {
+    "at": "2026-11-27T06:51:00+07:00",
+    "verbatim": "คิดด้วย",
+    "meaning": "400/800 ม. «ขอบเดินถึง» คิดเรื่องสะพานและสิ่งกีดขวางด้วย ชุดกติกาเดียวกับ 1 · 3 · 5 กม. — authorJudgement ข้อนี้กลายเป็นคำตัดสินของเจ้าของ · ทำใน V7-09 (0.7.4) จนกว่าจะถึงตอนนั้นทุกระยะยังวัดเส้นตรงจากขอบ"
+   }
   },
   {
    "id": "D-14",
@@ -427,5 +439,12 @@
    "D-16"
   ],
   "scope": "the residents within 3 · 5 km and the residents map (V7-07); no decision changed"
+ },
+ "amendedIn6": {
+  "version": "record after 0.7.3",
+  "decisions": [
+   "D-13"
+  ],
+  "scope": "the owner confirms the barrier rule for 400/800 m (2026-11-27 06:51, “คิดด้วย”); no page change until V7-09"
  }
 }
