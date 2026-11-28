@@ -19,7 +19,7 @@ same bytes.
 """
 import argparse, glob, json, os, sys
 
-RELEASE = '0.8.0'   # the page's release, as data/people/meta.json and data/around.json
+RELEASE = '0.8.1'   # the page's release, as data/people/meta.json and data/around.json
 SCHEMA = 'citymeter-commercialdistrict-character/1'
 REACHES = ['in', '1000', '3000', '5000']
 AXES = ['res', 'gst', 'ctr']

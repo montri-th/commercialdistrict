@@ -1,5 +1,29 @@
 # CityMETER Commercial District — verification
 
+## Release 0.8.1 — 28 พ.ย. 2569: the panel no wider than itself
+
+Found on the live site right after the 0.8.0 publish (Playwright Chromium on montri-th.github.io at 393 × 740 with the
+sheet full, and the desktop panel): with 38 datasets the Location row of fingerprint cells (24 cells, 473 px) and the
+matrix (38 columns, 630 px, its headers' screen-reader words positioned outside its scroll wrap) made `#panel` scroll
+sideways, cutting the right edge of every section. Fix: one panel column `minmax(0, 1fr)`, wrapping fingerprint rows,
+`.mx-wrap` positioned. Checked locally at 393 × 740 and 1,440 × 900 (สิริกิติ์–พระราม 4, สยาม in English, the overview):
+sections 365 / 370 px, `#panel` not scrolling sideways, no page error; the overview's `mix-row` keeps its 4 px hover bleed by
+design. `tests/panel-width.test.js` holds the CSS.
+
+## Release 0.8.0 — live (2026-11-28)
+
+- Merged on the owner's word of 19:36 (“… แล้ว publish ที่ https://citymeter.pages.dev/commercialdistrict/”): pull request #55,
+  merge commit `b76cbf4`, 22:27.
+- GitHub Pages: deployment 8131549707 of `b76cbf4`, success 22:27:59. `npm run verify:live` against a manifest made at
+  `b76cbf4` (3,855 files): 3,774 ok, 0 failed.
+- Cloudflare: run 46160359124 (workflow_dispatch, publish, 22:32–22:33): Commercial District at `b76cbf4`, 15,532 files,
+  release SHA-256 `dc49c1ae…`; the family check passed staged and live (19 demos, shell 0.6.6); 120 / 120 live checks.
+- citymeter.pages.dev in the owner's Chrome at 1,440 × 900, สิริกิติ์–พระราม 4: cache tag `20261128-r1`, the panel naming
+  release 0.8.0, «ใคร ใช้จ่ายกับอะไร และเมื่อไร» present, the green row “สวนสาธารณะราว 489 ไร่ … สวนป่าเบญจกิติ · สวนเบญจกิติ ·
+  อุทยานเบญจสิริ”, the history row “ศาสนสถาน 9 แห่ง …”; English: `__citymeterI18n.missing` empty; no console error. The
+  window could not be narrowed to 393 px in his Chrome; the phone check ran in Playwright (above, 0.8.1).
+- Not verified by Claude: Safari, a real phone.
+
 ## Release 0.8.0 — 28 พ.ย. 2569: the registry's national review, 38 datasets and «ใคร ใช้จ่ายกับอะไร และเมื่อไร»
 
 The owner's words (VERBATIM) are in `AGENTS.md` (0.8.0) and `DATA_METHOD.md` §2g, §20, §21: 19:36 the update and publish,
