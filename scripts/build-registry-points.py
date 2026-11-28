@@ -32,6 +32,10 @@ import openpyxl
 
 TH_BOX = (97.0, 5.3, 106.0, 20.8)
 
+# (0.9.0) statuses of the readiness brief (02-CityMETER__research-master-data-readiness-chatgpt-brief, 28 Nov 2026, §5) for a
+# point the master now cites; `host_venue_linked` places a row by the centre id beside it (the venue columns), not by a point
+READY_OWN = ('published_point_cited', 'osm_element_matched', 'address_point_matched')
+
 
 def sha256_file(path):
     h = hashlib.sha256()
@@ -269,7 +273,10 @@ def main():
             for x in L:
                 if x.get('common_retail_venue_id'):
                     link[x['outlet_id']].append(x['common_retail_venue_id'])
-        own_re, host_re = re.compile(spec['own']), re.compile(spec.get('hostpt', r'^$^'))
+        # (0.9.0) the point statuses the readiness brief of 28 Nov 2026 (§5) asked every master to use for a point it cites:
+        # a brand's or an agency's published point, an OpenStreetMap element, an address point — the master's own point
+        own_re = re.compile(f"(?:{spec['own']})|^(?:{'|'.join(READY_OWN)})$")
+        host_re = re.compile(spec.get('hostpt', r'^$^'))
         seg_col, segs = spec['seg']
         points, unplaced, placed_by, kinds = [], Counter(), Counter(), Counter()
         wl_items = []

@@ -26,11 +26,11 @@ import {logoPlate} from './logos.js';
 import {aroundGroups, venuesOf, sharedBy, LEVEL_WORDS, pctFill, RING_INDEX} from './around.js';
 import {lowLocated} from './model.js';
 import {cellsOf} from './levels.js';
-import {dsPic, fingerprint, matrix, matrixAnswer, matrixHead, matrixLegend, levelScopeLine, axisCards, axisKey, axisFoldIntro, compareDots, shapeMark, areaWords, provinceWords} from './visual.js';
+import {dsPic, axisCards, axisKey, axisFoldIntro, compareDots, shapeMark} from './visual.js';
 import {peopleSection, mapSection, DEFAULT_REACH, DEFAULT_MAP} from './people.js';
 import {characterSection} from './character.js';
 import {busySection, DAYPART_REACH} from './daypart.js';
-import {groupsSection, GROUPS, SPEND_REACH} from './groups.js';
+import {personaSection, personaLine, priceLine, priceDetails, similarSection as likeSection} from './personas.js';
 import {topicsHTML} from './indicators.js';
 import {AXES} from './axes.js';
 
@@ -187,20 +187,14 @@ function outOfScopeLine(model, o) {
 /** A neighbourhood's highlights as compact chips (cue + dataset name). */
 export const highlightChips = (r, model, limit = 4) => (r.hl || []).slice(0, limit).map(h => model.dsById.get(h.d)).filter(Boolean)
   .map(ds => `<span class="hl-chip">${dsPic(ds)}${dsLabel(ds)}</span>`).join('');
-/** The datasets a row stands out for (D-V2: datasets with points for at least 90 % of their records). */
-const hlSet = r => new Set((r.hl || []).map(h => h.d));
-const kindSmall = r => [r.kind === 'lodging' ? L('ย่านที่พัก', 'lodging area') : r.kind === 'screen' ? L('ผลคัดย่านการค้า', 'commercial screen') : r.kind === 'review' ? L('ผลตรวจขอบของทะเบียน', 'registry outline review') : '', r.added ? L('ใหม่', 'new') : ''].filter(Boolean).map(esc).join(' · ');
 
 function multiSection(o, model, around) {
   if (!o.multi.length) return '';
-  const rows = o.multi.map((r, i) => ({row: r, hl: hlSet(r), head: matrixHead(r, {rank: i + 1, small: o.province ? '' : provinceWords(r)})}));
-  const sub = x => {
-    const top = (x.row.hl || []).filter(h => h.p >= 0.9).map(h => model.dsById.get(h.d)).filter(Boolean);
-    return top.length ? `<span class="mx-chips"><span class="hint">${esc(L('กลุ่มบนสุด 10%:', 'Top tenth:'))}</span> ${top.map(ds => nw(`${dsPic(ds)}${esc(dsName(ds))}`)).join(' · ')}</span>` : '';
-  };
-  const caption = L(`ย่านที่เด่นหลายด้าน${placeWord(o.province)} กับ ${num(model.datasets.length)} ชุดข้อมูล`, `Neighbourhoods that stand out on several fronts${placeWord(o.province)}, by the ${num(model.datasets.length)} datasets`);
+  // (0.9.0, owner item 3) a ranked list in words: each neighbourhood with what puts it in the top tenth, never a grid of pictograms
+  const top = r => (r.hl || []).filter(h => h.p >= 0.9).map(h => model.dsById.get(h.d)).filter(Boolean);
+  const item = (r, i) => `<li><button type="button" class="nb-item rank-item" data-action="select-nb" data-id="${esc(r.id)}"><span class="nb-name"><span class="mx-rank data-number" aria-hidden="true">${num(i + 1)}</span> ${esc(r.name)}${o.province ? '' : ` <small>${esc(provinceName(r.province))}</small>`}${kindWords(r)}</span><span class="nb-meta">${nw(`${rai(r.areaM2)} ${L('ไร่', 'rai')}`)}</span><span class="nb-top">${top(r).length ? `<span class="hint">${esc(L('กลุ่มบนสุด 10%:', 'Top tenth:'))}</span> ${top(r).map(ds => `<span class="hl-chip">${dsPic(ds)}${dsLabel(ds)}</span>`).join('')}` : ''}</span></button></li>`;
   return section('rank', L('ย่านที่เด่นหลายด้าน', 'Neighbourhoods that stand out on several fronts'), esc(L('ติดกลุ่มบนสุด 10%', 'top tenth')),
-    `${matrix(model, around, rows, {caption, sub})}${matrixLegend(model)}<p class="hint">${esc(levelScopeLine())}</p>`, 'mx-section');
+    `<ol class="nb-list rank-words">${o.multi.map(item).join('')}</ol>`);
 }
 
 function pairsSection(o) {
@@ -241,11 +235,8 @@ function listSection(o, model, around) {
   const rows = [...o.rows].sort((a, b) => b.strong - a.strong || (b.hl?.length || 0) - (a.hl?.length || 0) || a.name.localeCompare(b.name, 'th'));
   const item = r => `<li><button type="button" class="nb-item" data-action="select-nb" data-id="${esc(r.id)}"><span class="nb-name">${esc(r.name)}${o.province ? '' : ` <small>${esc(provinceName(r.province))}</small>`}${kindWords(r)}</span><span class="nb-meta">${nw(`${rai(r.areaM2)} ${L('ไร่', 'rai')}`)}</span><span class="hl-chips">${highlightChips(r, model, 3) || `<span class="hint">${L('ยังไม่มีอะไรเด่นเกินเกณฑ์', 'Nothing above the threshold')}</span>`}</span></button></li>`;
   const shown = rows.slice(0, 30), rest = rows.slice(30);
-  const small = r => [o.province ? '' : provinceWords(r), areaWords(r), kindSmall(r)].filter(Boolean).join(' · ');
-  const caption = o.province ? L(`ย่านใน${provinceName(o.province)} กับ ${num(model.datasets.length)} ชุดข้อมูล`, `Neighbourhoods in ${provinceName(o.province)}, by the ${num(model.datasets.length)} datasets`) : L(`ย่านที่ตรงคำค้น กับ ${num(model.datasets.length)} ชุดข้อมูล`, `Matching neighbourhoods, by the ${num(model.datasets.length)} datasets`);
-  const table = matrix(model, around, shown.map(r => ({row: r, hl: hlSet(r), head: matrixHead(r, {small: small(r)})})), {caption});
   return section('maps', o.province ? L(`ย่านใน${provinceName(o.province)}`, `Neighbourhoods in ${provinceName(o.province)}`) : L('ย่านที่ตรงคำค้น', 'Matching neighbourhoods'), esc(L(`${num(rows.length)} ย่าน`, `${num(rows.length)}`)),
-    `${table}${matrixLegend(model)}<p class="hint">${esc(levelScopeLine())}</p>${rest.length ? `<details><summary>${L(`อีก ${num(rest.length)} ย่าน`, `${num(rest.length)} more`)}</summary><ul class="nb-list">${rest.map(item).join('')}</ul></details>` : ''}`, 'mx-section');
+    `<ul class="nb-list">${shown.map(item).join('')}</ul>${rest.length ? `<details><summary>${L(`อีก ${num(rest.length)} ย่าน`, `${num(rest.length)} more`)}</summary><ul class="nb-list">${rest.map(item).join('')}</ul></details>` : ''}`);
 }
 
 /**
@@ -490,18 +481,22 @@ function busyProvenance(r, model, meta) {
       'A hypothesis from rules on the levels of residents, overnight visitors, centres and markets and the counts of places of work, study and rail of «who is here» (laid out as on the Shopping Center page, with this page’s own rules)'),
     date, boundary: L(`${r.name} · ในย่านและพื้นที่ไม่เกิน ${num(+DAYPART_REACH / 1000)} กม. จากขอบ`, `${r.name} · inside and up to ${num(+DAYPART_REACH / 1000)} km from the edge`), anchor: 'daypart'});
 }
-/** (0.8.0) «ใคร ใช้จ่ายกับอะไร และเมื่อไร»: the people file's three groups, the places each can spend at, and a week per group. */
-function groupsProvenance(r, model, meta) {
-  const ids = [...new Set(GROUPS.flatMap(g => [...g.spend, ...g.rules.map(x => x.sig)]))];
+/** (0.9.0) «ใครคือคนหลักของย่าน» and the price level: data/profile.json, on the datasets and the people figures. */
+function personaProvenance(r, model, profile, meta) {
+  const ids = ['hotel', 'office', 'school', 'restaurant', 'grocery', 'luxurybrands', 'shoppingcenter', 'housingestate', 'hospital', 'university', 'governmentoffice', 'factory', 'tourism'];
   const dates = model.datasets.filter(ds => ids.includes(ds.id) && ds.id in (r.c || {})).map(dsDate).filter(Boolean).sort();
   const when = dates.length ? daySpan(dates[0], dates.at(-1)) : '';
-  const pm = meta?.residents?.populationMonth, yr = meta?.gst?.source?.year;
-  const date = [pm ? L(`ทะเบียน ${monthOf(pm)}`, `register ${monthOf(pm)}`) : '', yr ? L(`ผู้เข้าพัก พ.ศ. ${yr + 543}`, `guests ${yr}`) : '', when ? L(`ชุดข้อมูล ${when}`, `datasets ${when}`) : ''].filter(Boolean).join(' · ');
+  const pm = meta?.residents?.populationMonth;
+  const date = [pm ? L(`ทะเบียน ${monthOf(pm)}`, `register ${monthOf(pm)}`) : '', when ? L(`ชุดข้อมูล ${when}`, `datasets ${when}`) : ''].filter(Boolean).join(' · ');
+  const near = profile?.meta?.distance ? L(profile.meta.distance.th, profile.meta.distance.en) : L('ในย่านและไม่เกิน 800 ม. จากขอบ', 'inside and within 800 m of the edge');
+  // (0.8.2's rule) the profiles read parks and places of worship: the line names OpenStreetMap, its extract's day and licence
+  const osmHere = (model.meta?.osm?.datasets || []).filter(x => x.id in (r.c || {})).map(x => x.id);
+  const osm = osmHere.length ? ` · ${osmSourceWords(model.meta, osmHere)}` : '';
   return provLine({
-    dataset: L(`CityMETER Commercial District · ใครใช้จ่ายกับอะไร รุ่น ${meta?.release || ''}`.trim(), `CityMETER Commercial District · who spends on what ${meta?.release || ''}`.trim()),
-    source: L('จำนวนคนจาก «ใครอยู่ตรงนี้» · ที่ใช้จ่ายได้จากชุดข้อมูล CityMETER ทีละชุด รวมทะเบียนวิจัยที่ยังไม่มีเดโมและสวนจาก OpenStreetMap · จังหวะเป็นสมมติฐานจากกฎของหน้านี้',
-      'People from «who is here» · places to spend from the CityMETER datasets one at a time, the research registers without a demo and parks from OpenStreetMap included · the rhythms are a hypothesis from this page’s rules'),
-    date, boundary: L(`${r.name} · คนใน 1 กม. จากขอบ · ที่ใช้จ่ายในย่านและขอบเดินถึง ${num(+SPEND_REACH)} ม.`, `${r.name} · people within 1 km of the edge · places inside and within the ${num(+SPEND_REACH)} m walkable edge`), anchor: 'groups'});
+    dataset: L(`CityMETER Commercial District · คนหลักของย่าน รุ่น ${profile?.meta?.release || ''}`.trim(), `CityMETER Commercial District · who stands out ${profile?.meta?.release || ''}`.trim()),
+    source: L('ชุดข้อมูล CityMETER (ที่พักและราคาที่บันทึก ห้องชุดและราคาประเมิน สำนักงานและค่าเช่า สถานศึกษา ร้านอาหาร ร้านค้าปลีก แบรนด์หรู ศูนย์การค้าและตลาด บ้านจัดสรร สถานพยาบาล มหาวิทยาลัย หน่วยงานรัฐ โรงงาน แหล่งท่องเที่ยว) และตัวเลขคนจาก «ใครอยู่ตรงนี้» · กลุ่มคนและช่วงเวลาเป็นการอนุมานของหน้านี้',
+      'CityMETER datasets (lodging and recorded prices, condominiums and appraisals, offices and rents, schools, restaurants, retail, luxury brands, centres and markets, housing estates, health, universities, government offices, factories, attractions) and the people figures of «who is here» · the profiles and their hours are this page’s inference') + osm,
+    date, boundary: L(`${r.name} · ${near} · คนใน 1 กม. จากขอบ`, `${r.name} · ${near} · people within 1 km of the edge`), anchor: 'personas'});
 }
 const MAP_DS = {visit: ['hotel', 'shoppingcenter', 'grocery', 'restaurant', 'pharmacy', 'fitness', 'luxurybrands', 'camera'],
   work: ['office', 'governmentoffice', 'factory', 'industrialestate', 'university', 'hospital', 'school']};
@@ -623,19 +618,6 @@ function aroundSection(d, model, around, {distance = 'in', fillOf = () => '', ve
     ${t.switcher}${cards}${axisKey({distance: reading, hl: hlShown, star})}${fold}${aroundVenues(r, around, distance, venueLogo)}${aroundProvenance(r, model, around, reading, people ? peopleMeta : null)}</section>`;
 }
 
-function similarSection(d, model, around) {
-  if (!d.similar.length) return '';
-  const sim = x => `<span class="data-number" title="${esc(L(`ความคล้ายของส่วนผสม (cosine) จาก ${num(x.shared)} ชุดข้อมูลที่มีในทั้งสองย่าน`, `Mix similarity (cosine) over ${num(x.shared)} datasets both neighbourhoods have`))}">${esc(L(`คล้าย ${num(Math.round(x.sim * 100))}%`, `${num(Math.round(x.sim * 100))}% alike`))}</span>`;
-  const rows = [{row: d.row, self: true, hl: hlSet(d.row), head: matrixHead(d.row, {self: true, small: esc(L('ย่านนี้', 'this one'))})},
-    ...d.similar.map(x => ({row: x.row, hl: hlSet(x.row), head: matrixHead(x.row, {small: `${provinceWords(x.row)} · ${sim(x)}`})}))];
-  // (the neighbourhood's name between separators: an English page keeps Thai names, never Thai sentences)
-  const caption = L(`${num(model.datasets.length)} ชุดข้อมูลของ${d.row.name} และ ${num(d.similar.length)} ย่านที่ส่วนผสมคล้ายที่สุด`, `${d.row.name} · the ${num(model.datasets.length)} datasets, with the ${num(d.similar.length)} neighbourhoods of the closest mix`);
-  return section('compare', L('ย่านที่ส่วนผสมคล้ายกัน', 'Neighbourhoods with a similar mix'), esc(L('ทั่วประเทศ', 'nationwide')),
-    // the column key stays out here: the axes above name every dataset beside its pictogram (LDS ICON-01)
-    `${matrix(model, around, rows, {caption, answer: matrixAnswer(model, around, rows.map(x => x.row))})}${matrixLegend(model, {columns: false})}<p class="hint">${esc(levelScopeLine())}</p>
-    <div class="aha-actions"><button type="button" class="btn quiet" data-action="cmp-similar" data-id="${esc(d.row.id)}">${L('เทียบกับย่านเหล่านี้', 'Compare with these')}</button></div>`, 'mx-section');
-}
-
 /* ---------- 0.2.0: kinds of neighbourhood, what is new, the lodging screen ---------- */
 
 /** The lodging screen's reading of a neighbourhood: status label (the registry's own words in Thai), held or not. */
@@ -752,11 +734,22 @@ function registryDetails(d, model) {
 }
 
 /**
+ * (0.9.0, owner 2026-11-29 item 3: “ส่วนลายมือย่านที่เป็น icon เยอะๆ คือผมดูไม่รู้เรื่องเลย”) The head reads in words: the price
+ * level with what it rests on (folded) and the people who stand out — in the place of the fingerprint of pictogram cells.
+ */
+function headSummary(r, profile, state) {
+  const prof = profile?.rows.get(r.id);
+  if (!prof) return state === 'error' ? '' : `<p class="pl-line is-loading hint">${esc(L('กำลังโหลดระดับราคาและคนหลักของย่าน…', 'Loading the price level and who stands out…'))}</p>`;
+  return `<div class="pl-head">${priceLine(prof)}${personaLine(prof)}${priceDetails(prof, profile.meta)}</div>`;
+}
+
+/**
  * d = js/profile.js#buildNeighborhood. inCompare: the row is in the compare set. around: decoded data/around.json (null
  * while it loads or when it did not load); distance: the reading of «ขอบเดินถึง» (`f.around`: in · 400 · 800).
  */
 export function renderNeighborhood(d, model, {inCompare = false, compareFull = false, fillOf = () => '', ctx = {}, recordsHTML = '', around = null, distance = 'in', venueLogo = () => null,
-  people = null, peopleMeta = null, peopleState = 'idle', reach = DEFAULT_REACH, mapTab = DEFAULT_MAP, character = null, characterState = 'loading'} = {}) {
+  people = null, peopleMeta = null, peopleState = 'idle', reach = DEFAULT_REACH, mapTab = DEFAULT_MAP, character = null, characterState = 'loading',
+  profile = null, profileState = 'loading'} = {}) {
   const r = d.row, province = provinceName(r.province), am = amendmentOf(r, model);
   const top = d.highlights[0];
   const names = d.highlights.map(x => `<span class="hl-chip">${dsPic(x.ds)}${dsLabel(x.ds)}</span>`).join('');
@@ -766,7 +759,7 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
   const aha = `<section class="aha is-auto detail-head" aria-label="${L('ข้อค้นพบ', 'Finding')}"><p class="eyebrow">${esc(r.kind === 'lodging' ? L(`ย่านที่พัก · ${province}`, `Lodging area · ${province}`) : r.kind === 'screen' ? L(`ย่านจากผลคัดย่านการค้า · ${province}`, `Commercial screen · ${province}`) : r.kind === 'review' ? L(`ย่านจากผลตรวจขอบของทะเบียน · ${province}`, `Registry outline review · ${province}`) : L(`ย่าน · ${province}`, `Neighbourhood · ${province}`))}</p>
     <h2 class="nb-title" tabindex="-1">${esc(r.name)}</h2>${kindBadges(r)}
     ${top ? `<p class="aha-lead">${L('เด่นเรื่อง', 'Stands out for')}</p><p class="hl-chips is-large">${names}</p>` : ''}
-    ${fingerprint(model, r, around, {hl: new Set(d.highlights.map(x => x.ds.id))})}
+    ${headSummary(r, profile, profileState)}
     <div class="aha-actions">${cmp}</div></section>`;
   const metrics = `<section class="metrics compact" aria-label="${L('ตัวเลขของย่าน', 'Neighbourhood figures')}">
     ${metricTile(rai(r.areaM2), L('ไร่', 'rai'), 'area', r.revised ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบจากผลตรวจของทะเบียน`, `${km2Text(r.km2)} km² per the outline of the registry's review`) : r.kind === 'lodging' && !am ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบร่างของผลคัดย่านที่พัก`, `${km2Text(r.km2)} km² per the lodging screen's draft outline`) : r.kind === 'screen' ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบร่างที่วาดตามหลักของเจ้าของ`, `${km2Text(r.km2)} km² per the draft outline drawn by the owner's rule`) : r.kind === 'review' || r.revised ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบจากผลตรวจของทะเบียน`, `${km2Text(r.km2)} km² per the outline of the registry's review`) : am ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบที่ปรับเพิ่ม ${thaiDate(am.on)}`, `${km2Text(r.km2)} km² per the outline extended on ${thaiDate(am.on)}`) : L(`${km2Text(r.km2)} ตร.กม. ตามทะเบียน`, `${km2Text(r.km2)} km² per the registry`))}
@@ -787,8 +780,11 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
     rowInfo: id => { const x = model.byId.get(id); return x ? {name: x.name, place: provinceName(x.province)} : null; },
     prov: character && peopleMeta ? characterProvenance(r, model, peopleMeta, character, reach) : ''});
   const busyHTML = people ? busySection(people, {prov: busyProvenance(r, model, peopleMeta)}) : '';
-  const groupsHTML = people ? groupsSection(r, model, around, people, {prov: groupsProvenance(r, model, peopleMeta)}) : '';
-  return `${aha}${metrics}${peopleHTML}${charHTML}${mapHTML}${groupsHTML}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${aroundSection(d, model, around, {distance, fillOf, venueLogo, people, peopleMeta, peopleState: people ? 'ready' : peopleState === 'error' ? 'error' : 'loading'})}${busyHTML}${recordsHTML}${similarSection(d, model, around)}
+  // (0.9.0, owner 2026-11-29 item 2) who stands out among residents, visitors and people who come to work and study, in the
+  // place of «ใคร ใช้จ่ายกับอะไร และเมื่อไร»: its figures, its rules and its weeks became the profiles' (DATA_METHOD.md §22)
+  const prof = profile?.rows.get(r.id) || null;
+  const groupsHTML = prof ? personaSection(r, model, prof, people, {prov: personaProvenance(r, model, profile, peopleMeta)}) : '';
+  return `${aha}${metrics}${peopleHTML}${charHTML}${mapHTML}${groupsHTML}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${aroundSection(d, model, around, {distance, fillOf, venueLogo, people, peopleMeta, peopleState: people ? 'ready' : peopleState === 'error' ? 'error' : 'loading'})}${busyHTML}${recordsHTML}${likeSection(r, model, profile)}
     ${actionBar({kind: 'neighborhood', name: r.name, province, point: {lat: r.ref[1], lon: r.ref[0]}})}
     ${registryDetails(d, model)}
     ${provenance(ctx, {boundary: r.revised ? L(`${r.name} · ขอบจากผลตรวจของทะเบียน ${thaiDate(r.revised.on)} ${rai(r.areaM2)} ไร่`, `${r.name} · outline of the registry's review, ${thaiDate(r.revised.on)}, ${rai(r.areaM2)} rai`) : r.kind === 'lodging' && !am ? L(`${r.name} · ขอบร่างของผลคัดย่านที่พัก ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline of the lodging screen ${rai(r.areaM2)} rai`) : r.kind === 'screen' ? L(`${r.name} · ขอบร่างตามหลักของเจ้าของ ${thaiDate(r.screen?.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline by the owner's rule, ${thaiDate(r.screen?.on)}, from OpenStreetMap ${rai(r.areaM2)} rai`) : r.kind === 'review' || r.revised ? L(`${r.name} · ขอบจากผลตรวจของทะเบียน ${thaiDate((r.review || r.revised).on)} ${rai(r.areaM2)} ไร่`, `${r.name} · outline of the registry's review, ${thaiDate((r.review || r.revised).on)}, ${rai(r.areaM2)} rai`) : am ? L(`${r.name} · ขอบย่านฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline extended on ${thaiDate(am.on)} from OpenStreetMap ${rai(r.areaM2)} rai`) : L(`${r.name} · ขอบย่านฉบับร่าง ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline ${rai(r.areaM2)} rai`)})}`;
@@ -819,10 +815,8 @@ export function renderCompare(c, model, {max = 4, around = null, ctx = {meta: mo
     <p class="hint">${esc(L('วงกรอบ = แน่นที่สุดในกลุ่มที่เทียบ', 'Ringed = densest of the compared'))}</p>`;
   // (0.6.0, §4.6) each neighbourhood keeps one shape: on its chip (which also takes it out), its row and its dots
   const chips = c.rows.map((r, k) => `<button type="button" class="cmp-chip" data-action="cmp-remove" data-id="${esc(r.id)}" aria-label="${esc(`${L('เอาออกจากการเปรียบเทียบ', 'Remove from the comparison')} · ${r.name}`)}">${shapeMark(k)}${esc(r.name)}<i aria-hidden="true">×</i></button>`).join('');
-  const rows = c.rows.map((r, k) => ({row: r, hl: new Set((r.hl || []).map(h => h.d)), head: matrixHead(r, {small: `${provinceWords(r)} · ${areaWords(r)}`}).replace('<span class="mx-th">', `<span class="mx-th">${shapeMark(k)}`)}));
-  const caption = L(`${num(model.datasets.length)} ชุดข้อมูลของ ${c.rows.map(r => r.name).join(' · ')}`, `${c.rows.map(r => r.name).join(' · ')} · the ${num(model.datasets.length)} datasets`);
   return `<div class="cmp-chips">${chips}</div>
-    <div class="cmp-visual"><div class="cmp-matrix">${matrix(model, around, rows, {caption, answer: matrixAnswer(model, around, c.rows)})}${matrixLegend(model)}<p class="hint">${esc(levelScopeLine())}</p></div>${compareDots(model, c.rows)}</div>
+    <div class="cmp-visual">${compareDots(model, c.rows)}</div>
     <details class="scope-details cmp-fold"><summary>${L('ตารางจำนวนและต่อ ตร.กม.', 'Counts and per km²')}</summary>${table}</details>
     ${c.rows.length < max ? `<p class="hint">${esc(L(`เพิ่มได้อีก ${num(max - c.rows.length)} ย่าน`, `${num(max - c.rows.length)} more can be added`))}</p>` : ''}
     ${actionBar({kind: 'compare', names: c.rows.map(r => r.name)})}
