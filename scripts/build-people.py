@@ -61,7 +61,7 @@ warnings.simplefilter('ignore')
 SCHEMA = 'citymeter-commercialdistrict-people/1'
 MAPS_SCHEMA = 'citymeter-commercialdistrict-maps/1'
 CONTEXT_SCHEMA = 'citymeter-commercialdistrict-context/1'
-RELEASE = '0.8.1'
+RELEASE = '0.8.2'
 SCALES = (400, 800, 1000, 3000, 5000)   # 400 · 800: the walkable edges, inside included, for the axis rows; 1 · 3 · 5 km: the service area (D-10)
 CELL_M = 250
 UNIT_M = 25                      # drawn lines in 25 m units (as «รอบศูนย์นี้»)

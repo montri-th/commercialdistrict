@@ -74,6 +74,17 @@ export function thaiDates(list) {
 }
 /** The date a dataset's records were checked or published (the first it states). */
 export const dsDate = ds => ds.dates?.asOf || ds.dates?.checkedOn || ds.dates?.readOn || ds.dates?.catalogCheckedOn || ds.dates?.builtOn || '';
+// (0.8.2) parks and places of worship are counted from OpenStreetMap, not from a CityMETER dataset: a line that reads them
+// names OpenStreetMap and the extract's day (meta.osm and each one's source.osm, written by scripts/build-data.py --osm-file)
+/** “สวนสาธารณะ · ศาสนสถาน: OpenStreetMap (Geofabrik 24 พ.ย. 2569) © ผู้ร่วมให้ข้อมูล OpenStreetMap (ODbL)”; '' without them. */
+export function osmSourceWords(meta, ids = null) {
+  const o = meta?.osm;
+  const list = (o?.datasets || []).filter(x => !ids || ids.includes(x.id));
+  if (!list.length) return '';
+  return L(`${list.map(x => x.th).join(' · ')}: OpenStreetMap (Geofabrik ${thaiDate(o.date)}) © ผู้ร่วมให้ข้อมูล OpenStreetMap (ODbL)`,
+    `${list.map(x => x.en).join(' · ')}: OpenStreetMap (Geofabrik ${thaiDate(o.date)}) © OpenStreetMap contributors (ODbL)`);
+}
+const cmCount = (meta, n) => n - (meta?.osm?.datasets?.length || 0);
 
 export function metricTile(value, label, kind = '', detail = '') {
   const shown = typeof value === 'string' ? value : num(value);
@@ -104,7 +115,9 @@ export function demoLink(ds, province = '') {
 export function provenance(ctx = {}, {datasets = [], boundary = ''} = {}) {
   const meta = ctx.meta || {};
   const one_ = datasets.length === 1 ? datasets[0] : null;
-  const source = one_ ? `${L('ทะเบียนย่านกลาง', 'Central neighbourhood registry')} · CityMETER ${one_.name}` : `${L('ทะเบียนย่านกลาง', 'Central neighbourhood registry')} · ${L(`${num(ctx.datasetCount || 16)} ชุดข้อมูล CityMETER`, `${num(ctx.datasetCount || 16)} CityMETER datasets`)}`;
+  const reg = L('ทะเบียนย่านกลาง', 'Central neighbourhood registry'), cm = cmCount(meta, ctx.datasetCount || 16), osm = osmSourceWords(meta);
+  const source = one_ ? `${reg} · ${one_.source?.osm ? osmSourceWords(meta, [one_.id]) : `CityMETER ${one_.name}`}`
+    : `${reg} · ${L(`${num(cm)} ชุดข้อมูล CityMETER`, `${num(cm)} CityMETER datasets`)}${osm ? ` · ${osm}` : ''}`;
   const date = one_ ? `${thaiDate(meta.registry?.readOn)} · ${thaiDate(dsDate(one_))}` : thaiDate(meta.registry?.readOn);
   return `<p class="hint panel-foot provenance"><span class="prov-part" data-prov="dataset">${pic('dataset')}<span class="sr-only">${L('ชุดข้อมูล ', 'Dataset ')}</span>CityMETER Commercial District</span> <span class="prov-part" data-prov="source"><span class="sr-only">${L('แหล่ง', 'Source')}</span>${L('จาก ', 'from ')}${esc(source)}</span><span class="prov-part" data-prov="date">${pic('date')}<span class="sr-only">${L('อ่าน ', 'Read ')}</span>${esc(date)}</span><span class="prov-part" data-prov="boundary">${pic('area')}<span class="sr-only">${L('ขอบเขต ', 'Boundary ')}</span>${esc(boundary || L('ขอบย่านฉบับร่าง', 'Draft neighbourhood outlines'))}</span><span class="prov-part prov-method"><a href="${METHOD_URL}" target="_blank" rel="noopener">${L('วิธีนับ', 'Method')}</a></span></p>`;
 }
@@ -424,7 +437,8 @@ function aroundProvenance(r, model, around, distance, peopleMeta = null) {
   const how = meta?.crossing ? L('อีกฝั่งแม่น้ำนับผ่านทางข้าม', 'across a river, through a crossing') : L('วัดเส้นตรง', 'straight line');
   const boundary = meta ? L(`${r.name} · ขอบร่าง ${rai(r.areaM2)} ไร่ และนอกขอบไม่เกิน ${num(reach)} ม. ${how}`, `${r.name} · draft outline ${rai(r.areaM2)} rai and up to ${num(reach)} m beyond it, ${how}`)
     : L(`${r.name} · ขอบร่าง ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline ${rai(r.areaM2)} rai`);
-  return `<p class="hint panel-foot provenance"><span class="prov-part" data-prov="dataset">${pic('dataset')}<span class="sr-only">${L('ชุดข้อมูล ', 'Dataset ')}</span>${esc(dataset)}</span> <span class="prov-part" data-prov="source"><span class="sr-only">${L('แหล่ง', 'Source')}</span>${esc(L(`จาก ${num(model.datasets.length)} ชุดข้อมูล CityMETER ตามรุ่นที่ตรึง`, `from ${num(model.datasets.length)} CityMETER datasets at pinned versions`))}${peopleMeta ? esc(L(` · คนอยู่: ทะเบียนราษฎร ${monthOf(peopleMeta.residents?.populationMonth)} แบ่งลงอาคาร CityMETER · ผู้มาเยือน: กระทรวงการท่องเที่ยวและกีฬา ${peopleMeta.gst?.source?.year ? peopleMeta.gst.source.year + 543 : ''}`, ` · residents: civil register ${monthOf(peopleMeta.residents?.populationMonth)} over CityMETER buildings · visitors: Ministry of Tourism and Sports ${peopleMeta.gst?.source?.year || ''}`)) : ''}</span><span class="prov-part" data-prov="date">${pic('date')}<span class="sr-only">${L('ข้อมูล ', 'Data ')}</span>${esc(when)}</span><span class="prov-part" data-prov="boundary">${pic('area')}<span class="sr-only">${L('ขอบเขต ', 'Boundary ')}</span>${esc(boundary)}</span><span class="prov-part prov-method"><a href="${METHOD_URL}#${peopleMeta ? 'maps-and-topics' : '12'}" target="_blank" rel="noopener">${L('วิธีนับ', 'Method')}</a></span></p>`;
+  const osmHere = (model.meta?.osm?.datasets || []).filter(x => x.id in (r.c || {})).map(x => x.id), cm = cmCount(model.meta, model.datasets.length);
+  return `<p class="hint panel-foot provenance"><span class="prov-part" data-prov="dataset">${pic('dataset')}<span class="sr-only">${L('ชุดข้อมูล ', 'Dataset ')}</span>${esc(dataset)}</span> <span class="prov-part" data-prov="source"><span class="sr-only">${L('แหล่ง', 'Source')}</span>${esc(L(`จาก ${num(cm)} ชุดข้อมูล CityMETER ตามรุ่นที่ตรึง`, `from ${num(cm)} CityMETER datasets at pinned versions`))}${osmHere.length ? esc(` · ${osmSourceWords(model.meta, osmHere)}`) : ''}${peopleMeta ? esc(L(` · คนอยู่: ทะเบียนราษฎร ${monthOf(peopleMeta.residents?.populationMonth)} แบ่งลงอาคาร CityMETER · ผู้มาเยือน: กระทรวงการท่องเที่ยวและกีฬา ${peopleMeta.gst?.source?.year ? peopleMeta.gst.source.year + 543 : ''}`, ` · residents: civil register ${monthOf(peopleMeta.residents?.populationMonth)} over CityMETER buildings · visitors: Ministry of Tourism and Sports ${peopleMeta.gst?.source?.year || ''}`)) : ''}</span><span class="prov-part" data-prov="date">${pic('date')}<span class="sr-only">${L('ข้อมูล ', 'Data ')}</span>${esc(when)}</span><span class="prov-part" data-prov="boundary">${pic('area')}<span class="sr-only">${L('ขอบเขต ', 'Boundary ')}</span>${esc(boundary)}</span><span class="prov-part prov-method"><a href="${METHOD_URL}#${peopleMeta ? 'maps-and-topics' : '12'}" target="_blank" rel="noopener">${L('วิธีนับ', 'Method')}</a></span></p>`;
 }
 
 /** One provenance line of the 0.7.0 parts: dataset · source · date · boundary, then the method (DATA_METHOD.md §15–§16). */
@@ -786,7 +800,7 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
  * The compare matrix for the tray: datasets by pillar × neighbourhoods; a bar per cell (density against the densest of
  * the row), the densest cell marked in words for screen readers and with a ring.
  */
-export function renderCompare(c, model, {max = 4, around = null} = {}) {
+export function renderCompare(c, model, {max = 4, around = null, ctx = {meta: model.meta, datasetCount: model.datasets.length}} = {}) {
   if (!c.rows.length) {
     return `<div class="compare-empty"><p>${esc(L('เลือกย่านแล้วกด “เพิ่มในการเปรียบเทียบ” เพื่อวางเทียบกันได้ถึง 4 ย่าน', 'Open a neighbourhood and choose “Add to the comparison” to set up to 4 side by side'))}</p>
       <div class="aha-actions"><button type="button" class="btn quiet" data-action="cmp-top">${L('เทียบ 3 ย่านที่เด่นหลายด้าน', 'Compare the 3 most distinctive')}</button></div></div>`;
@@ -811,7 +825,8 @@ export function renderCompare(c, model, {max = 4, around = null} = {}) {
     <div class="cmp-visual"><div class="cmp-matrix">${matrix(model, around, rows, {caption, answer: matrixAnswer(model, around, c.rows)})}${matrixLegend(model)}<p class="hint">${esc(levelScopeLine())}</p></div>${compareDots(model, c.rows)}</div>
     <details class="scope-details cmp-fold"><summary>${L('ตารางจำนวนและต่อ ตร.กม.', 'Counts and per km²')}</summary>${table}</details>
     ${c.rows.length < max ? `<p class="hint">${esc(L(`เพิ่มได้อีก ${num(max - c.rows.length)} ย่าน`, `${num(max - c.rows.length)} more can be added`))}</p>` : ''}
-    ${actionBar({kind: 'compare', names: c.rows.map(r => r.name)})}`;
+    ${actionBar({kind: 'compare', names: c.rows.map(r => r.name)})}
+    ${provenance(ctx, {boundary: L(`${c.rows.map(r => r.name).join(' · ')} · ขอบย่านฉบับร่าง`, `${c.rows.map(r => r.name).join(' · ')} · draft neighbourhood outlines`)})}`;
 }
 
 /* ---------- table ---------- */

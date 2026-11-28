@@ -46,7 +46,7 @@ Rules (DATA_METHOD.md):
   * A neighbourhood is ranked for a dataset when it holds at least MIN_COUNT records (the peers are the neighbourhoods
     of the covered provinces that also hold MIN_COUNT); the rank is by density, ties share the better rank.
 """
-import argparse, hashlib, json, math, os, subprocess, sys, tempfile
+import argparse, hashlib, json, math, os, re, subprocess, sys, tempfile
 from types import SimpleNamespace
 from collections import Counter, defaultdict
 from datetime import date
@@ -577,10 +577,18 @@ def assemble_delivered(a, prov, dopa, province_of):
     name_of = lambda c: str(reg[c][1]).strip()
     prov_of_reg = lambda c: by_name.get(str(reg[c][2]).strip(), '')
 
+    # (0.8.2) the owner keeps the base outline of these codes where the review drew another (review-overrides)
+    ov = json.load(open(a.review_overrides, encoding='utf-8')) if a.review_overrides else {}
+    keep_base = {x['id'] for x in ov.get('keepBase', [])}
+    for x in ov.get('keepBase', []) + ov.get('keepReview', []):
+        if x['id'] not in brow:
+            sys.exit(f"{a.review_overrides}: {x['id']} is not a row of the base release")
     closed, revised, served_new, mismatch = [], [], [], []
     for r in base['rows']:
         f = review[r['id']]
         p = f['properties']
+        if r['id'] in keep_base:
+            p = {**p, 'state': 'published_draft'}   # served as the base release served it, on the owner's word
         gates = review_gates(p)
         if p['state'] not in REVIEW_SERVED_STATES or gates or not f['geometry']:
             sys.exit(f"{r['id']}: an outline of the base release is {p['state']} in the review {gates}")
@@ -687,6 +695,9 @@ def assemble_delivered(a, prov, dopa, province_of):
                              'check': 'the base release\'s counts, subgroups, figures and records shards recounted on these outlines: equal byte for byte'},
             'slivers': {'count': over, 'maxM2': round(worst, 3), 'limitM2': REVIEW_OVERLAP_M2},
             'provinceMismatch': len(mismatch),
+            **({'ownerOverrides': {'file': os.path.basename(a.review_overrides), 'sha256': sha256_file(a.review_overrides),
+                                   'on': ov['owner']['on'], 'keepBase': sorted(keep_base),
+                                   'keepReview': sorted(x['id'] for x in ov.get('keepReview', []))}} if ov else {}),
         },
     }
     m = base['meta']
@@ -947,7 +958,9 @@ def main():
     ap.add_argument('--base-outlines', default='', help='(0.8.0) the exact counting outlines of that release, one feature per row (checked: they reproduce its counts)')
     ap.add_argument('--review', default='', help="(0.8.0) the registry's national review set (national-commercial-district-review.geojson)")
     ap.add_argument('--review-on', default='2026-11-28')
+    ap.add_argument('--review-overrides', default='', help="(0.8.2) the owner's choices between a review's redrawn outline and the base one (amendments/review-overrides-*.json)")
     ap.add_argument('--registry-points', default='', help='(0.8.0) folder of the private points of scripts/build-registry-points.py and scripts/build-parks.py')
+    ap.add_argument('--osm-file', default='', help="(0.8.2) the OpenStreetMap extract parks and places of worship were counted from (Geofabrik's thailand-YYMMDD.osm.pbf): its SHA-256 must be theirs; the page names the file's day as their date")
     ap.add_argument('--members-out', default='', help='(0.8.0) private file: the keys of those datasets inside each outline (read by scripts/build-around.py)')
     a = ap.parse_args()
 
@@ -1040,6 +1053,18 @@ def main():
         src = os.path.join(a.registry_points, f'{ds_id}.json') if a.registry_points else ''
         if src and os.path.exists(src):
             agg_meta[ds_id] = json.load(open(src, encoding='utf-8'))
+    # (0.8.2) the counted-only datasets of OpenStreetMap (parks, places of worship) name OpenStreetMap and the extract's
+    # day, never CityMETER (DV-25 of the registry's 30_DEMO_DATAVIZ_METHODS): the file must be the one they were counted from
+    osm_info = None
+    if a.osm_file:
+        m_ = re.search(r'-(\d{2})(\d{2})(\d{2})\.osm\.pbf$', os.path.basename(a.osm_file))
+        if not m_:
+            sys.exit(f'--osm-file: not a Geofabrik extract name (…-YYMMDD.osm.pbf): {a.osm_file}')
+        osm_info = {'file': os.path.basename(a.osm_file), 'sha256': sha256_file(a.osm_file), 'date': f'20{m_[1]}-{m_[2]}-{m_[3]}',
+                    'by': 'Geofabrik', 'licence': 'ODbL 1.0', 'datasets': []}
+        for ds_id, A_ in agg_meta.items():
+            if A_['meta'].get('osmSha256') and A_['meta']['osmSha256'] != osm_info['sha256']:
+                sys.exit(f'{ds_id} was counted from another OpenStreetMap file ({A_["meta"]["osmSha256"][:12]}…), not {osm_info["file"]}')
     specs = [(GROUP_ORDER[spec[6]], k, 'core', spec) for k, spec in enumerate(DATASETS)]
     specs += [(GROUP_ORDER[agg_meta[x]['meta']['group']], len(DATASETS) + k, 'agg', x) for k, x in enumerate(AGGREGATE) if x in agg_meta]
     for _g, _k, kind_, spec in sorted(specs):
@@ -1118,10 +1143,14 @@ def main():
             'unitTh': M['unit'][0], 'unitEn': M['unit'][1], 'scope': {'th': M['ruleTh'], 'en': M['ruleEn']},
             'records': M['records'], 'located': len(R['points']), 'inside': sum(counts), 'neighbourhoodsWith': sum(1 for c in counts if c > 0),
             'byProvince': dict(sorted(covered.items())), 'unplaced': dict(sorted(unplaced.items())), 'placedBy': M.get('placedBy', {}),
-            'subgroups': subgroups, 'measure': None, 'dates': {'builtOn': M['builtOn']},
+            'subgroups': subgroups, 'measure': None,
+            # (0.8.2) an OpenStreetMap dataset's date is the extract's day (dsDate reads asOf first)
+            'dates': {'asOf': osm_info['date'], 'builtOn': M['builtOn']} if osm_info and M.get('osmSha256') else {'builtOn': M['builtOn']},
             'source': {'registry': M['registry'], 'tab': M.get('tab') or 'OpenStreetMap leisure=park', 'sha256': M.get('exportSha256') or M.get('osmSha256'),
-                       'builtOn': M['builtOn']},
+                       'builtOn': M['builtOn'], **({'osm': {'file': osm_info['file'], 'date': osm_info['date']}} if osm_info and M.get('osmSha256') else {})},
         })
+        if osm_info and M.get('osmSha256'):
+            osm_info['datasets'].append({'id': ds_id, 'th': M['th'], 'en': M['en']})
         print(f"{ds_id:<17} records={M['records']:>6} located={len(R['points']):>6} inside={sum(counts):>5} provinces={len(covered):>2} (aggregate)", file=sys.stderr)
     if a.members_out:
         with open(a.members_out, 'w', encoding='utf-8') as f:
@@ -1433,6 +1462,8 @@ def main():
         'amendments': {'file': 'amendments/outline-amendments.geojson', 'sha256': sha256_file(a.outline_amendments), 'items': amendments} if amendments and a.outline_amendments else None,
         'added': {'since': 'ข้อมูลรุ่น 16 พ.ย. 2569 (343 ขอบปิด)', 'sinceEn': 'the data of 16 Nov 2026 (343 closed outlines)'} if prev_closed else None,
         'attribution': 'ขอบย่าน: ทะเบียนย่านกลาง CityMETER (ฉบับร่าง) · ถนน แนวน้ำ และอาคารที่ใช้วาดขอบ © OpenStreetMap contributors (ODbL)',
+        # (0.8.2) the extract the OpenStreetMap datasets were counted from: the provenance lines name it and its day
+        'osm': osm_info if osm_info and osm_info['datasets'] else None,
     }
     if a.base:
         E, bm = X.extra, X.extra['baseMeta']

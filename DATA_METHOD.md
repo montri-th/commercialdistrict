@@ -381,6 +381,12 @@ outlines, keeping every gate the review puts on its own:
   ตลาดโรงเกลือ–บ้านคลองลึก (5,626 → 366 ไร่, the market's own area). The page follows the registry's newer outline and says so;
   the amendment no longer describes these rows (`amended` is dropped). Reported to the owner as a conflict with his
   ticks of 24 Nov; one word from him restores an amendment.
+- **the owner's choice** (0.8.2) — owner 2026-11-29 01:29, VERBATIM: “1) คลองสานไอคอน ใช้ 426 rai, ตลาดโรงเกลือ ใช้ 5,626 ไร่”.
+  `amendments/review-overrides-2026-11-29.json`, read by `--review-overrides`: ตลาดโรงเกลือ–บ้านคลองลึก (`CMN-TH-80F188CDBB`)
+  keeps the outline of 0.7.10, his rule's 5,626 ไร่ (`keepBase`: served as the base served it, `amended` again, a
+  neighbourhood with peers, its people file the one of 0.7.10); คลองสาน–ไอคอนสยาม keeps the review's 426 ไร่ (`keepReview`);
+  ตลาดศาลเจ้า–ตีเหล็ก–วัดไทร, which his answer does not name, keeps the review's outline. So 6 rows are `revised`, and
+  `meta.review.ownerOverrides` names the file by its SHA-256. Change the file only on his word.
 - **held** — 283 codes stay searchable names (`pending`): 135 await the owner's review of a drawn outline, 38 have no outline
   yet, 110 have one the review keeps closed by a gate. Never counted or drawn.
 - **trading sites** — 124 outlines the review accepted for a trading site only (a market hall, a market's own area, a mall's
@@ -816,7 +822,7 @@ neighbourhoods of the release holding at least `minCount` (3) records of the dat
 “แน่นอันดับ k/N” (`r[3]` of a row, the build's density rank). In those peers, the count level and the density level
 are each a mid-rank percentile, 100 × (below + ½ equal) / n; the level is their mean, 0–100, equal weights, no unit.
 The rank of the level among the peers is 1 for the highest; equal levels share a rank (`js/levels.js#levelModel`). One
-function gives the same value to every part of the panel: the fingerprint, the matrix of neighbourhoods × 16 datasets,
+function gives the same value to every part of the panel: the fingerprint, the matrix of neighbourhoods × 16 datasets (38 since 0.8.0, §20),
 the dots of the axes and of the comparison. A dataset with points for under 90 % of its records (D-4) has no level.
 Why a mean: the outlines run from about 1 ไร่ to 6,633 ไร่, so a count mostly says “a large neighbourhood” and a density
 “a small one”; their mean cancels part of each. It is a level within a declared group, never a total, a rate, footfall,
@@ -867,7 +873,9 @@ above already do.
 **The comparison (§4.6).** One row per dataset that at least one compared neighbourhood ranks, each neighbourhood a
 shape (circle, triangle, square, diamond) in its own lane at its level, coloured by it; the shapes are on the
 neighbourhood's chip (which takes it out of the comparison) and its row of the matrix. The table of counts and
-densities (since 0.1.0) is closed under it.
+densities (since 0.1.0) is closed under it. Since 0.8.2 the comparison ends with its own provenance line (dataset ·
+source · date · boundary: the neighbourhoods compared, draft outlines), as every view that shows numbers; before it the
+tray had none (found by the registry's `30_DEMO_DATAVIZ_METHODS`, 2026-11-29).
 
 **The first finding (§4.7).** The most concentrated dataset's share of its located records inside the neighbourhoods
 and the neighbourhoods' share of the area as two bars, the next three datasets as bars in their pillar's colour; each
@@ -1036,10 +1044,11 @@ demo's reading (an Inference), not a verdict on the neighbourhood. Rows (counts 
 within 400 / 800 m): **น่าอยู่** — กิน (restaurants and groceries, the kinds of restaurant inside) · ของจำเป็นใกล้ตัว (how
 many of seven everyday datasets are present, the ones not found by name) · การเดินทาง (rail stations; buses and boats: no
 data yet) · คนและความแน่น (registered residents inside and per km²) · ความคึกคัก (the restaurant level of §14) · ออกกำลังกาย
-และสีเขียว (fitness; parks: no data yet) · อากาศและความสงบ (no data yet: PM2.5, noise). **น่าเที่ยว** — ที่พัก (rooms inside,
+และสีเขียว (fitness; parks: no data yet — since 0.8.0 park ground in ไร่ from OpenStreetMap, ahead of gyms, §20) · อากาศและความสงบ (no data yet: PM2.5, noise). **น่าเที่ยว** — ที่พัก (rooms inside,
 kinds of lodging, guests a year) · ช้อปปิ้งและแฟชั่น (centres and markets, luxury brands and their product groups) ·
 ความหลากหลาย (how many of the counted kinds are present) · พิพิธภัณฑ์ ศิลปะ แหล่งเรียนรู้ · ประวัติศาสตร์ · กลางคืน คอนเสิร์ต
-โรงภาพยนตร์ · ธรรมชาติ หาด ภูเขา น้ำตก (no data yet, each with the open or CityMETER source looked at). **น่าค้าขาย** — ผู้ซื้อ
+โรงภาพยนตร์ · ธรรมชาติ หาด ภูเขา น้ำตก (no data yet, each with the open or CityMETER source looked at; since 0.8.0 places of
+worship stand with history and the registers of arts and cinemas have their rows, §20). **น่าค้าขาย** — ผู้ซื้อ
 (the three groups of §15 side by side, “สามกลุ่มไม่รวมกัน · ไม่ใช่จำนวนลูกค้า”) · กำลังจ่าย (luxury points of sale; land prices
 and rents not in this demo, never the income of the people here) · คนทำงาน (offices and office workers, modelled) ·
 กิจการรอบตัว (factories, industrial estates, camera shops) · คู่แข่ง พันธมิตร สาขาของเรา (the business type and brand
@@ -1265,6 +1274,13 @@ not private, one per place (a node or a smaller outline inside the outline of an
 complete everywhere, so a 0 reads as counted on that map. Matching the register by name and province (4,914 unique pairs)
 is a candidate list for the register's owners, never a point of this page.
 
+**Where the page names them** (0.8.2). Every provenance line that reads parks or places of worship names OpenStreetMap,
+the Geofabrik extract's day (24 พ.ย. 2569) and its licence (© ผู้ร่วมให้ข้อมูล OpenStreetMap, ODbL), and counts the CityMETER
+datasets apart (36 and these 2); a lens on either names it the same way and gives the extract's day as the data's date.
+`scripts/build-data.py --osm-file` checks the file's SHA-256 against the one both were counted from and writes `meta.osm`,
+each one's `source.osm` and `dates.asOf`. Until 0.8.2 the lines counted them among “38 ชุดข้อมูล CityMETER” with the
+build's day (found by the registry's `30_DEMO_DATAVIZ_METHODS`, DV-25, 2026-11-29).
+
 **Readiness.** The records each register still has to place, with why (no point · a host id without a point · a status the
 register does not accept · a pin outside Thailand · a pin in another province), are a private worklist built by
 `build-registry-points.py --worklist` for the registers' owners (the owner's 21:21 request: “… ปรับปรุงคุณภาพข้อมูลให้พร้อมใช้
@@ -1279,7 +1295,8 @@ clinics, nails, cameras), businesses round it (banks with factories and estates)
 
 Owner 2026-11-28 19:36, VERBATIM: “… ย่าการค้าควรเล่าได้ว่า น่าอยู่ น่าเที่ยว น่าค้าขายอย่างไร และสามารถนับจำนวน บอกพฤติกรรมการจับจ่าย
 ของ traffic ในพื้นที่ ซึ่งประกอบด้วย Resident + Visitor + Commuter (ถ้ายากไปยังไม่ทำ commuter ได้) ที่มีจังหวะที่ต่างกันใน daypart 7x24
-(day x hour)”. `js/groups.js`, after the topic rows. For each group, in the owner's order (D-V9): คนอยู่ · ผู้มาเยือน · คนมาทำงานและเรียน.
+(day x hour)”. `js/groups.js`, after the round maps and before the highlights and the topic rows (`renderNeighborhood`). For
+each group, in the owner's order (D-V9): คนอยู่ · ผู้มาเยือน · คนมาทำงานและเรียน.
 
 - **How many** — the people file's own figure within 1 km of the edge (§15): residents (modelled), overnight visitors a year
   (modelled), people who come to work and study (at least). Three groups, never added, never customers or footfall.

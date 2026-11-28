@@ -43,9 +43,9 @@ test('D-V2: the build’s highlight rule, ported, gives the file’s own highlig
     assert.equal(r.strong, r.hl.filter(h => h.p >= 0.9).length);
   }
   const n = f => model.rows.reduce((s, r) => s + f(r), 0);
-  assert.equal(n(r => r.hlBuild.length), 962); // 0.8.0: 718 outlines, 38 datasets (938 with 37; 775 for 534 in 0.7.8, 639 on the 469 of 0.6.1, 599 on the 451 of 0.6.0)
-  assert.equal(n(r => r.hl.length), 873, '962 less the starred, plus the complete ones the cap of four had cut (0.8.0, 842 with 37 datasets; 649 in 0.7.8; 485 + 75 = 560 in 0.6.1; 459 + 70 = 529 in 0.6.0)');
-  assert.equal(model.rows.filter(r => r.hl.length).length, 370); // 0.8.0 (368 with 37 datasets; 329 in 0.7.8, 271 in 0.6.1, 255 in 0.6.0)
+  assert.equal(n(r => r.hlBuild.length), 966); // 0.8.2: ตลาดโรงเกลือ back on the owner's rule outline (962 in 0.8.0); 0.8.0: 718 outlines, 38 datasets (938 with 37; 775 for 534 in 0.7.8, 639 on the 469 of 0.6.1, 599 on the 451 of 0.6.0)
+  assert.equal(n(r => r.hl.length), 877, '966 less the starred, plus the complete ones the cap of four had cut (0.8.2; 873 in 0.8.0, 842 with 37 datasets; 649 in 0.7.8; 485 + 75 = 560 in 0.6.1; 459 + 70 = 529 in 0.6.0)');
+  assert.equal(model.rows.filter(r => r.hl.length).length, 371); // 0.8.2: ตลาดโรงเกลือ back on the owner's rule outline (370 in 0.8.0); 0.8.0 (368 with 37 datasets; 329 in 0.7.8, 271 in 0.6.1, 255 in 0.6.0)
   const siam = model.rows.find(r => r.name === 'สยาม');
   assert.deepEqual(siam.hl.map(h => h.d), ['luxurybrands', 'camera', 'furniture', 'governmentoffice']);   // 0.8.0: furniture, a research register placed for 91 %, before transit
 });
@@ -205,7 +205,7 @@ test('the highlight cards: one per highlight of a complete dataset, in order, ea
       cards++;
     });
   }
-  assert.equal(cards, 873, 'the highlights of D-V2 (0.8.0, 842 with 37 datasets; 649 in 0.7.8, 560 in 0.6.1, 529 in 0.6.0)');
+  assert.equal(cards, 877, 'the highlights of D-V2 (0.8.2; 873 in 0.8.0, 842 with 37 datasets; 649 in 0.7.8, 560 in 0.6.1, 529 in 0.6.0)');
 });
 
 test('what comes together: a role’s evidence stays visible, ✓ by its datasets, ○ by what the data shows (DATA_METHOD §7)', () => {

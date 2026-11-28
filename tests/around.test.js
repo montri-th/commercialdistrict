@@ -171,13 +171,13 @@ test('the lines of the map: one file per neighbourhood, 400 m inside 800 m, both
   }
 });
 
-test('ties: a count highlight says how many neighbourhoods share its rank (581 of 745 have at least 3)', () => {
+test('ties: a count highlight says how many neighbourhoods share its rank (584 of 748 have at least 3)', () => {
   const {model} = load();
   // the file's own highlights (hlBuild); since 0.6.0 the page draws them again without the starred datasets (D-V2)
   let count = 0, three = 0;
   for (const r of model.rows) for (const h of r.hlBuild || []) if (h.k === 'count') { count++; if (sharedBy(model, r, h) >= 3) three++; }
-  assert.equal(count, 745); // 0.8.0: 718 outlines, 38 datasets (places of worship joined: 721 with 37) (558 for 534 in 0.7.8, 467 for the 469 of 0.6.1, 437 in 0.5.0 and 0.6.0, 390 in 0.4.0)
-  assert.equal(three, 581); // 0.8.0 (563 with 37 datasets; 454 in 0.7.8, 363 in 0.6.1, 336 in 0.5.0 and 0.6.0, 289 in 0.4.0)
+  assert.equal(count, 748); // 0.8.2: ตลาดโรงเกลือ back on the owner's rule outline, 5,626 ไร่ (745 in 0.8.0); 0.8.0: 718 outlines, 38 datasets (places of worship joined: 721 with 37) (558 for 534 in 0.7.8, 467 for the 469 of 0.6.1, 437 in 0.5.0 and 0.6.0, 390 in 0.4.0)
+  assert.equal(three, 584); // 0.8.2 (581 in 0.8.0); 0.8.0 (563 with 37 datasets; 454 in 0.7.8, 363 in 0.6.1, 336 in 0.5.0 and 0.6.0, 289 in 0.4.0)
   // (0.8.0) สยาม's four now include furniture; the first neighbourhood whose file keeps a fitness count highlight stands in
   const siam = model.rows.find(r => (r.hlBuild || []).some(h => h.d === 'fitness' && h.k === 'count' && h.v > 1 && sharedBy(model, r, h) > 1)), fit = siam.hlBuild.find(h => h.d === 'fitness');
   assert.ok(!siam.hl.some(h => h.d === 'fitness'), 'fitness, a starred dataset, is no highlight on the page (D-V2)');
@@ -257,7 +257,7 @@ test('a neighbourhood with no highlight says what there is, inside and within 80
   const {model} = load();
   const A = around();
   const thin = model.rows.filter(r => !(r.hl || []).length);
-  assert.equal(thin.length, 348); // 0.8.0 (350 before places of worship joined): 718 outlines, of which 124 are trading sites without peers (205 for 534 in 0.7.8) (198 for the 469 of 0.6.1, 196 in 0.6.0), D-V2: highlights only on datasets with points for ≥ 90 % (183 with every dataset in 0.5.0)
+  assert.equal(thin.length, 347); // 0.8.2: ตลาดโรงเกลือ back on the owner's rule outline (348 in 0.8.0); 0.8.0 (350 before places of worship joined): 718 outlines, of which 124 are trading sites without peers (205 for 534 in 0.7.8) (198 for the 469 of 0.6.1, 196 in 0.6.0), D-V2: highlights only on datasets with points for ≥ 90 % (183 with every dataset in 0.5.0)
   for (const r of thin) {
     const html = renderNeighborhood(buildNeighborhood(model, r), model, {ctx: ctx(), around: A});
     const head = html.slice(0, html.indexOf('</section>'));

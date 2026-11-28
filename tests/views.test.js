@@ -17,7 +17,7 @@ test('the overview of Thailand: the first finding is the most concentrated datas
   const o = buildOverview(model, {rows: model.rows});
   assert.equal(o.lead.ds.id, 'luxurybrands');
   assert.equal(sharePct(o.lead.share), '72%'); // 0.8.0: three more inside the review's outlines (71% in 0.6.1, 69% in 0.5.0)
-  assert.equal(sharePct(o.areaShare), '0.062%'); // 0.3.0: 235 outlines redrawn by the owner's rule (0.018% before); 0.5.0: 56 outlines of the commercial screen (0.04% before); 0.6.1: 74 (0.041% before); 0.7.8: 139 (0.045% before)
+  assert.equal(sharePct(o.areaShare), '0.063%'); // 0.8.2: ตลาดโรงเกลือ back on the owner's rule outline, 5,626 ไร่ (0.062% in 0.8.0); 0.3.0: 235 outlines redrawn by the owner's rule (0.018% before); 0.5.0: 56 outlines of the commercial screen (0.04% before); 0.6.1: 74 (0.041% before); 0.7.8: 139 (0.045% before)
   const html = renderOverview(o, model, {ctx: ctx()});
   assert.ok(!holes.test(html));
   assert.match(html, /248 จาก 345 จุดขาย/); // 0.8.0: three inside the outlines of the registry's review (245 in 0.6.1) // 0.2.4: GENTLEWOMAN at Maya inside the extended นิมมาน–เมญ่า (237 before); 0.3.0: one more inside a redrawn outline; 0.6.1: six more (239 before)
