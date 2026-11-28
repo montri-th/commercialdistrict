@@ -1,5 +1,32 @@
 # CityMETER Commercial District — verification
 
+## Release 0.9.0 — live (2026-11-29)
+
+The owner's words (VERBATIM) are in `AGENTS.md` (0.9.0) and `DATA_METHOD.md` §22: 00:41, five items; his answers
+«ไม่นับเรือ (แนะนำ)» and «ตรวจผ่านแล้ว publish เลย (แนะนำ)».
+
+- Built on 0.8.2 (#58, released by another session while this one was being built): the recount of the 18 registers on
+  0.8.2's exact outlines reproduced all 10,306 demo-dataset counts; cinemas 0 → 4 and nail salons 49 → 51 placed, every
+  other count equal. `data/around.json`: 0.8.2's build, cinema and nail patched (`meta.patch`); the other 16 registers'
+  new exports give 8,857 of 8,857 straight figures equal and 39 lower only by the river rule. `data/profile.json`: a price
+  level for 427 of 718, 444 alike lists; leads checked on สยาม, สีลม, สำเพ็ง, ข้าวสาร, อโศก, ศิริราช.
+- `npm test` 253 / 253. Local walk (Playwright Chromium, map library from the pinned npm package): Thai and English at
+  1,440 px and 393 px, `#panel` not scrolling sideways, no fingerprint cell or matrix, the English harvest empty.
+- Merged as pull request #59, merge commit `7d6f165`. GitHub Pages: deployment 8134617660, success 19:38:33 UTC (02:38
+  ICT). `npm run verify:live` against a manifest made at `7d6f165` (3,861 files): 3,776 ok, 0 failed.
+- Cloudflare: run 46182626621 (workflow_dispatch, publish) success 19:44:12 UTC. citymeter.pages.dev in the owner's Chrome
+  at 1,710 px, ศูนย์ฯ สิริกิติ์–พระราม 4: cache tag `20261129-r2`, the head reads «ระดับราคาในย่าน สูง 83/100» and three people,
+  «ใครคือคนหลักของย่าน» and «ย่านที่คล้ายกัน» present, no fingerprint cell, `#panel` not scrolling sideways.
+- montri-th.github.io at 393 × 852 (Playwright Chromium): สำเพ็ง (Thai) and สยาม (English) — tag `20261129-r2`, no sideways
+  scroll in the panel or any section, no fingerprint or matrix, English harvest empty, no page error (the basemap cannot
+  load from this sandbox; the panel reads without it).
+- Not done in this session: (1) the methods tab `30_DEMO_DATAVIZ_METHODS` — the instruction for 0.9.0 (DV-09, DV-15 and
+  DV-21 retired; DV-12, DV-17, DV-20, DV-22, DV-23 and DV-25 changed; DV-27 and DV-28 new) is typed in the ChatGPT chat of
+  Project 02 CityMETER «เขียนแท็บวิธีทำ Dataviz», not sent: this session's guard refused to send a message on the owner's
+  behalf, so the owner sends it (or a session allowed to); the tab still names 0.8.2 until then. (2) D-19, ferries no
+  longer counted: needs the rivers cache from the OpenStreetMap file of D-14, which this session could not reach.
+- Not verified by Claude: Safari, a real phone.
+
 ## Release 0.8.2 — 29 พ.ย. 2569: the owner's outline choice, OpenStreetMap named, the comparison's provenance
 
 The owner's words (VERBATIM) are in `AGENTS.md` (0.8.2) and `DATA_METHOD.md` §2g: 01:29 “1) คลองสานไอคอน ใช้ 426 rai,
