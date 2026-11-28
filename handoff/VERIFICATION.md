@@ -1,5 +1,19 @@
 # CityMETER Commercial District — verification
 
+## Release 0.8.1 — live (2026-11-28)
+
+- Merged as the fix of the 0.8.0 publish the owner asked for (19:36): pull request #56, merge commit `9715d2c`, 22:50.
+- GitHub Pages: deployment 8131819460 of `9715d2c`, success 22:50:52. `npm run verify:live` against a manifest made at
+  `9715d2c` (3,856 files): 3,774 ok, 0 failed.
+- Cloudflare: run 46162335138 (workflow_dispatch, publish, to 22:55): Commercial District at `9715d2c`, 15,532 files, release
+  SHA-256 `d6496fd5…`; the family check passed staged and live (19 demos, shell 0.6.6); 120 / 120 live checks.
+- citymeter.pages.dev in the owner's Chrome at 1,440 × 900, สิริกิติ์–พระราม 4: cache tag `20261128-r2`, the panel naming
+  release 0.8.1, `#panel` 439 px wide with nothing to scroll sideways, sections 407 px, the fingerprint in wrapped rows.
+- Playwright Chromium on the live GitHub Pages site at 393 × 740 with the sheet full: สิริกิติ์–พระราม 4 (Thai), สยาม
+  (English) and the overview — sections 365 px, `#panel` not scrolling sideways, no page error (the basemap cannot load
+  from this sandbox; the panel reads without it).
+- Not verified by Claude: Safari, a real phone.
+
 ## Release 0.8.1 — 28 พ.ย. 2569: the panel no wider than itself
 
 Found on the live site right after the 0.8.0 publish (Playwright Chromium on montri-th.github.io at 393 × 740 with the
