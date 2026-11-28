@@ -113,6 +113,20 @@
       "channel": "Claude chat, Project 02 CityMETER (his answers to Claude’s three questions, received by 18:23)",
       "verbatim": "เลือก 1 แต่ช่วยใช้ style เหมือน demo = shopping center · «คนอยู่ · ผู้มาเยือน · ศูนย์และตลาด (แนะนำ)» · «สามเหลี่ยมระดับ (แนะนำ)»",
       "note": "D-V10, D-V11 and D-V12, release 0.7.10"
+    },
+    {
+      "at": "2026-11-29T00:41:00+07:00",
+      "by": "owner (Montri)",
+      "channel": "Claude chat, with three screenshots (ศูนย์ฯ สิริกิติ์–พระราม 4: the similar mixes, the fingerprint, the residents map)",
+      "verbatim": "มีเรื่องอยากให้ปรับมากๆดังนี้ / 1) ย่านที่ส่วนผสมคล้ายกัน มันควรจะดูด้านขนาดด้วยนะ เช่น จำนวนคน ความถี่ และด้านคุณภาพ จำนวนเงิน ระดับราคา อย่างย่านศูนย์สิริกิติ์ กับ ตลาดเมืองนครนายก กุดป่องเลย เรืองราษฎร์ระนอง จำนวนคน กับ ระดับราคาของสินค้าในพื้นที่มันใกล้กันตรงไหน พี่มองด้านนี้บ้างสิ ระดับราคาของโรงเรียน โรงแรม คอนโด บ้านจัดสรร etc พวกนี้ ควรจะใช้ infer ได้ / 2) ที่อยากให้ทำได้มากๆคือระบุ persona เด่นๆ ในย่าน ออกมาให้เห็นชัดว่าเป็นใคร ใน traffic แต่ละประเภท ทั้ง คนอยู่, ผู้มาเยือน, คนทำงาน_เรียน อยู่ในย่านช่วงไหน ว่าซื้ออะไรหรือมาทำอะไรในย่านบ้าง / 3) ส่วนลายมือย่านที่เป็น icon เยอะๆ คือผมดูไม่รู้เรื่องเลย ไม่รู้จะเข้าใจมันได้ยังไง ขนาดผมอยู่กับพี่ ทำเรื่องนี้มาเป็นเดือน ยังไม่เข้าใจ อย่าหวังว่า first-time user จะไม่งง / 4) heatmap แผนที่รอบย่านต้องคิดผลของแม่น้ำ, physical barrier ด้วย เคยทำใน dataset อื่นไปแล้วนี่ครับ ทำไมไม่จัดการให้เรียบร้อย บางกระเจ้าจะข้ามมาฝั่งนี้ได้ยังไง หรืออย่างน้อยๆก็ต้องอ้อมไกลมาก หรือพี่เห็นต่างช่วยอธิบายหน่อย / 5) dataset ต่างๆที่เชื่อมกับ registry นั้น ChatGPT มีการปรับปรุงเพิ่มเมื่อกี๊อีกหลายอัน จับคู่พิกัดเพิ่มขึ้นได้มาก พี่ช่วยตรวจสอบและ update ทั้งหมดด้วย",
+      "note": "release 0.9.0; line breaks shown as “ / ”"
+    },
+    {
+      "at": "2026-11-29T00:5x+07:00",
+      "by": "owner (Montri)",
+      "channel": "Claude chat, his answers to Claude's two questions",
+      "verbatim": "«ไม่นับเรือ (แนะนำ)» · «ตรวจผ่านแล้ว publish เลย (แนะนำ)»",
+      "note": "D-19 (ferries) and the publication of 0.9.0"
     }
   ],
   "reading": {
@@ -420,6 +434,75 @@
       "supersedes": "the proposal of 2026-11-25 put the residents × workers chart off to round 2 (VL-F-06); this is its three-corner form",
       "appliedAs": "js/character.js (characterModel, triangleSVG, characterSection) · styles.css (.chr-*)",
       "release": "0.7.10"
+    },
+    {
+      "status": "decided",
+      "decidedAt": "2026-11-29T00:41:00+07:00",
+      "decidedBy": "owner (what) · Claude (how: delegated)",
+      "delegatedToAuthor": true,
+      "release": "0.9.0",
+      "id": "D-V13",
+      "question": "ระบุ persona เด่นในแต่ละกลุ่ม (คนอยู่ · ผู้มาเยือน · คนมาทำงานและเรียน) ว่าเป็นใคร อยู่ช่วงไหน มาทำอะไร",
+      "decision": "«ใครคือคนหลักของย่าน» in the place of «ใคร ใช้จ่ายกับอะไร และเมื่อไร»: 22 profiles with rules on what is near (inside + 800 m) and on the people figures within 1 km; per group the first always and two more when clear; each says why (its counts), when (a written week, a Hypothesis), what it does and what it can use nearby",
+      "ownerWords": "2) ที่อยากให้ทำได้มากๆคือระบุ persona เด่นๆ ในย่าน ออกมาให้เห็นชัดว่าเป็นใคร ใน traffic แต่ละประเภท ทั้ง คนอยู่, ผู้มาเยือน, คนทำงาน_เรียน อยู่ในย่านช่วงไหน ว่าซื้ออะไรหรือมาทำอะไรในย่านบ้าง",
+      "rejectedAlternatives": [
+        "one persona per neighbourhood (the owner asked per kind of traffic)",
+        "a persona's head count (no source counts customers; the groups' own figures stay those of «ใครอยู่ตรงนี้»)",
+        "the lead of a group by size across profiles (their units differ); kept: clarity, with the places of work before schools for the people who come to work and study"
+      ],
+      "meaning": "an Inference with a Hypothesis week; never people counts, customers, footfall or sales; “ชัดมาก · ชัด · มีให้เห็น”, never “เด่น”",
+      "appliedAs": "scripts/build-profile.py (personas, LEAD_ORDER, POOL) · data/profile.json pe · js/personas.js (PERSONAS, personaSection, personaLine) · DATA_METHOD.md §22"
+    },
+    {
+      "status": "decided",
+      "decidedAt": "2026-11-29T00:41:00+07:00",
+      "decidedBy": "owner (what) · Claude (how: delegated)",
+      "delegatedToAuthor": true,
+      "release": "0.9.0",
+      "id": "D-V14",
+      "question": "ระดับราคาในย่าน infer จากโรงเรียน โรงแรม คอนโด บ้านจัดสรร ฯลฯ",
+      "decision": "a level 0–100 from seven readings (recorded lodging prices, condominium appraisals, restaurants' price buckets, office rents, private and international schools, upmarket supermarket banners, luxury points of sale), each a percentile among the neighbourhoods that have it, at least two; five words; housing estates carry no price in their data and the fold says so",
+      "ownerWords": "ระดับราคาของโรงเรียน โรงแรม คอนโด บ้านจัดสรร etc พวกนี้ ควรจะใช้ infer ได้",
+      "rejectedAlternatives": [
+        "a baht figure (the readings are in different units)",
+        "housing-estate prices (none in the data)"
+      ],
+      "meaning": "an Inference; never a price, an income, a spend or a land value",
+      "appliedAs": "scripts/build-profile.py (price) · data/profile.json pr · js/personas.js (priceLine, priceDetails)"
+    },
+    {
+      "status": "decided",
+      "decidedAt": "2026-11-29T00:41:00+07:00",
+      "decidedBy": "owner (what) · Claude (how: delegated)",
+      "delegatedToAuthor": true,
+      "release": "0.9.0",
+      "id": "D-V15",
+      "question": "ย่านที่คล้ายกันต้องดูขนาด (จำนวนคน) และคุณภาพ (ระดับราคา) ด้วย",
+      "decision": "alike = the geometric mean of mix (0.6.0's cosine), scale (residents, overnight guests and people who come to work and study within 1 km, log10) and price level; the five most alike with the three likenesses as bars and both neighbourhoods' figures in words",
+      "ownerWords": "1) ย่านที่ส่วนผสมคล้ายกัน มันควรจะดูด้านขนาดด้วยนะ เช่น จำนวนคน ความถี่ และด้านคุณภาพ จำนวนเงิน ระดับราคา",
+      "rejectedAlternatives": [
+        "a weighted sum (one far facet would be hidden by two near ones)",
+        "visits per period for “ความถี่” (no source of frequency; the scale facet reads the groups' own figures)"
+      ],
+      "meaning": "ศูนย์ฯ สิริกิติ์–พระราม 4: ราชดำริ–หลังสวน, ลุมพินี, สาทร–ช่องนนทรี … in the place of the market towns of 0.8.1",
+      "appliedAs": "scripts/build-profile.py (sim) · data/profile.json sim · js/personas.js (similarSection) · js/app.js (cmp-similar)"
+    },
+    {
+      "status": "decided",
+      "decidedAt": "2026-11-29T00:41:00+07:00",
+      "decidedBy": "owner (what) · Claude (how: delegated)",
+      "delegatedToAuthor": true,
+      "release": "0.9.0",
+      "id": "D-V16",
+      "question": "ลายมือย่าน (icon เยอะๆ) อ่านไม่รู้เรื่อง",
+      "decision": "the fingerprint and the matrices are no longer drawn: the head reads the price level and the first profile of each group in words; «ย่านที่เด่นหลายด้าน» and a province list read as lists; the comparison keeps its dot chart and folded table",
+      "ownerWords": "3) ส่วนลายมือย่านที่เป็น icon เยอะๆ คือผมดูไม่รู้เรื่องเลย ไม่รู้จะเข้าใจมันได้ยังไง ขนาดผมอยู่กับพี่ ทำเรื่องนี้มาเป็นเดือน ยังไม่เข้าใจ อย่าหวังว่า first-time user จะไม่งง",
+      "supersedes": "the fingerprint and the matrix of 0.6.0 (D-V1 … D-V7 keep the level, the colours and the axes)",
+      "rejectedAlternatives": [
+        "a key for the fingerprint (a first-time reader still has to learn six cell states)"
+      ],
+      "meaning": "words first; every pictogram beside its words",
+      "appliedAs": "js/panel.js (headSummary, multiSection, listSection, renderCompare) · js/visual.js keeps fingerprint and matrix for its tests only"
     }
   ],
   "authorJudgements": [

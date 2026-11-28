@@ -478,7 +478,8 @@ demo's reading, not the registry's.
 `js/profile.js#similarRows`: the cosine of log(1 + density) centred on each dataset's mean over the neighbourhoods it
 covers, over the datasets in scope for both neighbourhoods (at least 8, three of them held by both). 1 means the same
 shape of mix; the three highest above 0 are listed nationwide. Similar mix is a starting point for a comparison, not a
-claim that two places perform alike.
+claim that two places perform alike. Since 0.9.0 the page lists the neighbourhoods alike in mix, scale and price (§22): the
+mix of this section is one of the three likenesses.
 
 ## 9. Map and colour
 
@@ -1129,6 +1130,16 @@ side only for 35 (on the other side no crossing in the window reaches that bank)
   count through the crossings, the distance of 15,494 of them measured through เรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก
   (way 40346702) — how far they live by that way, not how many the ferry carries — so the figure is 451,583. Without ferries it would be 434,994 (built for the owner's question, not published).
 
+**Without ferries (D-19, owner 2026-11-29 00:41 and his answer «ไม่นับเรือ (แนะนำ)»; pending).** His item 4, VERBATIM: “heatmap
+แผนที่รอบย่านต้องคิดผลของแม่น้ำ, physical barrier ด้วย เคยทำใน dataset อื่นไปแล้วนี่ครับ ทำไมไม่จัดการให้เรียบร้อย บางกระเจ้าจะข้ามมาฝั่งนี้ได้
+ยังไง หรืออย่างน้อยๆก็ต้องอ้อมไกลมาก หรือพี่เห็นต่างช่วยอธิบายหน่อย”. The maps and figures already take the river (above); Bang
+Krachao counted for ปุณณวิถี through its ferries (D-18). Without ferries the crossings are the bridges, tunnels, footways and
+metro lines (`--crossing-kinds no-ferry`, every builder): ปุณณวิถี's nearest crossings within 5 km are three ferries, so all of
+Bang Krachao falls beyond 5 km (434,994 residents within 5 km instead of 451,583). The rebuild — the rivers cache from the
+OpenStreetMap file of D-14, the residents run, the people, surroundings, character and profile files — waits for that file:
+this session could not reach it (the Drive connector stops at 10 MB, Geofabrik is outside its network, no folder of the
+owner's computer is connected). Until then the page keeps D-18 and says ferries count.
+
 **0.7.8 (Observed fact, against main).** With the 65 outlines of §2f, from the same OpenStreetMap file and river cache:
 227 of the 534 neighbourhoods have land across a barrier river in their 5 km map (19 of the 65), 207 people files have a
 figure through the crossings other than the straight one (18 of the 65), and 195 dataset figures of `data/around.json`
@@ -1296,3 +1307,94 @@ Owner 2026-11-28 19:36, VERBATIM: “… ย่าการค้าควรเ
   sales (MBB §3.7). The rules are folded under each week with their words.
 
 The block ends with its own provenance line (the people files · the datasets · their dates · the outline and 800 m).
+
+<a id="profile"></a>
+## 22. Who stands out, the price level and the neighbourhoods alike (0.9.0, 2026-11-29)
+
+Owner 2026-11-29 00:41, VERBATIM (items 1–3 of his message; item 4 is §17's ferries, item 5 the registers' new exports):
+“1) ย่านที่ส่วนผสมคล้ายกัน มันควรจะดูด้านขนาดด้วยนะ เช่น จำนวนคน ความถี่ และด้านคุณภาพ จำนวนเงิน ระดับราคา อย่างย่านศูนย์สิริกิติ์ กับ
+ตลาดเมืองนครนายก กุดป่องเลย เรืองราษฎร์ระนอง จำนวนคน กับ ระดับราคาของสินค้าในพื้นที่มันใกล้กันตรงไหน พี่มองด้านนี้บ้างสิ ระดับราคาของ
+โรงเรียน โรงแรม คอนโด บ้านจัดสรร etc พวกนี้ ควรจะใช้ infer ได้ / 2) ที่อยากให้ทำได้มากๆคือระบุ persona เด่นๆ ในย่าน ออกมาให้เห็นชัดว่าเป็นใคร
+ใน traffic แต่ละประเภท ทั้ง คนอยู่, ผู้มาเยือน, คนทำงาน_เรียน อยู่ในย่านช่วงไหน ว่าซื้ออะไรหรือมาทำอะไรในย่านบ้าง / 3) ส่วนลายมือย่านที่เป็น
+icon เยอะๆ คือผมดูไม่รู้เรื่องเลย ไม่รู้จะเข้าใจมันได้ยังไง ขนาดผมอยู่กับพี่ ทำเรื่องนี้มาเป็นเดือน ยังไม่เข้าใจ อย่าหวังว่า first-time user
+จะไม่งง”. One file, `data/profile.json` (schema `citymeter-commercialdistrict-profile/1`), written only by
+`scripts/build-profile.py` from the shipped data (`data/neighborhoods.json`, `data/boundaries.geojson`, `data/people/`,
+`data/around.json`, `data/condo/`), the pinned demo files and the private points of the counted-only registers (outside the
+repository, as §20); `js/personas.js` reads it, loaded once (`partial('profile')`: without it the three parts stay away and
+the rest of the panel is whole).
+
+**Near** = inside the outline and within 800 m of its edge (the walkable edge of §12), straight line in 0.9.0: the rivers
+cache of §17 is built from the OpenStreetMap file of D-14, which this release's build could not reach (the build takes
+`--crossing` and then measures across a river through the crossings, without ferries — D-19). People figures are the
+people file's at 1 km (§15).
+
+**The price level (Inference).** Seven readings, each from records that carry a price or a kind that sets one, each in its
+own unit, each read as its mid-rank percentile (`100 × (below + ½ equal) / n`) among every neighbourhood that has it:
+
+| reading | what | at least |
+|---|---|---|
+| ที่พัก | median recorded nightly price of the lodging dataset (baht; the source's recorded price, period unknown — never today's price) | 3 places with a price |
+| ห้องชุด | median appraisal per m² of the condominium research register (`data/condo/`; an appraisal, not a sale price) | 3 records |
+| ร้านอาหาร | share of restaurants with a price bucket of 300 baht or more | 10 with a bucket |
+| สำนักงาน | median asking rent per m² a month of the office dataset | 2 with a rent |
+| โรงเรียน | share of private and international schools among the formal ones | 3 schools |
+| ซูเปอร์มาร์เก็ต | share of upmarket banners (Tops, Villa Market, Gourmet Market, Foodland, MaxValu, Don Don Donki, UFM Fuji Super, Rimping) | 3 stores |
+| แบรนด์หรู | points of sale of the luxury brands dataset | 1 |
+
+The level is the mean of the percentiles of the readings a neighbourhood has, given only with at least 2 (427 of 718 in
+0.9.0), in five words: ประหยัด (under 20) · ค่อนข้างประหยัด · กลาง · ค่อนข้างสูง · สูง (80 and over). Never a price, an income, a
+spend or a land value. Housing estates carry no price in their data (plots and house types only) and tuition is known for
+a few international schools only: the fold says so. A trading site (`peer: false`) has its readings and level but is
+nobody's peer in a percentile.
+
+**Who stands out (Inference; the hours a Hypothesis).** Per group — คนอยู่ · ผู้มาเยือน · คนมาทำงานและเรียน, the owner's order
+(D-V9), never added — profiles with a rule on what is near and on the people figures within 1 km
+(`scripts/build-profile.py#personas`; words, weeks and what each does in `js/personas.js#PERSONAS`):
+
+- residents: คนทำงานในเมืองที่อยู่คอนโดราคาสูง / คนทำงานที่อยู่คอนโด (3+ condominium records; median appraisal 60,000 baht/m² or
+  more splits them) · ครอบครัวในหมู่บ้านจัดสรร (2+ permits, 100+ plots) · ครอบครัวที่มีลูกวัยเรียน / ที่ส่งลูกเรียนเอกชนหรือนานาชาติ (2+
+  formal schools, 1,500+ pupils; half or more private or international splits them) · นักศึกษาที่เช่าหอ (a university and 3+
+  apartments, or 3,000+ students within 1 km) · คนในชุมชนเดิม (a market and a place of worship, under 20 condominium records);
+- visitors: นักเดินทางธุรกิจและผู้มาประชุม (3+ places to stay with meeting rooms, or 3+ offices and a median price of 1,000
+  baht) · นักท่องเที่ยวกำลังซื้อสูง (100+ rooms at 2,500 baht or more, or 3+ luxury points of sale) · งบประหยัด (30+ rooms under
+  800 baht or in guesthouses and homestays) · พักผ่อนแบบรีสอร์ท (30+ resort rooms) · สายวัดและวัฒนธรรม (2+ attractions and 2+
+  places of worship or a museum) · คนมาช้อปและเดินตลาด (a mall, 2+ markets, or a market or walking-street form) · ผู้ป่วยและญาติ
+  (100+ beds);
+- people who come to work and study: พนักงานออฟฟิศ / ในอาคารค่าเช่าสูง (2+ offices or 500+ office workers; a median rent of 700
+  baht/m² splits them) · ข้าราชการ (3+ offices of government or 300+ recorded staff) · พนักงานโรงงาน (300+ registered workers or
+  an industrial estate) · นักศึกษา (a university or 1,000+ students) · นักเรียนและผู้ปกครอง (1,000+ pupils) · บุคลากรการแพทย์ (200+
+  beds) · พนักงานร้านค้า ห้าง และตลาด (a mall or 50+ restaurants and groceries).
+
+A profile's clarity is its strength's mid-rank among the neighbourhoods where its rule holds; profiles measured in one unit
+share one pool (condominiums, families, offices), so a split by price never lowers a rank. The order in a group is the
+clarity, except the people who come to work and study: within 5 points of the clearest, offices, government, health,
+factories and universities come before shops and schools, which stand in nearly every town and so rank high almost
+everywhere (the review of 29 November: สีลม, อโศก and สำเพ็ง were led by school pupils). The first of each group always shows,
+the next two when at least ชัด (50); words ชัดมาก (80) · ชัด (50) · มีให้เห็น — never “เด่น”, the highlights' word. Each profile says
+why (its own counts, each in its unit, a star for a dataset with points for under 90 %), when (its written week: weekday and
+weekend strips in the busy-block tones of §19, the busiest hours in words; no hour is measured), what it comes to do, and
+what it can use nearby (its datasets or their kinds inside and within 800 m, one at a time, never added). Never people
+counts, customers, footfall or sales.
+
+**Alike (Inference).** Three likenesses, each 0–1: mix — the centred cosine of log density of §8, over the datasets in scope
+for both (at least 8, and at least 3 present in both), above 0; scale — the three people figures within 1 km on a log10
+scale, 1 − the mean gap (a tenfold gap = 0), required; price — 1 − the gap of the price levels ÷ 40, dropped when either has
+no level. Alike = the geometric mean of the likenesses there are, so one far facet pulls it down and a facet at 0 leaves the
+pair out; the five most alike nationwide. Trading sites (`peer: false`) take no list and are nobody's alike (443 lists in
+0.9.0). ศูนย์ฯ สิริกิติ์–พระราม 4 in 0.9.0: ราชดำริ–หลังสวน 79 % · ลุมพินี 73 % · สาทร–ช่องนนทรี 70 %, where 0.8.1's mix alone gave market towns of
+another scale. «เทียบกับย่านเหล่านี้» opens the comparison with this one and the first three.
+
+**The head in words (item 3).** The fingerprint of pictogram cells (§14) is no longer drawn: the head reads the price level
+(its five-step meter, its word and N/100, what it rests on folded) and the first profile of each group as buttons to
+«ใครคือคนหลักของย่าน». The matrices of §14 give way to lists in words: «ย่านที่เด่นหลายด้าน» names what puts each in the top
+tenth, a province lists its neighbourhoods, a comparison keeps its dot chart and its folded table. The levels of §14 stay
+the value of every dot and the axes.
+
+**The registers' exports of 29 November (item 5).** The 18 research registers of §20 came back with new exports; two placed
+more records — cinemas 0 → 4 (now in scope in 131 outlines), nail salons 49 → 51 — the other 16 place the same records and
+give the same figures: inside every outline, and within 400/800 m in all 8,857 figures without a point across a river (the
+39 others differ only by the river rule of 0.8.1). `data/neighborhoods.json` is the recount (`meta.recount`: the outlines
+of 0.8.1 reproduce every unchanged count); `data/around.json` takes the new cinema and nail figures (`meta.patch`), every
+other figure is 0.8.1's build — its OpenStreetMap inputs (parks, places of worship, the rivers cache) are outside this
+build. No changed figure counts a point across a river. The offices and shopping centres of their own demos stay at the
+commits 0.8.1 pins; their newer files wait for the rebuild that needs the OpenStreetMap file.

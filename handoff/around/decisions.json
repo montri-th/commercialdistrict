@@ -130,6 +130,20 @@
    "channel": "Claude chat, Project 02 CityMETER",
    "verbatim": "เรือขนได้ 16,000 คนเลยเหรอ",
    "note": "after Claude's correction that the distance of most of the 16,588 is measured through เรือข้ามฟากวัดบางน้ำผึ้งนอก–วัดบางนานอก (Claude had written “พาคนส่วนใหญ่ข้าม”). Claude answered that the figure is how many registered residents live within 5 km of the edge when the way is measured through the ferry's crossing — never people carried, trips or capacity — and offered «ไม่นับเรือ» again (434,994); the page's line now reads “วัดระยะผ่าน …” instead of “ข้ามที่ …”. D-18 stands unless he changes it."
+  },
+  {
+   "at": "2026-11-29T00:41:00+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, with three screenshots (ศูนย์ฯ สิริกิติ์–พระราม 4: the similar mixes, the fingerprint, the residents map)",
+   "verbatim": "มีเรื่องอยากให้ปรับมากๆดังนี้ / 1) ย่านที่ส่วนผสมคล้ายกัน มันควรจะดูด้านขนาดด้วยนะ เช่น จำนวนคน ความถี่ และด้านคุณภาพ จำนวนเงิน ระดับราคา อย่างย่านศูนย์สิริกิติ์ กับ ตลาดเมืองนครนายก กุดป่องเลย เรืองราษฎร์ระนอง จำนวนคน กับ ระดับราคาของสินค้าในพื้นที่มันใกล้กันตรงไหน พี่มองด้านนี้บ้างสิ ระดับราคาของโรงเรียน โรงแรม คอนโด บ้านจัดสรร etc พวกนี้ ควรจะใช้ infer ได้ / 2) ที่อยากให้ทำได้มากๆคือระบุ persona เด่นๆ ในย่าน ออกมาให้เห็นชัดว่าเป็นใคร ใน traffic แต่ละประเภท ทั้ง คนอยู่, ผู้มาเยือน, คนทำงาน_เรียน อยู่ในย่านช่วงไหน ว่าซื้ออะไรหรือมาทำอะไรในย่านบ้าง / 3) ส่วนลายมือย่านที่เป็น icon เยอะๆ คือผมดูไม่รู้เรื่องเลย ไม่รู้จะเข้าใจมันได้ยังไง ขนาดผมอยู่กับพี่ ทำเรื่องนี้มาเป็นเดือน ยังไม่เข้าใจ อย่าหวังว่า first-time user จะไม่งง / 4) heatmap แผนที่รอบย่านต้องคิดผลของแม่น้ำ, physical barrier ด้วย เคยทำใน dataset อื่นไปแล้วนี่ครับ ทำไมไม่จัดการให้เรียบร้อย บางกระเจ้าจะข้ามมาฝั่งนี้ได้ยังไง หรืออย่างน้อยๆก็ต้องอ้อมไกลมาก หรือพี่เห็นต่างช่วยอธิบายหน่อย / 5) dataset ต่างๆที่เชื่อมกับ registry นั้น ChatGPT มีการปรับปรุงเพิ่มเมื่อกี๊อีกหลายอัน จับคู่พิกัดเพิ่มขึ้นได้มาก พี่ช่วยตรวจสอบและ update ทั้งหมดด้วย",
+   "note": "release 0.9.0; line breaks shown as “ / ”"
+  },
+  {
+   "at": "2026-11-29T00:5x+07:00",
+   "by": "owner (Montri)",
+   "channel": "Claude chat, his answers to Claude's two questions",
+   "verbatim": "«ไม่นับเรือ (แนะนำ)» · «ตรวจผ่านแล้ว publish เลย (แนะนำ)»",
+   "note": "D-19 (ferries) and the publication of 0.9.0"
   }
  ],
  "reading": {
@@ -429,6 +443,24 @@
    ],
    "meaning": "ทั้งสองหน้าใช้กติกาทางข้ามเดียวกัน (ทางข้าม 3,264 กับ 3,411 ของหน้าศูนย์การค้า เรือข้ามฟาก 90 กับ 91) คนฝั่งบางกระเจ้าที่ระยะจากบ้านถึงขอบปุณณวิถีเมื่อวัดผ่านท่าเรือข้ามฟากไม่เกินระยะ ยังนับอยู่ (16,588 จาก 18,777 ใน 5 กม. ระยะของ 15,494 คนวัดผ่านเรือข้ามฟากวัดบางน้ำผึ้งนอก - วัดบางนานอก) — เป็นระยะ ไม่ใช่จำนวนคนที่เรือขน ไม่ดูความจุหรือตารางเดินเรือ",
    "where": "scripts/crossing/banks.py KINDS_ALL · build-residents.py / build-people.py / build-around.py --crossing-kinds all (default)"
+  },
+  {
+   "id": "D-19",
+   "question": "ข้ามแม่น้ำ: นับเรือข้ามฟากเป็นทางข้ามต่อไปไหม (บางกระเจ้า → ปุณณวิถี)",
+   "options": [
+    "ไม่นับเรือ (แนะนำ)",
+    "นับเรือแบบหน้าศูนย์การค้า (D-18, as shipped)"
+   ],
+   "status": "decided — rebuild pending",
+   "decision": "ferries are not crossings: bridges, tunnels, footways, fords and metro lines only (--crossing-kinds no-ferry in every builder)",
+   "decidedAt": "2026-11-29T00:5x+07:00",
+   "decidedBy": "owner",
+   "ownerWords": "ไม่นับเรือ (แนะนำ)",
+   "delegatedToAuthor": false,
+   "supersedes": "D-18",
+   "meaning": "ปุณณวิถี within 5 km: 434,994 residents instead of 451,583 (its nearest crossings within 5 km are three ferries, so all of Bang Krachao falls beyond)",
+   "pending": "the rivers cache is built from the OpenStreetMap file of D-14 (thailand-261124.osm.pbf, 330,871,226 bytes), which the session of 0.9.0 could not reach: the Drive connector stops at 10 MB, Geofabrik is outside its network, no folder of the owner's computer was connected. 0.9.0 ships D-18's figures and says ferries count; the rebuild (rivers cache → residents --crossing-kinds no-ferry → people → around → character → profile --crossing) follows as soon as the file is reachable",
+   "where": "scripts/crossing/banks.py load(kinds='no-ferry') · build-residents.py / build-people.py / build-around.py / build-profile.py --crossing-kinds no-ferry"
   }
  ],
  "release": {
@@ -497,5 +529,12 @@
    "D-18"
   ],
   "scope": "river crossings on every distance from the edge (V7-09), from the Shopping Center's OpenStreetMap file by SHA-256 (D-14); ferries counted as that page counts them (D-18)"
+ },
+ "amendedIn8": {
+  "version": "0.9.0",
+  "decisions": [
+   "D-19"
+  ],
+  "scope": "the owner's answer on ferries recorded; the rebuild waits for the OpenStreetMap file (DATA_METHOD.md §17)"
  }
 }

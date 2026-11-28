@@ -23,6 +23,7 @@ import {COUNT_SCALE, DENSITY_SCALE} from '../js/scales.js';
 import {buildNeighborhood, buildOverview, buildCompare} from '../js/profile.js';
 import {renderNeighborhood, renderOverview, renderCompare} from '../js/panel.js';
 import {PICTOGRAM_CONTRACT} from '../js/navigation.js';
+import {decodeProfile} from '../js/personas.js';
 
 const A = () => decodeAround(readJSON('data/around.json'));
 const ctx = () => ({meta: load().model.meta, datasetCount: load().model.datasets.length});
@@ -105,7 +106,7 @@ test('cell states (EVID-05 kept apart): every dataset of every neighbourhood, wi
   assert.deepEqual([...seen].sort(), [...KINDS].sort(), 'every state occurs');
 });
 
-test('every neighbourhood: the fingerprint, the highlight cards, the axes and the similar matrix keep the rules', () => {
+test('every neighbourhood: the head in words, the highlight cards and the axes keep the rules (0.9.0: no fingerprint, no matrix)', () => {
   const {model} = load();
   const around = A();
   const COUNT = new Set(COUNT_SCALE.lut), DENS = new Set(DENSITY_SCALE.lut);
@@ -115,27 +116,9 @@ test('every neighbourhood: the fingerprint, the highlight cards, the axes and th
     for (const [a, distance] of [[around, 'in'], [around, '400'], [around, '800'], [null, 'in']]) {
       const html = renderNeighborhood(d, model, {ctx: ctx(), around: a, distance});
       const head = html.slice(0, html.indexOf('</section>'));
-      // the fingerprint: 16 cells in Land · Location · Living order, one image named by its key; every cell has its words
-      const cells = [...head.matchAll(/<span class="fp-cell k-([a-z]+)( is-hl)?"(?: style="background:(#[0-9A-F]{6});color:(#[0-9A-F]{6})")? title="([^"]+)"/g)];
-      assert.equal(cells.length, model.datasets.length, r.id);
+      // (0.9.0, owner 2026-11-29 item 3) the head reads in words: no fingerprint of pictogram cells, no matrix anywhere
+      assert.ok(!/class="fp-cell|class="fp fp-lg"|<table class="mx"/.test(html), `${r.id}: no icon grid in the view`);
       const want = cellsOf(model, r, a);
-      cells.forEach((m, i) => {
-        assert.equal(m[1], want[i].kind, `${r.id} cell ${i}`);
-        if (m[1] === 'ranked') { assert.ok(COUNT.has(m[3]), `${r.id}: a level takes the count LUT (D-V1d)`); assert.equal(m[3], levelFill(want[i].level)); assert.ok(['#182327', '#FFFFFF'].includes(m[4])); }
-        else assert.equal(m[3], undefined, `${r.id} ${want[i].ds.id}: colour only for a level`);
-        if (m[2]) assert.ok(d.highlights.some(x => x.ds.id === want[i].ds.id) && !lowLocated(want[i].ds), `${r.id}: ring only on a highlight of a complete dataset`);
-        assert.ok(m[5].startsWith(want[i].ds.nameTh), r.id);
-      });
-      // the key counts datasets in each state and they make the 16 (a number of datasets, never of records: INV-01)
-      const n = cellCounts(want);
-      assert.equal(n.in + n.edge + n.zero + n.out, model.datasets.length);
-      assert.match(head, new RegExp(`ในย่าน ${n.in} ชุด`), r.id);
-      const key = text(head.slice(head.indexOf('<p class="fp-key">')));
-      assert.deepEqual(key.match(/\d+(?! ชุด)(?=\D|$)/g)?.filter(x => !['800'].includes(x)) || [], [], `${r.id}: every number of the key with its unit`);
-      const name = head.match(/<span class="fp fp-lg" role="img" aria-label="([^"]+)">/)[1];
-      for (const part of name.split(': ')[1].split(' · ')) assert.match(part, / \d+ ชุด$/, `${r.id}: the image's name, ${part}`);
-      // a counted, unranked cell keeps its dot in the head: not colour alone (the stylesheet draws it in the corner)
-      for (const m of cells) if (m[1] === 'few' || m[1] === 'starred') assert.equal(m[3], undefined);
       // every data colour of the panel's dots and cells is a sample of the count LUT; none of the density LUT (the map's)
       const fills = [...html.matchAll(/class="(?:ax-dot|fp-cell[^"]*)"[^>]*style="[^"]*background:(#[0-9A-F]{6})/g)].map(m => m[1]);
       for (const hex of fills) assert.ok(COUNT.has(hex), `${r.id} ${hex}`);
@@ -223,50 +206,34 @@ test('what comes together: a role’s evidence stays visible, ✓ by its dataset
   assert.ok(open > 0);
 });
 
-test('the matrix is a real table: a named header for every dataset, a header for every neighbourhood, words in every cell', () => {
+test('0.9.0: the lists read in words — the alike (mix · scale · price), the neighbourhoods strong on several fronts, a province, a comparison', () => {
   const {model} = load();
   const around = A();
-  const check = (html, label) => {
-    const tables = [...html.matchAll(/<table class="mx">([\s\S]*?)<\/table>/g)].map(m => m[1]);
-    assert.ok(tables.length, label);
-    for (const t of tables) {
-      const cols = [...t.matchAll(/<th scope="col" class="mx-h[^"]*" title="([^"]+)">[\s\S]*?<span class="sr-only">([^<]+)<\/span><\/th>/g)];
-      assert.deepEqual(cols.map(m => m[2]), model.datasets.map(d => d.nameTh), `${label}: a named column header for every dataset`);
-      const rows = [...t.matchAll(/<tr class="mx-r[^"]*" data-nb="([^"]+)"><th scope="row" class="mx-row">([\s\S]*?)<\/th>([\s\S]*?)<\/tr>/g)];
-      assert.ok(rows.length, label);
-      for (const [, id, , tds] of rows) {
-        const words = [...tds.matchAll(/<td class="mx-c[^"]*" tabindex="(-1|0)"><span class="fp-cell k-[a-z]+[^"]*"[^>]*><\/span><span class="sr-only">([^<]+)<\/span><\/td>/g)];
-        assert.equal(words.length, model.datasets.length, `${label} ${id}: every cell with its words`);
-      }
-      assert.equal((t.match(/tabindex="0"/g) || []).length, 1, `${label}: one tab stop per table, the arrows move inside`);
-      // a sub-row spans the whole table from the corner: no dataset's column header names it
-      for (const m of t.matchAll(/<tr class="mx-sub">([\s\S]*?)<\/tr>/g)) assert.match(m[1], new RegExp(`^<td colspan="${model.datasets.length + 1}">`), label);
-    }
-  };
+  const profile = decodeProfile(readJSON('data/profile.json'));
   const siam = model.rows.find(r => r.name === 'สยาม');
-  check(renderNeighborhood(buildNeighborhood(model, siam), model, {ctx: ctx(), around}), 'similar');
-  check(renderOverview(buildOverview(model, {rows: model.rows}), model, {ctx: ctx(), around}), 'multi-strong');
-  check(renderOverview(buildOverview(model, {rows: scopeRows(model, {province: 'BKK'}), province: 'BKK'}), model, {ctx: ctx(), around}), 'province list');
-  const list = [siam, ...buildNeighborhood(model, siam).similar.map(x => x.row)];
+  const view = renderNeighborhood(buildNeighborhood(model, siam), model, {ctx: ctx(), around, profile});
+  const sec = view.match(/<section class="panel-section sm-section" id="nb-similar"[\s\S]*?<\/section>/)[0];
+  const items = [...sec.matchAll(/<li class="sm-item">([\s\S]*?)<\/li>/g)].map(m => m[1]);
+  const sim = profile.rows.get(siam.id).sim;
+  assert.equal(items.length, sim.length, 'one item per neighbourhood alike');
+  items.forEach((it, k) => {
+    assert.match(it, new RegExp(`data-action="select-nb" data-id="${sim[k][0]}"`), 'in the order of the file');
+    for (const w of ['ส่วนผสม', 'ขนาดคน', 'ระดับราคา']) assert.ok(text(it).includes(w), `${w}: each likeness by its words`);
+    assert.equal((it.match(/class="sm-track"/g) || []).length, 3);
+  });
+  assert.match(sec, /data-action="cmp-similar"/);
+  for (const [label, html] of [['multi-strong', renderOverview(buildOverview(model, {rows: model.rows}), model, {ctx: ctx(), around})],
+    ['province list', renderOverview(buildOverview(model, {rows: scopeRows(model, {province: 'BKK'}), province: 'BKK'}), model, {ctx: ctx(), around})]]) {
+    assert.ok(!/<table class="mx"|class="fp-cell/.test(html), `${label}: no matrix`);
+    assert.ok((html.match(/data-action="select-nb"/g) || []).length > 3, `${label}: the neighbourhoods as a list to open`);
+  }
+  const list = [siam, ...sim.slice(0, 3).map(x => model.byId.get(x[0]))];
   const cmp = renderCompare(buildCompare(model, list), model, {around});
-  check(cmp, 'compare');
+  assert.ok(!/<table class="mx"/.test(cmp), 'the comparison: the dot chart, no matrix');
   // the compare: one shape per neighbourhood on its chip (which takes it out), its row and its dots; the old table folded
   assert.equal((cmp.match(/class="cmp-chip" data-action="cmp-remove"/g) || []).length, list.length);
   for (const [, hex] of cmp.matchAll(/class="cd-m" style="fill:(#[0-9A-F]{6})"/g)) assert.ok(COUNT_SCALE.lut.includes(hex), hex);
   assert.match(cmp, /<details class="scope-details cmp-fold">[\s\S]*<table class="compare-table">/);
-  // the answer line names its peers by their number, wherever it shows (the similar mixes of every neighbourhood, a compare)
-  let answers = 0;
-  const siamView = renderNeighborhood(buildNeighborhood(model, siam), model, {ctx: ctx(), around});
-  assert.match(siamView, /<p class="mx-answer">/, 'สยาม and its 3 closest mixes share a level above 50');
-  assert.match(cmp, /<p class="mx-answer">/, 'the same four, compared');
-  for (const html of [cmp, ...model.rows.map(r => renderNeighborhood(buildNeighborhood(model, r), model, {ctx: ctx(), around}))]) {
-    const ans = html.match(/<p class="mx-answer">([\s\S]*?)<\/p>/);
-    if (!ans) continue;
-    answers++;
-    const parts = text(ans[1]).split(':')[1].split(' · ');
-    for (const part of parts) assert.match(part, /\(เทียบ \d+ ย่าน\)\s*$/, part);
-  }
-  assert.ok(answers > 2, `answer lines: ${answers}`);
 });
 
 test('the axes: น่าอยู่ · น่าเที่ยว · น่าค้าขาย, one axis per dataset, no score, a pictogram per dataset in the approved subset', () => {

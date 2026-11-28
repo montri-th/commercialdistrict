@@ -1,9 +1,9 @@
 {
   "name": "citymeter-commercialdistrict",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "private": true,
   "type": "module",
-  "description": "CityMETER · Commercial District — 3D map of the central neighbourhood registry's outlines against 38 CityMETER datasets (Land · Location · Living; since 0.8.0 the registry's research datasets counted without their points, parks and places of worship): highlights against named peers, what comes together, similar mixes, side-by-side comparison, what lies inside and within 400 m and 800 m, who lives, visits and works around, and where and when they can spend",
+  "description": "CityMETER · Commercial District — 3D map of the central neighbourhood registry's outlines against 38 CityMETER datasets (Land · Location · Living; since 0.8.0 the registry's research datasets counted without their points, parks and places of worship): highlights against named peers, what comes together, who stands out among residents, visitors and people who come to work and study, the price level, the neighbourhoods most alike in mix, scale and price, side-by-side comparison, what lies inside and within 400 m and 800 m, who lives, visits and works around, and where and when they can spend",
   "engines": {
     "node": ">=20.0.0"
   },
