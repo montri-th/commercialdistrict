@@ -139,7 +139,7 @@
    "note": "release 0.9.0; line breaks shown as “ / ”"
   },
   {
-   "at": "2026-11-29T00:5x+07:00",
+   "at": "2026-11-29",
    "by": "owner (Montri)",
    "channel": "Claude chat, his answers to Claude's two questions",
    "verbatim": "«ไม่นับเรือ (แนะนำ)» · «ตรวจผ่านแล้ว publish เลย (แนะนำ)»",
@@ -451,16 +451,19 @@
     "ไม่นับเรือ (แนะนำ)",
     "นับเรือแบบหน้าศูนย์การค้า (D-18, as shipped)"
    ],
-   "status": "decided — rebuild pending",
+   "status": "decided",
    "decision": "ferries are not crossings: bridges, tunnels, footways, fords and metro lines only (--crossing-kinds no-ferry in every builder)",
-   "decidedAt": "2026-11-29T00:5x+07:00",
+   "decidedAt": "2026-11-29",
    "decidedBy": "owner",
    "ownerWords": "ไม่นับเรือ (แนะนำ)",
    "delegatedToAuthor": false,
    "supersedes": "D-18",
    "meaning": "ปุณณวิถี within 5 km: 434,994 residents instead of 451,583 (its nearest crossings within 5 km are three ferries, so all of Bang Krachao falls beyond)",
-   "pending": "the rivers cache is built from the OpenStreetMap file of D-14 (thailand-261124.osm.pbf, 330,871,226 bytes), which the session of 0.9.0 could not reach: the Drive connector stops at 10 MB, Geofabrik is outside its network, no folder of the owner's computer was connected. 0.9.0 ships D-18's figures and says ferries count; the rebuild (rivers cache → residents --crossing-kinds no-ferry → people → around → character → profile --crossing) follows as soon as the file is reachable",
-   "where": "scripts/crossing/banks.py load(kinds='no-ferry') · build-residents.py / build-people.py / build-around.py / build-profile.py --crossing-kinds no-ferry"
+   "where": "scripts/crossing/banks.py load(kinds='no-ferry') · build-residents.py / build-people.py / build-around.py / build-profile.py --crossing-kinds no-ferry",
+   "applied": {
+    "release": null,
+    "pending": "the rivers cache is built from the OpenStreetMap file of D-14 (thailand-261124.osm.pbf, 330,871,226 bytes), which the session of 0.9.0 could not reach: the Drive connector stops at 10 MB, Geofabrik is outside its network, no folder of the owner's computer was connected. 0.9.0 ships D-18's figures and says ferries count; the rebuild (rivers cache → residents --crossing-kinds no-ferry → people → around → character → profile --crossing) follows as soon as the file is reachable"
+   }
   }
  ],
  "release": {
