@@ -55,7 +55,8 @@ test('the counts at 400 and 800 m equal the surroundings file, and nothing shrin
   const around = A();
   for (const r of model.rows) {
     const p = people(r.id), a = around.rows.get(r.id).a;
-    for (const ds of Object.keys(r.c)) {
+    // (0.8.0) the counted-only datasets (§20) are not people parts: the people file carries the demos' datasets only
+    for (const ds of Object.keys(r.c).filter(d => !model.dsById.get(d)?.aggregate)) {
       assert.equal(p.s.in.n[ds], r.c[ds], `${r.id} ${ds} inside`);
       assert.equal(p.s['400'].n[ds], r.c[ds] + a[ds][0], `${r.id} ${ds} 400`);
       assert.equal(p.s['800'].n[ds], r.c[ds] + a[ds][1], `${r.id} ${ds} 800`);
@@ -168,8 +169,12 @@ test('D-V6b: every topic row says a number or why there is none — never a bare
   const meta = readJSON('data/people/meta.json');
   const WAIT = /ยังไม่มีข้อมูล|รอข้อมูลรอบถัดไป|กำลังโหลด|น้อยกว่า 3 ร้าน/;
   // the datasets each row reads: one that does not reach the province is named on its row
-  const ROW_DS = {eat: ['restaurant', 'grocery'], needs: ['grocery', 'pharmacy', 'hospital', 'school', 'transit', 'governmentoffice', 'fitness'],
-    shop: ['shoppingcenter', 'luxurybrands'], mix: ['hotel', 'shoppingcenter', 'restaurant', 'luxurybrands'], biz: ['factory', 'industrialestate', 'camera'],
+  // (0.8.0) the rows of 0.8.0: daily needs take banks and salons (and name pets, cars and services), gyms sit under parks,
+  // shopping reads fashion and beauty too, the chain shops have a row of their own, places of worship join the variety
+  const ROW_DS = {eat: ['restaurant', 'grocery'], needs: ['grocery', 'pharmacy', 'hospital', 'school', 'transit', 'governmentoffice', 'bank', 'salon', 'pet', 'car', 'services'],
+    shop: ['shoppingcenter', 'apparel', 'beauty', 'luxurybrands'],
+    mix: ['hotel', 'tourism', 'shoppingcenter', 'restaurant', 'apparel', 'beauty', 'luxurybrands', 'massage', 'arts', 'cinema', 'playground', 'temple'],
+    biz: ['factory', 'industrialestate', 'bank'], retail: ['gold', 'optical', 'sport', 'hobby', 'furniture', 'clinic', 'nail', 'camera'],
     green: ['fitness'], spend: ['luxurybrands'], work: ['office'], stay: ['hotel'], move: ['transit']};
   // a number never stands without its unit: every bold figure is followed by a word in the same unbreakable span
   const BARE = /<b class="data-number">[^<]*<\/b>(?!\s*[^\s<])/;

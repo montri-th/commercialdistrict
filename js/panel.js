@@ -30,6 +30,7 @@ import {dsPic, fingerprint, matrix, matrixAnswer, matrixHead, matrixLegend, leve
 import {peopleSection, mapSection, DEFAULT_REACH, DEFAULT_MAP} from './people.js';
 import {characterSection} from './character.js';
 import {busySection, DAYPART_REACH} from './daypart.js';
+import {groupsSection, GROUPS, SPEND_REACH} from './groups.js';
 import {topicsHTML} from './indicators.js';
 import {AXES} from './axes.js';
 
@@ -175,7 +176,7 @@ export const highlightChips = (r, model, limit = 4) => (r.hl || []).slice(0, lim
   .map(ds => `<span class="hl-chip">${dsPic(ds)}${dsLabel(ds)}</span>`).join('');
 /** The datasets a row stands out for (D-V2: datasets with points for at least 90 % of their records). */
 const hlSet = r => new Set((r.hl || []).map(h => h.d));
-const kindSmall = r => [r.kind === 'lodging' ? L('ย่านที่พัก', 'lodging area') : r.kind === 'screen' ? L('ผลคัดย่านการค้า', 'commercial screen') : '', r.added ? L('ใหม่', 'new') : ''].filter(Boolean).map(esc).join(' · ');
+const kindSmall = r => [r.kind === 'lodging' ? L('ย่านที่พัก', 'lodging area') : r.kind === 'screen' ? L('ผลคัดย่านการค้า', 'commercial screen') : r.kind === 'review' ? L('ผลตรวจขอบของทะเบียน', 'registry outline review') : '', r.added ? L('ใหม่', 'new') : ''].filter(Boolean).map(esc).join(' · ');
 
 function multiSection(o, model, around) {
   if (!o.multi.length) return '';
@@ -184,7 +185,7 @@ function multiSection(o, model, around) {
     const top = (x.row.hl || []).filter(h => h.p >= 0.9).map(h => model.dsById.get(h.d)).filter(Boolean);
     return top.length ? `<span class="mx-chips"><span class="hint">${esc(L('กลุ่มบนสุด 10%:', 'Top tenth:'))}</span> ${top.map(ds => nw(`${dsPic(ds)}${esc(dsName(ds))}`)).join(' · ')}</span>` : '';
   };
-  const caption = L(`ย่านที่เด่นหลายด้าน${placeWord(o.province)} กับ 16 ชุดข้อมูล`, `Neighbourhoods that stand out on several fronts${placeWord(o.province)}, by the 16 datasets`);
+  const caption = L(`ย่านที่เด่นหลายด้าน${placeWord(o.province)} กับ ${num(model.datasets.length)} ชุดข้อมูล`, `Neighbourhoods that stand out on several fronts${placeWord(o.province)}, by the ${num(model.datasets.length)} datasets`);
   return section('rank', L('ย่านที่เด่นหลายด้าน', 'Neighbourhoods that stand out on several fronts'), esc(L('ติดกลุ่มบนสุด 10%', 'top tenth')),
     `${matrix(model, around, rows, {caption, sub})}${matrixLegend(model)}<p class="hint">${esc(levelScopeLine())}</p>`, 'mx-section');
 }
@@ -212,7 +213,14 @@ function provincesSection(o) {
 }
 
 /** The kind and novelty of a row in a list or the table, as small words. */
-const kindWords = r => [r.kind === 'lodging' ? L('ย่านที่พัก', 'lodging area') : r.kind === 'screen' ? L('ผลคัดย่านการค้า', 'commercial screen') : '', r.added ? L('ใหม่', 'new') : ''].filter(Boolean).map(w => ` <small class="kind-word">${esc(w)}</small>`).join('');
+const kindWords = r => [r.kind === 'lodging' ? L('ย่านที่พัก', 'lodging area') : r.kind === 'screen' ? L('ผลคัดย่านการค้า', 'commercial screen') : r.kind === 'review' ? L('ผลตรวจขอบของทะเบียน', 'registry outline review') : '', r.added ? L('ใหม่', 'new') : ''].filter(Boolean).map(w => ` <small class="kind-word">${esc(w)}</small>`).join('');
+
+/** (0.8.0) The registry review's scope of an outline in words: the outline of a neighbourhood, a trading street, or a trading site only. */
+export const REVIEW_SCOPE = {outline: ['ขอบย่านที่ทะเบียนตรวจผ่าน', 'a neighbourhood outline the registry accepted'],
+  physical: ['ขอบเฉพาะแนวถนนค้าขาย', 'the trading street only'], site: ['ขอบเฉพาะตัวตลาดหรือแหล่งค้า', 'the trading site only'], base: ['ขอบเดิมของรุ่นก่อน', 'the earlier release\'s outline']};
+/** (0.8.0) The registry's form of a trading place (its role check), for the details. */
+export const FORM_WORDS = {market: ['ตลาด', 'market'], street: ['ถนนการค้า', 'trading street'], walking: ['ถนนคนเดิน', 'walking street'], night: ['ไนท์มาร์เก็ต', 'night market'], centre: ['ย่านศูนย์การค้า', 'shopping-centre area']};
+const reviewScope = x => L(...(REVIEW_SCOPE[x?.scope] || REVIEW_SCOPE.outline));
 
 /** All neighbourhoods of a province (or of a search), the most distinctive first. */
 function listSection(o, model, around) {
@@ -221,7 +229,7 @@ function listSection(o, model, around) {
   const item = r => `<li><button type="button" class="nb-item" data-action="select-nb" data-id="${esc(r.id)}"><span class="nb-name">${esc(r.name)}${o.province ? '' : ` <small>${esc(provinceName(r.province))}</small>`}${kindWords(r)}</span><span class="nb-meta">${nw(`${rai(r.areaM2)} ${L('ไร่', 'rai')}`)}</span><span class="hl-chips">${highlightChips(r, model, 3) || `<span class="hint">${L('ยังไม่มีอะไรเด่นเกินเกณฑ์', 'Nothing above the threshold')}</span>`}</span></button></li>`;
   const shown = rows.slice(0, 30), rest = rows.slice(30);
   const small = r => [o.province ? '' : provinceWords(r), areaWords(r), kindSmall(r)].filter(Boolean).join(' · ');
-  const caption = o.province ? L(`ย่านใน${provinceName(o.province)} กับ 16 ชุดข้อมูล`, `Neighbourhoods in ${provinceName(o.province)}, by the 16 datasets`) : L('ย่านที่ตรงคำค้น กับ 16 ชุดข้อมูล', 'Matching neighbourhoods, by the 16 datasets');
+  const caption = o.province ? L(`ย่านใน${provinceName(o.province)} กับ ${num(model.datasets.length)} ชุดข้อมูล`, `Neighbourhoods in ${provinceName(o.province)}, by the ${num(model.datasets.length)} datasets`) : L(`ย่านที่ตรงคำค้น กับ ${num(model.datasets.length)} ชุดข้อมูล`, `Matching neighbourhoods, by the ${num(model.datasets.length)} datasets`);
   const table = matrix(model, around, shown.map(r => ({row: r, hl: hlSet(r), head: matrixHead(r, {small: small(r)})})), {caption});
   return section('maps', o.province ? L(`ย่านใน${provinceName(o.province)}`, `Neighbourhoods in ${provinceName(o.province)}`) : L('ย่านที่ตรงคำค้น', 'Matching neighbourhoods'), esc(L(`${num(rows.length)} ย่าน`, `${num(rows.length)}`)),
     `${table}${matrixLegend(model)}<p class="hint">${esc(levelScopeLine())}</p>${rest.length ? `<details><summary>${L(`อีก ${num(rest.length)} ย่าน`, `${num(rest.length)} more`)}</summary><ul class="nb-list">${rest.map(item).join('')}</ul></details>` : ''}`, 'mx-section');
@@ -267,7 +275,7 @@ function scopeDetails(model) {
   const rows = model.datasets.map(ds => `<tr><th scope="row">${dsLabel(ds)}</th><td class="num data-number">${num(ds.located)}<small>/${num(ds.records)}</small></td><td class="num data-number">${num(Object.keys(ds.byProvince || {}).length)}</td><td>${esc(thaiDate(dsDate(ds)))}</td><td>${esc(EN ? ds.scope?.en : ds.scope?.th)}</td></tr>`).join('');
   const t = model.meta.totals || {}, lm = model.meta.lodging, adm = lm?.admitted ? lm : null;
   return `<details class="scope-details"><summary>${L('ข้อมูลที่ใช้เทียบ และขอบเขตของแต่ละชุด', 'The datasets compared and how far each reaches')}</summary>
-    <p class="hint">${esc(L(`ทะเบียนย่านกลาง ${num(t.codes)} รหัส: ขอบปิดฉบับร่าง ${num(t.closed)} ย่าน${adm ? ` · ขอบร่างจากผลคัดย่านที่พัก ${num(t.lodgingDrawn)}` : ''}${t.screenDrawn != null ? ` · ขอบร่างจากผลคัดย่านการค้า ${num(t.screenDrawn)}` : ''} · รอขอบ ${num(t.held)} · ชื่อรวมหลายย่าน ${num(t.collections)}${t.screenHeld ? ` · พักไว้รอเจ้าของตัดสิน ${num(t.screenHeld)}` : ''}${t.screenRemoved ? ` · เจ้าของให้ไม่นับเป็นย่านการค้า ${num(t.screenRemoved)}` : ''}`, `Central registry ${num(t.codes)} codes: ${num(t.closed)} closed draft outlines${adm ? ` · ${num(t.lodgingDrawn)} draft outlines from the lodging screen` : ''}${t.screenDrawn != null ? ` · ${num(t.screenDrawn)} draft outlines from the commercial screen` : ''} · ${num(t.held)} held · ${num(t.collections)} collection names${t.screenHeld ? ` · ${num(t.screenHeld)} awaiting the owner's decision` : ''}${t.screenRemoved ? ` · ${num(t.screenRemoved)} not a commercial neighbourhood (the owner's word)` : ''}`))}${lm ? esc(L(` · ผลคัดย่านที่พัก ${num(lm.proposals)} ข้อเสนอ: ผูกกับย่านเดิม ${num(lm.onRegistry)} · บริเวณใหม่ ${num(lm.newAreas)} (มีขอบร่าง ${num(lm.newAreasDrawn)})${adm ? ` รับเป็นรหัสกลาง ${thaiDate(adm.admittedOn)}` : ''}`, ` · lodging screen ${num(lm.proposals)} proposals: ${num(lm.onRegistry)} on existing neighbourhoods · ${num(lm.newAreas)} new areas (${num(lm.newAreasDrawn)} with a draft outline)${adm ? `, central codes since ${thaiDate(adm.admittedOn)}` : ''}`)) : ''}${esc(L(` — นับ ${num(t.outlined ?? t.closed)} ย่านที่มีขอบ`, ` — the ${num(t.outlined ?? t.closed)} outlined neighbourhoods are counted`))}</p>
+    <p class="hint">${esc(L(`ทะเบียนย่านกลาง ${num(t.codes)} รหัส: ขอบปิดฉบับร่าง ${num(t.closed)} ย่าน${adm ? ` · ขอบร่างจากผลคัดย่านที่พัก ${num(t.lodgingDrawn)}` : ''}${t.screenDrawn != null ? ` · ขอบร่างจากผลคัดย่านการค้า ${num(t.screenDrawn)}` : ''}${t.reviewDrawn ? ` · ขอบจากผลตรวจของทะเบียน ${num(t.reviewDrawn)}` : ''} · รอขอบ ${num(t.held)} · ชื่อรวมหลายย่าน ${num(t.collections)}${t.screenHeld ? ` · พักไว้รอเจ้าของตัดสิน ${num(t.screenHeld)}` : ''}${t.screenRemoved ? ` · เจ้าของให้ไม่นับเป็นย่านการค้า ${num(t.screenRemoved)}` : ''}`, `Central registry ${num(t.codes)} codes: ${num(t.closed)} closed draft outlines${adm ? ` · ${num(t.lodgingDrawn)} draft outlines from the lodging screen` : ''}${t.screenDrawn != null ? ` · ${num(t.screenDrawn)} draft outlines from the commercial screen` : ''}${t.reviewDrawn ? ` · ${num(t.reviewDrawn)} outlines of the registry's review` : ''} · ${num(t.held)} held · ${num(t.collections)} collection names${t.screenHeld ? ` · ${num(t.screenHeld)} awaiting the owner's decision` : ''}${t.screenRemoved ? ` · ${num(t.screenRemoved)} not a commercial neighbourhood (the owner's word)` : ''}`))}${lm ? esc(L(` · ผลคัดย่านที่พัก ${num(lm.proposals)} ข้อเสนอ: ผูกกับย่านเดิม ${num(lm.onRegistry)} · บริเวณใหม่ ${num(lm.newAreas)} (มีขอบร่าง ${num(lm.newAreasDrawn)})${adm ? ` รับเป็นรหัสกลาง ${thaiDate(adm.admittedOn)}` : ''}`, ` · lodging screen ${num(lm.proposals)} proposals: ${num(lm.onRegistry)} on existing neighbourhoods · ${num(lm.newAreas)} new areas (${num(lm.newAreasDrawn)} with a draft outline)${adm ? `, central codes since ${thaiDate(adm.admittedOn)}` : ''}`)) : ''}${esc(L(` — นับ ${num(t.outlined ?? t.closed)} ย่านที่มีขอบ`, ` — the ${num(t.outlined ?? t.closed)} outlined neighbourhoods are counted`))}</p>
     <div class="table-scroll"><table class="scope-table"><thead><tr><th scope="col">${L('ชุดข้อมูล', 'Dataset')}</th><th scope="col" class="num">${L('มีพิกัด/ทั้งหมด', 'Located/all')}</th><th scope="col" class="num">${L('จังหวัด', 'Provinces')}</th><th scope="col">${L('ข้อมูล ณ', 'As of')}</th><th scope="col">${L('นับอะไร', 'What is counted')}</th></tr></thead><tbody>${rows}</tbody></table></div></details>`;
 }
 
@@ -468,6 +476,19 @@ function busyProvenance(r, model, meta) {
       'A hypothesis from rules on the levels of residents, overnight visitors, centres and markets and the counts of places of work, study and rail of «who is here» (laid out as on the Shopping Center page, with this page’s own rules)'),
     date, boundary: L(`${r.name} · ในย่านและพื้นที่ไม่เกิน ${num(+DAYPART_REACH / 1000)} กม. จากขอบ`, `${r.name} · inside and up to ${num(+DAYPART_REACH / 1000)} km from the edge`), anchor: 'daypart'});
 }
+/** (0.8.0) «ใคร ใช้จ่ายกับอะไร และเมื่อไร»: the people file's three groups, the places each can spend at, and a week per group. */
+function groupsProvenance(r, model, meta) {
+  const ids = [...new Set(GROUPS.flatMap(g => [...g.spend, ...g.rules.map(x => x.sig)]))];
+  const dates = model.datasets.filter(ds => ids.includes(ds.id) && ds.id in (r.c || {})).map(dsDate).filter(Boolean).sort();
+  const when = dates.length ? daySpan(dates[0], dates.at(-1)) : '';
+  const pm = meta?.residents?.populationMonth, yr = meta?.gst?.source?.year;
+  const date = [pm ? L(`ทะเบียน ${monthOf(pm)}`, `register ${monthOf(pm)}`) : '', yr ? L(`ผู้เข้าพัก พ.ศ. ${yr + 543}`, `guests ${yr}`) : '', when ? L(`ชุดข้อมูล ${when}`, `datasets ${when}`) : ''].filter(Boolean).join(' · ');
+  return provLine({
+    dataset: L(`CityMETER Commercial District · ใครใช้จ่ายกับอะไร รุ่น ${meta?.release || ''}`.trim(), `CityMETER Commercial District · who spends on what ${meta?.release || ''}`.trim()),
+    source: L('จำนวนคนจาก «ใครอยู่ตรงนี้» · ที่ใช้จ่ายได้จากชุดข้อมูล CityMETER ทีละชุด รวมทะเบียนวิจัยที่ยังไม่มีเดโมและสวนจาก OpenStreetMap · จังหวะเป็นสมมติฐานจากกฎของหน้านี้',
+      'People from «who is here» · places to spend from the CityMETER datasets one at a time, the research registers without a demo and parks from OpenStreetMap included · the rhythms are a hypothesis from this page’s rules'),
+    date, boundary: L(`${r.name} · คนใน 1 กม. จากขอบ · ที่ใช้จ่ายในย่านและขอบเดินถึง ${num(+SPEND_REACH)} ม.`, `${r.name} · people within 1 km of the edge · places inside and within the ${num(+SPEND_REACH)} m walkable edge`), anchor: 'groups'});
+}
 const MAP_DS = {visit: ['hotel', 'shoppingcenter', 'grocery', 'restaurant', 'pharmacy', 'fitness', 'luxurybrands', 'camera'],
   work: ['office', 'governmentoffice', 'factory', 'industrialestate', 'university', 'hospital', 'school']};
 function mapProvenance(r, model, meta, tab, {context = false} = {}) {
@@ -582,7 +603,7 @@ function aroundSection(d, model, around, {distance = 'in', fillOf = () => '', ve
   const star = cells.some(x => x.kind !== 'out' && lowLocated(x.ds));
   const cards = axisCards(model, r, around, {distance: reading, hl, demoOf: ds => demoTarget(ds, r.province),
     topics: axisId => topicsHTML(axisId, {row: r, model, around, people, peopleMeta, peopleState, distance: reading})});
-  const fold = `<details class="scope-details around-fold"><summary>${L('วิธีอ่าน แหล่งที่ตรวจไว้ และตัวเลขทุกระยะ (16 ชุด)', 'How to read, sources looked at, and every figure (16 datasets)')}</summary>${axisFoldIntro(model)}${t.table}${t.note}</details>`;
+  const fold = `<details class="scope-details around-fold"><summary>${L(`วิธีอ่าน แหล่งที่ตรวจไว้ และตัวเลขทุกระยะ (${num(model.datasets.length)} ชุด)`, `How to read, sources looked at, and every figure (${num(model.datasets.length)} datasets)`)}</summary>${axisFoldIntro(model)}${t.table}${t.note}</details>`;
   const hint = L(`${num(model.datasets.length)} ชุดข้อมูล`, `${num(model.datasets.length)} datasets`);
   return `<section class="panel-section around-section axes-section" id="nb-around" aria-labelledby="nb-around-title"><div class="section-heading">${heading('dataset', AXES.map(a => L(a.th, a.en)).join(' · '), 'nb-around-title')}<span class="hint">${esc(hint)}</span></div>
     ${t.switcher}${cards}${axisKey({distance: reading, hl: hlShown, star})}${fold}${aroundVenues(r, around, distance, venueLogo)}${aroundProvenance(r, model, around, reading, people ? peopleMeta : null)}</section>`;
@@ -594,7 +615,7 @@ function similarSection(d, model, around) {
   const rows = [{row: d.row, self: true, hl: hlSet(d.row), head: matrixHead(d.row, {self: true, small: esc(L('ย่านนี้', 'this one'))})},
     ...d.similar.map(x => ({row: x.row, hl: hlSet(x.row), head: matrixHead(x.row, {small: `${provinceWords(x.row)} · ${sim(x)}`})}))];
   // (the neighbourhood's name between separators: an English page keeps Thai names, never Thai sentences)
-  const caption = L(`16 ชุดข้อมูลของ${d.row.name} และ ${num(d.similar.length)} ย่านที่ส่วนผสมคล้ายที่สุด`, `${d.row.name} · the 16 datasets, with the ${num(d.similar.length)} neighbourhoods of the closest mix`);
+  const caption = L(`${num(model.datasets.length)} ชุดข้อมูลของ${d.row.name} และ ${num(d.similar.length)} ย่านที่ส่วนผสมคล้ายที่สุด`, `${d.row.name} · the ${num(model.datasets.length)} datasets, with the ${num(d.similar.length)} neighbourhoods of the closest mix`);
   return section('compare', L('ย่านที่ส่วนผสมคล้ายกัน', 'Neighbourhoods with a similar mix'), esc(L('ทั่วประเทศ', 'nationwide')),
     // the column key stays out here: the axes above name every dataset beside its pictogram (LDS ICON-01)
     `${matrix(model, around, rows, {caption, answer: matrixAnswer(model, around, rows.map(x => x.row))})}${matrixLegend(model, {columns: false})}<p class="hint">${esc(levelScopeLine())}</p>
@@ -615,6 +636,9 @@ export function kindBadges(r) {
   const out = [];
   if (r.kind === 'lodging') out.push(`<span class="kind-badge is-lodging">${esc(L('ย่านที่พัก · ขอบร่างจากผลคัด', 'Lodging area · draft outline from the screen'))}</span>`);
   if (r.kind === 'screen') out.push(`<span class="kind-badge is-lodging">${esc(L('ผลคัดย่านการค้า · ขอบร่างตามหลักของเจ้าของ', 'Commercial screen · draft outline by the owner\'s rule'))}</span>`);
+  if (r.kind === 'review') out.push(`<span class="kind-badge is-lodging">${esc(L(`ผลตรวจขอบของทะเบียน · ${reviewScope(r.review)}`, `Registry outline review · ${reviewScope(r.review)}`))}</span>`);
+  if (r.revised) out.push(`<span class="kind-badge is-lodging">${esc(L('ขอบปรับตามผลตรวจของทะเบียน', 'Outline revised by the registry\'s review'))}</span>`);
+  if (r.peer === false) out.push(`<span class="kind-badge">${esc(L('ไม่เทียบอันดับกับย่าน', 'Not ranked against neighbourhoods'))}</span>`);
   if (r.added) out.push(`<span class="kind-badge is-added">${esc(L('ใหม่ในรุ่นนี้', 'New in this release'))}</span>`);
   return out.length ? `<p class="kind-badges">${out.join('')}</p>` : '';
 }
@@ -628,7 +652,7 @@ function addedSection(o, model) {
   const t = model.meta.totals || {};
   if (o.province || o.searching || !t.added) return '';
   const added = model.rows.filter(r => r.added);
-  const reg = added.filter(r => r.kind === 'registry' || !r.kind), lod = added.filter(r => r.kind === 'lodging'), scr = added.filter(r => r.kind === 'screen');
+  const reg = added.filter(r => r.kind === 'registry' || !r.kind), lod = added.filter(r => r.kind === 'lodging'), scr = added.filter(r => r.kind === 'screen'), rev = added.filter(r => r.kind === 'review');
   const names = list => list.slice(0, 6).map(r => nbButton(r)).join(' · ') + (list.length > 6 ? ` <span class="hint">${esc(L(`และอีก ${num(list.length - 6)}`, `and ${num(list.length - 6)} more`))}</span>` : '');
   const since = EN ? model.meta.added?.sinceEn : model.meta.added?.since;
   return section('history', L('ย่านใหม่ในข้อมูลรุ่นนี้', 'New neighbourhoods in this release'), esc(L(`${num(added.length)} ย่าน`, `${num(added.length)}`)),
@@ -636,7 +660,8 @@ function addedSection(o, model) {
       ${reg.length ? `<li><strong>${esc(L(`ขอบปิดใหม่ในทะเบียน ${num(reg.length)} ย่าน`, `${num(reg.length)} newly closed registry outlines`))}</strong>${since ? ` <span class="hint">${esc(L(`เทียบ${since}`, `against ${since}`))}</span>` : ''}<br>${names(reg)}</li>` : ''}
       ${lod.length ? `<li><strong>${esc(model.meta.lodging?.admitted ? L(`ย่านที่พักรับเข้าทะเบียน ${num(lod.length)} ย่าน`, `${num(lod.length)} lodging areas admitted to the registry`) : L(`ย่านที่พักจากผลคัด ${num(lod.length)} ย่าน`, `${num(lod.length)} lodging areas of the screen`))}</strong>${model.meta.lodging?.admitted ? ` <span class="hint">${esc(L(`ขอบร่างจากผลคัด รับเป็นรหัสกลาง ${thaiDate(model.meta.lodging.admittedOn)}`, `draft outlines from the screen, central codes since ${thaiDate(model.meta.lodging.admittedOn)}`))}</span>` : ''}<br>${names(lod)}</li>` : ''}
       ${scr.length ? `<li><strong>${esc(L(`ย่านจากผลคัดย่านการค้า ${num(scr.length)} ย่าน`, `${num(scr.length)} neighbourhoods of the commercial screen`))}</strong> <span class="hint">${esc(L(`รหัสกลางที่ทะเบียนรับ ${thaiDates(model.meta.screen?.admittedOn)} ขอบวาดตามหลักของเจ้าของ ${thaiDate(model.meta.screen?.outlinedOn)}`, `central codes admitted on ${thaiDates(model.meta.screen?.admittedOn)}, outlines drawn by the owner's rule on ${thaiDate(model.meta.screen?.outlinedOn)}`))}</span><br>${names(scr)}</li>` : ''}
-    </ul><div class="aha-actions"><button type="button" class="btn quiet" data-action="set-kind" data-value="added">${L('ดูย่านใหม่บนแผนที่', 'Show the new ones on the map')}</button>${scr.length ? `<button type="button" class="btn quiet" data-action="set-kind" data-value="screen">${L('ดูเฉพาะผลคัดย่านการค้า', 'Commercial screen only')}</button>` : ''}${lod.length ? `<button type="button" class="btn quiet" data-action="set-kind" data-value="lodging">${L('ดูเฉพาะย่านที่พัก', 'Lodging areas only')}</button>` : ''}</div>`);
+      ${rev.length ? `<li><strong>${esc(L(`ย่านจากผลตรวจขอบย่านการค้าของทะเบียน ${num(rev.length)} ย่าน`, `${num(rev.length)} neighbourhoods of the registry's commercial outline review`))}</strong> <span class="hint">${esc(L(`รอบ 4 วันที่ ${thaiDate(model.meta.review?.on)} · ขอบเฉพาะตัวตลาดหรือแหล่งค้า ${num(rev.filter(r => r.review?.scope === 'site').length)} ย่าน ไม่เทียบอันดับกับย่าน`, `round 4, ${thaiDate(model.meta.review?.on)} · ${num(rev.filter(r => r.review?.scope === 'site').length)} outlines of a trading site only, not ranked against neighbourhoods`))}</span><br>${names(rev)}</li>` : ''}
+    </ul><div class="aha-actions"><button type="button" class="btn quiet" data-action="set-kind" data-value="added">${L('ดูย่านใหม่บนแผนที่', 'Show the new ones on the map')}</button>${rev.length ? `<button type="button" class="btn quiet" data-action="set-kind" data-value="review">${L('ดูเฉพาะผลตรวจขอบของทะเบียน', 'Registry outline review only')}</button>` : ''}${scr.length ? `<button type="button" class="btn quiet" data-action="set-kind" data-value="screen">${L('ดูเฉพาะผลคัดย่านการค้า', 'Commercial screen only')}</button>` : ''}${lod.length ? `<button type="button" class="btn quiet" data-action="set-kind" data-value="lodging">${L('ดูเฉพาะย่านที่พัก', 'Lodging areas only')}</button>` : ''}</div>`);
 }
 
 /**
@@ -698,11 +723,15 @@ function registryDetails(d, model) {
     <dl class="registry-list">
       <dt>${L('รหัสกลาง', 'Code')}</dt><dd class="data-number">${esc(r.id)}</dd>
       <dt>${L('สถานะชื่อ', 'Name')}</dt><dd>${esc(status)}</dd>
-      <dt>${L('ขอบ', 'Outline')}</dt><dd>${esc(am ? amendedOutlineWords(am) : r.kind === 'lodging' ? (model.meta.lodging?.admitted
+      <dt>${L('ขอบ', 'Outline')}</dt><dd>${esc(r.revised ? L(`ขอบปรับตามผลตรวจของทะเบียน ${thaiDate(r.revised.on)} (เดิม ${rai(r.revised.prevAreaM2)} ไร่)${r.revised.scopeTh ? ` — ${r.revised.scopeTh}` : ''} · ยังไม่ตรวจภาคสนาม`, `outline revised by the registry's review on ${thaiDate(r.revised.on)} (formerly ${rai(r.revised.prevAreaM2)} rai) · not yet walked`)
+    : am ? amendedOutlineWords(am) : r.kind === 'lodging' ? (model.meta.lodging?.admitted
     ? L(`ขอบร่างจากผลคัดย่านที่พัก รับเป็นรหัสกลาง ${thaiDate(model.meta.lodging.admittedOn)} รอตรวจตามหลักเกณฑ์ขอบย่าน ยังไม่ตรวจภาคสนาม`, `draft outline of the lodging screen; a central code since ${thaiDate(model.meta.lodging.admittedOn)}; awaiting the registry's outline rules; not yet walked`)
     : L('ขอบร่างจากผลคัดย่านที่พัก ทะเบียนยังไม่ออกรหัสกลาง ยังไม่ตรวจภาคสนาม', 'draft outline of the lodging screen; the registry has issued no central code; not yet walked'))
     : r.kind === 'screen' ? L(`ขอบร่างตามหลักที่เจ้าของกำหนด วาดจากจุดอ้างอิงของผลคัดย่านการค้า${r.screen?.cm ? ' ด้วยอาคาร CityMETER (Building V4)' : ''} ${thaiDate(r.screen?.on)}${TICK_TH[r.screen?.tick] ? ` ${TICK_TH[r.screen.tick]} ตามที่เจ้าของติ๊ก ${thaiDate(r.screen.tickedOn)}` : ''} ทะเบียนยังไม่รับขอบนี้ ยังไม่ตรวจภาคสนาม`, `draft outline drawn by the owner's rule from the commercial screen's reference point${r.screen?.cm ? ' with CityMETER Building V4' : ''} on ${thaiDate(r.screen?.on)}${TICK_EN[r.screen?.tick] ? `, ${TICK_EN[r.screen.tick]} as the owner ticked on ${thaiDate(r.screen.tickedOn)}` : ''}; not yet taken by the registry; not yet walked`)
+    : r.kind === 'review' ? L(`ขอบจากผลตรวจขอบย่านการค้าของทะเบียน รอบ 4 วันที่ ${thaiDate(r.review?.on)} · ${reviewScope(r.review)}${r.review?.scopeTh ? ` — ${r.review.scopeTh}` : ''} · ทะเบียนยังไม่ออกเป็นรุ่นทางการ ยังไม่ตรวจภาคสนาม`, `outline of the registry's commercial outline review, round 4, ${thaiDate(r.review?.on)} · ${reviewScope(r.review)} · not yet an official release of the registry; not yet walked`)
     : r.fieldVerified ? L('ตรวจภาคสนามแล้ว', 'field-checked') : L('ฉบับร่าง ยังไม่ตรวจภาคสนาม', 'draft, not yet walked'))}</dd>
+      ${r.local ? `<dt>${L('ชื่อที่คนในพื้นที่เรียก', 'Local name')}</dt><dd translate="no">${esc(r.local)}</dd>` : ''}
+      ${r.form && FORM_WORDS[r.form] ? `<dt>${L('รูปแบบการค้า', 'Form of trade')}</dt><dd>${esc(L(...FORM_WORDS[r.form]))}</dd>` : ''}
       ${r.aliases?.length ? `<dt>${L('ชื่ออื่น', 'Also called')}</dt><dd>${esc(r.aliases.join(' · '))}</dd>` : ''}
       ${r.roles?.length ? `<dt>${L('บทบาทที่ทะเบียนเสนอ', 'Proposed roles')}</dt><dd>${esc(r.roles.map(id => { const x = model.roles.find(y => y.id === id); return x ? (EN ? x.en : x.th) : id; }).join(' · '))}</dd>` : ''}
     </dl>${measures ? `<ul class="plain-list">${measures}</ul>` : ''}</details>`;
@@ -720,13 +749,13 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
   const cmp = inCompare
     ? `<button type="button" class="btn" data-action="cmp-remove" data-id="${esc(r.id)}" aria-pressed="true">${L('อยู่ในการเปรียบเทียบ', 'In the comparison')}</button>`
     : `<button type="button" class="btn primary" data-action="cmp-add" data-id="${esc(r.id)}"${compareFull ? ' disabled' : ''}>${L('เพิ่มในการเปรียบเทียบ', 'Add to the comparison')}</button>`;
-  const aha = `<section class="aha is-auto detail-head" aria-label="${L('ข้อค้นพบ', 'Finding')}"><p class="eyebrow">${esc(r.kind === 'lodging' ? L(`ย่านที่พัก · ${province}`, `Lodging area · ${province}`) : r.kind === 'screen' ? L(`ย่านจากผลคัดย่านการค้า · ${province}`, `Commercial screen · ${province}`) : L(`ย่าน · ${province}`, `Neighbourhood · ${province}`))}</p>
+  const aha = `<section class="aha is-auto detail-head" aria-label="${L('ข้อค้นพบ', 'Finding')}"><p class="eyebrow">${esc(r.kind === 'lodging' ? L(`ย่านที่พัก · ${province}`, `Lodging area · ${province}`) : r.kind === 'screen' ? L(`ย่านจากผลคัดย่านการค้า · ${province}`, `Commercial screen · ${province}`) : r.kind === 'review' ? L(`ย่านจากผลตรวจขอบของทะเบียน · ${province}`, `Registry outline review · ${province}`) : L(`ย่าน · ${province}`, `Neighbourhood · ${province}`))}</p>
     <h2 class="nb-title" tabindex="-1">${esc(r.name)}</h2>${kindBadges(r)}
     ${top ? `<p class="aha-lead">${L('เด่นเรื่อง', 'Stands out for')}</p><p class="hl-chips is-large">${names}</p>` : ''}
     ${fingerprint(model, r, around, {hl: new Set(d.highlights.map(x => x.ds.id))})}
     <div class="aha-actions">${cmp}</div></section>`;
   const metrics = `<section class="metrics compact" aria-label="${L('ตัวเลขของย่าน', 'Neighbourhood figures')}">
-    ${metricTile(rai(r.areaM2), L('ไร่', 'rai'), 'area', r.kind === 'lodging' && !am ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบร่างของผลคัดย่านที่พัก`, `${km2Text(r.km2)} km² per the lodging screen's draft outline`) : r.kind === 'screen' ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบร่างที่วาดตามหลักของเจ้าของ`, `${km2Text(r.km2)} km² per the draft outline drawn by the owner's rule`) : am ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบที่ปรับเพิ่ม ${thaiDate(am.on)}`, `${km2Text(r.km2)} km² per the outline extended on ${thaiDate(am.on)}`) : L(`${km2Text(r.km2)} ตร.กม. ตามทะเบียน`, `${km2Text(r.km2)} km² per the registry`))}
+    ${metricTile(rai(r.areaM2), L('ไร่', 'rai'), 'area', r.revised ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบจากผลตรวจของทะเบียน`, `${km2Text(r.km2)} km² per the outline of the registry's review`) : r.kind === 'lodging' && !am ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบร่างของผลคัดย่านที่พัก`, `${km2Text(r.km2)} km² per the lodging screen's draft outline`) : r.kind === 'screen' ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบร่างที่วาดตามหลักของเจ้าของ`, `${km2Text(r.km2)} km² per the draft outline drawn by the owner's rule`) : r.kind === 'review' || r.revised ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบจากผลตรวจของทะเบียน`, `${km2Text(r.km2)} km² per the outline of the registry's review`) : am ? L(`${km2Text(r.km2)} ตร.กม. ตามขอบที่ปรับเพิ่ม ${thaiDate(am.on)}`, `${km2Text(r.km2)} km² per the outline extended on ${thaiDate(am.on)}`) : L(`${km2Text(r.km2)} ตร.กม. ตามทะเบียน`, `${km2Text(r.km2)} km² per the registry`))}
     ${metricTile(d.highlights.length, L('จุดเด่น', 'highlights'), 'rank')}
     ${metricTile(Object.values(r.c || {}).filter(n => n > 0).length, L('ชุดที่มีในย่าน', 'datasets present'), 'dataset', L(`จาก ${num(Object.keys(r.c || {}).length)} ชุดที่มีข้อมูลในจังหวัด`, `of ${num(Object.keys(r.c || {}).length)} with data in the province`))}
     ${metricTile(d.inProvince, L(`ย่านใน${province}`, `in ${province}`), 'province')}
@@ -744,10 +773,11 @@ export function renderNeighborhood(d, model, {inCompare = false, compareFull = f
     rowInfo: id => { const x = model.byId.get(id); return x ? {name: x.name, place: provinceName(x.province)} : null; },
     prov: character && peopleMeta ? characterProvenance(r, model, peopleMeta, character, reach) : ''});
   const busyHTML = people ? busySection(people, {prov: busyProvenance(r, model, peopleMeta)}) : '';
-  return `${aha}${metrics}${peopleHTML}${charHTML}${mapHTML}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${aroundSection(d, model, around, {distance, fillOf, venueLogo, people, peopleMeta, peopleState: people ? 'ready' : peopleState === 'error' ? 'error' : 'loading'})}${busyHTML}${recordsHTML}${similarSection(d, model, around)}
+  const groupsHTML = people ? groupsSection(r, model, around, people, {prov: groupsProvenance(r, model, peopleMeta)}) : '';
+  return `${aha}${metrics}${peopleHTML}${charHTML}${mapHTML}${groupsHTML}${r.kind === 'lodging' ? lodging : ''}${highlightsSection(d)}${togetherSection(d)}${r.kind === 'lodging' ? '' : lodging}${aroundSection(d, model, around, {distance, fillOf, venueLogo, people, peopleMeta, peopleState: people ? 'ready' : peopleState === 'error' ? 'error' : 'loading'})}${busyHTML}${recordsHTML}${similarSection(d, model, around)}
     ${actionBar({kind: 'neighborhood', name: r.name, province, point: {lat: r.ref[1], lon: r.ref[0]}})}
     ${registryDetails(d, model)}
-    ${provenance(ctx, {boundary: r.kind === 'lodging' && !am ? L(`${r.name} · ขอบร่างของผลคัดย่านที่พัก ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline of the lodging screen ${rai(r.areaM2)} rai`) : r.kind === 'screen' ? L(`${r.name} · ขอบร่างตามหลักของเจ้าของ ${thaiDate(r.screen?.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline by the owner's rule, ${thaiDate(r.screen?.on)}, from OpenStreetMap ${rai(r.areaM2)} rai`) : am ? L(`${r.name} · ขอบย่านฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline extended on ${thaiDate(am.on)} from OpenStreetMap ${rai(r.areaM2)} rai`) : L(`${r.name} · ขอบย่านฉบับร่าง ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline ${rai(r.areaM2)} rai`)})}`;
+    ${provenance(ctx, {boundary: r.revised ? L(`${r.name} · ขอบจากผลตรวจของทะเบียน ${thaiDate(r.revised.on)} ${rai(r.areaM2)} ไร่`, `${r.name} · outline of the registry's review, ${thaiDate(r.revised.on)}, ${rai(r.areaM2)} rai`) : r.kind === 'lodging' && !am ? L(`${r.name} · ขอบร่างของผลคัดย่านที่พัก ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline of the lodging screen ${rai(r.areaM2)} rai`) : r.kind === 'screen' ? L(`${r.name} · ขอบร่างตามหลักของเจ้าของ ${thaiDate(r.screen?.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline by the owner's rule, ${thaiDate(r.screen?.on)}, from OpenStreetMap ${rai(r.areaM2)} rai`) : r.kind === 'review' || r.revised ? L(`${r.name} · ขอบจากผลตรวจของทะเบียน ${thaiDate((r.review || r.revised).on)} ${rai(r.areaM2)} ไร่`, `${r.name} · outline of the registry's review, ${thaiDate((r.review || r.revised).on)}, ${rai(r.areaM2)} rai`) : am ? L(`${r.name} · ขอบย่านฉบับร่าง ปรับเพิ่ม ${thaiDate(am.on)} จาก OpenStreetMap ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline extended on ${thaiDate(am.on)} from OpenStreetMap ${rai(r.areaM2)} rai`) : L(`${r.name} · ขอบย่านฉบับร่าง ${rai(r.areaM2)} ไร่`, `${r.name} · draft outline ${rai(r.areaM2)} rai`)})}`;
 }
 
 /* ---------- compare ---------- */
@@ -776,7 +806,7 @@ export function renderCompare(c, model, {max = 4, around = null} = {}) {
   // (0.6.0, §4.6) each neighbourhood keeps one shape: on its chip (which also takes it out), its row and its dots
   const chips = c.rows.map((r, k) => `<button type="button" class="cmp-chip" data-action="cmp-remove" data-id="${esc(r.id)}" aria-label="${esc(`${L('เอาออกจากการเปรียบเทียบ', 'Remove from the comparison')} · ${r.name}`)}">${shapeMark(k)}${esc(r.name)}<i aria-hidden="true">×</i></button>`).join('');
   const rows = c.rows.map((r, k) => ({row: r, hl: new Set((r.hl || []).map(h => h.d)), head: matrixHead(r, {small: `${provinceWords(r)} · ${areaWords(r)}`}).replace('<span class="mx-th">', `<span class="mx-th">${shapeMark(k)}`)}));
-  const caption = L(`16 ชุดข้อมูลของ ${c.rows.map(r => r.name).join(' · ')}`, `${c.rows.map(r => r.name).join(' · ')} · the 16 datasets`);
+  const caption = L(`${num(model.datasets.length)} ชุดข้อมูลของ ${c.rows.map(r => r.name).join(' · ')}`, `${c.rows.map(r => r.name).join(' · ')} · the ${num(model.datasets.length)} datasets`);
   return `<div class="cmp-chips">${chips}</div>
     <div class="cmp-visual"><div class="cmp-matrix">${matrix(model, around, rows, {caption, answer: matrixAnswer(model, around, c.rows)})}${matrixLegend(model)}<p class="hint">${esc(levelScopeLine())}</p></div>${compareDots(model, c.rows)}</div>
     <details class="scope-details cmp-fold"><summary>${L('ตารางจำนวนและต่อ ตร.กม.', 'Counts and per km²')}</summary>${table}</details>

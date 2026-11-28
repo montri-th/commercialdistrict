@@ -59,7 +59,9 @@ test('the shipped data use the amended outline: the row, its area, the display o
   assert.equal(row.areaM2, item.areaM2);
   assert.ok(Math.abs(row.areaM2 - am.properties.area_m2) < 0.05, 'the area measured in UTM 47N as the registry measures its own');
   assert.equal(item.registryAreaM2, am.properties.registry_area_m2);
-  assert.equal(raw.rows.filter(r => r.amended).length, meta.items.length, 'only the amended rows carry the flag');
+  // (0.8.0) the registry's national review of 28 Nov drew the outline again for 3 of them: those rows say so (`revised`), not the amendment
+  assert.equal(raw.rows.filter(r => r.amended).length + meta.items.filter(x => raw.rows.find(r => r.id === x.id)?.revised).length, meta.items.length, 'only the amended rows carry the flag');
+  for (const r of raw.rows) if (r.revised) assert.ok(!r.amended, `${r.id}: the review's outline, not the amendment's`);
   assert.ok(model.rows.find(r => r.id === ID), 'decoded as any other row');
   const shown = outlines.features.find(f => f.properties.id === ID);
   for (const [way, pt] of Object.entries(SITES)) assert.ok(inside(pt, shown.geometry), `${way} inside the outline on the map`);

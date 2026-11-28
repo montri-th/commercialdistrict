@@ -37,7 +37,8 @@ export function levelModel(model) {
   const out = new Map();
   for (const ds of model.datasets) {
     if (lowLocated(ds)) { out.set(ds.id, null); continue; }
-    const peers = model.rows.map(r => ({r, c: cell(r, ds)})).filter(x => x.c.state === 'measured' && x.c.count >= min);
+    // (0.8.0) an outline of a trading site only (`peer: false`) is counted but is no neighbourhood's peer
+    const peers = model.rows.filter(r => r.peer !== false).map(r => ({r, c: cell(r, ds)})).filter(x => x.c.state === 'measured' && x.c.count >= min);
     const counts = peers.map(x => x.c.count), dens = peers.map(x => x.c.density);
     const rows = new Map();
     for (const {r, c} of peers) {
@@ -57,11 +58,12 @@ export function levelModel(model) {
  *   ranked   at least `minCount` records of a dataset with points for ≥ 90 % — placed and coloured by its level
  *   few      1 or 2 records — counted, no level
  *   starred  records of a dataset with points for under 90 % (D-4) — counted, no level
+ *   site     (0.8.0) records inside an outline of a trading site only (`peer: false`) — counted, no level
  *   edge     none inside, some outside within 800 m of the edge (only when the surroundings file is read)
  *   zero     none inside (and, with the surroundings file, none within 800 m either: `edgeKnown`)
  *   out      the dataset has no located record in the neighbourhood's province (out of scope: never 0)
  */
-export const CELL_KINDS = Object.freeze(['ranked', 'few', 'starred', 'edge', 'zero', 'out']);
+export const CELL_KINDS = Object.freeze(['ranked', 'few', 'starred', 'site', 'edge', 'zero', 'out']);
 
 /** The cell of one dataset in one neighbourhood. `around`: decoded data/around.json, or null. */
 export function cellOf(model, row, ds, around = null) {
@@ -71,6 +73,7 @@ export function cellOf(model, row, ds, around = null) {
   const r400 = ring ? ring[0] : null, r800 = ring ? ring[1] : null;
   if (c.state === 'measured_zero') return {kind: r800 > 0 ? 'edge' : 'zero', ds, c, r400, r800, edgeKnown: Boolean(ring)};
   if (lowLocated(ds)) return {kind: 'starred', ds, c, r400, r800};
+  if (row.peer === false) return {kind: 'site', ds, c, r400, r800};   // (0.8.0) a trading site's own count, never a level
   if (c.count < min) return {kind: 'few', ds, c, r400, r800};
   const L = levelModel(model).get(ds.id)?.rows.get(row.id);
   return {kind: 'ranked', ds, c, r400, r800, ...L};
@@ -82,6 +85,6 @@ export const cellsOf = (model, row, around = null) => model.datasets.map(ds => c
 /** How many datasets stand in each state of the fingerprint's key: inside · only beyond the edge · none · no data. */
 export function cellCounts(cells) {
   const n = {in: 0, edge: 0, zero: 0, out: 0};
-  for (const x of cells) n[x.kind === 'ranked' || x.kind === 'few' || x.kind === 'starred' ? 'in' : x.kind]++;
+  for (const x of cells) n[x.kind === 'ranked' || x.kind === 'few' || x.kind === 'starred' || x.kind === 'site' ? 'in' : x.kind]++;
   return n;
 }

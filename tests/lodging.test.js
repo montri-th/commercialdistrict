@@ -34,7 +34,9 @@ test('the lodging screen: 268 proposals, 193 supported, 75 held; its 79 new area
     assert.equal(model.canonicalId(old), now);
   }
   assert.equal(model.canonicalId('CMN-TH-0001'), 'CMN-TH-0001');
-  assert.equal(model.pending.filter(p => p.screen === 'lodging').length, 42);
+  // (0.8.0) the registry's national review drew one of the 42 left without an outline
+  assert.equal(model.pending.filter(p => p.screen === 'lodging').length, 41);
+  assert.equal(model.rows.filter(r => r.kind === 'review' && r.review?.was === 'lodging').length, 1);
   assert.ok(model.pending.filter(p => p.screen === 'lodging').every(p => p.status === 'held'));
   assert.equal(lm.revision, 'lodging-held78-recovery-2026-11-18-r1');
   assert.deepEqual(lm.walkM, [400, 800]);
@@ -53,7 +55,7 @@ test('the lodging screen: 268 proposals, 193 supported, 75 held; its 79 new area
   // every lodging area of the demo has its screen; the drawn ones have a draft, the others none
   for (const r of model.rows.filter(r => r.kind === 'lodging')) assert.ok(r.lodging?.draft, r.id);
   const undrawn = model.pending.filter(p => p.screen === 'lodging');
-  assert.equal(undrawn.length, 42);
+  assert.equal(undrawn.length, 41);   // 0.7.10: 42
   for (const p of undrawn) { assert.ok(p.lodging && !p.lodging.draft, p.id); assert.match(p.id, /^CMN-TH-[0-9A-F]{10}$/); assert.match(p.province, /^[A-Z]{3}$/, p.id); }
 });
 
@@ -72,8 +74,9 @@ test('the kind filter: registry, lodging, screen, added; pending names follow it
   const {model} = load();
   assert.equal(scopeRows(model, {kind: 'registry'}).length, 358);
   assert.equal(scopeRows(model, {kind: 'lodging'}).length, 37);
-  assert.equal(scopeRows(model, {kind: 'added'}).length, 191);   // 15 + 37 + 139 (0.6.1: 126)
-  assert.equal(scopeRows(model).length, 534);   // 0.6.1: 469
+  assert.equal(scopeRows(model, {kind: 'added'}).length, 375);   // 15 + 37 + 139 + the review's 184 (0.7.10: 191 · 0.6.1: 126)
+  assert.equal(scopeRows(model, {kind: 'review'}).length, 184);
+  assert.equal(scopeRows(model).length, 718);   // 0.7.10: 534 · 0.6.1: 469
   assert.ok(model.rows.every(r => kindMatch(r, '')));
   const lp = model.pending.find(p => p.screen === 'lodging');
   assert.deepEqual(scopePending(model, {search: lp.name, kind: 'registry'}).filter(p => p.id === lp.id), []);

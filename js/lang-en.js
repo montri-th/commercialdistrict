@@ -11,18 +11,19 @@ export default {
   exact: {
     // Page and header
     'ย่านไหนเด่นเรื่องอะไร และอะไรมาด้วยกัน': 'Which neighbourhood stands out for what, and what comes together',
-    'ย่านไหนเด่นเรื่องอะไร และอะไรมาด้วยกัน — ย่านกลาง 451 ย่านทั่วประเทศ รวมย่านที่พัก 37 ย่าน และย่านจากผลคัดย่านการค้า 56 ย่าน เทียบกับ 16 ชุดข้อมูล CityMETER ทั้ง Land Location Living บนแผนที่ 3 มิติ': 'Which neighbourhood stands out for what, and what comes together: 451 central neighbourhoods nationwide, 37 of them lodging areas and 56 from the commercial screen, against 16 CityMETER datasets across Land, Location and Living, on a 3D map',
+    'ย่านไหนเด่นเรื่องอะไร และอะไรมาด้วยกัน — ย่านกลาง 718 ย่านทั่วประเทศ เทียบกับ 38 ชุดข้อมูล CityMETER ทั้ง Land Location Living พร้อมคนอยู่ ผู้มาเยือน และคนมาทำงาน บนแผนที่ 3 มิติ': 'Which neighbourhood stands out for what, and what comes together: 718 central neighbourhoods nationwide against 38 CityMETER datasets across Land, Location and Living, with residents, visitors and people at work, on a 3D map',
     // Groups of neighbourhoods (0.2.0; outline words 0.2.1)
     'ย่านที่แสดง': 'Show',
     'ทุกย่าน': 'Every neighbourhood',
     'ขอบตามหลักเกณฑ์ทะเบียน': 'Outlines by the registry\'s rules',
     'ขอบร่างจากผลคัดที่พัก': 'Draft outlines from the lodging screen',
     'ขอบร่างจากผลคัดย่านการค้า': 'Draft outlines from the commercial screen',
+    'ขอบจากผลตรวจของทะเบียน': 'Outlines of the registry\'s review',
     'ขอบร่างจากผลคัด': 'Draft outline from a screen',
     'ใหม่ในรุ่นนี้': 'New in this release',
     'ย่านที่พัก': 'Lodging area',
     'ขอบร่างจากผลคัดย่านที่พักและผลคัดย่านการค้า ย่านเหล่านี้รับเป็นรหัสกลางของทะเบียนแล้ว ขอบยังรอตรวจ': 'Draft outline from the registry\'s lodging or commercial screen; these areas are central codes of the registry now, their outlines await checking',
-    'ย่านไหนเด่นเรื่องอะไร และอะไรมาด้วยกัน — ย่านกลางทั่วประเทศเทียบกับ 16 ชุดข้อมูล CityMETER': 'Which neighbourhood stands out for what, and what comes together: central neighbourhoods nationwide against 16 CityMETER datasets',
+    'ย่านไหนเด่นเรื่องอะไร และอะไรมาด้วยกัน — ย่านกลางทั่วประเทศเทียบกับชุดข้อมูล CityMETER': 'Which neighbourhood stands out for what, and what comes together: central neighbourhoods nationwide against CityMETER datasets',
     'กำลังโหลดข้อมูล': 'Loading the data',
     'กำลังอ่านข้อมูลย่านและขอบย่าน': 'Reading the neighbourhoods and their outlines',
     'หน้านี้ต้องใช้ JavaScript เพื่ออ่านข้อมูลและแสดงแผนที่ กรุณาเปิด JavaScript แล้วลองใหม่ หรือเปิดลิงก์เว็บสาธารณะด้านบน': 'This page needs JavaScript to read the data and show the map. Turn JavaScript on and try again, or open the public site link above.',
@@ -69,7 +70,7 @@ export default {
     'ถัดไป': 'Next',
     'เปิดหรือย่อแถบเปรียบเทียบย่าน': 'Open or collapse the comparison',
     'ล้างย่านที่เปรียบเทียบทั้งหมด': 'Clear every compared neighbourhood',
-    'เปิดตารางทุกย่านกับ 16 ชุดข้อมูล': 'Open the table of every neighbourhood with the 16 datasets',
+    'เปิดตารางทุกย่านกับทุกชุดข้อมูล': 'Open the table of every neighbourhood with every dataset',
     'ปิดตารางและกลับไปแผนที่': 'Close the table and go back to the map',
     'ดูหน้าก่อนหน้าของตาราง': 'Previous page of the table',
     'ดูหน้าถัดไปของตาราง': 'Next page of the table',
@@ -82,7 +83,7 @@ export default {
     'ทุกจังหวัด': 'All provinces',
     'ดูเฉพาะย่านในจังหวัดนี้': 'Only the neighbourhoods of this province',
     // Help
-    'ย่านกลางทั่วประเทศ เทียบกับ 16 ชุดข้อมูล CityMETER ทั้ง Land Location Living — กดย่าน จังหวัด หรือชุดข้อมูล': 'Central neighbourhoods nationwide against 16 CityMETER datasets across Land, Location and Living. Choose a neighbourhood, a province or a dataset.',
+    'ย่านกลางทั่วประเทศ เทียบกับชุดข้อมูล CityMETER ทั้ง Land Location Living — กดย่าน จังหวัด หรือชุดข้อมูล': 'Central neighbourhoods nationwide against CityMETER datasets across Land, Location and Living. Choose a neighbourhood, a province or a dataset.',
     'ข้อค้นพบ': 'Finding',
     'สัดส่วนของจุดแต่ละชุดที่อยู่ในขอบย่าน เทียบกับพื้นที่ที่ย่านกินจริง · ในจังหวัด: เทียบกับจุดของชุดนั้นในจังหวัด': 'The share of each dataset’s located records that lie inside the outlines, against the area the neighbourhoods take · in a province: against that dataset’s records in the province',
     'สีของย่าน': 'Neighbourhood colours',
@@ -97,7 +98,7 @@ export default {
     'เปรียบเทียบ': 'Compare',
     'เพิ่มย่านได้ถึง 4 ย่าน วางเทียบในแถบล่างของแผนที่ · วงกรอบ = แน่นที่สุดในกลุ่มที่เทียบ · “ย่านที่ส่วนผสมคล้ายกัน” ช่วยหาย่านมาเทียบ': 'Add up to 4 neighbourhoods, side by side in the strip under the map · ringed = densest of the compared · “Neighbourhoods with a similar mix” suggests what to compare',
     'เส้นทางและตาราง': 'Path and table',
-    'ประเทศไทย › จังหวัด › ย่าน · “รายชื่อ” เปิดตารางทุกย่านกับ 16 ชุดข้อมูล': 'Thailand › province › neighbourhood · “List” opens the table of every neighbourhood with the 16 datasets',
+    'ประเทศไทย › จังหวัด › ย่าน · “รายชื่อ” เปิดตารางทุกย่านกับทุกชุดข้อมูล': 'Thailand › province › neighbourhood · “List” opens the table of every neighbourhood with every dataset',
     'Tab ไปยังปุ่ม · Enter เลือก · Escape ปิด': 'Tab to a control · Enter to choose · Escape to close',
     'เว็บ Commercial District': 'Commercial District site',
     // Map controls (MapLibre locale is Thai only on a Thai page)

@@ -135,7 +135,8 @@ def main():
     root = os.path.abspath(a.root)
     model = json.load(open(os.path.join(ROOT, 'data/neighborhoods.json'), encoding='utf-8'))
     ids = [d['id'] for d in model['datasets']]
-    pinned = {d['id']: d['source'] for d in model['datasets']}
+    # (0.8.0) a counted-only dataset (a research register, parks, places of worship) has no records shard and no demo file
+    pinned = {d['id']: d['source'] for d in model['datasets'] if not d.get('aggregate')}
     used = {}
     pool = kit.build_pool(root)
     venues = kit.build_venue_pool(root)

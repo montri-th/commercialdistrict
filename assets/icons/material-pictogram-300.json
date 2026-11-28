@@ -1,8 +1,8 @@
 {
   "family": "LDS Material Symbols Rounded Pictogram",
   "file": "material-pictogram-300.woff2",
-  "bytes": 6568,
-  "sha256": "d7166a5ced4aaad7a50fd1c22ebccb3b6bc329b6389a0464a101ae0783edb86e",
+  "bytes": 9724,
+  "sha256": "f825f423b17476c3a40d3ac7c1e8018a9c8f96134d13cae3e1a247f74ce84951",
   "source": "google/material-design-icons variablefont/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].ttf",
   "sourceSha256": "7e74e36533ccee12c2b81e75bfcf3ccf123d3bb7e7e46d65d94445f23db0c97c",
   "license": "Apache-2.0 (assets/icons/material-symbols-Apache-2.0.txt)",
@@ -216,6 +216,94 @@
     "trade": {
       "name": "payments",
       "codepoint": "U+EF63"
+    },
+    "park": {
+      "name": "park",
+      "codepoint": "U+EA63"
+    },
+    "bank": {
+      "name": "savings",
+      "codepoint": "U+E2EB"
+    },
+    "optical": {
+      "name": "eyeglasses",
+      "codepoint": "U+F6EE"
+    },
+    "salon": {
+      "name": "content_cut",
+      "codepoint": "U+E14E"
+    },
+    "nail": {
+      "name": "back_hand",
+      "codepoint": "U+E764"
+    },
+    "pet": {
+      "name": "pets",
+      "codepoint": "U+E91D"
+    },
+    "car": {
+      "name": "car_repair",
+      "codepoint": "U+EA56"
+    },
+    "services": {
+      "name": "devices",
+      "codepoint": "U+E326"
+    },
+    "furniture": {
+      "name": "chair",
+      "codepoint": "U+EFED"
+    },
+    "gold": {
+      "name": "toll",
+      "codepoint": "U+E8E0"
+    },
+    "apparel": {
+      "name": "apparel",
+      "codepoint": "U+EF7B"
+    },
+    "beauty": {
+      "name": "health_and_beauty",
+      "codepoint": "U+EF9D"
+    },
+    "sport": {
+      "name": "sports_basketball",
+      "codepoint": "U+EA26"
+    },
+    "hobby": {
+      "name": "interests",
+      "codepoint": "U+E7C8"
+    },
+    "clinic": {
+      "name": "dermatology",
+      "codepoint": "U+E0A7"
+    },
+    "massage": {
+      "name": "spa",
+      "codepoint": "U+EB4C"
+    },
+    "playground": {
+      "name": "attractions",
+      "codepoint": "U+EA52"
+    },
+    "museum": {
+      "name": "museum",
+      "codepoint": "U+EA36"
+    },
+    "cinema": {
+      "name": "movie",
+      "codepoint": "U+E404"
+    },
+    "temple": {
+      "name": "temple_buddhist",
+      "codepoint": "U+EAB3"
+    },
+    "housing": {
+      "name": "holiday_village",
+      "codepoint": "U+E58A"
+    },
+    "tour": {
+      "name": "tour",
+      "codepoint": "U+EF75"
     }
   },
   "status": "test exception to LDS nav-7 (owner 2026-10-22; actions and building added 2026-10-29; terrain glyphs 2026-11-01 for the map labels; rank, date, distance, construction and dataset 2026-11-01 for short copy; school glyphs 2026-11-05; learning glyphs 2026-11-06; dataset and axis glyphs 2026-11-26, D-V4 B); nav-7 subset unchanged"

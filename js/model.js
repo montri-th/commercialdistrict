@@ -92,7 +92,9 @@ export function highlightsOf(r, datasets, rules = {}, keep = () => true) {
   const out = [];
   for (const d of datasets) {
     const n = r.c?.[d.id];
-    if (!n || !keep(d)) continue;
+    // (0.8.0) a counted-only dataset that places under 90 % of its records offers no highlight even in the file (its
+    // few points would make a share of the country's located records out of a handful)
+    if (!n || !keep(d) || (d.aggregate && lowLocated(d))) continue;
     const [ci = 0, covn = 0, rr = null, peers = 0] = r.r?.[d.id] || [];
     const share = d.located ? n / d.located : 0, withAny = d.peers?.withAny ?? 0;
     let best = null;
@@ -134,7 +136,8 @@ export function decodeData(json) {
     const km2 = r.areaM2 / 1e6;
     const density = {};
     for (const [id, c] of Object.entries(r.c || {})) density[id] = c / km2;
-    const hl = highlightsOf(r, datasets, rules, complete);
+    // (0.8.0) an outline of a trading site only (the review's scope 'site', `peer: false`) is nobody's peer: no highlight
+    const hl = r.peer === false ? [] : highlightsOf(r, datasets, rules, complete);
     const top = hl[0];
     const pillar = top ? dsById.get(top.d)?.group || '' : '';
     const strong = hl.filter(h => h.p >= 0.9).length;
@@ -147,7 +150,9 @@ export function decodeData(json) {
   const pendingById = new Map(pending.map(p => [p.id, p]));
   const roles = (json.roles || []).map(r => ({...r}));
   // (0.2.1) an id of the 0.2.0 links (LP-NEW-…) opens the central code the registry gave the same area
-  const canonicalId = id => (byId.has(id) || pendingById.has(id) ? id : formerIds[id] || id);
+  // (0.8.0) an alias code of the registry's review opens its principal code
+  const aliasCodes = json.meta?.aliasCodes || {};
+  const canonicalId = id => (byId.has(id) || pendingById.has(id) ? id : formerIds[id] || aliasCodes[id] || id);
   return {meta: json.meta || {}, datasets, dsById, rows, byId, pending, pendingById, roles, pairs: json.pairs || [], stations: json.stations || [], canonicalId};
 }
 
@@ -166,7 +171,12 @@ export function cell(row, ds) {
 export const dsName = ds => (LANG === 'en' ? ds.name : ds.nameTh);
 export const dsUnit = ds => (LANG === 'en' ? ds.unitEn : ds.unitTh);
 const SINGULAR = {places: 'place', estates: 'estate', records: 'record', outlets: 'outlet', registrations: 'registration', branches: 'branch', stores: 'store',
-  'points of sale': 'point of sale', pharmacies: 'pharmacy', restaurants: 'restaurant', facilities: 'facility', schools: 'school', 'station-line records': 'station-line record', sites: 'site'};
+  'points of sale': 'point of sale', pharmacies: 'pharmacy', restaurants: 'restaurant', facilities: 'facility', schools: 'school', 'station-line records': 'station-line record', sites: 'site',
+  permits: 'permit', attractions: 'attraction', shops: 'shop', salons: 'salon'};
+/** (0.8.0) A dataset counted only: its points stay private (their rights gate), so it has no pin, record or card. */
+export const isAggregate = ds => Boolean(ds?.aggregate);
+/** (0.8.0) Records of a counted-only dataset that the master names in a province but has no point for (never a 0 of a neighbourhood). */
+export const unplacedIn = (ds, province) => (ds?.unplaced?.[province] || 0);
 /** The unit after a number: English takes the singular for one. */
 export const dsUnitN = (ds, n) => (LANG === 'en' && n === 1 ? SINGULAR[ds.unitEn] || ds.unitEn : dsUnit(ds));
 
@@ -190,7 +200,8 @@ export function pairsOf(row, model) {
  * outlines the owner's rule drew for the codes of the registry's commercial screen (0.5.0; owner 2026-11-26); added =
  * first drawn since the outlines of 16 Nov 2026.
  */
-export const KINDS = ['registry', 'lodging', 'screen', 'added'];
+// (0.8.0) review: the outlines the registry's commercial outline review (round 4, 2026-11-28) delivered beyond release 0.7.10's
+export const KINDS = ['registry', 'lodging', 'screen', 'review', 'added'];
 export const kindMatch = (r, kind) => !kind || (kind === 'added' ? Boolean(r.added) : (r.kind || 'registry') === kind);
 
 export function scopeRows(model, {province = '', search = '', kind = ''} = {}) {
@@ -204,7 +215,9 @@ export function scopePending(model, {province = '', search = '', kind = ''} = {}
   if (!terms.length) return [];
   const fromLodging = p => p.screen === 'lodging' || p.status === 'lodging';
   const fromScreen = p => p.screen === 'commercial';
-  const fits = p => !kind || (kind === 'lodging' ? fromLodging(p) : kind === 'screen' ? fromScreen(p) : kind === 'registry' ? !fromLodging(p) && !fromScreen(p) : false);
+  const fromReview = p => Boolean(p.review);
+  const fits = p => !kind || (kind === 'lodging' ? fromLodging(p) : kind === 'screen' ? fromScreen(p) : kind === 'review' ? fromReview(p)
+    : kind === 'registry' ? !fromLodging(p) && !fromScreen(p) && !fromReview(p) : false);
   return model.pending.filter(p => (!province || p.province === province) && fits(p) && terms.every(t => p.haystack.includes(t)));
 }
 
@@ -214,7 +227,8 @@ export function scopePending(model, {province = '', search = '', kind = ''} = {}
  */
 export function nationalShares(model) {
   const t = model.meta.totals || {};
-  const list = model.datasets.filter(d => d.located > 0).map(d => ({ds: d, inside: d.inside, located: d.located, share: d.inside / d.located}))
+  // (0.8.0) a counted-only dataset that places under 90 % of its records leads no finding: 3 of 4 placed play places are not 75 % of a country's
+  const list = model.datasets.filter(d => d.located > 0 && !(d.aggregate && lowLocated(d))).map(d => ({ds: d, inside: d.inside, located: d.located, share: d.inside / d.located}))
     .sort((a, b) => b.share - a.share);
   return {areaKm2: t.areaKm2, thailandKm2: t.thailandKm2, areaShare: t.areaKm2 / t.thailandKm2, closed: t.outlined ?? t.closed, list};
 }
