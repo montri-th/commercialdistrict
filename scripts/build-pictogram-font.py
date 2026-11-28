@@ -101,6 +101,31 @@ GLYPHS = {
     'home': ('home', 0xE9B2),
     'luggage': ('luggage', 0xF235),
     'trade': ('payments', 0xEF63),
+    # Commercial District 0.8.0 (owner 2026-11-28 20:12, “… ให้ข้อมูลทั้ง 44 ชุดที่เชื่อมต่อกับ registry นำมาใช้อธิบาย locale insight
+    # ของแต่ละย่านได้มากที่สุด …”): one glyph for each dataset the page reads from then on — public parks, the registry's
+    # research datasets without a demo web, Housing Estate and Tourism.
+    'park': ('park', 0xEA63),
+    'bank': ('savings', 0xE2EB),
+    'optical': ('eyeglasses', 0xF6EE),
+    'salon': ('content_cut', 0xE14E),
+    'nail': ('back_hand', 0xE764),
+    'pet': ('pets', 0xE91D),
+    'car': ('car_repair', 0xEA56),
+    'services': ('devices', 0xE326),
+    'furniture': ('chair', 0xEFED),
+    'gold': ('toll', 0xE8E0),
+    'apparel': ('apparel', 0xEF7B),
+    'beauty': ('health_and_beauty', 0xEF9D),
+    'sport': ('sports_basketball', 0xEA26),
+    'hobby': ('interests', 0xE7C8),
+    'clinic': ('dermatology', 0xE0A7),
+    'massage': ('spa', 0xEB4C),
+    'playground': ('attractions', 0xEA52),
+    'museum': ('museum', 0xEA36),
+    'cinema': ('movie', 0xE404),
+    'temple': ('temple_buddhist', 0xEAB3),
+    'housing': ('holiday_village', 0xE58A),
+    'tour': ('tour', 0xEF75),
 }
 AXES = {'FILL': 0, 'wght': 300, 'GRAD': 0, 'opsz': 24}
 ROOT = Path(__file__).resolve().parent.parent

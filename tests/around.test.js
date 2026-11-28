@@ -44,7 +44,7 @@ test('every neighbourhood: a figure pair for every dataset in scope and none out
       assert.ok(v[0] >= 0 && v[0] <= v[1], `${r.id} ${ds}: the 800 m figure holds the 400 m one`);
     }
   }
-  assert.equal(cells, 6478); // 0.7.8: 534 outlines (5,747 for the 469 of 0.6.1; 5,533 for the 451 of 0.5.0; 4,806 for the 395 of 0.4.0)
+  assert.equal(cells, 20641); // 0.8.0: 718 outlines × the 38 datasets in their provinces (20,641; 19,923 with 37 · 6,478 for 534 × 16 in 0.7.8; 5,747 for the 469 of 0.6.1; 5,533 for the 451 of 0.5.0; 4,806 for the 395 of 0.4.0)
   assert.ok(!/"total"|"sum"/i.test(JSON.stringify(rows)), 'no total or sum anywhere');
 });
 
@@ -83,7 +83,7 @@ test('levels: the rule of «รอบศูนย์นี้» verbatim, mid-ra
   const {meta, rows} = raw();
   // D-8: the reference set of 0.4.0 stays (395 outlines, in order); the commercial screen's outlines of 0.5.0 take a level
   // against it without joining it
-  const ref = model.rows.filter(r => r.kind !== 'screen');
+  const ref = model.rows.filter(r => !['screen', 'review'].includes(r.kind));   // (0.8.0) the review's outlines join after the set, as the screen's did
   const codes = ref.map(r => r.id).join('\n');
   assert.equal(meta.referenceSet.n, 395);
   assert.equal(meta.referenceSet.id, 'commercialdistrict-0.4.0-outlined');
@@ -114,7 +114,8 @@ test('levels: the rule of «รอบศูนย์นี้» verbatim, mid-ra
 test('datasets with points for under 90% of their records are starred, never ranked or levelled in the new layer (D-4)', () => {
   const {model} = load();
   const low = model.datasets.filter(lowLocated).map(d => d.id).sort();
-  assert.deepEqual(low, ['factory', 'fitness', 'hospital', 'industrialestate', 'office', 'pharmacy', 'school']);
+  // (0.8.0) the registry's research datasets whose masters place under 90 % of their records join the seven of 0.4.0
+  assert.deepEqual(low, ['apparel', 'arts', 'bank', 'beauty', 'car', 'cinema', 'clinic', 'factory', 'fitness', 'gold', 'hobby', 'hospital', 'industrialestate', 'massage', 'nail', 'office', 'optical', 'pet', 'pharmacy', 'playground', 'salon', 'school', 'sport']);
   assert.deepEqual(raw().meta.lowLocated.datasets, low);
   const A = around();
   for (const r of model.rows.slice(0, 60)) {
@@ -145,10 +146,10 @@ test('centres with a «รอบศูนย์นี้» page: one outline at 
     const keys = new Set(readJSON(`data/records/${id}.json`).rows.map(rec => String(rec[4])));
     assert.ok(keys.has(v) || notPinned.has(v), `${v} listed inside ${id} but not counted there`);
   }
-  assert.equal(seen.size, 181); // 0.7.8: 534 outlines (180 in 0.6.1, 176 in 0.5.0, 166 in 0.4.0)
+  assert.equal(seen.size, 185); // 0.8.0: 718 outlines (181 for 534 in 0.7.8, 180 in 0.6.1, 176 in 0.5.0, 166 in 0.4.0)
   // 0.7.5: across a river through the crossings — บางพลัด no longer has ศูนย์การค้าสุพรีม and ไฮมอลล์ สามเสน (across the
   // Chao Phraya) within 800 m; 363 in a straight line (0.6.1), 361 in 0.5.0, 356 in 0.4.0
-  assert.equal(Object.values(A.rows).reduce((s, x) => s + (x.v?.near.length || 0), 0), 363); // 0.7.8: 534 outlines (361 for the 469 of 0.7.5)
+  assert.equal(Object.values(A.rows).reduce((s, x) => s + (x.v?.near.length || 0), 0), 429); // 0.8.0: 718 outlines (363 for 534 in 0.7.8, 361 for the 469 of 0.7.5)
   assert.equal(A.meta.venues.n, 492);
 });
 
@@ -170,14 +171,15 @@ test('the lines of the map: one file per neighbourhood, 400 m inside 800 m, both
   }
 });
 
-test('ties: a count highlight says how many neighbourhoods share its rank (454 of 558 have at least 3)', () => {
+test('ties: a count highlight says how many neighbourhoods share its rank (581 of 745 have at least 3)', () => {
   const {model} = load();
   // the file's own highlights (hlBuild); since 0.6.0 the page draws them again without the starred datasets (D-V2)
   let count = 0, three = 0;
   for (const r of model.rows) for (const h of r.hlBuild || []) if (h.k === 'count') { count++; if (sharedBy(model, r, h) >= 3) three++; }
-  assert.equal(count, 558); // 0.7.8: 534 outlines (467 for the 469 of 0.6.1, 437 in 0.5.0 and 0.6.0, 390 in 0.4.0)
-  assert.equal(three, 454); // 0.7.8 (363 in 0.6.1, 336 in 0.5.0 and 0.6.0, 289 in 0.4.0)
-  const siam = model.rows.find(r => r.name === 'สยาม'), fit = siam.hlBuild.find(h => h.d === 'fitness');
+  assert.equal(count, 745); // 0.8.0: 718 outlines, 38 datasets (places of worship joined: 721 with 37) (558 for 534 in 0.7.8, 467 for the 469 of 0.6.1, 437 in 0.5.0 and 0.6.0, 390 in 0.4.0)
+  assert.equal(three, 581); // 0.8.0 (563 with 37 datasets; 454 in 0.7.8, 363 in 0.6.1, 336 in 0.5.0 and 0.6.0, 289 in 0.4.0)
+  // (0.8.0) สยาม's four now include furniture; the first neighbourhood whose file keeps a fitness count highlight stands in
+  const siam = model.rows.find(r => (r.hlBuild || []).some(h => h.d === 'fitness' && h.k === 'count' && h.v > 1 && sharedBy(model, r, h) > 1)), fit = siam.hlBuild.find(h => h.d === 'fitness');
   assert.ok(!siam.hl.some(h => h.d === 'fitness'), 'fitness, a starred dataset, is no highlight on the page (D-V2)');
   const t = sharedBy(model, siam, fit);
   assert.ok(t > 1);
@@ -198,7 +200,7 @@ test('every neighbourhood renders «ใครอยู่ตรงนี้» an
       assert.equal((html.match(/id="nb-people"/g) || []).length, 1, r.id);
       assert.match(html, /class="people-wait">กำลังโหลดตัวเลขคน…/, r.id);
       assert.ok(!/class="glance-tile /.test(html), r.id);
-      assert.equal((html.match(/class="around-ds"/g) || []).length, 16, r.id);
+      assert.equal((html.match(/class="around-ds"/g) || []).length, model.datasets.length, r.id);
       assert.match(html, new RegExp(`data-around="${distance}"`));
       if (a) assert.match(html, /data-value="in" aria-pressed="(true|false)"/);
       // one row group per pillar (each pillar header heads its own rows)
@@ -255,7 +257,7 @@ test('a neighbourhood with no highlight says what there is, inside and within 80
   const {model} = load();
   const A = around();
   const thin = model.rows.filter(r => !(r.hl || []).length);
-  assert.equal(thin.length, 205); // 0.7.8: 534 outlines (198 for the 469 of 0.6.1, 196 in 0.6.0), D-V2: highlights only on datasets with points for ≥ 90 % (183 with every dataset in 0.5.0)
+  assert.equal(thin.length, 348); // 0.8.0 (350 before places of worship joined): 718 outlines, of which 124 are trading sites without peers (205 for 534 in 0.7.8) (198 for the 469 of 0.6.1, 196 in 0.6.0), D-V2: highlights only on datasets with points for ≥ 90 % (183 with every dataset in 0.5.0)
   for (const r of thin) {
     const html = renderNeighborhood(buildNeighborhood(model, r), model, {ctx: ctx(), around: A});
     const head = html.slice(0, html.indexOf('</section>'));

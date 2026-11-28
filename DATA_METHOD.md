@@ -27,6 +27,12 @@ makes).
   รวมรายการที่อยู่ในย่านข้างเคียง · ไม่บวกกับค่าในย่าน และไม่บวกข้ามย่าน (§12)
 - **อันดับร่วม** (0.4.0) = ย่านที่มีค่าเท่ากันได้อันดับเดียวกัน จุดเด่นจึงบอกว่ากี่ย่านได้อันดับนั้นร่วมกัน (“มากอันดับ 4 ร่วม 5 ย่าน”, §5)
 - **\*** (0.4.0) = ชุดข้อมูลที่มีพิกัดไม่ถึง 90% ของรายการ ในส่วน «ในย่านนี้» และ «รอบย่านนี้» แสดงจำนวนที่พบ ไม่จัดอันดับหรือระดับ (§12)
+- **ชุดข้อมูลจากทะเบียนวิจัย** (0.8.0, §20) = ชุดที่ยังไม่มีเว็บเดโมของตัวเอง นับตามกติกาของทะเบียนแต่ละชุด นับในย่าน รอบย่าน และแยกประเภทได้ แต่ไม่เปิดจุดรายร้านบนหน้า
+  (ทะเบียนยังไม่ให้สิทธิ์เผยแพร่พิกัด) · รายการที่ทะเบียนยังไม่มีพิกัด บอกเป็น “ทะเบียนมี N แห่งในจังหวัดนี้ที่ยังไม่มีพิกัด” ไม่ใช่ 0 ของย่าน
+- **สวนสาธารณะ** (0.8.0) = พื้นที่สวนเป็นไร่จาก OpenStreetMap ไม่ใช่จำนวนสวน · **ศาสนสถาน** (0.8.0) = วัด มัสยิด โบสถ์ ศาลเจ้า จาก OpenStreetMap
+  หนึ่งแห่งต่อสถานที่ เพราะทะเบียนสวนและทะเบียนวัดยังไม่มีพิกัด (§20) · แผนที่เปิดอาจยังไม่ครบทุกแห่ง
+- **ขอบจากผลตรวจของทะเบียน** (0.8.0, §2g) = ขอบที่ทะเบียนตรวจระดับประเทศ 28 พ.ย. 2569 รับให้ใช้ · ขอบที่ครอบเฉพาะตัวตลาดหรือแหล่งค้า นับและอ่านได้ แต่ไม่จัดอันดับเทียบกับย่าน
+- **ใคร ใช้จ่ายกับอะไร และเมื่อไร** (0.8.0, §21) = คนอยู่ · ผู้มาเยือน · คนมาทำงานและเรียน วางคู่กัน ไม่บวกรวม พร้อมที่ใช้จ่ายของแต่ละกลุ่มในขอบเดินถึง 800 ม. และสัปดาห์ 7 × 24 ที่เป็นสมมติฐาน ไม่ใช่การนับคนจริง
 
 ## 1. Sources
 
@@ -357,6 +363,35 @@ the registry, the 37 lodging drafts and 139 of the screen (the 74 of 0.6.1 and t
 screen's 228 codes, 88 have no outline and are searchable names, one is taken off; none waits for a tick and none is held.
 14,513 records inside the outlines (13,407 in 0.6.1). The glance still ranks against the 395 of 0.4.0 (D-8).
 
+## 2g. The registry's national review of the outlines (0.8.0, 2026-11-28)
+
+Owner 2026-11-28 19:36, VERBATIM: “update web demo ของ commercial district แล้ว publish … ใช้ข้อมูลที่ปรับปรุงมาเพิ่ม by ChatGPT
+ใน sheet …”. The registry checked every principal code once more and delivered one outline set for the country,
+`national-commercial-district-review.geojson` in `CityMETER-commercial-district-173-boundaries.zip` (SHA-256 `7d329907…`; its
+base geometry `0d369ccc…`), one feature per principal code. The build (`scripts/build-data.py --base … --review …`, the
+delivered mode) starts from the rows of 0.7.10 on their exact counting outlines and lets the review add or replace only
+outlines, keeping every gate the review puts on its own:
+
+- **served** — state `published_draft` (the outline of 0.7.10, byte for byte), `qa_outline_accepted`, `qa_site_outline_accepted`
+  or `qa_physical_draft_needs_scope`, and no gate closed (`not_for_public_serving`, a false `*_eligible`, a set
+  `release_gate` / `publication_gate` / `source_publication_gate` / `publication_state`). 718 outlines: the 534 of 0.7.10 and
+  184 new (`kind: 'review'`, marked new; the filter word «ผลตรวจขอบของทะเบียน»).
+- **revised** — 7 outlines of 0.7.10 the review drew again (`revised`: date, scope, former area). Three of them had been
+  drawn by the owner's rule of 2026-11-24 (§2c): ตลาดศาลเจ้า–ตีเหล็ก–วัดไทร, คลองสาน–ไอคอนสยาม (775 → 426 ไร่) and
+  ตลาดโรงเกลือ–บ้านคลองลึก (5,626 → 366 ไร่, the market's own area). The page follows the registry's newer outline and says so;
+  the amendment no longer describes these rows (`amended` is dropped). Reported to the owner as a conflict with his
+  ticks of 24 Nov; one word from him restores an amendment.
+- **held** — 283 codes stay searchable names (`pending`): 135 await the owner's review of a drawn outline, 38 have no outline
+  yet, 110 have one the review keeps closed by a gate. Never counted or drawn.
+- **trading sites** — 124 outlines the review accepted for a trading site only (a market hall, a market's own area, a mall's
+  frontage; scope `site`): another grain than a neighbourhood. Their records are counted and read, but they are nobody's
+  peer and have none (`peer: false`): no rank, level, highlight, pair or similar mix, and a cell of kind `site` in the
+  fingerprint. The frozen reference set of the glance stays the 395 of 0.4.0 (D-8).
+
+Codes: 1,012 = 1,001 principal codes (drawn or held) + 10 collection names + 1 removed by the owner (0.7.8); 69 older codes
+now point to a principal one and open it (`model.canonicalId`). The commercial screen's codes the review drew (21) and the
+lodging code it drew (1) are counted apart, so the screen's and the lodging screen's codes still add up (`meta.screen.drawnByReview`).
+
 ## 3. Datasets and their default scope
 
 | Pillar | Dataset | Unit | What is counted (the demo's default scope) | Records / located | Provinces reached | As of | Source |
@@ -583,6 +618,15 @@ Surroundings (0.4.0, §12, `data/around.json`): per neighbourhood and dataset in
 mid-rank percentiles of the glance; the codes of the centres with a «รอบศูนย์นี้» page inside and near, with their public
 names and the distance in metres; `data/rings/<id>.json`: the two lines drawn on the map. No record list around a
 neighbourhood is published in this release.
+
+0.8.0: per neighbourhood also `review` (the date, the scope word and, where the registry gives one, its one-line scope
+in Thai; the code's origin `was` when the screen had it), `revised` (date, scope, the former area) and `peer: false` for an
+outline of a trading site only (§2g); the name people use there and the form of the place (`local`, `form`, as the
+registry checked them on 2026-11-27/28). Per dataset of §20: its register, tab and export by SHA-256, the count rule in words,
+the records, those placed and how (`placedBy`), the kinds, and the records without a point by province (`unplaced`) — never a
+record, a key, a name or a point of those registers. `data/parks.json`: the parks within 1 km of a neighbourhood — name,
+English name, whole area in ไร่, size kind, the register mark and the OpenStreetMap id (public data, ODbL). Places of worship
+publish counts and kinds only.
 
 ## 11. Rebuild
 
@@ -1184,3 +1228,71 @@ rule on and sets its step; it is never shown as a level.
 **Limits.** The grid says when activity is likely higher or lower than at this neighbourhood's own busiest hour; it does
 not compare two neighbourhoods, count people or measure hours. Check it by walking the area in the hours it calls busiest
 and in those it calls quiet.
+
+## 20. The registry's research datasets, parks and places of worship (0.8.0, 2026-11-28)
+
+Owner 2026-11-28 20:12, VERBATIM: “ในขอบเขต 800 เมตรของย่านศูนย์สิริกิติ ควรจะมีสวนเบญจกิตติ ถูกนับด้วย / Parks ขนาดใหญ่ขนาดนี้ควรมีผล
+กับความ "น่าอยู่" ของย่านมากๆ มากกว่า fitness เราจะมีวิธีปรับ logic อย่างไรให้ข้อมูลทั้ง 44 ชุดที่เชื่อมต่อกับ registry … นำมาใช้อธิบาย
+locale insight ของแต่ละย่านได้มากที่สุด แม้เป็น dataset ที่ยังไม่ได้สร้าง demo web ครับ … ขอให้ leverage ข้อมูลที่เรามีให้เต็มที่”;
+21:21, on downloading the temple register's tab through his Chrome: “ได้”.
+
+**Which datasets.** The 16 demos of 0.7.10, the two demos the family added since (Housing Estate: land-allocation permits
+at the point production draws; Tourism: attractions, kind 0 of its file), and 20 counted-only datasets: 18 research registers
+of the Dataset Registry that have no demo yet (banks, gold, optical, salons and barbers, furniture, sport, apparel, beauty,
+massage and spa, nails, beauty clinics, play places, pets, car services, hobby, IT and services, arts and edutainment,
+cinemas and theatres), parks and places of worship. 38 datasets, each in its own unit, never added.
+
+**Counted, not shown.** A register's count rule is its own: its `count_eligibility` and status fields, or the list it
+prepared for Yolk (`MCP_COUNT_VIEW`), one unit per key it counts once (`scripts/build-registry-points.py`). A record is
+placed by its own point when its `geometry_status` is one the register treats as the record's point, else by the host
+centre it names (a Shopping Center venue id with a point), else it is not placed; a point farther than about 5 km from every
+province is a wrong pin and not placed. The registers' rights gate does not let their geometry be redistributed, so the
+points stay outside the repository: the page gets counts inside and within 400 m and 800 m, kinds inside, coverage, ranks,
+levels, highlights and pairs — never a record, a key or a pin. Records without a point are counted by the province the
+register names (`unplaced`) and read “ทะเบียนมี N … ในจังหวัดนี้ที่ยังไม่มีพิกัด”, never a 0 of a neighbourhood. A dataset
+placed for under 90 % of its records keeps the star of D-4 and gives no highlight, no share in the Aha and no level.
+
+**Parks** (`scripts/build-parks.py`): the park register names 2,227 parks without a checked point, so the ground of a park
+comes from the Shopping Center page's OpenStreetMap extract (D-14, `thailand-261124.osm.pbf`, `62b496bf…`): leisure=park not
+private, 400 m² or more, cut into 40 m UTM squares — one square = 1 ไร่. A neighbourhood's figure is ไร่ of park ground, never a
+count of parks; the parks within 1 km are named in `data/parks.json`; a name matching the register's in the same province is
+marked (an Inference, the mark only).
+
+**Places of worship** (`scripts/build-worship.py`): the temple register (`01_PLACES`, 53,045 rows of the Buddhist, church and
+mosque registers) has no point for any row, so the places come from the same OpenStreetMap file: amenity=place_of_worship
+not private, one per place (a node or a smaller outline inside the outline of another is a part of it), kinds by the
+`religion` tag only: Buddhist · Muslim · Christian · the rest and places without the tag. 25,611 places; the open map is not
+complete everywhere, so a 0 reads as counted on that map. Matching the register by name and province (4,914 unique pairs)
+is a candidate list for the register's owners, never a point of this page.
+
+**Readiness.** The records each register still has to place, with why (no point · a host id without a point · a status the
+register does not accept · a pin outside Thailand · a pin in another province), are a private worklist built by
+`build-registry-points.py --worklist` for the registers' owners (the owner's 21:21 request: “… ปรับปรุงคุณภาพข้อมูลให้พร้อมใช้
+ทุกรายการด้วย ทุกชุดข้อมูลให้ครบถ้วน”). When a register adds points, rebuild with its new export; never write a point here.
+
+**Reading them.** The topic rows (§16) read them where they belong: daily needs (banks, salons; pets, car services and IT
+services as other services), green (park ground, then gyms), shopping (fashion and beauty beside centres and luxury),
+massage, cinemas, play places, the chain shops round the neighbourhood (gold, optical, sport, hobby, furniture, beauty
+clinics, nails, cameras), businesses round it (banks with factories and estates), places of worship with history.
+
+## 21. «ใคร ใช้จ่ายกับอะไร และเมื่อไร»: the three groups side by side (0.8.0, 2026-11-28)
+
+Owner 2026-11-28 19:36, VERBATIM: “… ย่าการค้าควรเล่าได้ว่า น่าอยู่ น่าเที่ยว น่าค้าขายอย่างไร และสามารถนับจำนวน บอกพฤติกรรมการจับจ่าย
+ของ traffic ในพื้นที่ ซึ่งประกอบด้วย Resident + Visitor + Commuter (ถ้ายากไปยังไม่ทำ commuter ได้) ที่มีจังหวะที่ต่างกันใน daypart 7x24
+(day x hour)”. `js/groups.js`, after the topic rows. For each group, in the owner's order (D-V9): คนอยู่ · ผู้มาเยือน · คนมาทำงานและเรียน.
+
+- **How many** — the people file's own figure within 1 km of the edge (§15): residents (modelled), overnight visitors a year
+  (modelled), people who come to work and study (at least). Three groups, never added, never customers or footfall.
+- **Where they can spend nearby** — the places of the datasets that serve the group, inside and within the 800 m walkable
+  edge, each in its own unit; a starred dataset says its points are short. Residents: groceries, restaurants, pharmacies,
+  parks, banks, salons, gyms, pets, car and other services, hospitals, housing estates. Visitors: lodging, attractions,
+  centres, restaurants, fashion, beauty, luxury, massage, arts, cinemas, play places, parks. Workers and students:
+  restaurants, groceries, banks, pharmacies, IT services, optical, beauty clinics, gyms, beauty, fashion. Which group a dataset serves is this page's
+  reading (an Inference).
+- **When** — the group's own 7 × 24 week in the busy-block tones of §19: a base week for the group (weekday, weekend),
+  shifted by the places round it (parks in the early morning, school runs, late convenience stores; attractions in the
+  day, centres late morning to evening, massage afternoon to late; offices, factories, schools and rail at their hours),
+  levels 1–5 against the group's own busiest hour. A Hypothesis: no hour is measured; never people, footfall, customers or
+  sales (MBB §3.7). The rules are folded under each week with their words.
+
+The block ends with its own provenance line (the people files · the datasets · their dates · the outline and 800 m).

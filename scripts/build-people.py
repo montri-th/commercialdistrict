@@ -61,7 +61,7 @@ warnings.simplefilter('ignore')
 SCHEMA = 'citymeter-commercialdistrict-people/1'
 MAPS_SCHEMA = 'citymeter-commercialdistrict-maps/1'
 CONTEXT_SCHEMA = 'citymeter-commercialdistrict-context/1'
-RELEASE = '0.7.10'
+RELEASE = '0.8.0'
 SCALES = (400, 800, 1000, 3000, 5000)   # 400 · 800: the walkable edges, inside included, for the axis rows; 1 · 3 · 5 km: the service area (D-10)
 CELL_M = 250
 UNIT_M = 25                      # drawn lines in 25 m units (as «รอบศูนย์นี้»)
@@ -189,6 +189,9 @@ def main():
     ap.add_argument('--crossing-kinds', default='all', choices=('all', 'no-ferry'))
     ap.add_argument('--out', default=None)
     ap.add_argument('--built-on', default=date.today().isoformat())
+    ap.add_argument('--previous', default=None, help='(0.8.0) data/people of the release this one builds on: the residents, the residents map, '
+                    'the river shares and the context of every neighbourhood not in --recompute are taken from it (the rest is computed again)')
+    ap.add_argument('--recompute', default=None, help='(0.8.0) file of the neighbourhood ids whose residents and context come from --residents and --context')
     a = ap.parse_args()
     repo = os.path.abspath(a.repo)
     out = os.path.abspath(a.out or os.path.join(repo, 'data'))
@@ -208,7 +211,7 @@ def main():
             for f in json.load(open(os.path.join(repo, 'data', 'boundaries.geojson'), encoding='utf-8'))['features']}
     if set(outl) != set(order):
         sys.exit('data/boundaries.geojson and data/neighborhoods.json do not hold the same neighbourhoods')
-    ref_order = [r['id'] for r in rows if r.get('kind') != 'screen']
+    ref_order = [r['id'] for r in rows if r.get('kind') not in ('screen', 'review')]  # (0.8.0) the review's outlines join after the set, as the screen's did
     if len(ref_order) != ba.REFERENCE['n'] or ba.sha256_text('\n'.join(ref_order)) != ba.REFERENCE['codesSha256']:
         sys.exit('the reference set changed: a release must name the set it replaces (D-8)')
     low = {d['id'] for d in datasets if d['records'] and d['located'] / d['records'] < LOW_LOCATED}
@@ -221,8 +224,11 @@ def main():
 
     # ---- the 16 pinned files
     pts = {}
-    for d in datasets:
+    # (0.8.0) the counted-only datasets (their points stay private) take no part in the people figures or the maps
+    core = [d for d in datasets if not d.get('aggregate')]
+    for d in core:
         path = (os.path.join(a.sources, 'industrialestate_dir', 'estates.json') if d['id'] == 'industrialestate'
+                else os.path.join(a.sources, 'housingestate_dir', 'records.json') if d['id'] == 'housingestate'
                 else os.path.join(a.sources, d['id'] + '.json'))
         if sha256_file(path) != d['source']['sha256']:
             sys.exit(f"{d['id']}: {path} is not the file data/neighborhoods.json pins")
@@ -309,6 +315,17 @@ def main():
     elif residents and residents.get('meta', {}).get('crossing'):
         sys.exit('the residents file counts through the crossings: give --crossing with the same cache')
 
+    # (0.8.0) the previous release's people files for the neighbourhoods not computed again
+    prev = {}
+    if a.previous:
+        again = set(open(a.recompute, encoding='utf-8').read().split()) if a.recompute else set()
+        for i in order:
+            pth = os.path.join(a.previous, f'{i}.json')
+            if i not in again and os.path.exists(pth):
+                prev[i] = json.load(open(pth, encoding='utf-8'))
+        missing_now = [i for i in order if i not in prev and not (residents and i in residents.get('rows', {}))]
+        if residents and missing_now:
+            sys.exit(f'{len(missing_now)} neighbourhoods have neither a previous people file nor residents: {missing_now[:5]}')
     people, maps, maps_written = {}, {}, 0
     straight_of = {}
     check = defaultdict(int)
@@ -323,7 +340,7 @@ def main():
             bank = None
         scales = {'in': {}, **{str(s): {} for s in SCALES}}
         dist_of = {}
-        for d in datasets:
+        for d in core:
             Pd = pts[d['id']]
             m = (Pd['lon'] >= minx - PAD_DEG) & (Pd['lon'] <= maxx + PAD_DEG) & (Pd['lat'] >= miny - PAD_DEG) & (Pd['lat'] <= maxy + PAD_DEG)
             idx = np.nonzero(m)[0]
@@ -407,8 +424,13 @@ def main():
                 else:
                     o['rooms'] = o['gst'] = None
                 # located records per dataset within the scale (inside included), for the axis rows at a service distance
-                o['n'] = {d['id']: int(len(_sel(d['id'], sc))) for d in datasets if d['id'] in r['c']}
-                if residents and i in residents.get('rows', {}):
+                o['n'] = {d['id']: int(len(_sel(d['id'], sc))) for d in core if d['id'] in r['c']}
+                if i in prev:
+                    # (0.8.0) a neighbourhood whose outline did not change keeps the residents of the run that counted them
+                    o['res'] = prev[i]['s'].get(key, {}).get('res')
+                    if line:
+                        o['res'] = prev[i].get('st', {}).get(key, {}).get('res', o['res'])
+                elif residents and i in residents.get('rows', {}):
                     o['res'] = residents['rows'][i].get(key)
                     acr = residents.get('across', {}).get(i, {}).get(key)
                     if line and acr:
@@ -515,7 +537,7 @@ def main():
             drawn = set(np.nonzero(inmask)[0].tolist())
             for grp in ('visit', 'work'):
                 drawn |= {c[0] for c in grids[grp]}
-            drawn |= {c[0] for c in ((residents or {}).get('grid', {}).get(i) or [])}
+            drawn |= {c[0] for c in ((prev[i]['map'].get('res') if i in prev else (residents or {}).get('grid', {}).get(i)) or [])}
             # a building at the very rim can fall a cell past the frame (the map clips it): it has no centre to measure
             kk = np.array(sorted(k for k in drawn if 0 <= k < W * Hh), dtype=np.int64)
             px_, py_ = gx.ravel()[kk], gy.ravel()[kk]
@@ -531,7 +553,7 @@ def main():
                     if len(xc) < 12:
                         xc.append([round(q[0] / UNIT_M), round(-q[1] / UNIT_M), kind, th, en, int(round(dd))])
                         ways.append(int(wid))
-                ax = (residents or {}).get('across', {}).get(i, {})
+                ax = {} if i in prev else (residents or {}).get('across', {}).get(i, {})
                 a_share, u_ = {}, {}
                 for key, v in ax.items():
                     a_share[key] = round(v['across'] / v['straight'] * 100, 1) if v['straight'] else 0.0
@@ -539,17 +561,30 @@ def main():
                         wid = v['via'][0]
                         u_[key] = [ways.index(wid) if wid in ways else -1, round(v['via'][2] / v['counted'] * 100)]
                 maps[i]['x'] = {'k': xk, 'c': xc, 'r': bank.rivers_within(s5), **({'a': a_share} if a_share else {}), **({'u': u_} if u_ else {})}
+                if i in prev:
+                    px = prev[i]['map'].get('x') or {}
+                    for k_ in ('a', 'u'):
+                        if k_ in px:
+                            maps[i]['x'][k_] = px[k_]
         # the residents map, from a run over 5 km of scripts/residents/ on this very frame (people per cell, modelled)
-        rg = (residents or {}).get('grid', {}).get(i)
-        if rg is not None:
-            if residents['meta'].get('frame') and residents['meta']['frame'].get(i) != maps[i]['cell']:
-                sys.exit(f'{i}: the residents grid was drawn on another frame')
-            maps[i]['res'] = rg
-        cx = (context or {}).get('rows', {}).get(i)
-        if cx is not None:
-            if context['meta']['frame'].get(i) != maps[i]['cell']:
-                sys.exit(f'{i}: the context was drawn on another frame')
-            maps[i]['ctx'] = cx
+        if i in prev:
+            # (0.8.0) the same outline draws the same frame: the previous residents map and context stay
+            if prev[i]['map'].get('cell') != maps[i]['cell']:
+                sys.exit(f'{i}: the previous people file was drawn on another frame')
+            for k_ in ('res', 'ctx'):
+                if k_ in prev[i]['map']:
+                    maps[i][k_] = prev[i]['map'][k_]
+        else:
+            rg = (residents or {}).get('grid', {}).get(i)
+            if rg is not None:
+                if residents['meta'].get('frame') and residents['meta']['frame'].get(i) != maps[i]['cell']:
+                    sys.exit(f'{i}: the residents grid was drawn on another frame')
+                maps[i]['res'] = rg
+            cx = (context or {}).get('rows', {}).get(i)
+            if cx is not None:
+                if context['meta']['frame'].get(i) != maps[i]['cell']:
+                    sys.exit(f'{i}: the context was drawn on another frame')
+                maps[i]['ctx'] = cx
         maps_written += 1
 
     # ---- levels among the reference set (D-8), per scale; a figure mostly from datasets under 90 % takes none
@@ -569,6 +604,24 @@ def main():
         if i in levels:
             people[i]['p'] = levels[i]
 
+    # (0.8.0) with --previous: the residents and context of the earlier run for the neighbourhoods taken from it, and this
+    # run's for the rest — both runs named, each frame kept, so a figure can be traced to the run that made it
+    residents_meta = residents.get('meta') if residents else None
+    context_meta = {k: v for k, v in context['meta'].items() if k != 'frame'} if context else None
+    if prev:
+        pm = json.load(open(os.path.join(a.previous, 'meta.json'), encoding='utf-8'))
+        base_r, base_c = pm.get('residents') or {}, pm.get('context') or {}
+        if residents_meta:
+            residents_meta = {**{k: v for k, v in base_r.items() if k not in ('frame', 'counts', 'responses', 'responseCount', 'builtOn')},
+                              'frame': {**{i: base_r.get('frame', {}).get(i) for i in prev if base_r.get('frame', {}).get(i)}, **(residents_meta.get('frame') or {})},
+                              'runs': [{'builtOn': base_r.get('builtOn'), 'neighbourhoods': len(prev), 'counts': base_r.get('counts'), 'responses': base_r.get('responses'), 'responseCount': base_r.get('responseCount')},
+                                       {'builtOn': residents_meta.get('builtOn'), 'neighbourhoods': len(residents.get('rows', {})), 'counts': residents_meta.get('counts'),
+                                        'responses': residents_meta.get('responses'), 'responseCount': residents_meta.get('responseCount'), 'populationMonth': residents_meta.get('populationMonth')}],
+                              'populationMonth': residents_meta.get('populationMonth') or base_r.get('populationMonth')}
+        if context_meta:
+            context_meta = {**{k: v for k, v in base_c.items()}, 'runs': [{'asOf': base_c.get('asOf'), 'neighbourhoods': len(prev)}, {'asOf': context_meta.get('asOf'), 'neighbourhoods': len(context.get('rows', {}))}]}
+        elif base_c:
+            context_meta = base_c
     meta = {
         'schema': SCHEMA, 'release': RELEASE, 'builtOn': a.built_on,
         'scales': {'in': 'the records the data build counted inside the outline',
@@ -600,8 +653,8 @@ def main():
                  'x': 'where a barrier river comes within the window (0.7.5): k [[cell, tens of metres through the crossings (-1: no crossing in the window reaches that bank), tens of metres in a straight line]] of the cells across it; c [[x, y (25 m units, y down), kind, name th, name en, metres]] the nearest crossings reached within 5 km (at most 12); r [[th, en]] the rivers within 5 km, nearest first; a {distance: % of the straight-line residents across the river}; u {distance: [index in c or -1, % of those counted across whose distance is measured through it]} — distances, never people a crossing carries'},
         'sources': {d['id']: d['source'] for d in datasets if d['id'] in {'school', 'factory', 'governmentoffice', 'university', 'office', 'hotel'} | set(sum(MAP_GROUPS.values(), ()))},
         'shoppingcenterModel': {'file': SC_MODEL, 'sha256': sha256_file(sc_model_path)},
-        'residents': residents.get('meta') if residents else None,
-        'context': {k: v for k, v in context['meta'].items() if k != 'frame'} if context else None,
+        'residents': residents_meta,
+        'context': context_meta,
         'checked': dict(check),
     }
     # one file per neighbourhood (the panel loads the one it opens) and the meta beside them

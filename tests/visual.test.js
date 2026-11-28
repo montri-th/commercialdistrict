@@ -25,7 +25,7 @@ import {renderNeighborhood, renderOverview, renderCompare} from '../js/panel.js'
 import {PICTOGRAM_CONTRACT} from '../js/navigation.js';
 
 const A = () => decodeAround(readJSON('data/around.json'));
-const ctx = () => ({meta: load().model.meta, datasetCount: 16});
+const ctx = () => ({meta: load().model.meta, datasetCount: load().model.datasets.length});
 const STARRED = ['factory', 'fitness', 'hospital', 'industrialestate', 'office', 'pharmacy', 'school'];
 const text = html => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
 
@@ -43,11 +43,11 @@ test('D-V2: the build’s highlight rule, ported, gives the file’s own highlig
     assert.equal(r.strong, r.hl.filter(h => h.p >= 0.9).length);
   }
   const n = f => model.rows.reduce((s, r) => s + f(r), 0);
-  assert.equal(n(r => r.hlBuild.length), 775); // 0.7.8: 534 outlines (639 on the 469 of 0.6.1, 599 on the 451 of 0.6.0)
-  assert.equal(n(r => r.hl.length), 649, '775 less the starred, plus the complete ones the cap of four had cut (567 + 82; 485 + 75 = 560 in 0.6.1; 459 + 70 = 529 in 0.6.0)');
-  assert.equal(model.rows.filter(r => r.hl.length).length, 329); // 0.7.8 (271 in 0.6.1, 255 in 0.6.0)
+  assert.equal(n(r => r.hlBuild.length), 962); // 0.8.0: 718 outlines, 38 datasets (938 with 37; 775 for 534 in 0.7.8, 639 on the 469 of 0.6.1, 599 on the 451 of 0.6.0)
+  assert.equal(n(r => r.hl.length), 873, '962 less the starred, plus the complete ones the cap of four had cut (0.8.0, 842 with 37 datasets; 649 in 0.7.8; 485 + 75 = 560 in 0.6.1; 459 + 70 = 529 in 0.6.0)');
+  assert.equal(model.rows.filter(r => r.hl.length).length, 370); // 0.8.0 (368 with 37 datasets; 329 in 0.7.8, 271 in 0.6.1, 255 in 0.6.0)
   const siam = model.rows.find(r => r.name === 'สยาม');
-  assert.deepEqual(siam.hl.map(h => h.d), ['luxurybrands', 'camera', 'governmentoffice', 'transit']);
+  assert.deepEqual(siam.hl.map(h => h.d), ['luxurybrands', 'camera', 'furniture', 'governmentoffice']);   // 0.8.0: furniture, a research register placed for 91 %, before transit
 });
 
 test('D-V1: one level per dataset and neighbourhood — the mean of two mid-rank levels among the neighbourhoods with ≥ 3 records', () => {
@@ -63,7 +63,7 @@ test('D-V1: one level per dataset and neighbourhood — the mean of two mid-rank
   for (const ds of model.datasets) {
     const L = levels.get(ds.id);
     if (lowLocated(ds)) { assert.equal(L, null, `${ds.id}: starred, no level`); continue; }
-    const peers = model.rows.filter(r => (r.c[ds.id] || 0) >= 3);
+    const peers = model.rows.filter(r => r.peer !== false && (r.c[ds.id] || 0) >= 3);   // (0.8.0) a trading site is nobody's peer
     assert.equal(L.n, peers.length, ds.id);
     // the peers of “แน่นอันดับ k/N” on the same page (the build's density rank)
     for (const r of peers) assert.equal(cell(r, ds).ranked, L.n, `${r.id} ${ds.id}: the build ranks the same peers`);
@@ -80,7 +80,7 @@ test('D-V1: one level per dataset and neighbourhood — the mean of two mid-rank
   const siam = model.rows.find(r => r.name === 'สยาม');
   const lux = cellOf(model, siam, model.dsById.get('luxurybrands'));
   assert.equal(lux.kind, 'ranked');
-  assert.equal(lux.n, 10); // 0.6.1 (9 on the 451 of 0.6.0)
+  assert.equal(lux.n, 11); // 0.8.0: one more neighbourhood of the registry's review holds 3 or more (10 in 0.6.1, 9 on the 451 of 0.6.0)
   assert.equal(lux.countRank, 1);
 });
 
@@ -98,6 +98,7 @@ test('cell states (EVID-05 kept apart): every dataset of every neighbourhood, wi
       assert.equal(x.kind, a && r800 > 0 ? 'edge' : 'zero', `${r.id} ${ds.id}`);
       assert.equal(x.edgeKnown, Boolean(a));
     } else if (lowLocated(ds)) assert.equal(x.kind, 'starred');
+    else if (r.peer === false) assert.equal(x.kind, 'site', `${r.id} ${ds.id}: a trading site's own count, never a level (0.8.0)`);
     else assert.equal(x.kind, c.count >= 3 ? 'ranked' : 'few');
     if (x.kind !== 'ranked') assert.equal(x.level, undefined, `${r.id} ${ds.id}: a level only when ranked`);
   }
@@ -116,7 +117,7 @@ test('every neighbourhood: the fingerprint, the highlight cards, the axes and th
       const head = html.slice(0, html.indexOf('</section>'));
       // the fingerprint: 16 cells in Land · Location · Living order, one image named by its key; every cell has its words
       const cells = [...head.matchAll(/<span class="fp-cell k-([a-z]+)( is-hl)?"(?: style="background:(#[0-9A-F]{6});color:(#[0-9A-F]{6})")? title="([^"]+)"/g)];
-      assert.equal(cells.length, 16, r.id);
+      assert.equal(cells.length, model.datasets.length, r.id);
       const want = cellsOf(model, r, a);
       cells.forEach((m, i) => {
         assert.equal(m[1], want[i].kind, `${r.id} cell ${i}`);
@@ -127,7 +128,7 @@ test('every neighbourhood: the fingerprint, the highlight cards, the axes and th
       });
       // the key counts datasets in each state and they make the 16 (a number of datasets, never of records: INV-01)
       const n = cellCounts(want);
-      assert.equal(n.in + n.edge + n.zero + n.out, 16);
+      assert.equal(n.in + n.edge + n.zero + n.out, model.datasets.length);
       assert.match(head, new RegExp(`ในย่าน ${n.in} ชุด`), r.id);
       const key = text(head.slice(head.indexOf('<p class="fp-key">')));
       assert.deepEqual(key.match(/\d+(?! ชุด)(?=\D|$)/g)?.filter(x => !['800'].includes(x)) || [], [], `${r.id}: every number of the key with its unit`);
@@ -146,7 +147,7 @@ test('every neighbourhood: the fingerprint, the highlight cards, the axes and th
       const axes = html.slice(html.indexOf('id="nb-around"'), html.indexOf('class="scope-details around-fold"'));
       for (const x of want) {
         const row = axes.match(new RegExp(`<li class="ax-row k-([a-z]+)( is-hl)?"><button type="button" class="ax-ds" id="axis-${x.ds.id}"[\\s\\S]*?</li>`));
-        if (x.kind === 'ranked' || x.kind === 'few' || x.kind === 'starred') {
+        if (x.kind === 'ranked' || x.kind === 'few' || x.kind === 'starred' || x.kind === 'site') {
           assert.ok(row, `${r.id} ${x.ds.id}: a row inside`);
           assert.equal(/class="ax-dot"/.test(row[0]), x.kind === 'ranked', `${r.id} ${x.ds.id}: a dot only for a level`);
           if (x.kind === 'starred') { assert.match(row[0], /<sup aria-hidden="true">\*<\/sup>/); assert.ok(!row[2], `${r.id} ${x.ds.id}: no ring`); }
@@ -176,7 +177,7 @@ test('every neighbourhood: the fingerprint, the highlight cards, the axes and th
       }
       // the 0.4.0 table is kept whole, folded (D-V5)
       assert.match(html, /<details class="scope-details around-fold"><summary>/);
-      assert.equal((html.match(/class="around-ds"/g) || []).length, 16);
+      assert.equal((html.match(/class="around-ds"/g) || []).length, model.datasets.length);
     }
   }
 });
@@ -204,7 +205,7 @@ test('the highlight cards: one per highlight of a complete dataset, in order, ea
       cards++;
     });
   }
-  assert.equal(cards, 649, 'the highlights of D-V2 (560 in 0.6.1, 529 in 0.6.0)');
+  assert.equal(cards, 873, 'the highlights of D-V2 (0.8.0, 842 with 37 datasets; 649 in 0.7.8, 560 in 0.6.1, 529 in 0.6.0)');
 });
 
 test('what comes together: a role’s evidence stays visible, ✓ by its datasets, ○ by what the data shows (DATA_METHOD §7)', () => {
@@ -230,16 +231,16 @@ test('the matrix is a real table: a named header for every dataset, a header for
     assert.ok(tables.length, label);
     for (const t of tables) {
       const cols = [...t.matchAll(/<th scope="col" class="mx-h[^"]*" title="([^"]+)">[\s\S]*?<span class="sr-only">([^<]+)<\/span><\/th>/g)];
-      assert.deepEqual(cols.map(m => m[2]), model.datasets.map(d => d.nameTh), `${label}: 16 column headers, named`);
+      assert.deepEqual(cols.map(m => m[2]), model.datasets.map(d => d.nameTh), `${label}: a named column header for every dataset`);
       const rows = [...t.matchAll(/<tr class="mx-r[^"]*" data-nb="([^"]+)"><th scope="row" class="mx-row">([\s\S]*?)<\/th>([\s\S]*?)<\/tr>/g)];
       assert.ok(rows.length, label);
       for (const [, id, , tds] of rows) {
         const words = [...tds.matchAll(/<td class="mx-c[^"]*" tabindex="(-1|0)"><span class="fp-cell k-[a-z]+[^"]*"[^>]*><\/span><span class="sr-only">([^<]+)<\/span><\/td>/g)];
-        assert.equal(words.length, 16, `${label} ${id}: every cell with its words`);
+        assert.equal(words.length, model.datasets.length, `${label} ${id}: every cell with its words`);
       }
       assert.equal((t.match(/tabindex="0"/g) || []).length, 1, `${label}: one tab stop per table, the arrows move inside`);
       // a sub-row spans the whole table from the corner: no dataset's column header names it
-      for (const m of t.matchAll(/<tr class="mx-sub">([\s\S]*?)<\/tr>/g)) assert.match(m[1], /^<td colspan="17">/, label);
+      for (const m of t.matchAll(/<tr class="mx-sub">([\s\S]*?)<\/tr>/g)) assert.match(m[1], new RegExp(`^<td colspan="${model.datasets.length + 1}">`), label);
     }
   };
   const siam = model.rows.find(r => r.name === 'สยาม');
@@ -284,7 +285,7 @@ test('the axes: น่าอยู่ · น่าเที่ยว · น่�
   for (const role of Object.values(DS_ICON)) assert.ok(PICTOGRAM_CONTRACT.glyphs[role], role);
   for (const a of AXES) assert.ok(PICTOGRAM_CONTRACT.glyphs[a.icon], a.icon);
   const g = id => PICTOGRAM_CONTRACT.glyphs[DS_ICON[id]];
-  assert.equal(new Set(model.datasets.map(d => g(d.id))).size, 16, 'sixteen distinct glyphs');
+  assert.equal(new Set(model.datasets.map(d => g(d.id))).size, model.datasets.length, 'a distinct glyph per dataset');
   // no score of an axis and no total anywhere on the neighbourhood view
   const siam = model.rows.find(r => r.name === 'สยาม');
   const html = renderNeighborhood(buildNeighborhood(model, siam), model, {ctx: ctx(), around: A()});

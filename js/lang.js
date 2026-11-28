@@ -34,10 +34,13 @@ if (LANG === 'en') {
  */
 export function registerPlaceNames(rec) {
   if (LANG !== 'en') return;
-  const thai = (rec?.map?.ctx?.L || []).filter(l => !l[5] && THAI.test(l[4] || '')).map(l => l[4]);
+  // (0.8.0) an “English” name that is still the Thai one (OpenStreetMap's name where it has no name:en, e.g. the ferry
+  // “ตากใบ - Pengkalan Kubor”) has no English to show either: it stays as OpenStreetMap writes it
+  const noEn = (en, th) => !en || THAI.test(en) || en === th;
+  const thai = (rec?.map?.ctx?.L || []).filter(l => noEn(l[5], l[4]) && THAI.test(l[4] || '')).map(l => l[4]);
   // (0.7.5) a crossing or a river OpenStreetMap names only in Thai stays Thai in the English line under the tiles
-  for (const c of rec?.map?.x?.c || []) if (!c[4] && THAI.test(c[3] || '')) thai.push(c[3]);
-  for (const r of rec?.map?.x?.r || []) if (!r[1] && THAI.test(r[0] || '')) thai.push(r[0]);
+  for (const c of rec?.map?.x?.c || []) if (noEn(c[4], c[3]) && THAI.test(c[3] || '')) thai.push(c[3], ...(c[4] && c[4] !== c[3] ? [c[4]] : []));
+  for (const r of rec?.map?.x?.r || []) if (noEn(r[1], r[0]) && THAI.test(r[0] || '')) thai.push(r[0], ...(r[1] && r[1] !== r[0] ? [r[1]] : []));
   if (thai.length) keepThai(thai);
 }
 

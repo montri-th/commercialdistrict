@@ -19,8 +19,8 @@ export {NAV_GLYPHS, NAV_ICON_CONTRACT};
  */
 export const PICTOGRAM_CONTRACT = Object.freeze({
   family: 'LDS Material Symbols Rounded Pictogram',
-  file: 'assets/icons/material-pictogram-300.woff2', bytes: 6568,
-  sha256: 'd7166a5ced4aaad7a50fd1c22ebccb3b6bc329b6389a0464a101ae0783edb86e',
+  file: 'assets/icons/material-pictogram-300.woff2', bytes: 9724,
+  sha256: 'f825f423b17476c3a40d3ac7c1e8018a9c8f96134d13cae3e1a247f74ce84951',
   manifest: 'assets/icons/material-pictogram-300.json',
   axes: Object.freeze({FILL: 0, wght: 300, GRAD: 0, opsz: 24}),
   glyphs: Object.freeze({area: '\uE55B', province: '\uE7F1', segment: '\uE72C', ai: '\uE65F', streetview: '\uE56E', maps: '\uE0C8',
@@ -31,8 +31,12 @@ export const PICTOGRAM_CONTRACT = Object.freeze({
     tutor: '\uE745', language: '\uE8E2', arts: '\uE40A', child: '\uEB41', hotel: '\uEFDF', estate: '\uEBB8',
     office: '\uF1D0', venue: '\uE54C', camera: '\uE412', factory: '\uEBBC', fitness: '\uEB43', grocery: '\uE8CC',
     brand: '\uEAD5', pharmacy: '\uE550', restaurant: '\uE56C', gov: '\uE84F', hospital: '\uE548', university: '\uEA3E',
-    home: '\uE9B2', luggage: '\uF235', trade: '\uEF63'}),
-  status: 'test exception to LDS nav-7 (owner 2026-10-22; action and building glyphs 2026-10-29; terrain glyphs 2026-11-01; rank, date, distance, construction and dataset glyphs 2026-11-01 for short copy; school glyphs 2026-11-05; learning glyphs 2026-11-06; dataset and axis glyphs 2026-11-26, D-V4 B of the visual-first panel)',
+    home: '\uE9B2', luggage: '\uF235', trade: '\uEF63',
+    // (0.8.0) parks, the registry's research datasets without a demo web, Housing Estate and Tourism
+    park: '\uEA63', bank: '\uE2EB', optical: '\uF6EE', salon: '\uE14E', nail: '\uE764', pet: '\uE91D', car: '\uEA56', services: '\uE326',
+    furniture: '\uEFED', gold: '\uE8E0', apparel: '\uEF7B', beauty: '\uEF9D', sport: '\uEA26', hobby: '\uE7C8', clinic: '\uE0A7',
+    massage: '\uEB4C', playground: '\uEA52', museum: '\uEA36', cinema: '\uE404', temple: '\uEAB3', housing: '\uE58A', tour: '\uEF75'}),
+  status: 'test exception to LDS nav-7 (owner 2026-10-22; action and building glyphs 2026-10-29; terrain glyphs 2026-11-01; rank, date, distance, construction and dataset glyphs 2026-11-01 for short copy; school glyphs 2026-11-05; learning glyphs 2026-11-06; dataset and axis glyphs 2026-11-26, D-V4 B of the visual-first panel; 0.8.0 glyphs of the datasets added 2026-11-28)',
   fallback: 'Text labels carry the meaning; pictograms stay hidden until the font has loaded.',
 });
 const TITLES = {
@@ -46,7 +50,7 @@ const TITLES = {
   'open-help-sheet': 'เปิดวิธีใช้',
   'toggle-insights': 'เปิดหรือย่อแถบเปรียบเทียบย่าน',
   'compare-clear': 'ล้างย่านที่เปรียบเทียบทั้งหมด',
-  'open-table': 'เปิดตารางทุกย่านกับ 16 ชุดข้อมูล',
+  'open-table': 'เปิดตารางทุกย่านกับทุกชุดข้อมูล',
   'toggle-table': 'ปิดตารางและกลับไปแผนที่',
   'search': 'ค้นหาชื่อย่าน ชื่ออื่นของย่าน รหัสย่าน หรือจังหวัด',
   'province': 'ดูเฉพาะย่านในจังหวัดนี้',

@@ -1,5 +1,34 @@
 # CityMETER Commercial District — verification
 
+## Release 0.8.0 — 28 พ.ย. 2569: the registry's national review, 38 datasets and «ใคร ใช้จ่ายกับอะไร และเมื่อไร»
+
+The owner's words (VERBATIM) are in `AGENTS.md` (0.8.0) and `DATA_METHOD.md` §2g, §20, §21: 19:36 the update and publish,
+20:00 the codes still without an outline (to ChatGPT), 20:12 parks and the 44 datasets, 21:21 the registers' readiness (to
+ChatGPT) and “ได้” on downloading the temple register's tab.
+
+Checked before the merge (local, not proof of the live site):
+
+- `npm test`: 241 / 241. `npm run check:lds -- --lds Landometer-Design-System-v0.9.7.md` (SHA-256 `d3085cbc…`): 145 ok, 0 failed.
+- Outlines: the review set `national-commercial-district-review.geojson` (`7d329907…`); 718 served (534 of 0.7.10, 184 new,
+  7 redrawn), 283 held (135 owner review · 38 without an outline · 110 gated), 124 trading sites without peers; codes
+  1,012 = 1,001 principal + 10 collections + 1 removed; the commercial screen's 228 = 139 drawn + 21 drawn by the review + 67
+  names + 1 removed. The 534 rows of 0.7.10 keep their counts of the 16 old datasets; their outlines are byte for byte the
+  base's except the 7 redrawn.
+- Counted-only datasets: `scripts/build-registry-points.py` run again with `--worklist` gave the 18 point files byte for
+  byte (Shopping Center venues of `3711e6e`); parks 150,267 squares (ไร่) from `thailand-261124.osm.pbf` (`62b496bf…`);
+  places of worship 25,611 (`scripts/build-worship.py`, deterministic: two runs byte-identical); the temple register's tab
+  `01_PLACES` downloaded through the owner's Chrome on his “ได้” (53,045 rows, `7da6b760…`, no point in any row), kept
+  outside the repository.
+- People: residents run for the 191 new or redrawn neighbourhoods (`--reach 5000`, 191 · population month 2026-10); the
+  people build reuses 0.7.10's residents and context for the other 527 (`--previous`, `--recompute`), whose files changed
+  only by the counts of Housing Estate and Tourism and by levels shifted with the 7 redrawn outlines of the reference
+  set. `data/character.json` matches the people files (`--check`). Logos rebuilt for 718 shards (481 with a logo, 466 files).
+- Conflict reported to the owner: three outlines his rule drew on 24 Nov (ตลาดศาลเจ้า–ตีเหล็ก–วัดไทร, คลองสาน–ไอคอนสยาม,
+  ตลาดโรงเกลือ–บ้านคลองลึก) are the review's on the page; restoring an amendment waits for his word.
+- Briefs sent to ChatGPT in the owner's Chrome (project 02 CityMETER): the 283 codes (20:0x) and the registers' readiness
+  (21:39, `02-CityMETER__research-master-data-readiness-chatgpt-brief__v1__2026-11-28.md` in the owner's Drive, with its
+  worklist and the temple–OSM candidate list; none of them in this repository).
+
 ## Release 0.7.10 — live (2026-11-27)
 
 - Merged on the owner's word (19:13, VERBATIM: “merge and publish”): pull request #53, merge commit `63898cf`, 19:14.

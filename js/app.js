@@ -113,7 +113,8 @@ function saveURL() {
 const rowById = id => (id && state.model?.byId.get(id)) || null;
 /** The words of a group filter (0.2.0; outline words 0.2.1, when the registry admitted the lodging areas). */
 const kindLabel = kind => ({registry: L('ขอบตามหลักเกณฑ์ทะเบียน', 'Outlines by the registry\'s rules'), lodging: L('ขอบร่างจากผลคัดที่พัก', 'Draft outlines from the lodging screen'),
-  screen: L('ขอบร่างจากผลคัดย่านการค้า', 'Draft outlines from the commercial screen'), added: L('ใหม่ในรุ่นนี้', 'New in this release')}[kind] || '');
+  screen: L('ขอบร่างจากผลคัดย่านการค้า', 'Draft outlines from the commercial screen'), review: L('ขอบจากผลตรวจของทะเบียน', 'Outlines of the registry\'s review'),
+  added: L('ใหม่ในรุ่นนี้', 'New in this release')}[kind] || '');
 const lensDs = () => (state.lens && state.model?.dsById.get(state.lens)) || null;
 const openRow = () => rowById(state.nb);
 const compareRows = () => state.compare.map(rowById).filter(Boolean);
@@ -1556,18 +1557,21 @@ function partial(key) {
 async function init() {
   try {
     const v = RELEASE ? `?v=${RELEASE}` : '';
-    const [dataJSON, provincesJSON, outlinesJSON, aroundJSON] = await Promise.all([
+    const [dataJSON, provincesJSON, outlinesJSON, aroundJSON, parksJSON] = await Promise.all([
       fetchJSON(`data/neighborhoods.json${v}`, {timeout: 30000}),
       fetchJSON(`data/provinces.geojson${v}`, {timeout: 30000}).catch(e => { partial('data/provinces.geojson'); console.warn('Province frames unavailable', e); return null; }),
       fetchJSON(`data/boundaries.geojson${v}`, {timeout: 30000}).catch(e => { partial('data/boundaries.geojson'); console.warn('Outlines unavailable', e); return null; }),
       // (0.4.0) «ขอบเดินถึง»: without it the panel keeps the figures inside and says the rest did not load
       fetchJSON(`data/around.json${v}`, {timeout: 30000}).catch(e => { partial('around'); console.warn('Surroundings unavailable', e); return null; }),
+      // (0.8.0) the parks the page can name (data/parks.json, OpenStreetMap): without it the park rows keep their figures, unnamed
+      fetchJSON(`data/parks.json${v}`, {timeout: 30000}).catch(e => { console.warn('Park names unavailable', e); return null; }),
     ]);
     try { state.around = aroundJSON ? decodeAround(aroundJSON) : null; } catch (e) { partial('around'); console.warn('Surroundings invalid', e); state.around = null; }
     state.provincesGeo = validFeatureCollection(provincesJSON) ? provincesJSON : {type: 'FeatureCollection', features: []};
     setProvinces(state.provincesGeo);
     state.locate = state.provincesGeo.features.length ? provinceLocator(state.provincesGeo) : null;
     state.model = decodeData(dataJSON);
+    state.model.parks = Array.isArray(parksJSON?.parks) ? parksJSON.parks : null;
     // the surroundings of another data release would put figures on the wrong neighbourhoods: drop them, say so
     if (state.around && !aroundMatches(state.around, state.model)) { partial('around'); console.warn('Surroundings belong to another data release'); state.around = null; }
     state.outlines = validFeatureCollection(outlinesJSON) ? outlinesJSON : {type: 'FeatureCollection', features: []};

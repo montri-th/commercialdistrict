@@ -29,7 +29,8 @@ export function countAt(row, around, dsId, distance = 'in') {
   if (!a) return inside;
   return inside + (distance === '400' ? a[0] : a[1]);
 }
-const whereWords = distance => (distance === 'in' ? L('ในย่าน', 'inside') : L(`ในย่านและขอบเดินถึง ${num(+distance)} ม.`, `inside and within the ${num(+distance)} m walkable edge`));
+// (0.8.0) the distance and its unit never split across lines (a no-break space between them)
+const whereWords = distance => (distance === 'in' ? L('ในย่าน', 'inside') : L(`ในย่านและขอบเดินถึง ${num(+distance)}\u00a0ม.`, `inside and within the ${num(+distance)}\u00a0m walkable edge`));
 /** How many subgroups (kinds) of a dataset are present inside: [present, all]. */
 function kindsInside(row, model, dsId) {
   const s = row.s?.[dsId], ds = model.dsById.get(dsId);
@@ -56,6 +57,11 @@ export function topicsOf(axisId, {row, model, around, people = null, peopleMeta 
     const v = at(id);
     if (v == null) return '';
     const star = lowLocated(ds(id)) ? '*' : '';
+    // (0.8.0) a counted-only dataset with points for under 90 % of its records: where the register still has records
+    // without a point in this province, none among the placed ones is not a 0 (the row says how many lack a point);
+    // where every record of the province has its point, a 0 is a measured 0
+    const u = !v && star && ds(id)?.aggregate ? ds(id).unplaced?.[row.province] || 0 : 0;
+    if (u > 0) return `${esc(L(th, en))}${star} ${nw(esc(L('ไม่พบในรายการที่มีพิกัด', 'none among the records with a point')))} (${esc(L('อีก', 'another'))} ${fig(u, dsUnitN(ds(id), u))} ${esc(L('ในจังหวัดยังไม่มีพิกัด', 'in the province lack a point'))})`;
     return `${esc(L(th, en))}${star} ${fig(v, dsUnitN(ds(id), v))}`;
   };
   const join = parts => parts.filter(Boolean).join(' · ');
@@ -75,14 +81,40 @@ export function topicsOf(axisId, {row, model, around, people = null, peopleMeta 
   const modelled = `<small>${esc(L('แบบจำลอง', 'modelled'))}</small>`;
   const people_ = v => (v === 0 ? fig(0, L('คน', 'people')) : aboutPeople(v) ? `${esc(L('ราว', 'about'))} ${fig(aboutPeople(v), L('คน', 'people'))}` : nw(esc(L('ไม่ถึง 10 คน', 'under 10 people'))));
 
+  // (0.8.0) a counted-only dataset (its points stay private) that has no point in the province can still have records the
+  // master names there without a point: said as such, never a 0 of the neighbourhood (the masters' null_zero_rule)
+  const unplaced = id => { const d = ds(id); const n = d?.unplaced?.[row.province] || 0; return n ? esc(L(`${dsName(d)}: ทะเบียนมี ${num(n)} ${dsUnitN(d, n)} ในจังหวัดนี้ที่ยังไม่มีพิกัด`, `${dsName(d)}: the register lists ${num(n)} ${dsUnitN(d, n)} in this province without a point`)) : ''; };
+  // the datasets of a list that hold something at the axis distance, largest first, each with its unit and star
+  const present = (ids, max = 6) => {
+    const got = ids.filter(id => (at(id) || 0) > 0).sort((a_, b_) => at(b_) - at(a_));
+    const shown = got.slice(0, max).map(id => `${esc(dsName(ds(id)))}${lowLocated(ds(id)) ? '*' : ''} ${fig(at(id), dsUnitN(ds(id), at(id)))}`);
+    return {got, text: join(shown) + (got.length > max ? ` · ${esc(L(`อีก ${num(got.length - max)} ชุด`, `${num(got.length - max)} more datasets`))}` : '')};
+  };
+  const starNote = ids => (ids.some(id => model.dsById.has(id) && lowLocated(ds(id)) && (at(id) || 0) > 0) ? esc(L('* มีพิกัดไม่ถึง 90% ของรายการ ตัวเลขจึงต่ำกว่าจริงได้', '* points for under 90% of its records, so the figure can be low')) : '');
+  // (0.8.0, owner 2026-11-28 20:12) parks are ground, not a count: about N ไร่ of public parks, the largest by name
+  const parksText = () => {
+    const v = at('park');
+    if (v == null) return '';
+    const pk = (around?.rows.get(row.id)?.pk || []).filter(x => (distance === 'in' ? x[1] > 0 : x[1] + x[2] > 0));
+    const list = model.parks || [];
+    const names = pk.slice(0, 3).map(x => list[x[0]]).filter(Boolean).map(p => nw(`${esc(EN && p[1] ? p[1] : p[0])} ${esc(L(`(ทั้งสวนราว ${num(Math.round(p[2]))} ไร่)`, `(about ${num(Math.round(p[2]))} rai in all)`))}`));
+    const park = cells.get('park');
+    const lvl = park?.kind === 'ranked' && distance === 'in' ? `${esc(L('ระดับพื้นที่สวน', 'park ground level'))} ${nw(`<b class="data-number">${num(Math.round(park.level))}</b>/100`)} ${esc(L('เทียบ', 'among'))} ${fig(park.n, L('ย่าน', 'neighbourhoods'))}` : '';
+    // a measured 0 reads 0 with its unit (the open map may not have mapped every park: the provenance line names it)
+    const head = v > 0 ? `${esc(L('สวนสาธารณะราว', 'public parks of about'))} ${fig(v, L('ไร่', 'rai'))} ${esc(where)}` : `${esc(L('สวนสาธารณะในแผนที่ OpenStreetMap', 'public parks on OpenStreetMap'))} ${fig(0, L('ไร่', 'rai'))} ${esc(where)}`;
+    return `${head}${small([names.length ? esc(L('สวนที่นับ: ', 'counted: ')) + names.join(' · ') : '', lvl])}`;
+  };
+
   if (axisId === 'live') {
     const eat = join([nd('restaurant', 'ร้านอาหาร', 'restaurants'), nd('grocery', 'ร้านของชำ', 'groceries')]);
     const kinds = kindsInside(row, model, 'restaurant');
     const eatQ = kinds && kinds[0] ? esc(L(`ร้านอาหาร ${num(kinds[0])} ประเภทจาก ${num(kinds[1])} ในย่าน`, `${num(kinds[0])} of ${num(kinds[1])} kinds of restaurant inside`)) : '';
-    const NEEDS = ['grocery', 'pharmacy', 'hospital', 'school', 'transit', 'governmentoffice', 'fitness'];
+    // (0.8.0) daily needs: banks and hair salons join; gyms leave for the green row (owner 2026-11-28: parks weigh more)
+    const NEEDS = ['grocery', 'pharmacy', 'hospital', 'school', 'transit', 'governmentoffice', 'bank', 'salon'];
     const needs = NEEDS.filter(id => id in (row.c || {}));
     const have = needs.filter(id => (at(id) || 0) > 0), lack = needs.filter(id => !((at(id) || 0) > 0));
-    const needText = needs.length ? `${esc(L(`มี ${num(have.length)} จาก ${num(needs.length)} อย่างที่มีข้อมูล ${where}`, `${num(have.length)} of the ${num(needs.length)} kinds with data ${where}`))}${small([lack.length ? esc(L('ไม่พบ: ', 'not found: ')) + esc(lack.map(id => nameOf(model, id)).join(' · ')) : '', gap(NEEDS)])}` : '';
+    const more = present(['pet', 'car', 'services']);
+    const needText = needs.length ? `${esc(L(`มี ${num(have.length)} จาก ${num(needs.length)} อย่างที่มีข้อมูล ${where}`, `${num(have.length)} of the ${num(needs.length)} kinds with data ${where}`))}${small([lack.length ? esc(L('ไม่พบ: ', 'not found: ')) + esc(lack.map(id => nameOf(model, id)).join(' · ')) : '', more.got.length ? esc(L('บริการอื่น: ', 'other services: ')) + more.text : '', gap([...NEEDS, 'pet', 'car', 'services'])])}` : '';
     const st = at('transit');
     const resIn = pin?.res, km2 = row.km2;
     const perKm2 = km2 > 0 && resIn != null ? resIn / km2 : null;
@@ -91,13 +123,18 @@ export function topicsOf(axisId, {row, model, around, people = null, peopleMeta 
     const rest = cells.get('restaurant');
     // the level of §14 (count and density among the neighbourhoods with 3 or more), said neutrally at any level
     const lively = rest?.kind === 'ranked' ? `${esc(L('ระดับร้านอาหาร (จำนวนและความแน่น)', 'restaurant level (count and density)'))} ${nw(`<b class="data-number">${num(Math.round(rest.level))}</b>/100`)} ${esc(L('เทียบ', 'among'))} ${fig(rest.n, L('ย่าน', 'neighbourhoods'))}` : '';
+    const green = parksText();
+    const gym = at('fitness') != null ? nd('fitness', 'ฟิตเนส', 'gyms') : '';
+    const plots = row.m?.housingestate;
+    const homes = at('housingestate') != null ? `${nd('housingestate', 'บ้านจัดสรร', 'housing estates')} ${esc(where)}${small([plots && distance === 'in' ? esc(L(`ในย่านรวม ${num(plots[0])} แปลงตามใบอนุญาต`, `${num(plots[0])} plots by permit inside`)) : '', esc(L('แปลงตามใบอนุญาต ไม่ใช่บ้านที่สร้างแล้วหรือคนอยู่', 'plots by permit, not houses built or people living'))])}` : '';
     return [
+      T('green', 'park', 'สวนและพื้นที่สีเขียว', 'Parks and green space', green ? `${green}${small([gym ? `${gym} ${esc(where)}` : '', gap(['fitness'])])}` : '', ['ยังไม่มีข้อมูลสวน', 'no park data yet']),
       T('eat', 'restaurant', 'กิน', 'Eating', eat ? `${eat} ${esc(where)}${small([eatQ, gap(['restaurant', 'grocery'])])}` : '', ['ยังไม่มีข้อมูลในจังหวัดนี้: ร้านอาหาร · ร้านของชำ', 'no data in this province yet: restaurants · groceries']),
       T('needs', 'grocery', 'ของจำเป็นใกล้ตัว', 'Everyday needs', needText, ['ยังไม่มีข้อมูลในจังหวัดนี้', 'no data in this province yet']),
+      T('homes', 'housing', 'บ้านจัดสรร', 'Housing estates', homes, ['ยังไม่มีข้อมูลในจังหวัดนี้: ใบอนุญาตจัดสรรที่ดิน', 'no data in this province yet: land-allocation permits']),
       T('move', 'rail', 'การเดินทาง', 'Getting around', st != null ? `${nd('transit', 'สถานีราง', 'rail stations')} ${esc(where)}${small([esc(L('รถเมล์และเรือ: ยังไม่มีข้อมูล', 'buses and boats: no data yet'))])}` : '', ['ยังไม่มีข้อมูลระบบรางในจังหวัดนี้ · รถเมล์และเรือยังไม่มีข้อมูล', 'no rail data in this province yet · buses and boats: no data yet']),
       T('crowd', 'building', 'คนและความแน่น', 'People and crowding', resText, resWait('in').map((w, k) => `${k ? 'residents' : 'คนอยู่'}: ${w}`)),
       T('lively', 'venue', 'ความคึกคัก', 'Liveliness', lively, !rest || rest.kind === 'out' ? ['ยังไม่มีข้อมูลในจังหวัดนี้: ร้านอาหาร', 'no data in this province yet: restaurants'] : ['ร้านอาหารในย่านน้อยกว่า 3 ร้าน จึงไม่จัดระดับ', 'fewer than 3 restaurants inside, so no level']),
-      T('green', 'fitness', 'ออกกำลังกายและสีเขียว', 'Exercise and green space', at('fitness') != null ? `${nd('fitness', 'ฟิตเนส', 'gyms')} ${esc(where)}${small([esc(L('สวนสาธารณะ: ยังไม่มีข้อมูล', 'parks: no data yet'))])}` : '', ['ยังไม่มีข้อมูลในจังหวัดนี้: ฟิตเนส · สวนสาธารณะ: ยังไม่มีข้อมูล', 'no data in this province yet: fitness · parks: no data yet']),
       T('air', 'forest', 'อากาศและความสงบ', 'Air and quiet', '', ['ยังไม่มีข้อมูล: PM2.5 (กรมควบคุมมลพิษ · AirBKK) และเสียง', 'no data yet: PM2.5 (Pollution Control Department · AirBKK) and noise']),
     ];
   }
@@ -108,19 +145,40 @@ export function topicsOf(axisId, {row, model, around, people = null, peopleMeta 
     const stay = rooms ? `${esc(L('ห้องพัก', 'rooms'))} ${fig(rooms[0], L('ห้อง', 'rooms'))} ${esc(L('ในย่าน', 'inside'))}${kinds && kinds[0] ? ` · ${nw(esc(L(`${num(kinds[0])} แบบจาก ${num(kinds[1])}`, `${num(kinds[0])} of ${num(kinds[1])} kinds`)))}` : ''}${roomsPart}${guests ? `<br><small>${guests}</small>` : ''}`
       : places > 0 ? `${esc(L('ที่พัก', 'lodging'))} ${fig(places, dsUnitN(ds('hotel'), places))} ${esc(L('ในย่าน · ไม่มีตัวเลขห้อง', 'inside · no room figures'))}`
       : places === 0 ? `${esc(L('ที่พัก', 'lodging'))} ${fig(0, dsUnitN(ds('hotel'), 0))} ${esc(L('ในย่าน', 'inside'))}` : '';
-    const shop = join([nd('shoppingcenter', 'ศูนย์การค้าและตลาด', 'centres and markets'), nd('luxurybrands', 'แบรนด์หรู', 'luxury points')]);
+    // attractions by kind inside (the Tourism demo's groups: nature · culture · recreation) and the large parks counted
+    const tk = row.s?.tourism, tds = ds('tourism');
+    const tKinds = tk && tds?.subgroups ? tk.map((n, k) => (n > 0 ? `${esc(L(tds.subgroups[k].th, tds.subgroups[k].en))} ${num(n)}` : '')).filter(Boolean).join(' · ') : '';
+    const bigParks = (around?.rows.get(row.id)?.pk || []).filter(x => (distance === 'in' ? x[1] > 0 : x[1] + x[2] > 0)).map(x => (model.parks || [])[x[0]]).filter(p => p && p[3] === 0);
+    const sights = at('tourism') != null ? `${nd('tourism', 'แหล่งท่องเที่ยว', 'attractions')} ${esc(where)}${small([tKinds ? esc(L('ในย่าน: ', 'inside: ')) + tKinds : '',
+      bigParks.length ? esc(L('สวนใหญ่ 50 ไร่ขึ้นไปที่นับ: ', 'large parks counted (50 rai or more): ')) + bigParks.slice(0, 2).map(p => nw(esc(EN && p[1] ? p[1] : p[0]))).join(' · ') : '',
+      at('arts') != null ? nd('arts', 'พิพิธภัณฑ์และหอศิลป์', 'museums and galleries') : unplaced('arts') || gap(['arts'])])}` : '';
+    const shopP = present(['shoppingcenter', 'apparel', 'beauty', 'luxurybrands'], 4);
     const lux = kindsInside(row, model, 'luxurybrands');
-    const KINDS = ['hotel', 'shoppingcenter', 'restaurant', 'luxurybrands'];
+    const SHOP = ['shoppingcenter', 'apparel', 'beauty', 'luxurybrands'], shopIn = SHOP.filter(id => at(id) != null);
+    const shop = shopIn.length
+      ? `${shopP.text || esc(L(`พบ 0 จาก ${num(shopIn.length)} ชุดข้อมูลที่มีในจังหวัดนี้`, `0 of the ${num(shopIn.length)} datasets with data in this province`))} ${esc(where)}${small([lux && lux[0] ? esc(L(`แบรนด์หรู ${num(lux[0])} กลุ่มสินค้าจาก ${num(lux[1])} ในย่าน`, `luxury brands in ${num(lux[0])} of ${num(lux[1])} groups inside`)) : '', starNote(['apparel', 'beauty']), gap(SHOP)])}` : '';
+    const well = at('massage') != null ? `${nd('massage', 'นวดและสปา', 'massage and spas')} ${esc(where)}${small([(at('massage') || 0) > 0 ? unplaced('massage') || starNote(['massage']) : ''])}` : unplaced('massage');
+    const night = at('cinema') != null ? `${nd('cinema', 'โรงภาพยนตร์และโรงละคร', 'cinemas and theatres')} ${esc(where)}` : unplaced('cinema');
+    const family = at('playground') != null ? `${nd('playground', 'สนามเด็กเล่นและเกมเซ็นเตอร์', 'play places and game centres')} ${esc(where)}${small([(at('playground') || 0) > 0 ? unplaced('playground') : ''])}` : unplaced('playground');
+    // (0.8.0) places of worship: the register's 53,045 have no point yet, so OpenStreetMap's are counted, by faith inside
+    const tm = row.s?.temple, tmd = ds('temple');
+    const tmKinds = tm && tmd?.subgroups ? tm.map((n, k) => (n > 0 ? `${esc(L(tmd.subgroups[k].th, tmd.subgroups[k].en))} ${num(n)}` : '')).filter(Boolean).join(' · ') : '';
+    const monuments = esc(L('โบราณสถานขึ้นทะเบียน (กรมศิลปากร): ยังไม่มีข้อมูล', 'registered monuments (Fine Arts Department): no data yet'));
+    const tv = at('temple');
+    // a measured 0 reads 0 (OpenStreetMap may not have mapped one yet: the provenance line names the source)
+    const worship = tv == null ? '' : `${nd('temple', 'ศาสนสถาน', 'places of worship')} ${esc(where)}${small([tmKinds ? esc(L('ในย่าน: ', 'inside: ')) + tmKinds : '', monuments])}`;
+    const KINDS = ['hotel', 'tourism', 'shoppingcenter', 'restaurant', 'apparel', 'beauty', 'luxurybrands', 'massage', 'arts', 'cinema', 'playground', 'temple'];
     const kindsCount = KINDS.filter(id => id in (row.c || {}));
-    const present = kindsCount.filter(id => (at(id) || 0) > 0);
+    const presentK = kindsCount.filter(id => (at(id) || 0) > 0);
     return [
       T('stay', 'hotel', 'ที่พัก', 'Places to stay', stay, ['ยังไม่มีข้อมูลในจังหวัดนี้: ที่พัก', 'no data in this province yet: lodging']),
-      T('shop', 'venue', 'ช้อปปิ้งและแฟชั่น', 'Shopping and fashion', shop ? `${shop} ${esc(where)}${small([lux && lux[0] ? esc(L(`แบรนด์หรู ${num(lux[0])} กลุ่มสินค้าจาก ${num(lux[1])} ในย่าน`, `luxury brands in ${num(lux[0])} of ${num(lux[1])} groups inside`)) : '', gap(['shoppingcenter', 'luxurybrands']), esc(L('ร้านเสื้อผ้า: ยังไม่มีในเดโมนี้', 'apparel shops: not in this demo yet'))])}` : '', ['ยังไม่มีข้อมูลในจังหวัดนี้: ศูนย์การค้าและตลาด · แบรนด์หรู', 'no data in this province yet: centres and markets · luxury brands']),
-      T('mix', 'rank', 'ความหลากหลาย', 'Variety', kindsCount.length ? `${esc(L(`มีของให้เที่ยว ${num(present.length)} จาก ${num(kindsCount.length)} หมวดที่มีข้อมูล ${where}`, `${num(present.length)} of the ${num(kindsCount.length)} kinds with data ${where}`))}${small([gap(KINDS)])}` : '', ['ยังไม่มีข้อมูลในจังหวัดนี้', 'no data in this province yet']),
-      T('arts', 'arts', 'พิพิธภัณฑ์ ศิลปะ แหล่งเรียนรู้', 'Museums, arts and learning', '', ['ยังไม่มีข้อมูล: ทะเบียนวิจัย CityMETER ยังคัดรายการ', 'no data yet: the CityMETER research register is still sorting its list']),
-      T('history', 'history', 'ประวัติศาสตร์', 'History', '', ['ยังไม่มีข้อมูล: โบราณสถานขึ้นทะเบียน (กรมศิลปากร)', 'no data yet: registered monuments (Fine Arts Department)']),
-      T('night', 'date', 'กลางคืน คอนเสิร์ต โรงภาพยนตร์', 'Nightlife, concerts and cinemas', '', ['ยังไม่มีข้อมูล: โรงภาพยนตร์มีรายชื่อใน CityMETER Yolk แต่ยังไม่มีพิกัด', 'no data yet: cinemas are listed in CityMETER Yolk without points']),
-      T('nature', 'sea', 'ธรรมชาติ หาด ภูเขา น้ำตก', 'Nature, beaches, hills and falls', '', ['ยังไม่มีข้อมูล: อุทยานแห่งชาติ (กรมอุทยานแห่งชาติฯ)', 'no data yet: national parks (Department of National Parks)']),
+      T('sights', 'tour', 'แหล่งท่องเที่ยว', 'Attractions', sights, ['ยังไม่มีข้อมูลในจังหวัดนี้: แหล่งท่องเที่ยว', 'no data in this province yet: attractions']),
+      T('shop', 'venue', 'ช้อปปิ้ง แฟชั่น และความงาม', 'Shopping, fashion and beauty', shop, ['ยังไม่มีข้อมูลในจังหวัดนี้: ศูนย์การค้า ร้านแฟชั่น ความงาม', 'no data in this province yet: centres, fashion and beauty']),
+      T('well', 'massage', 'นวดและสปา', 'Massage and spas', well, ['ยังไม่มีข้อมูลในจังหวัดนี้: นวดและสปา', 'no data in this province yet: massage and spas']),
+      T('night', 'cinema', 'โรงภาพยนตร์ โรงละคร', 'Cinemas and theatres', night, ['ยังไม่มีข้อมูลในจังหวัดนี้: โรงภาพยนตร์และโรงละคร', 'no data in this province yet: cinemas and theatres']),
+      T('family', 'playground', 'เด็กและครอบครัว', 'Children and families', family, ['ยังไม่มีข้อมูลในจังหวัดนี้: สนามเด็กเล่นและเกมเซ็นเตอร์', 'no data in this province yet: play places and game centres']),
+      T('mix', 'rank', 'ความหลากหลาย', 'Variety', kindsCount.length ? `${esc(L(`มีของให้เที่ยว ${num(presentK.length)} จาก ${num(kindsCount.length)} หมวดที่มีข้อมูล ${where}`, `${num(presentK.length)} of the ${num(kindsCount.length)} kinds with data ${where}`))}${small([gap(KINDS)])}` : '', ['ยังไม่มีข้อมูลในจังหวัดนี้', 'no data in this province yet']),
+      T('history', 'temple', 'ศาสนสถานและประวัติศาสตร์', 'Places of worship and history', worship, ['ยังไม่มีข้อมูล: ศาสนสถานในจังหวัดนี้ · โบราณสถานขึ้นทะเบียน (กรมศิลปากร)', 'no data yet: places of worship in this province · registered monuments (Fine Arts Department)']),
     ];
   }
   // trade
@@ -130,12 +188,18 @@ export function topicsOf(axisId, {row, model, around, people = null, peopleMeta 
     ps.gst != null ? `${esc(L('ผู้มาเยือนค้างคืน', 'overnight visitors'))} ${ps.gst === 0 ? fig(0, L('คนต่อปี', 'a year')) : aboutPeople(ps.gst) ? `${esc(L('ราว', 'about'))} ${fig(aboutPeople(ps.gst), L('คนต่อปี', 'a year'))}` : nw(esc(L('ไม่ถึง 10 คนต่อปี', 'under 10 a year')))} ${modelled}` : '']) : '';
   const off = ps?.off;
   const work = join([nd('office', 'สำนักงาน', 'offices'), off ? `${esc(L('คนทำงานในสำนักงาน', 'office workers'))} ${nw(`<b class="data-number">${num(off[0])}–${num(off[1])}</b> ${esc(L('คน', 'people'))}`)} ${modelled}` : '']);
-  const biz = join([nd('factory', 'โรงงาน', 'factories'), nd('industrialestate', 'นิคมอุตสาหกรรม', 'industrial estates'), nd('camera', 'ร้านกล้อง', 'camera shops')]);
+  const biz = join([nd('factory', 'โรงงาน', 'factories'), nd('industrialestate', 'นิคมอุตสาหกรรม', 'industrial estates'), nd('bank', 'สาขาธนาคาร', 'bank branches')]);
+  // (0.8.0) the chains of shops round the neighbourhood: the registry's research datasets, each in its own unit, never added
+  const RETAIL = ['gold', 'optical', 'sport', 'hobby', 'furniture', 'clinic', 'nail', 'camera'];
+  const retail = present(RETAIL);
+  const retailIn = RETAIL.filter(id => at(id) != null);
+  const retailText = retailIn.length ? `${retail.text || esc(L(`พบ 0 จาก ${num(retailIn.length)} ชุดข้อมูลที่มีในจังหวัดนี้`, `0 of the ${num(retailIn.length)} datasets with data in this province`))} ${esc(where)}${small([esc(L('นับเฉพาะร้านของเครือที่ทะเบียนสำรวจ ไม่ใช่ทุกร้านในพื้นที่', 'only the chains the register surveyed, not every shop here')), starNote(RETAIL), gap(RETAIL)])}` : '';
   return [
     T('buyers', 'home', 'ผู้ซื้อ', 'Buyers', buyers ? `${buyers} ${esc(where)}<br><small>${esc(L('สามกลุ่มไม่รวมกัน · ไม่ใช่จำนวนลูกค้า', 'three groups, never added · not customers'))}${ps?.comLow ? esc(L(' · * ส่วนใหญ่มาจากชุดที่มีพิกัดไม่ครบ', ' · * mostly from datasets without points for every record')) : ''}</small>` : '', peopleWait || ['ยังไม่มีข้อมูล', 'no data yet']),
     T('spend', 'fee', 'กำลังจ่าย', 'Spending power', at('luxurybrands') != null ? `${nd('luxurybrands', 'จุดขายแบรนด์หรู', 'luxury points of sale')} ${esc(where)}${small([esc(L('ราคาประเมินที่ดินและค่าเช่า: ยังไม่มีในเดโมนี้ · ไม่ใช่รายได้ของคนในย่าน', 'land prices and rents: not in this demo yet · not the income of the people here'))])}` : '', ['ยังไม่มีข้อมูลในจังหวัดนี้: แบรนด์หรู · ราคาประเมินที่ดินและค่าเช่า: ยังไม่มีในเดโมนี้', 'no data in this province yet: luxury brands · land prices and rents: not in this demo yet']),
     T('work', 'office', 'คนทำงาน', 'Workers', work ? `${work} ${esc(where)}` : '', ['ยังไม่มีข้อมูลในจังหวัดนี้: สำนักงาน', 'no data in this province yet: offices']),
-    T('biz', 'factory', 'กิจการรอบตัว', 'Businesses around', biz ? `${biz} ${esc(where)}${small([gap(['factory', 'industrialestate', 'camera'])])}` : '', ['ยังไม่มีข้อมูลในจังหวัดนี้: โรงงาน · นิคมอุตสาหกรรม · ร้านกล้อง', 'no data in this province yet: factories · industrial estates · camera shops']),
+    T('retail', 'segment', 'ร้านค้าเครือรอบตัว', 'Chain shops around', retailText, ['ยังไม่มีข้อมูลในจังหวัดนี้: ร้านค้าเครือ', 'no data in this province yet: chain shops']),
+    T('biz', 'factory', 'กิจการรอบตัว', 'Businesses around', biz ? `${biz} ${esc(where)}${small([gap(['factory', 'industrialestate', 'bank'])])}` : '', ['ยังไม่มีข้อมูลในจังหวัดนี้: โรงงาน · นิคมอุตสาหกรรม · ธนาคาร', 'no data in this province yet: factories · industrial estates · banks']),
     T('rivals', 'compare', 'คู่แข่ง พันธมิตร สาขาของเรา', 'Rivals, partners, own branches', '', ['ยังไม่มีข้อมูล: ต้องเลือกประเภทธุรกิจและแบรนด์ก่อน ซึ่งหน้านี้ยังไม่มีตัวเลือก', 'no data yet: it needs a business type and brand to be picked, which this page does not offer yet']),
   ];
 }

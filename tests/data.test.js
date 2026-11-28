@@ -18,7 +18,10 @@ test('one row per outline: the registry\'s 358 closed outlines, the 37 lodging a
   // 0.6.1: the 56 of 0.5.0, 13 over 1 km the owner chose to use, 5 drawn with CityMETER Building V4 (74); 0.7.8: the 65 he
   // ticked on 27 Nov 10:44 (13 used as drawn, 11 narrow arms off, 41 cut to 1 km)
   assert.equal(t.screenDrawn, 139);
-  assert.equal(t.outlined, t.closed + t.lodgingDrawn + t.screenDrawn);
+  // (0.8.0) the 184 outlines the registry's commercial outline review (round 4) delivered beyond 0.7.10's 534
+  assert.equal(t.reviewDrawn, 184);
+  assert.equal(model.rows.filter(r => r.kind === 'review').length, t.reviewDrawn);
+  assert.equal(t.outlined, t.closed + t.lodgingDrawn + t.screenDrawn + t.reviewDrawn);
   assert.equal(model.rows.filter(r => r.kind === 'registry').length, t.closed);
   assert.equal(model.rows.filter(r => r.kind === 'lodging').length, t.lodgingDrawn);
   assert.equal(model.rows.filter(r => r.kind === 'screen').length, t.screenDrawn);
@@ -63,7 +66,8 @@ test('counts add up per dataset (never across datasets): rows = inside = the poi
   for (const ds of model.datasets) {
     const sum = model.rows.reduce((t, r) => t + (r.c[ds.id] || 0), 0);
     assert.equal(sum, ds.inside, ds.id);
-    assert.equal(perDs.get(ds.index) || 0, ds.inside, `${ds.id} points`);
+    // (0.8.0) a counted-only dataset (its points stay private: the masters' rights gate) writes no point to the shards
+    assert.equal(perDs.get(ds.index) || 0, ds.aggregate ? 0 : ds.inside, `${ds.id} points`);
   }
   const eps = 1e-6;
   model.rows.forEach((r, i) => {
@@ -74,7 +78,7 @@ test('counts add up per dataset (never across datasets): rows = inside = the poi
     }
     const byDs = new Map();
     for (const [d] of points[i]) byDs.set(d, (byDs.get(d) || 0) + 1);
-    for (const ds of model.datasets) assert.equal(byDs.get(ds.index) || 0, r.c[ds.id] || 0, `${r.id} ${ds.id}`);
+    for (const ds of model.datasets) assert.equal(byDs.get(ds.index) || 0, ds.aggregate ? 0 : r.c[ds.id] || 0, `${r.id} ${ds.id}`);
   });
 });
 
@@ -124,8 +128,10 @@ test('metadata names the registry read, its export and the bundle by SHA-256, an
   // (the registry's 2 and the 42 admitted lodging areas without an outline) and collection names; (0.5.0) the commercial
   // screen's outlines, its codes without one (held) and the one held until the owner decides (not on the page); (0.7.8)
   // the one he took off the screen (“ไม่นับเป็นย่านการค้า ลบทิ้ง”): still a code of the registry, not on the page
-  assert.equal(m.totals.closed + m.totals.lodgingDrawn + m.totals.screenDrawn + m.totals.held + m.totals.collections + m.totals.screenHeld + m.totals.screenRemoved, m.totals.codes);
-  assert.equal(m.totals.codes, 677);
+  // (0.8.0) and the outlines of the registry's review: every principal code drawn or held, its collection names, the one removed
+  assert.equal(m.totals.closed + m.totals.lodgingDrawn + m.totals.screenDrawn + m.totals.reviewDrawn + m.totals.held + m.totals.collections + m.totals.screenHeld + m.totals.screenRemoved, m.totals.codes);
+  assert.equal(m.totals.codes, 1012);   // 0.8.0: 1,001 principal codes, 10 collection names, 1 removed (677 in 0.7.8)
+  assert.equal(m.totals.principal, 1001);
   assert.equal(m.totals.admitted, 79);
   assert.equal(m.registry.admitted.codes, 79);
   assert.equal(m.registry.admitted.on, '2026-11-18');
@@ -136,10 +142,18 @@ test('metadata names the registry read, its export and the bundle by SHA-256, an
   assert.equal(m.bundle.revision.policy_version, '2026-11-17-commercial-recovery-9');
   assert.equal(m.bundle.revision.closed_neighbourhoods, 358);
   assert.equal(m.bundle.revision.positive_area_overlap_pairs, 0);
-  assert.equal(model.datasets.length, 16);
+  // (0.8.0) the 16 demos, Housing Estate and Tourism, parks and places of worship from OpenStreetMap (their registers have
+  // no point yet) and 18 research registers without a demo
+  assert.equal(model.datasets.length, 38);
+  assert.equal(model.datasets.filter(d => d.aggregate).length, 20);
+  assert.deepEqual(model.datasets.filter(d => d.placedBy?.osm).map(d => d.id).sort(), ['park', 'temple']);
   for (const ds of model.datasets) {
-    assert.match(ds.source.repo, /^montri-th\/[a-z]+$/, ds.id);
-    assert.match(ds.source.commit, /^[0-9a-f]{40}$/, ds.id);
+    if (ds.aggregate) {
+      assert.match(ds.source.registry, /^research\.TH\.[a-z_]+$/, ds.id);
+    } else {
+      assert.match(ds.source.repo, /^montri-th\/[a-z]+$/, ds.id);
+      assert.match(ds.source.commit, /^[0-9a-f]{40}$/, ds.id);
+    }
     assert.match(ds.source.sha256, /^[0-9a-f]{64}$/, ds.id);
     assert.ok(ds.scope.th && ds.scope.en, ds.id);
     assert.ok(['Land', 'Location', 'Living'].includes(ds.group), ds.id);

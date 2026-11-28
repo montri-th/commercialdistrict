@@ -154,9 +154,9 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
    The glyph is decorative (aria-hidden); the text label carries the meaning. Hidden until the font loads. */
 @font-face {
   font-family: "LDS Material Symbols Rounded Pictogram";
-  src: url("assets/icons/material-pictogram-300.woff2?v=d7166a5c") format("woff2");
+  src: url("assets/icons/material-pictogram-300.woff2?v=f825f423") format("woff2");
   font-style: normal; font-weight: 300; font-display: block;
-  unicode-range: U+E55B, U+E7F1, U+E72C, U+E65F, U+E56E, U+E0C8, U+EA40, U+E80C, U+F233, U+EAF0, U+EB4F, U+F1A9, U+EF63, U+EF76, U+EA19, U+E8E5, U+E97A, U+E615, U+E570, U+E915, U+E176, U+E564, U+EA16, U+EA99, U+F20C, U+E878, U+E41C, U+EA3C, U+F20E, U+E666, U+E745, U+E8E2, U+E40A, U+EB41, U+EFDF, U+EBB8, U+F1D0, U+E54C, U+E412, U+EBBC, U+EB43, U+E8CC, U+EAD5, U+E550, U+E56C, U+E84F, U+E548, U+EA3E, U+E9B2, U+F235;
+  unicode-range: U+E55B, U+E7F1, U+E72C, U+E65F, U+E56E, U+E0C8, U+EA40, U+E80C, U+F233, U+EAF0, U+EB4F, U+F1A9, U+EF63, U+EF76, U+EA19, U+E8E5, U+E97A, U+E615, U+E570, U+E915, U+E176, U+E564, U+EA16, U+EA99, U+F20C, U+E878, U+E41C, U+EA3C, U+F20E, U+E666, U+E745, U+E8E2, U+E40A, U+EB41, U+EFDF, U+EBB8, U+F1D0, U+E54C, U+E412, U+EBBC, U+EB43, U+E8CC, U+EAD5, U+E550, U+E56C, U+E84F, U+E548, U+EA3E, U+E9B2, U+F235, U+EF63, U+EA63, U+E2EB, U+F6EE, U+E14E, U+E764, U+E91D, U+EA56, U+E326, U+EFED, U+E8E0, U+EF7B, U+EF9D, U+EA26, U+E7C8, U+E0A7, U+EB4C, U+EA52, U+EA36, U+E404, U+EAB3, U+E58A, U+EF75;
 }
 .pictogram { display: inline-block; width: 20px; height: 20px; font: 300 20px/1 "LDS Material Symbols Rounded Pictogram"; font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24; letter-spacing: normal; text-transform: none; font-synthesis: none; vertical-align: -4px; visibility: hidden; color: var(--text-secondary); }
 .pictograms-ready .pictogram { visibility: visible; }
@@ -212,6 +212,28 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 .pic-home::before { content: "\E9B2"; }
 .pic-luggage::before { content: "\F235"; }
 .pic-trade::before { content: "\EF63"; }
+.pic-park::before { content: "\EA63"; }
+.pic-bank::before { content: "\E2EB"; }
+.pic-optical::before { content: "\F6EE"; }
+.pic-salon::before { content: "\E14E"; }
+.pic-nail::before { content: "\E764"; }
+.pic-pet::before { content: "\E91D"; }
+.pic-car::before { content: "\EA56"; }
+.pic-services::before { content: "\E326"; }
+.pic-furniture::before { content: "\EFED"; }
+.pic-gold::before { content: "\E8E0"; }
+.pic-apparel::before { content: "\EF7B"; }
+.pic-beauty::before { content: "\EF9D"; }
+.pic-sport::before { content: "\EA26"; }
+.pic-hobby::before { content: "\E7C8"; }
+.pic-clinic::before { content: "\E0A7"; }
+.pic-massage::before { content: "\EB4C"; }
+.pic-playground::before { content: "\EA52"; }
+.pic-museum::before { content: "\EA36"; }
+.pic-cinema::before { content: "\E404"; }
+.pic-temple::before { content: "\EAB3"; }
+.pic-housing::before { content: "\E58A"; }
+.pic-tour::before { content: "\EF75"; }
 .pic-plain { display: none; }
 .section-heading h3 .pictogram { width: 18px; height: 18px; font-size: 18px; margin-right: 6px; vertical-align: -3px; }
 .metric { position: relative; padding-left: 26px; }
@@ -1299,8 +1321,8 @@ button.glance-tile:hover { background: var(--surface-alt); box-shadow: inset 0 0
 .fp-lg .fp-cell { width: 17px; height: 17px; border-radius: 3px; }
 .fp-cell .pictogram { width: 12px; height: 12px; font-size: 12px; line-height: 12px; vertical-align: 0; color: inherit; }
 .fp-cell.k-ranked { border-color: var(--border-hairline); }
-.fp-cell.k-few, .fp-cell.k-starred { background: radial-gradient(circle, var(--text-secondary) 0 1.6px, transparent 1.9px), var(--surface-alt); border-color: var(--text-muted); }
-.fp-lg .fp-cell.k-few, .fp-lg .fp-cell.k-starred, .fp-key .fp-cell.k-few { background: radial-gradient(circle at calc(100% - 3px) 3px, var(--text-secondary) 0 1.9px, transparent 2.2px), var(--surface-alt); }
+.fp-cell.k-few, .fp-cell.k-starred, .fp-cell.k-site { background: radial-gradient(circle, var(--text-secondary) 0 1.6px, transparent 1.9px), var(--surface-alt); border-color: var(--text-muted); }
+.fp-lg .fp-cell.k-few, .fp-lg .fp-cell.k-starred, .fp-lg .fp-cell.k-site, .fp-key .fp-cell.k-few { background: radial-gradient(circle at calc(100% - 3px) 3px, var(--text-secondary) 0 1.9px, transparent 2.2px), var(--surface-alt); }
 .fp-cell.k-edge { border: 1.5px dashed var(--text-secondary); }
 .fp-cell.k-zero { border: 2px solid var(--data-zero-outline); }
 .fp-cell.k-zero .pictogram, .fp-cell.k-out .pictogram { color: transparent; }
@@ -1394,7 +1416,7 @@ a.ax-demo:focus-visible { outline: 3px solid var(--interaction-focus-ring); outl
 .mx td.mx-c { border-radius: 3px; }
 .mx td.mx-c:focus { outline: none; }
 .mx td.mx-c:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 1px; }
-.mx .mx-c .fp-cell.k-few, .mx .mx-c .fp-cell.k-starred, .mx-legend .fp-cell.k-few { background: radial-gradient(circle, var(--text-secondary) 0 1.8px, transparent 2.1px), var(--surface-alt); }
+.mx .mx-c .fp-cell.k-few, .mx .mx-c .fp-cell.k-starred, .mx .mx-c .fp-cell.k-site, .mx-legend .fp-cell.k-few { background: radial-gradient(circle, var(--text-secondary) 0 1.8px, transparent 2.1px), var(--surface-alt); }
 .mx .mx-row { text-align: left; font-weight: 400; padding-right: 4px; min-width: 84px; max-width: 120px; white-space: normal; }
 .mx-th { display: flex; align-items: center; gap: 2px; }
 .mx-rank { flex: 0 0 auto; min-width: 14px; font-size: 12px; color: var(--text-metadata); }
@@ -1621,3 +1643,21 @@ button.mx-who .mx-name { text-decoration: underline; text-underline-offset: 3px;
 .prior-targets .fact-rank { color: var(--text-secondary); }
 #panel .chr-near-name small { font-size: 13px; }
 #panel .dp-why > summary, #panel .chr-near-fold > summary, #panel .chr-method > summary { min-height: 44px; display: flex; align-items: center; font-size: 14px; }
+
+/* ---------- «ใคร ใช้จ่ายกับอะไร และเมื่อไร» (0.8.0; owner 2026-11-28 19:36 “… Resident + Visitor + Commuter … ที่มีจังหวะที่ต่างกันใน
+   daypart 7x24”): one card per group — its figure, the places it can spend at nearby, its own week in the busy block's neutral
+   tones (a hypothesis never takes a data colour); no colour on a chip, the pictogram and the words carry it ---------- */
+.gr-lead { margin: 0 0 8px; font-size: 13px; }
+.gr-cards { display: grid; gap: 12px; }
+.gr-card { border: 1px solid var(--border-default); border-radius: var(--radius-sm); padding: 10px 12px; background: var(--surface-card); }
+.gr-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 0 0 6px; font-size: 15px; font-weight: 600; line-height: 1.4; }
+.gr-head .pictogram { width: 18px; height: 18px; font-size: 18px; vertical-align: -3px; }
+.gr-fig { font-weight: 400; font-size: 14px; color: var(--text-primary); }
+#panel .gr-fig small { font-size: 12px; color: var(--text-metadata); }
+.gr-spend { margin: 0 0 6px; font-size: 14px; line-height: 1.9; }
+.gr-label { display: block; font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+.gr-chip { display: inline-block; margin: 0 6px 0 0; white-space: nowrap; }
+.gr-chip .pictogram { width: 15px; height: 15px; font-size: 15px; vertical-align: -3px; margin-right: 2px; }
+.gr-peak { margin: 0 0 2px; font-size: 13.5px; line-height: 1.5; }
+.gr-grid td { height: 10px; }
+#panel .gr-why > summary { min-height: 44px; display: flex; align-items: center; font-size: 14px; }

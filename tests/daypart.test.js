@@ -17,7 +17,7 @@ const ids = readdirSync(join(ROOT, 'data/people')).filter(f => f.endsWith('.json
 const people = id => readJSON(`data/people/${id}.json`);
 
 test('every neighbourhood has a grid of 168 hours, levels 1–5 with a busiest hour, from rules it names', () => {
-  assert.equal(ids.length, 534);
+  assert.equal(ids.length, 718);   // 0.8.0 (534 in 0.7.10)
   const lines = new Set();
   for (const id of ids) {
     const dp = daypartOf(people(id));

@@ -45,6 +45,7 @@ export function cellWords(x, {hl = false} = {}) {
   if (x.kind === 'ranked') t = `${name} ${countText(x)} · ${levelWords(x)} · ${rankWords(x)}`;
   else if (x.kind === 'few') t = `${name} ${countText(x)} · ${L('น้อยกว่า 3 ไม่จัดอันดับ', 'fewer than 3, not ranked')}`;
   else if (x.kind === 'starred') t = `${name} ${countText(x)}* · ${L('มีพิกัดไม่ถึง 90% ของรายการ ไม่จัดอันดับ', 'points for under 90% of its records, not ranked')}`;
+  else if (x.kind === 'site') t = `${name} ${countText(x)} · ${L('ขอบเฉพาะแหล่งค้า ไม่เทียบอันดับกับย่าน', 'an outline of the trading site only, not ranked against neighbourhoods')}`;
   else if (x.kind === 'edge') t = `${name} ${L('ไม่พบในย่าน', 'none inside')} · ${L(`นอกขอบไม่เกิน 800 ม. ${num(x.r800)} ${dsUnitN(x.ds, x.r800)}`, `${num(x.r800)} ${dsUnitN(x.ds, x.r800)} outside within 800 m`)}`;
   else if (x.kind === 'zero') t = `${name} ${x.edgeKnown ? L('ไม่พบในย่านและขอบเดินถึง 800 ม.', 'none inside or within the 800 m walkable edge') : L(`ไม่พบในย่าน (0 ${dsUnit(x.ds)})`, `none inside (0 ${dsUnit(x.ds)})`)}`;
   else t = `${name} ${L('ไม่มีข้อมูลในจังหวัดนี้', 'no data in this province')}`;
@@ -61,6 +62,7 @@ export function cellShort(x, {hl = false} = {}) {
   if (x.kind === 'ranked') t = `${countText(x)} · ${L(`ระดับ ${num(round(x.level))}/100`, `level ${num(round(x.level))}/100`)}`;
   else if (x.kind === 'few') t = `${countText(x)} · ${L('ไม่จัดอันดับ', 'not ranked')}`;
   else if (x.kind === 'starred') t = `${countText(x)}* · ${L('ไม่จัดอันดับ', 'not ranked')}`;
+  else if (x.kind === 'site') t = `${countText(x)} · ${L('ไม่จัดอันดับ', 'not ranked')}`;
   else if (x.kind === 'edge') t = L('เฉพาะนอกขอบ ≤800 ม.', 'only beyond the edge ≤800 m');
   else if (x.kind === 'zero') t = L('ไม่พบ', 'none');
   else t = L('ไม่มีข้อมูลในจังหวัด', 'no data in the province');
@@ -72,6 +74,7 @@ export function stateWords(x) {
   if (x.kind === 'ranked') return L(`ระดับ ${num(round(x.level))}`, `level ${num(round(x.level))}`);
   if (x.kind === 'few') return `${countText(x)} ${L('ไม่จัดอันดับ', 'not ranked')}`;
   if (x.kind === 'starred') return `${countText(x)}* ${L('ไม่จัดอันดับ', 'not ranked')}`;
+  if (x.kind === 'site') return `${countText(x)} ${L('ไม่จัดอันดับ', 'not ranked')}`;
   if (x.kind === 'edge' || x.kind === 'zero') return L('ไม่พบในย่าน', 'none inside');
   return L('ไม่มีข้อมูลในจังหวัด', 'no data in the province');
 }
@@ -111,7 +114,7 @@ export function fingerprintKey(cells, {around = true} = {}) {
 export function fingerprint(model, row, around, {hl = new Set(), label = ''} = {}) {
   const cells = cellsOf(model, row, around);
   const groups = PILLARS.map(p => `<span class="fp-group" data-pillar="${p}">${cells.filter(x => x.ds.group === p).map(x => fpCell(x, {lg: true, hl: hl.has(x.ds.id)})).join('')}</span>`).join('');
-  const name = label || `${L('ลายนิ้วมือ 16 ชุดข้อมูลของย่าน:', 'Fingerprint of the 16 datasets:')} ${keyWords(cellCounts(cells), Boolean(around)).map(p => p.words).join(' · ')}`;
+  const name = label || `${L(`ลายนิ้วมือ ${num(cells.length)} ชุดข้อมูลของย่าน:`, `Fingerprint of the ${num(cells.length)} datasets:`)} ${keyWords(cellCounts(cells), Boolean(around)).map(p => p.words).join(' · ')}`;
   return `<div class="fp-head"><span class="fp fp-lg" role="img" aria-label="${esc(name)}">${groups}</span>${fingerprintKey(cells, {around: Boolean(around)})}</div>`;
 }
 
@@ -190,7 +193,8 @@ function axisRow(x, {distance, hl, demo, edgeRow = false}) {
     track = `<span class="ax-track" aria-hidden="true"><i class="ax-mid"></i>${dot}</span>`;
     val = `<b class="data-number">${num(x.c.count)}</b> <small>${esc(dsUnitN(x.ds, x.c.count))}</small>${chip}${x.kind === 'ranked' ? `<small class="ax-rank data-number">${num(x.rank)}/${num(x.n)}</small>` : ''}`;
     sr = x.kind === 'ranked' ? `${L(`ระดับ ${num(round(x.level))} จาก 100 อันดับ ${num(x.rank)} จาก ${num(x.n)} ย่าน`, `level ${num(round(x.level))} of 100, rank ${num(x.rank)} of ${num(x.n)} neighbourhoods`)} · ${rankWords(x)}${reach ? ` · ${L(`นอกขอบไม่เกิน ${num(+distance)} ม. ${num(reach)}`, `${num(reach)} outside within ${num(+distance)} m`)}` : ''}`
-      : x.kind === 'starred' ? L('มีพิกัดไม่ถึง 90% ของรายการ ไม่จัดอันดับ', 'points for under 90% of its records, not ranked') : L('น้อยกว่า 3 ไม่จัดอันดับ', 'fewer than 3, not ranked');
+      : x.kind === 'starred' ? L('มีพิกัดไม่ถึง 90% ของรายการ ไม่จัดอันดับ', 'points for under 90% of its records, not ranked')
+      : x.kind === 'site' ? L('ขอบเฉพาะแหล่งค้า ไม่เทียบอันดับกับย่าน', 'an outline of the trading site only, not ranked against neighbourhoods') : L('น้อยกว่า 3 ไม่จัดอันดับ', 'fewer than 3, not ranked');
     if (reach && x.kind !== 'ranked') sr += ` · ${L(`นอกขอบไม่เกิน ${num(+distance)} ม. ${num(reach)}`, `${num(reach)} outside within ${num(+distance)} m`)}`;
   }
   const link = demo ? `<a class="ax-demo" href="${esc(demo.href)}" title="${esc(demo.title)}" aria-label="${esc(demo.title)}"><span class="nav-icon" aria-hidden="true"></span></a>` : '<span class="ax-demo" aria-hidden="true"></span>';

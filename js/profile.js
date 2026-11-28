@@ -12,7 +12,7 @@
  *                demo), the pairs of datasets that rise together across the neighbourhoods (Spearman's ρ on density),
  *                and the neighbourhoods with a similar mix — never a claim about people, footfall or sales
  */
-import {PILLARS, cell, provinceByCode, rolesOf, pairsOf, multiStrong, datasetRanking} from './model.js';
+import {PILLARS, cell, provinceByCode, rolesOf, pairsOf, multiStrong, datasetRanking, lowLocated} from './model.js';
 import {sharedBy} from './around.js';
 
 /** The pairs of datasets that rise together across the neighbourhoods (ρ ≥ the build's rule), strongest first. */
@@ -45,7 +45,8 @@ export function buildOverview(model, {rows, province = '', ds = null, pending = 
   const km2 = rows.reduce((s, r) => s + r.km2, 0);
   const baseKm2 = province ? (p?.areaSqm || 0) / 1e6 : model.meta.totals?.thailandKm2 || 0;
   const shares = sharesOf(model, rows, province);
-  const ranked = shares.filter(s => s.inside > 0).sort((a, b) => b.share - a.share || b.inside - a.inside);
+  // (0.8.0) a counted-only dataset that places under 90 % of its records leads no finding (its share is of a handful of points)
+  const ranked = shares.filter(s => s.inside > 0 && !(s.ds.aggregate && lowLocated(s.ds))).sort((a, b) => b.share - a.share || b.inside - a.inside);
   const pairs = strongPairs(model).map(pair => ({...pair, rows: rows.filter(r => (r.pairs || []).some(([a, b]) => (a === pair.a && b === pair.b) || (a === pair.b && b === pair.a)))}));
   const lens = ds ? buildLens(model, rows, ds, province) : null;
   const byProvince = new Map();
@@ -92,12 +93,13 @@ function centres(model) {
  * in scope for both (at least `minShared`, three of them with records in both).
  */
 export function similarRows(model, row, {limit = 3, minShared = 8} = {}) {
+  if (row.peer === false) return [];   // (0.8.0) a trading site has no peers, so no neighbourhood of a similar mix
   const mean = centres(model);
   const vec = r => Object.fromEntries(Object.keys(r.c || {}).map(id => [id, Math.log1p(r.density[id] || 0) - mean[id]]));
   const a = vec(row);
   const out = [];
   for (const r of model.rows) {
-    if (r.id === row.id) continue;
+    if (r.id === row.id || r.peer === false) continue;
     const shared = Object.keys(a).filter(id => id in (r.c || {}));
     if (shared.length < minShared) continue;
     const b = vec(r);

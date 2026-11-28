@@ -15,29 +15,32 @@ export const DS_ICON = Object.freeze({
   hotel: 'hotel', industrialestate: 'estate', office: 'office', shoppingcenter: 'venue',
   camera: 'camera', factory: 'factory', fitness: 'fitness', grocery: 'grocery', luxurybrands: 'brand', pharmacy: 'pharmacy', restaurant: 'restaurant',
   governmentoffice: 'gov', hospital: 'hospital', school: 'school', transit: 'rail', university: 'university',
+  // (0.8.0) parks, the registry's research datasets without a demo web, Housing Estate and Tourism
+  housingestate: 'housing', tourism: 'tour', park: 'park', bank: 'bank', optical: 'optical', salon: 'salon', nail: 'nail', pet: 'pet',
+  car: 'car', services: 'services', furniture: 'furniture', gold: 'gold', apparel: 'apparel', beauty: 'beauty', sport: 'sport', hobby: 'hobby',
+  clinic: 'clinic', massage: 'massage', playground: 'playground', arts: 'museum', cinema: 'cinema', temple: 'temple',
 });
 export const dsIcon = ds => DS_ICON[ds?.id || ds] || 'dataset';
 
 /** The axes, in the order the panel reads them; every dataset of the demo sits on exactly one (tests/visual.test.js). */
 export const AXES = Object.freeze([
   {id: 'live', th: 'น่าอยู่', en: 'Liveable', icon: 'home', meaning: ['สิ่งที่คนในย่านเจอทุกวัน', 'What people living here meet every day'],
-    datasets: ['grocery', 'pharmacy', 'hospital', 'school', 'governmentoffice', 'transit', 'fitness'],
+    // (0.8.0, owner 2026-11-28 20:12: parks weigh more in น่าอยู่ than gyms) parks first, then the daily needs and homes
+    datasets: ['park', 'grocery', 'pharmacy', 'hospital', 'school', 'transit', 'governmentoffice', 'bank', 'salon', 'services', 'pet', 'car', 'housingestate', 'fitness'],
     pending: [
-      {th: 'สวนสาธารณะ', en: 'Parks', source: ['ทะเบียนวิจัย CityMETER (ยังคัดรายการ)', 'CityMETER research register (still sorting)']},
       {th: 'รถเมล์และเรือ', en: 'Buses and boats', source: ['ข้อมูลเส้นทางแบบเปิดของผู้ให้บริการ (GTFS)', 'operators’ open route data (GTFS)']},
       {th: 'น้ำท่วมซ้ำซาก', en: 'Repeated flooding', source: ['GISTDA', 'GISTDA']},
       {th: 'PM2.5', en: 'PM2.5', source: ['กรมควบคุมมลพิษ (Air4Thai) · กรุงเทพมหานคร (AirBKK)', 'Pollution Control Department (Air4Thai) · Bangkok (AirBKK)']},
     ]},
   {id: 'visit', th: 'น่าเที่ยว', en: 'Worth visiting', icon: 'luggage', meaning: ['ของให้เที่ยวหลายแบบ', 'Many kinds of things to do'],
-    datasets: ['hotel', 'shoppingcenter', 'restaurant', 'luxurybrands'],
+    datasets: ['hotel', 'tourism', 'shoppingcenter', 'restaurant', 'apparel', 'beauty', 'luxurybrands', 'massage', 'arts', 'cinema', 'playground', 'temple'],
     pending: [
       {th: 'ที่พักแบบบ้าน', en: 'Home stays', source: ['Inside Airbnb', 'Inside Airbnb']},
-      {th: 'แหล่งท่องเที่ยว', en: 'Attractions', source: ['Thailand Tourism Directory', 'Thailand Tourism Directory']},
-      {th: 'โรงภาพยนตร์', en: 'Cinemas', source: ['CityMETER Yolk', 'CityMETER Yolk']},
+      {th: 'พิกัดโรงภาพยนตร์และโรงละคร', en: 'Points of cinemas and theatres', source: ['ทะเบียนวิจัย CityMETER (มีรายชื่อ ยังไม่มีพิกัด)', 'CityMETER research register (listed, no points yet)']},
       {th: 'โบราณสถาน', en: 'Historic sites', source: ['กรมศิลปากร', 'Fine Arts Department']},
     ]},
   {id: 'trade', th: 'น่าค้าขาย', en: 'Good for trade', icon: 'trade', meaning: ['ผู้ซื้อ กำลังจ่าย และกิจการรอบตัว', 'Buyers, spending and businesses around'],
-    datasets: ['office', 'university', 'camera', 'factory', 'industrialestate'],
+    datasets: ['office', 'university', 'factory', 'industrialestate', 'gold', 'optical', 'sport', 'hobby', 'furniture', 'clinic', 'nail', 'camera'],
     pending: [
       {th: 'กิจการเปิด–ปิด', en: 'Businesses opened and closed', source: ['กรมพัฒนาธุรกิจการค้า', 'Department of Business Development']},
       {th: 'ผู้โดยสารรายสถานี', en: 'Passengers by station', source: ['กรมการขนส่งทางราง', 'Department of Rail Transport']},

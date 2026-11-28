@@ -24,8 +24,9 @@ const holes = /undefined|NaN|\[object Object\]|Infinity/;
 const ctx = model => ({meta: model.meta, datasetCount: 16});
 const TALAD = 'CMN-TH-BAFFB5235F'; // ย่านตลาดไท: held in 0.5.0; kept by the owner on 2026-11-26 10:02 (“อยากคงไว้”)
 const REMOVED = 'CMN-TH-33E737E0D0'; // ชุมชนซอยพหลโยธิน 94: “ไม่นับเป็นย่านการค้า ลบทิ้ง” (owner's tick, 2026-11-27)
-// 0.7.8 (0.6.1: 74, 66, 88, 0, 0 · 0.5.0: 56, 17, 154, 1, 0)
-const SCREEN = {admitted: 228, drawn: 139, review: 0, undrawn: 88, heldOwner: 0, removedOwner: 1};
+// 0.8.0: the registry's national review of 28 Nov drew 21 of the 88 left without an outline (0.7.8: 139, 0, 88, 0, 1 ·
+// 0.6.1: 74, 66, 88, 0, 0 · 0.5.0: 56, 17, 154, 1, 0); those 21 are on the page as the review's neighbourhoods
+const SCREEN = {admitted: 228, drawn: 139, review: 0, undrawn: 67, byReview: 21, heldOwner: 0, removedOwner: 1};
 const usedAsDrawn = () => new Set([...readJSON('amendments/outline-new-choices-2026-11-26.json').ticks.use,
   ...readJSON('amendments/outline-new-choices-2026-11-27.json').ticks.use]);
 
@@ -33,9 +34,10 @@ test('the screen\'s codes add up: drawn, waiting for the owner\'s tick, without 
   const {model} = load();
   const m = model.meta.screen;
   assert.equal(m.admitted, SCREEN.admitted);
-  assert.deepEqual([m.drawn, m.review, m.undrawn, m.heldOwner, m.removedOwner],
-    [SCREEN.drawn, SCREEN.review, SCREEN.undrawn, SCREEN.heldOwner, SCREEN.removedOwner]);
-  assert.equal(m.drawn + m.review + m.undrawn + m.heldOwner + m.removedOwner, m.admitted);
+  assert.deepEqual([m.drawn, m.review, m.undrawn, m.drawnByReview, m.heldOwner, m.removedOwner],
+    [SCREEN.drawn, SCREEN.review, SCREEN.undrawn, SCREEN.byReview, SCREEN.heldOwner, SCREEN.removedOwner]);
+  assert.equal(m.drawn + m.review + m.undrawn + m.drawnByReview + m.heldOwner + m.removedOwner, m.admitted);
+  assert.equal(model.rows.filter(r => r.kind === 'review' && r.review?.was === 'commercial').length, SCREEN.byReview);
   assert.deepEqual(m.admittedOn, ['2026-11-25', '2026-11-26']);
   assert.equal(m.outlinedOn, '2026-11-26');
   assert.equal(m.reviewM, 1000);
@@ -44,8 +46,8 @@ test('the screen\'s codes add up: drawn, waiting for the owner\'s tick, without 
   assert.equal(t.screenUndrawn, m.review + m.undrawn);
   assert.equal(t.screenHeld, m.heldOwner);
   assert.equal(t.screenRemoved, m.removedOwner);
-  assert.equal(t.closed + t.lodgingDrawn + t.screenDrawn + t.held + t.collections + t.screenHeld + t.screenRemoved, t.codes);
-  assert.equal(t.outlined, t.closed + t.lodgingDrawn + t.screenDrawn);
+  assert.equal(t.closed + t.lodgingDrawn + t.screenDrawn + t.reviewDrawn + t.held + t.collections + t.screenHeld + t.screenRemoved, t.codes);
+  assert.equal(t.outlined, t.closed + t.lodgingDrawn + t.screenDrawn + t.reviewDrawn);
 });
 
 test('the outlines file is the one the build read, byte for byte, and every drawn code is in it', () => {
@@ -120,7 +122,7 @@ test('the kind filter has the screen: its outlines, and its names in a search', 
   const {model} = load();
   assert.ok(KINDS.includes('screen'));
   assert.equal(scopeRows(model, {kind: 'screen'}).length, SCREEN.drawn);
-  assert.equal(scopeRows(model, {kind: 'registry'}).length + scopeRows(model, {kind: 'lodging'}).length + scopeRows(model, {kind: 'screen'}).length, model.rows.length);
+  assert.equal(['registry', 'lodging', 'screen', 'review'].reduce((n, kind) => n + scopeRows(model, {kind}).length, 0), model.rows.length);
   assert.ok(model.rows.every(r => kindMatch(r, '')));
   const p = model.pending.find(x => x.screen === 'commercial');
   assert.ok(scopePending(model, {search: p.name, kind: 'screen'}).some(x => x.id === p.id));
@@ -146,7 +148,8 @@ test('the page words of the screen: badge, outline, area, provenance, the nation
   assert.match(page, /data-value="screen"/);
   // the registry's codes on the page add up to all of them, the held one included, one space apart
   const t = model.meta.totals;
-  assert.match(page, new RegExp(`ทะเบียนย่านกลาง ${t.codes} รหัส: ขอบปิดฉบับร่าง ${t.closed} ย่าน · ขอบร่างจากผลคัดย่านที่พัก ${t.lodgingDrawn} · ขอบร่างจากผลคัดย่านการค้า ${t.screenDrawn} · รอขอบ ${t.held} · ชื่อรวมหลายย่าน ${t.collections}${t.screenHeld ? ` · พักไว้รอเจ้าของตัดสิน ${t.screenHeld}` : '(?! · พักไว้)'}${t.screenRemoved ? ` · เจ้าของให้ไม่นับเป็นย่านการค้า ${t.screenRemoved}` : ''}`));
+  const n = v => v.toLocaleString('en-US');   // (0.8.0) 1,012 codes: the page groups thousands
+  assert.match(page, new RegExp(`ทะเบียนย่านกลาง ${n(t.codes)} รหัส: ขอบปิดฉบับร่าง ${n(t.closed)} ย่าน · ขอบร่างจากผลคัดย่านที่พัก ${n(t.lodgingDrawn)} · ขอบร่างจากผลคัดย่านการค้า ${n(t.screenDrawn)} · ขอบจากผลตรวจของทะเบียน ${n(t.reviewDrawn)} · รอขอบ ${n(t.held)} · ชื่อรวมหลายย่าน ${n(t.collections)}${t.screenHeld ? ` · พักไว้รอเจ้าของตัดสิน ${n(t.screenHeld)}` : '(?! · พักไว้)'}${t.screenRemoved ? ` · เจ้าของให้ไม่นับเป็นย่านการค้า ${n(t.screenRemoved)}` : ''}`));
   assert.doesNotMatch(page, /\S  ·/);
   const p = model.pending.find(x => x.screen === 'commercial' && x.wait === 'review');
   if (p) {
@@ -163,11 +166,12 @@ test('D-8: the glance ranks the screen\'s neighbourhoods against the reference s
   const ref = around.meta.referenceSet;
   assert.equal(ref.id, 'commercialdistrict-0.4.0-outlined');
   assert.equal(ref.n, 395);
-  assert.equal(ref.added, SCREEN.drawn);
-  const order = model.rows.filter(r => r.kind !== 'screen').map(r => r.id);
+  // (0.8.0) the review's outlines are new to the page too, so they join the screen's outside the frozen set
+  assert.equal(ref.added, SCREEN.drawn + model.meta.totals.reviewDrawn);
+  const order = model.rows.filter(r => r.kind !== 'screen' && r.kind !== 'review').map(r => r.id);
   assert.equal(sha256(Buffer.from(order.join('\n'))), ref.codesSha256);
   assert.equal(around.meta.glance.universe.centers.n, 395);
-  for (const r of model.rows.filter(x => x.kind === 'screen')) assert.ok(around.rows[r.id], r.id);
+  for (const r of model.rows.filter(x => x.kind === 'screen' || x.kind === 'review')) assert.ok(around.rows[r.id], r.id);
 });
 
 test('0.6.1: the owner\'s answers of 26 Nov 10:02 — the outlines he chose to use are neighbourhoods, the ones he set aside are names, V4 says so', () => {
@@ -177,7 +181,9 @@ test('0.6.1: the owner\'s answers of 26 Nov 10:02 — the outlines he chose to u
   assert.equal(answers.owner.buildings_th, '2) ใช้ Building v4');
   for (const id of answers.ticks.use) assert.equal(model.byId.get(id)?.kind, 'screen', id);
   for (const id of answers.ticks.reject) {
-    assert.ok(!model.byId.has(id), id);
+    // (0.8.0) the drawing he set aside stays off; the registry's national review of 28 Nov may have drawn the code since
+    const row = model.byId.get(id);
+    if (row) { assert.equal(row.kind, 'review', id); assert.equal(row.review?.was, 'commercial', id); continue; }
     assert.equal(model.pendingById.get(id)?.wait, 'undrawn', id);
   }
   // the one he wanted to see with its narrow arms off is the one he took off the screen on 27 Nov (0.7.8)

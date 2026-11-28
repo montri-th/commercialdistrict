@@ -16,7 +16,7 @@ const SIAM = 'CMN-TH-0001';
 // The `e` kind each demo's own address opens a record with (its createCodec `items`, read 2026-11-16).
 const ITEM_KINDS = {hotel: 'hotel', industrialestate: 'estate', office: 'office', shoppingcenter: 'venue', camera: 'store', factory: 'factory',
   fitness: 'store', grocery: 'store', luxurybrands: 'store', pharmacy: 'store', restaurant: 'store', governmentoffice: 'office', hospital: 'facility',
-  school: 'school', transit: 'station', university: 'site'};
+  school: 'school', transit: 'station', university: 'site', housingestate: 'record', tourism: 'attraction'};   // (0.8.0) the two demos added
 
 const strip = html => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 
@@ -33,13 +33,17 @@ test('one shard per closed outline, holding exactly the fields the build declare
       assert.ok(typeof row[4] === 'string' && row[4].length, `${r.id}: a key`);
     }
   }
-  const named = Object.values(shards).flatMap(s => s.rows).filter(x => x[5]).length;
-  assert.ok(named / model.meta.totals.insidePoints > 0.99, `names for ${named} of ${model.meta.totals.insidePoints}`);
+  // (0.8.0) Housing Estate's permits without a project name stay nameless, as the demo shows them (“ไม่มีชื่อโครงการในระเบียน”)
+  const he = model.dsById.get('housingestate').index;
+  const all = Object.values(shards).flatMap(s => s.rows);
+  const named = all.filter(x => x[5]).length, nameless = all.filter(x => !x[5] && x[0] === he).length;
+  assert.ok(named / (model.meta.totals.insidePoints - nameless) > 0.99, `names for ${named} of ${model.meta.totals.insidePoints - nameless}`);
 });
 
 test('a record opens in its own demo at its own key (citymeter-shell `e`), in English only where the demo has English', () => {
   const {model} = load();
-  for (const ds of model.datasets) assert.equal(ds.item, ITEM_KINDS[ds.id], ds.id);
+  // (0.8.0) a counted-only dataset has no demo and no record to open (its points stay private)
+  for (const ds of model.datasets) assert.equal(ds.item, ds.aggregate ? null : ITEM_KINDS[ds.id], ds.id);
   const recs = decodeRecords(readJSON(`data/records/${SIAM}.json`), model);
   const hotel = recs.find(x => x.ds.id === 'hotel');
   assert.equal(recordHref(hotel), `https://montri-th.github.io/hotel/?e=hotel:${encodeURIComponent(hotel.key).replace(/%3A/gi, ':').replace(/%2F/gi, '/')}`);
@@ -48,7 +52,7 @@ test('a record opens in its own demo at its own key (citymeter-shell `e`), in En
   // Industrial Estate lives inside Factory on GitHub Pages
   const estate = {kind: 'record', key: 'EST-IEAT-2677', ds: model.dsById.get('industrialestate')};
   assert.equal(recordHref(estate), 'https://montri-th.github.io/factory/industrialestate/?e=estate:EST-IEAT-2677');
-  for (const ds of model.datasets) assert.ok(DEMOS.some(d => d.path === ds.path), ds.id);
+  for (const ds of model.datasets) if (!ds.aggregate) assert.ok(DEMOS.some(d => d.path === ds.path), ds.id);
   assert.equal(recordHref({kind: CONDO, ds: condoDataset(model.meta.condo)}), '');
 });
 
@@ -67,7 +71,9 @@ test('the bar: “ทั้งหมด” first, the highlights next, condomini
   const recs = decodeRecords(readJSON(`data/records/${SIAM}.json`), model);
   const condo = condoDataset(model.meta.condo);
   const sets = barSets(recs, {highlights: row.hl.map(h => h.d), condo});
-  assert.deepEqual(sets.slice(0, row.hl.length).map(d => d.id), row.hl.map(h => h.d));
+  // (0.8.0) a highlight of a counted-only dataset has no records to pick, so it is not on the bar
+  const withRecords = row.hl.map(h => h.d).filter(d => recs.some(r => r.ds.id === d));
+  assert.deepEqual(sets.slice(0, withRecords.length).map(d => d.id), withRecords);
   assert.equal(sets.at(-1).id, CONDO);
   assert.equal(new Set(sets.map(d => d.id)).size, sets.length);
   const html = barHTML(sets, 'luxurybrands');

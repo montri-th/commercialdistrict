@@ -52,7 +52,7 @@ from shapely.ops import unary_union
 warnings.simplefilter('ignore')
 
 SCHEMA = 'citymeter-commercialdistrict-around/1'
-RELEASE = '0.7.10'   # the page's release, as data/people/meta.json (0.7.5: the around counts take the river rule)
+RELEASE = '0.8.0'   # the page's release, as data/people/meta.json (0.7.5: the around counts take the river rule)
 # D-8: the reference set stays until a release names the one it replaces; a neighbourhood added later is ranked against
 # it. 0.5.0 adds the outlines of the registry's commercial screen (rows[].kind 'screen') and keeps the set of 0.4.0;
 # 0.6.1 adds the ones the owner's answers of 2026-11-26 10:02 outline, and keeps it too.
@@ -138,6 +138,8 @@ def main():
     ap.add_argument('--pilot', default=None, help='pilot cells of the proposal (optional): report the cells that differ')
     ap.add_argument('--crossing', default=None, help='rivers cache of scripts/crossing/rivers.py (outside the repository): across a river, through the crossings (0.7.5)')
     ap.add_argument('--crossing-kinds', default='all', choices=('all', 'no-ferry'))
+    ap.add_argument('--registry-points', default='', help='(0.8.0) the private points of the counted-only datasets (scripts/build-registry-points.py, scripts/build-parks.py)')
+    ap.add_argument('--members', default='', help='(0.8.0) the private file of their keys inside each outline (scripts/build-data.py --members-out)')
     a = ap.parse_args()
     repo = os.path.abspath(a.repo)
     out = os.path.abspath(a.out or os.path.join(repo, 'data'))
@@ -157,7 +159,7 @@ def main():
     outl = {str(f['properties']['id']): shape(f['geometry']) for f in json.load(open(outl_path, encoding='utf-8'))['features']}
     if set(outl) != set(order):
         sys.exit('data/boundaries.geojson and data/neighborhoods.json do not hold the same neighbourhoods')
-    ref_order = [r['id'] for r in rows if r.get('kind') != 'screen']
+    ref_order = [r['id'] for r in rows if r.get('kind') not in ('screen', 'review')]  # (0.8.0) the review's outlines join after the set, as the screen's did
     if len(ref_order) != REFERENCE['n'] or sha256_text('\n'.join(ref_order)) != REFERENCE['codesSha256']:
         sys.exit(f"the outlines of the reference set {REFERENCE['id']} changed ({len(ref_order)} codes): a release must name the set it replaces (D-8)")
 
@@ -172,15 +174,41 @@ def main():
             keys.add((rec[0], str(rec[4]), rec[1], rec[2]))
             count[rec[0]] += 1
         for d in datasets:
+            if d.get('aggregate'):
+                continue  # (0.8.0) counted only: their inside keys come from the private --members file
             want = by_id[i]['c'].get(d['id'], 0)
             if count.get(di_of[d['id']], 0) != want:
                 sys.exit(f"{i} {d['id']}: records shard holds {count.get(di_of[d['id']], 0)}, rows[].c says {want}")
         inside_keys[i] = keys
 
-    # ---- the 16 pinned files, read with the demo's own reader (scripts/build-data.py#extract)
+    # ---- (0.8.0) the counted-only datasets: their private points and the keys the data build counted inside
     pts, sources = {}, {}
+    agg = [d for d in datasets if d.get('aggregate')]
+    if agg:
+        if not (a.registry_points and a.members):
+            sys.exit('the data holds counted-only datasets: pass --registry-points and --members')
+        members = json.load(open(a.members, encoding='utf-8'))
+        for d in agg:
+            R = json.load(open(os.path.join(a.registry_points, d['id'] + '.json'), encoding='utf-8'))
+            if R['meta']['records'] != d['records'] or len(R['points']) != d['located']:
+                sys.exit(f"{d['id']}: the points read {R['meta']['records']} / {len(R['points'])}, the data says {d['records']} / {d['located']}")
+            di = di_of[d['id']]
+            at = {x[3]: (round(x[0], 6), round(x[1], 6)) for x in R['points']}
+            pts[d['id']] = {'lon': np.array([x[0] for x in R['points']], dtype=float), 'lat': np.array([x[1] for x in R['points']], dtype=float),
+                            'key': [(di, x[3], round(x[0], 6), round(x[1], 6)) for x in R['points']], 'raw': [x[3] for x in R['points']]}
+            for i in order:
+                ks = (members.get(d['id']) or {}).get(i, [])
+                if len(ks) != by_id[i]['c'].get(d['id'], 0):
+                    sys.exit(f"{i} {d['id']}: the members file holds {len(ks)}, rows[].c says {by_id[i]['c'].get(d['id'], 0)}")
+                inside_keys[i] |= {(di, k, *at[k]) for k in ks}
+            sources[d['id']] = {'registry': d['source']['registry'], 'sha256': d['source']['sha256']}
+
+    # ---- the 16 pinned files, read with the demo's own reader (scripts/build-data.py#extract)
     for d in datasets:
+        if d.get('aggregate'):
+            continue
         path = (os.path.join(a.sources, 'industrialestate_dir', 'estates.json') if d['id'] == 'industrialestate'
+                else os.path.join(a.sources, 'housingestate_dir', 'records.json') if d['id'] == 'housingestate'   # (0.8.0) its points file sits beside it
                 else os.path.join(a.sources, d['id'] + '.json'))
         got = sha256_file(path)
         if got != d['source']['sha256']:
@@ -211,6 +239,7 @@ def main():
 
     # ---- surroundings of every outline
     around, rings = {}, {}
+    parks_near = {}
     moved = 0
     # records whose side of the drawn line differs from the data build's membership (the 1.5 m simplification):
     # inside the drawn line but not counted inside (they are around, at 0 m) · counted inside but just outside the line
@@ -248,6 +277,16 @@ def main():
             a_[d['id']] = [int(np.sum(outside & (dist <= RINGS[0]))), int(np.sum(outside & (dist <= RINGS[1])))]
             if bank is not None and a_[d['id']] != line:
                 moved += 1
+            if d['id'] == 'park':
+                # (0.8.0) the parks whose squares are counted here: inside and within 800 m of the edge, by park
+                by_park = defaultdict(lambda: [0, 0])
+                for k, c_in, near in zip(idx, counted, (~counted) & (dist <= RINGS[1])):
+                    pid = P['raw'][k].split(':')[0]
+                    if pid.startswith('x') or not (c_in or near):
+                        continue
+                    by_park[int(pid)][0 if c_in else 1] += 1
+                if by_park:
+                    parks_near[i] = sorted(([p_, v[0], v[1]] for p_, v in by_park.items()), key=lambda x: (-(x[1] + x[2]), x[0]))[:4]
         around[i] = a_
         ring = {}
         for k in RINGS:
@@ -396,6 +435,7 @@ def main():
                    'rule': 'inside: the build counted it inside the outline (data/records), or — for a centre the pinned Shopping Center file has no point for (notInPinnedFile) — the drawn outline covers its point; near: outside, within 800 m of the edge, straight line (a centre of the pinned file the build did not count inside is near, at its distance, even under 1 m); joined by venue id, never by name'},
         'acrossTheDrawnLine': {'insideTheLineNotCountedInside': in_line_not_counted, 'countedInsideOffTheLine': counted_off_line,
                                'note': 'the drawn outline is the delivered one simplified at 1.5 m: a record this close to it can fall on the other side; membership follows the data build (a record it did not count inside is around, at 0 m), distance follows the drawn outline'},
+        'parks': {'file': 'data/parks.json', 'field': 'pk', 'note': 'per neighbourhood, up to four parks whose 1-rai squares are counted inside or within 800 m of the edge (the same rule as `a`): [park index, squares inside, squares within 800 m]; a park is named, never added to another neighbourhood'},
         'rings': {'dir': 'rings', 'simplifyM': RING_SIMPLIFY_M, 'quadSegs': RING_QUAD_SEGS, 'note': 'display only: the line the map draws, the outline grown by the distance and simplified at 2 m, so it can sit a few metres off the exact distance; every count above is measured on the outline itself'},
         **({'crossing': {**crossing_meta, 'datasetCountsMoved': moved,
                          'owner': '2026-11-27 06:51, VERBATIM: “ระยะ 400/800 ม. จะคิดเรื่องสิ่งกีดขวางด้วยไหม / คิดด้วย” (D-13)'}} if crossing_meta else {}),
@@ -407,6 +447,8 @@ def main():
             rows_out[i]['g'] = glance[i]
         if by_nb[i]['in'] or by_nb[i]['near']:
             rows_out[i]['v'] = by_nb[i]
+        if parks_near.get(i):
+            rows_out[i]['pk'] = parks_near[i]   # (0.8.0) [park index in data/parks.json, ไร่ inside, ไร่ within 800 m], largest first
     doc = {'meta': meta, 'rows': rows_out, 'venues': dict(sorted(names.items())), 'byVenue': dict(sorted(by_venue.items()))}
     dump(os.path.join(out, 'around.json'), doc)
     ring_dir = os.path.join(out, 'rings')

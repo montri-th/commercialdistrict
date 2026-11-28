@@ -50,6 +50,8 @@ test('the shipped data use the redrawn outlines, and the screen says how they we
   for (const f of rule) {
     const id = f.properties.canonical_id, item = meta.items.find(x => x.id === id), row = raw.rows.find(r => r.id === id);
     assert.ok(item?.rule, `${id} in meta.amendments with its rule`);
+    // (0.8.0) the registry's national review of 28 Nov drew three of them again: the row is the review's, and says so
+    if (row.revised) { assert.ok(!row.amended && row.revised.on === '2026-11-28', id); continue; }
     assert.equal(row.amended, f.properties.amended_on);
     assert.ok(Math.abs(row.areaM2 - f.properties.area_m2) < 0.05, `${id}: the area measured in UTM as the registry measures its own`);
     assert.ok(outlines.metadata.amended.ids.includes(id));
