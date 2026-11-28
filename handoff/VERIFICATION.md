@@ -1,5 +1,25 @@
 # CityMETER Commercial District — verification
 
+## Release 0.8.2 — 29 พ.ย. 2569: the owner's outline choice, OpenStreetMap named, the comparison's provenance
+
+The owner's words (VERBATIM) are in `AGENTS.md` (0.8.2) and `DATA_METHOD.md` §2g: 01:29 “1) คลองสานไอคอน ใช้ 426 rai,
+ตลาดโรงเกลือ ใช้ 5,626 ไร่”, and the methods tab with its standing rule.
+
+- Data: `scripts/build-data.py` in the delivered mode with `--review-overrides amendments/review-overrides-2026-11-29.json`
+  and `--osm-file thailand-261124.osm.pbf` (SHA-256 `62b496bf…`, the file both OpenStreetMap datasets were counted from):
+  718 outlines, 6 `revised`; ตลาดโรงเกลือ–บ้านคลองลึก 5,626 ไร่ with `amended` 2026-11-24, every dataset count it held in
+  0.7.10 equal; the records, the outlines and the private members file byte for byte the build without `--osm-file`, which
+  only adds `meta.osm` and the two datasets' `source.osm` and `dates.asOf` (2026-11-24).
+- People: rebuilt with the 0.7.10 people file reused for ตลาดโรงเกลือ (its `map` equal, its inside counts equal but for the
+  0.8.0 datasets it lacked); the 683 other files differ only in `p`, the percentiles among the peers, which one changed
+  member moves. Character, logos and «รอบย่านนี้» rebuilt for the release.
+- Figures that moved with the outline (tests updated): highlights 966 in the build's rule (962), 877 on the page (873), 371
+  neighbourhoods with one (370); count highlights 748 (745), 584 shared by at least 3 (581); 347 without a highlight (348);
+  the neighbourhoods' share of Thailand's area 0.063 % (0.062 %).
+- Provenance: `tests/provenance-osm.test.js` — the comparison ends with one line of four parts; every neighbourhood's last line
+  counts 36 CityMETER datasets and names OpenStreetMap (Geofabrik 24 พ.ย. 2569); the surroundings line names it where the
+  province holds parks or places of worship; a lens on either names OpenStreetMap, never “CityMETER Parks”.
+
 ## Release 0.8.1 — live (2026-11-28)
 
 - Merged as the fix of the 0.8.0 publish the owner asked for (19:36): pull request #56, merge commit `9715d2c`, 22:50.

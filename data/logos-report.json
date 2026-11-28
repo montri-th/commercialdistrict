@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "builtOn": "2026-11-28",
+ "builtOn": "2026-11-29",
  "kit": "citymeter-logos 1.1.0",
  "rule": "ids only: record key → the brand id its own demo gives → the logo that demo ships (kit own / same-id); centres by venue id (roles venue_specific, parent_complex); offices by Office ID; stations by line",
  "display": "SVG and rasters ≤ 512 px and ≤ 64 KB keep their bytes; larger rasters → 384 px longest side WebP; plates ['#182327', '#E5E9E6', '#FFFFFF'] on both themes",
@@ -185,12 +185,12 @@
    "records": 77
   },
   "governmentoffice": {
-   "none: no logo source": 675,
-   "records": 675
+   "none: no logo source": 680,
+   "records": 680
   },
   "grocery": {
-   "own": 2357,
-   "records": 2357
+   "own": 2364,
+   "records": 2364
   },
   "hospital": {
    "none: no logo source": 234,
@@ -198,9 +198,9 @@
   },
   "hotel": {
    "none: brand without logo": 2,
-   "none: no brand": 5226,
+   "none: no brand": 5244,
    "own": 144,
-   "records": 5372
+   "records": 5390
   },
   "housingestate": {
    "none: no logo source": 706,
@@ -227,16 +227,16 @@
    "records": 3800
   },
   "school": {
-   "none: no logo source": 462,
-   "records": 462
+   "none: no logo source": 463,
+   "records": 463
   },
   "shoppingcenter": {
-   "none: none": 907,
+   "none: none": 908,
    "none: role shared_chain_banner": 7,
    "none: role shared_department_store_banner": 1,
    "none: role-conflict": 2,
    "parent_complex": 1,
-   "records": 977,
+   "records": 978,
    "venue_specific": 59
   },
   "tourism": {

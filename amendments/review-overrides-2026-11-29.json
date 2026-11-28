@@ -1,0 +1,16 @@
+{
+  "schema": "citymeter-commercialdistrict-review-overrides/1",
+  "note": "The owner's choice, outline by outline, between the outline the registry's national review of 2026-11-28 drew again and the one the page served before it (DATA_METHOD.md §2g). Read by scripts/build-data.py --review-overrides; change only on his word.",
+  "asked": "Claude, 2026-11-28 22:5x: three outlines his rule drew on 2026-11-24 were drawn again by the review (ตลาดศาลเจ้า–ตีเหล็ก–วัดไทร 37 → 39 ไร่, คลองสาน–ไอคอนสยาม 775 → 426 ไร่, ตลาดโรงเกลือ–บ้านคลองลึก 5,626 → 366 ไร่)",
+  "owner": {"on": "2026-11-29", "at": "01:29", "verbatim": "1) คลองสานไอคอน ใช้ 426 rai, ตลาดโรงเกลือ ใช้ 5,626 ไร่"},
+  "keepBase": [
+    {"id": "CMN-TH-80F188CDBB", "name": "ตลาดโรงเกลือ–บ้านคลองลึก", "areaRai": 5626,
+     "reading": "the outline his rule drew on 2026-11-24 (outline-amendments.geojson), a neighbourhood with peers, not the review's market-only site outline"}
+  ],
+  "keepReview": [
+    {"id": "CMN-TH-97C4FC0AAD", "name": "คลองสาน–ไอคอนสยาม", "areaRai": 426, "reading": "the review's outline, as served in 0.8.0"}
+  ],
+  "notAsked": [
+    {"id": "CMN-TH-D8434E6568", "name": "ตลาดศาลเจ้า–ตีเหล็ก–วัดไทร", "reading": "not named in his answer: the review's outline stays (37 → 39 ไร่)"}
+  ]
+}
