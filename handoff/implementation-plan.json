@@ -3,7 +3,7 @@
   "schemaVersion": "1.5.0",
   "documentType": "implementation-plan",
   "productId": "citymeter-commercialdistrict",
-  "productVersion": "0.8.2",
+  "productVersion": "0.9.0",
   "updatedOn": "2026-11-27",
   "language": "en",
   "architecture": {
@@ -49,7 +49,7 @@
     {"id": "AC04", "scenario": "search by name, other name, code or province", "expected": "matching neighbourhoods; pending codes listed with their related codes", "verificationType": "browser"},
     {"id": "AC05", "scenario": "open the whole country", "expected": "Aha with numerator and denominator against the area share", "verificationType": "automated"},
     {"id": "AC06", "scenario": "open a neighbourhood", "expected": "highlights with their peers, pairs, roles, every dataset by pillar, similar mixes, provenance", "verificationType": "automated"},
-    {"id": "AC07", "scenario": "compare up to four", "expected": "matrix with count and density, densest ringed, out of scope as —", "verificationType": "automated"},
+    {"id": "AC07", "scenario": "compare up to four", "expected": "the dot chart of levels (a shape per neighbourhood) with the folded table of count and density, densest ringed, out of scope as — (0.9.0: no matrix)", "verificationType": "automated"},
     {"id": "AC08", "scenario": "every view", "expected": "one provenance line: dataset · source · date · boundary · วิธีนับ", "verificationType": "automated"},
     {"id": "AC09", "scenario": "LDS parity", "expected": "check-lds-parity reports 0 mismatch against the approved file", "verificationType": "automated"},
     {"id": "AC10", "scenario": "colour by a dataset", "expected": "41-sample density ramp, zero swatch when zero occurs, no data as outline only", "verificationType": "browser"},

@@ -715,6 +715,33 @@ def assemble_delivered(a, prov, dopa, province_of):
                            prev_closed=set(), canon_path=None, revision=None, pend=pend, extra=extra)
 
 
+def assemble_current(a):
+    """(0.9.0) The neighbourhoods of the current release (its rows, in its order) on their exact counting outlines, to count
+    the datasets again without touching an outline: names, kinds, areas, reference points, the registry's fields and the
+    held codes stay as the release has them. --current-outlines is private (one feature per row); it must reproduce the
+    release's counts of every dataset whose input did not change (checked by the build's caller before a release)."""
+    cur = json.load(open(a.current, encoding='utf-8'))
+    geo = {f['properties']['canonical_id']: f for f in json.load(open(a.current_outlines, encoding='utf-8'))['features']}
+    if set(geo) != {r['id'] for r in cur['rows']}:
+        sys.exit(f'{a.current_outlines}: {len(geo)} outlines for {len(cur["rows"])} rows of the current release')
+    closed = []
+    for r in cur['rows']:
+        props = {'canonical_id': r['id'], 'name_th': r['name'], 'area_m2': r['areaM2'], 'neighbourhood_reference_point': r['ref'],
+                 'source_province_codes': [], 'name_status': r.get('nameStatus', ''), 'field_verified': r.get('fieldVerified', False),
+                 '_kind': r.get('kind') or 'registry', '_base': r, '_province': r['province'], '_role_th': ''}
+        if r.get('review'):
+            props['_review'] = r['review']
+        if r.get('revised'):
+            props['_revised'] = r['revised']
+        closed.append({'type': 'Feature', 'geometry': geo[r['id']]['geometry'], 'properties': props})
+    m = cur['meta']
+    return SimpleNamespace(closed=closed, pending=[], feats=[], n_registry=(m.get('totals') or {}).get('closed', 0),
+                           lodging={}, lod_pending=[], lod_meta=m.get('lodging'), admit=(m.get('lodging') or {}).get('aliases') or {},
+                           admitted_sha=((m.get('registry') or {}).get('admitted') or {}).get('rowsSha256', ''),
+                           scr_pending=[], scr_meta=m.get('screen'), scr_codes=[], amendments=((m.get('amendments') or {}).get('items') or []),
+                           prev_closed=set(), canon_path=None, revision=None, pend=list(cur['pending']), extra=None, current=cur)
+
+
 def assemble_bundle(a, prov, dopa, province_of):
     """The neighbourhoods of the registry bundle, its lodging screen, the commercial screen and the owner's amendments
     (releases 0.1.0 … 0.7.10): the assembly every release up to 0.7.10 was built with."""
@@ -937,10 +964,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--bundle', default='', help='the registry bundle unzipped (releases up to 0.7.10); or --base (0.8.0)')
     ap.add_argument('--bundle-zip', default='')
-    ap.add_argument('--registry', required=True)
+    ap.add_argument('--registry', default='', help='the registry export (.xlsx); not read with --current')
     ap.add_argument('--repos', required=True)
     ap.add_argument('--commits', required=True)
-    ap.add_argument('--mapshaper', required=True)
+    ap.add_argument('--mapshaper', default='', help='path to mapshaper (the display outlines); not used with --current')
+    ap.add_argument('--current', default='', help='(0.9.0) data/neighborhoods.json of the current release: count every dataset again on its outlines')
+    ap.add_argument('--current-outlines', default='', help='(0.9.0) the exact counting outlines of that release, one feature per row (private)')
+    ap.add_argument('--carry', default='', help="(0.9.0) with --current: comma-separated counted-only datasets copied from the current release "
+                    "(their private points are not at hand and their input did not change)")
     ap.add_argument('--provinces', default='data/provinces.geojson')
     ap.add_argument('--out', default='data')
     ap.add_argument('--read-on', default='2026-11-18')
@@ -963,9 +994,15 @@ def main():
     ap.add_argument('--osm-file', default='', help="(0.8.2) the OpenStreetMap extract parks and places of worship were counted from (Geofabrik's thailand-YYMMDD.osm.pbf): its SHA-256 must be theirs; the page names the file's day as their date")
     ap.add_argument('--members-out', default='', help='(0.8.0) private file: the keys of those datasets inside each outline (read by scripts/build-around.py)')
     a = ap.parse_args()
+    if a.current and not a.current_outlines:
+        sys.exit('--current needs --current-outlines')
+    if not a.current and not (a.registry and a.mapshaper):
+        sys.exit('--registry and --mapshaper are needed unless --current is given')
+    carry = set(x for x in a.carry.split(',') if x) if a.current else set()
 
-    if bool(a.bundle) == bool(a.base):
-        sys.exit('give either --bundle (the registry bundle) or --base with --base-outlines and --review (0.8.0)')
+    if sum(map(bool, (a.bundle, a.base, a.current))) != 1:
+        sys.exit('give one of --bundle (the registry bundle), --base with --base-outlines and --review (0.8.0), '
+                 'or --current with --current-outlines (0.9.0)')
     if a.base and not (a.base_outlines and a.review):
         sys.exit('--base needs --base-outlines and --review')
     commits = json.load(open(a.commits, encoding='utf-8'))
@@ -985,7 +1022,8 @@ def main():
         k = prov_tree.query_nearest(Point(lon, lat), max_distance=max_deg)
         return prov_shapes[int(k[0])][0] if len(k) else ''
 
-    X = assemble_delivered(a, prov, dopa, province_of) if a.base else assemble_bundle(a, prov, dopa, province_of)
+    X = (assemble_current(a) if a.current else assemble_delivered(a, prov, dopa, province_of) if a.base
+         else assemble_bundle(a, prov, dopa, province_of))
     closed, pending, feats, n_registry, lodging = X.closed, X.pending, X.feats, X.n_registry, X.lodging
     lod_pending, lod_meta, admit, admitted_sha = X.lod_pending, X.lod_meta, X.admit, X.admitted_sha
     scr_pending, scr_meta, scr_codes, amendments = X.scr_pending, X.scr_meta, X.scr_codes, X.amendments
@@ -1009,16 +1047,30 @@ def main():
         nprov.append(p)
 
     # ----- registry tables: aliases, proposed roles, field question
-    rows = registry_tables(a.registry)
-    hdr_c, central = rows('ชื่อกลาง')
-    aliases = defaultdict(list)
+    role_th_to_id = {th: rid for rid, th, _, _ in ROLES}
+    if a.current:
+        # (0.9.0) the registry is not read again: every name, alias, role, local name and form stays as the release has it
+        cur_rows = {r['id']: r for r in X.current['rows']}
+        aliases = defaultdict(list, {k: list(r.get('aliases') or []) for k, r in cur_rows.items()})
+        for p_ in X.current['pending']:
+            if p_.get('aliases'):
+                aliases[p_['id']] = list(p_['aliases'])
+        proposed = defaultdict(list, {k: list(r.get('roles') or []) for k, r in cur_rows.items()})
+        local = {k: r['local'] for k, r in cur_rows.items() if r.get('local')}
+        form = {k: r['form'] for k, r in cur_rows.items() if r.get('form')}
+        central, roles_ev = [], []
+    else:
+        rows = registry_tables(a.registry)
+        hdr_c, central = rows('ชื่อกลาง')
+        aliases = defaultdict(list)
     for r in central:
         if r[9] and r[1] and r[11] != 'รหัสย่านหลักใช้งาน' and r[1] != r[10]:
             aliases[r[9]].append(str(r[1]))
     # (0.8.0) the name people use there, as the registry checked it on 2026-11-27/28 (local_name_th, its status changed or
     # confirmed: searchable, shown beside the registry's name), and the form of the place it names (role_check)
-    lcol = {str(h).strip(): k for k, h in enumerate(hdr_c) if str(h).strip() in ('local_name_th', 'local_name_status', 'role_check')}
-    local, form = {}, {}
+    lcol = {} if a.current else {str(h).strip(): k for k, h in enumerate(hdr_c) if str(h).strip() in ('local_name_th', 'local_name_status', 'role_check')}
+    if not a.current:
+        local, form = {}, {}
     if len(lcol) == 3:
         for r in central:
             code, ln = str(r[0]).strip(), str(r[lcol['local_name_th']]).strip()
@@ -1028,9 +1080,9 @@ def main():
                     aliases[code].append(ln)
             if FORMS.get(str(r[lcol['role_check']]).strip()):
                 form[code] = FORMS[str(r[lcol['role_check']]).strip()]
-    _, roles_ev = rows('หลักฐานบทบาท')
-    role_th_to_id = {th: rid for rid, th, _, _ in ROLES}
-    proposed = defaultdict(list)
+    if not a.current:
+        _, roles_ev = rows('หลักฐานบทบาท')
+        proposed = defaultdict(list)
     for r in roles_ev:
         if r[0] and r[3] and str(r[4]).startswith('เสนอจากหลักฐาน'):
             rid = role_th_to_id.get(str(r[3]).strip())
@@ -1049,7 +1101,13 @@ def main():
     prov_by_th = {f['properties']['name']: f['properties']['id'] for f in prov['features']}
     GROUP_ORDER = {'Land': 0, 'Location': 1, 'Living': 2}
     agg_meta = {}
+    cur_ds = {d['id']: d for d in X.current['datasets']} if a.current else {}
     for ds_id in AGGREGATE:
+        if ds_id in carry:
+            if ds_id not in cur_ds:
+                sys.exit(f'--carry {ds_id}: the current release has no such dataset')
+            agg_meta[ds_id] = {'meta': {'group': cur_ds[ds_id]['group']}, 'carry': True}
+            continue
         src = os.path.join(a.registry_points, f'{ds_id}.json') if a.registry_points else ''
         if src and os.path.exists(src):
             agg_meta[ds_id] = json.load(open(src, encoding='utf-8'))
@@ -1113,6 +1171,16 @@ def main():
             continue
         ds_id = spec
         R = agg_meta[ds_id]
+        if R.get('carry'):
+            # (0.9.0) copied from the current release, row by row, in its order (its private points are not at hand)
+            D = cur_ds[ds_id]
+            nsub = max(1, len(D['subgroups']))
+            crow = X.current['rows']
+            per[ds_id] = {'counts': [r['c'].get(ds_id, 0) for r in crow], 'sub': [list(r['s'].get(ds_id) or [0] * nsub) for r in crow],
+                          'msum': [0.0] * len(ids), 'mknown': [0] * len(ids), 'covered': set(D['byProvince'])}
+            datasets.append({k: v for k, v in D.items() if k != 'peers'})
+            print(f"{ds_id:<17} carried from the current release (inside={D['inside']:>5})", file=sys.stderr)
+            continue
         M, subgroups = R['meta'], R['groups']
         nsub = max(1, len(subgroups))
         counts, sub, covered = [0] * len(ids), [[0] * nsub for _ in ids], Counter()
@@ -1261,6 +1329,13 @@ def main():
         }
         if not peer[i]:
             row['peer'] = False
+        if a.current:
+            # (0.9.0) the row as the current release has it, in its own key order; only the counted fields are new
+            b = pr['_base']
+            counted = ('bbox', 'c', 'm', 's', 'r', 'hl', 'pairs', 'peer')
+            out_rows.append({k: (row[k] if k in counted else b[k]) for k in b if k not in counted or k in row}
+                            | {k: row[k] for k in counted if k in row and k not in b})
+            continue
         if a.base:
             # (0.8.0) a base row keeps what its release said of it; the review adds or replaces only the outline
             b = pr.get('_base') or {}
@@ -1295,7 +1370,7 @@ def main():
             row['lodging'] = lodging[pr['canonical_id']]
         out_rows.append(row)
 
-    pend = list(X.pend) if a.base else []
+    pend = list(X.pend) if (a.base or a.current) else []
     if a.base:  # (0.8.0) the names the registry keeps without a served outline, with what holds each
         for p_ in pend:
             if p_['id'] in local:
@@ -1326,27 +1401,30 @@ def main():
         pend.append({'id': code, 'name': name, 'province': by_name.get(prov_th, ''), 'status': 'held', 'screen': 'commercial', 'wait': wait, 'related': []})
 
     # ----- display outlines: simplified with shared edges kept (mapshaper), 6 decimals
-    with tempfile.TemporaryDirectory() as tmp:
-        src = os.path.join(tmp, 'in.geojson')
-        json.dump({'type': 'FeatureCollection', 'features': [
-            {'type': 'Feature', 'properties': {'id': f['properties']['canonical_id'], 'kind': f['properties']['_kind']}, 'geometry': f['geometry']} for f in closed]},
-            open(src, 'w', encoding='utf-8'))
-        dst = os.path.join(tmp, 'out.geojson')
-        subprocess.run([a.mapshaper, src, '-simplify', 'interval=1.5', 'keep-shapes', '-o', 'precision=0.000001', dst],
-                       check=True, capture_output=True)
-        display = json.load(open(dst, encoding='utf-8'))
-    display['metadata'] = {
-        'source': 'CityMETER central neighbourhood registry — national-gis/canonical-boundaries.geojson of the owner bundle; kind=lodging: review drafts of its lodging screen (boundaries/current-all268-review-drafts.geojson); the registry admitted these areas as central codes on ' + a.admitted_on + ' (tab ' + registry_tab_on('ชื่อกลาง', a.admitted_on) + '), the outlines stay drafts' if admit else 'CityMETER central neighbourhood registry — national-gis/canonical-boundaries.geojson of the owner bundle; kind=lodging: review drafts of its lodging screen (boundaries/current-all268-review-drafts.geojson), not admitted by the registry',
-        'features': len(display['features']),
-        **({'amended': {'ids': [x['id'] for x in amendments], 'note': "owner's amendments of outlines (amendments/outline-amendments.geojson): drawn by the registry's rules (0.2.4) or redrawn by the owner's rule from the basemap (0.3.0, `rule`); every count uses them"}} if amendments else {}),
-        'simplification': 'mapshaper -simplify interval=1.5 keep-shapes (display only; shared edges kept); every count uses the delivered outline',
-        'status': 'draft outlines pending local confirmation; not an administrative boundary or a title',
-        'license': '© OpenStreetMap contributors, ODbL 1.0 (roads, waterways and footprints used to draw the outlines)',
-    }
-    if a.base:
-        display['metadata']['source'] = (f"release {X.extra['baseMeta'].get('release') or '0.7.10'}'s outlines (the registry bundle, its lodging and commercial screens and the owner's "
-                                         f"amendments, exact counting geometry {os.path.basename(a.base_outlines)}); kind=review and rows[].revised: the registry's national review "
-                                         f"of {a.review_on} ({os.path.basename(a.review)}), the outlines that pass every gate it sets")
+    # (0.9.0) with --current the outlines do not change: data/boundaries.geojson is kept as it is (display None)
+    display = None
+    if not a.current:
+        with tempfile.TemporaryDirectory() as tmp:
+            src = os.path.join(tmp, 'in.geojson')
+            json.dump({'type': 'FeatureCollection', 'features': [
+                {'type': 'Feature', 'properties': {'id': f['properties']['canonical_id'], 'kind': f['properties']['_kind']}, 'geometry': f['geometry']} for f in closed]},
+                open(src, 'w', encoding='utf-8'))
+            dst = os.path.join(tmp, 'out.geojson')
+            subprocess.run([a.mapshaper, src, '-simplify', 'interval=1.5', 'keep-shapes', '-o', 'precision=0.000001', dst],
+                           check=True, capture_output=True)
+            display = json.load(open(dst, encoding='utf-8'))
+        display['metadata'] = {
+            'source': 'CityMETER central neighbourhood registry — national-gis/canonical-boundaries.geojson of the owner bundle; kind=lodging: review drafts of its lodging screen (boundaries/current-all268-review-drafts.geojson); the registry admitted these areas as central codes on ' + a.admitted_on + ' (tab ' + registry_tab_on('ชื่อกลาง', a.admitted_on) + '), the outlines stay drafts' if admit else 'CityMETER central neighbourhood registry — national-gis/canonical-boundaries.geojson of the owner bundle; kind=lodging: review drafts of its lodging screen (boundaries/current-all268-review-drafts.geojson), not admitted by the registry',
+            'features': len(display['features']),
+            **({'amended': {'ids': [x['id'] for x in amendments], 'note': "owner's amendments of outlines (amendments/outline-amendments.geojson): drawn by the registry's rules (0.2.4) or redrawn by the owner's rule from the basemap (0.3.0, `rule`); every count uses them"}} if amendments else {}),
+            'simplification': 'mapshaper -simplify interval=1.5 keep-shapes (display only; shared edges kept); every count uses the delivered outline',
+            'status': 'draft outlines pending local confirmation; not an administrative boundary or a title',
+            'license': '© OpenStreetMap contributors, ODbL 1.0 (roads, waterways and footprints used to draw the outlines)',
+        }
+        if a.base:
+            display['metadata']['source'] = (f"release {X.extra['baseMeta'].get('release') or '0.7.10'}'s outlines (the registry bundle, its lodging and commercial screens and the owner's "
+                                             f"amendments, exact counting geometry {os.path.basename(a.base_outlines)}); kind=review and rows[].revised: the registry's national review "
+                                             f"of {a.review_on} ({os.path.basename(a.review)}), the outlines that pass every gate it sets")
 
     # ----- records inside each outline (for the map, its pins and cards), one file per neighbourhood (0.1.3)
     REC_FIELDS = ['dataset', 'lon', 'lat', 'subgroup', 'key', 'name', 'nameEn', 'measure', 'sub']
@@ -1407,6 +1485,8 @@ def main():
         }
         print(f"condo             shown={tally['shown']:>6} held={tally['held']:>4} noPoint={tally['noPoint']:>4} cells={len(condo_cells):>4}", file=sys.stderr)
 
+    if condo_meta is None and a.current:
+        condo_meta = X.current['meta'].get('condo')   # (0.9.0) no new condominium export: data/condo/ is not rewritten
     if condo_meta is None and a.base and (X.extra or {}).get('baseMeta', {}).get('condo'):
         # (0.8.0) no new condominium export: the release keeps the base's display points (data/condo/ is not rewritten)
         condo_meta = X.extra['baseMeta']['condo']
@@ -1421,7 +1501,15 @@ def main():
         'codes': len(feats) + len(admit) + len(scr_codes), 'admitted': len(admit), 'areaKm2': round(sum(area) / 1e6, 2), 'provinces': len(set(nprov)),
         'thailandKm2': round(sum(f['properties']['areaSqm'] for f in prov['features']) / 1e6, 1), 'insidePoints': len(inside_points),
     }
-    if a.base:
+    if a.current:
+        # (0.9.0) the codes and outlines are the current release's: its totals, with the points counted inside recomputed
+        old = dict(X.current['meta']['totals'])
+        totals = {**old, 'insidePoints': len(inside_points), 'areaKm2': totals['areaKm2'], 'outlined': totals['outlined'],
+                  'provinces': totals['provinces'], 'thailandKm2': totals['thailandKm2']}
+        for k in ('areaKm2', 'outlined', 'provinces', 'thailandKm2'):
+            if totals[k] != old[k]:
+                sys.exit(f'totals.{k}: {totals[k]} counted on the outlines, {old[k]} in the current release')
+    elif a.base:
         # (0.8.0) the registry's principal codes are drawn or held; its collection names and the one the owner removed
         # are counted apart, as before; its alias codes point to a principal code (searchable, never a neighbourhood)
         E = X.extra
@@ -1443,7 +1531,7 @@ def main():
         # Owner 2026-11-16: the registry's internal working fields (field questions, source ids, merge notes, outline
         # policy versions) are not published — the registry is known here by its read date and export hash only.
         'registry': {'title': 'ทะเบียนย่านกลาง CityMETER', 'kind': 'Google Sheet (internal)', 'readOn': a.read_on,
-                     'exportSha256': sha256_file(a.registry),
+                     'exportSha256': sha256_file(a.registry) if a.registry else '',
                      # (0.2.1) the rows added after that export, read back from the sheet and checked by SHA-256
                      'admitted': {'on': a.admitted_on, 'tab': registry_tab_on('ชื่อกลาง', a.admitted_on), 'codes': len(admit), 'rowsSha256': admitted_sha} if admit else None},
         'bundle': {'title': 'CityMETER • ทะเบียนย่าน ขอบเขต และหลักฐานล่าสุด.zip', 'sha256': sha256_file(a.bundle_zip) if a.bundle_zip else '',
@@ -1465,6 +1553,13 @@ def main():
         # (0.8.2) the extract the OpenStreetMap datasets were counted from: the provenance lines name it and its day
         'osm': osm_info if osm_info and osm_info['datasets'] else None,
     }
+    if a.current:
+        # (0.9.0) the release's own record of its registry, outlines and screens; the datasets are counted again
+        cm = X.current['meta']
+        meta = {**cm, 'builtOn': meta['builtOn'], 'totals': totals, 'records': meta['records'], 'condo': condo_meta,
+                'recount': {'on': meta['builtOn'], 'outlines': os.path.basename(a.current_outlines), 'outlinesSha256': sha256_file(a.current_outlines),
+                            'check': "the outlines reproduce the current release's counts of every dataset whose input did not change",
+                            'carried': sorted(carry)}}
     if a.base:
         E, bm = X.extra, X.extra['baseMeta']
         meta['registry'] = {**meta['registry'], 'admitted': (bm.get('registry') or {}).get('admitted'),
@@ -1483,7 +1578,7 @@ def main():
         with open(p, 'w', encoding='utf-8') as f:
             json.dump(obj, f, ensure_ascii=False, separators=(',', ':'))
         return {'file': name, 'bytes': os.path.getsize(p), 'sha256': sha256_file(p)}
-    files = [dump('neighborhoods.json', doc), dump('boundaries.geojson', display)]
+    files = [dump('neighborhoods.json', doc)] + ([dump('boundaries.geojson', display)] if display is not None else [])
     # shards: rewritten whole (a neighbourhood or a cell that is gone leaves no file behind)
     def shard_dir(name, items):
         folder = os.path.join(a.out, name)

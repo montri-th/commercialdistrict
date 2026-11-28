@@ -23,6 +23,7 @@ import {provinces as provinceList, provinceByCode, provinceCodeFrom, provinceNam
 import {buildOverview, buildNeighborhood, buildCompare} from './profile.js';
 import {decodeAround, aroundDistance, aroundMatches} from './around.js';
 import {decodeCharacter} from './character.js';
+import {decodeProfile} from './personas.js';
 import {renderOverview, renderNeighborhood, renderCompare, renderFilterChips, tableHeadHTML, tableRowHTML, esc, L, dens, sharePct, thaiDate} from './panel.js';
 import {decodePeople, validReach, validMap, mapTabOf, DEFAULT_REACH, DEFAULT_MAP, reachWords, watchMapNames} from './people.js';
 import {cellOf} from './levels.js';
@@ -80,6 +81,8 @@ const state = {
   people: new Map(), peopleLoading: new Set(), peopleErr: new Set(), peopleMeta: null, reach: DEFAULT_REACH, mapTab: DEFAULT_MAP,
   // «ความเป็นย่าน» (0.7.10): data/character.json decoded once (null until it arrives), loading, failed
   character: null, characterLoading: false, characterErr: false,
+  // (0.9.0) the profile of every neighbourhood (data/profile.json once): price level, who stands out, the most alike
+  profile: null, profileLoading: false, profileErr: false,
   map: null, loaded: false, mapTheme: '', initialCameraDone: false, tileTemplate: '', budget: null,
   layers: null, provinceLabels: null, nbLabels: null, massing: null, buildingUnits: null,
   readerPitch: false, readerMovedAt: 0,
@@ -228,7 +231,8 @@ function renderPanel() {
       fillOf: ds => (state.lens === ds.id ? fillOfRow(r) : ''), ctx: panelCtx(), recordsHTML: panelListHTML(state.records.get(r.id) ?? null, {open: state.recordsOpen}),
       around: state.around, distance: state.distance, venueLogo: id => state.logoShards.get(r.id)?.venues.get(id) || null,
       people: state.people.get(r.id) || null, peopleMeta: state.peopleMeta, peopleState: state.peopleErr.has(r.id) ? 'error' : 'loading', reach: state.reach, mapTab: state.mapTab,
-      character: state.character, characterState: state.characterErr ? 'error' : 'loading'});
+      character: state.character, characterState: state.characterErr ? 'error' : 'loading',
+      profile: state.profile, profileState: state.profileErr ? 'error' : 'loading'});
     $('map-aha').hidden = true;
   } else {
     state.overview = buildOverview(state.model, {rows: state.rows, province: state.province, ds: lensDs(), pending: state.pending});
@@ -243,7 +247,7 @@ function renderPanel() {
   view.innerHTML = html;
   if (kept) restorePlace(view, kept);
   watchMapNames(view);   // (0.7.2) the names over the round map, fitted at the width the panel draws it
-  if (r) { ensureLogos(r); ensurePeople(r); ensureCharacter(); }
+  if (r) { ensureLogos(r); ensurePeople(r); ensureCharacter(); ensureProfile(); }
   const mode = r ? 'neighborhood' : 'overview';
   view.dataset.mode = mode;
   $('panel').dataset.mode = mode;
@@ -406,6 +410,15 @@ function ensureCharacter() {
     .catch(e => { partial('character'); console.warn('Character levels unavailable', e); state.characterErr = true; })
     .finally(() => { state.characterLoading = false; if (state.nb) renderPanel(); });
 }
+/** (0.9.0) The profile of every neighbourhood, once; on failure its parts of the panel stay away (the rest stays whole). */
+function ensureProfile() {
+  if (state.profile || state.profileLoading || state.profileErr) return;
+  state.profileLoading = true;
+  fetchJSON(`data/profile.json${V()}`)
+    .then(json => { state.profile = decodeProfile(json); if (!state.profile) throw new Error('Invalid profile file'); })
+    .catch(e => { partial('profile'); console.warn('Profile unavailable', e); state.profileErr = true; })
+    .finally(() => { state.profileLoading = false; if (state.nb) renderPanel(); });
+}
 /** The scale of «ใครอยู่ตรงนี้» (in · 1 · 3 · 5 km from the edge); the focus goes back to the button pressed. */
 function setReach(value) {
   const next = validReach(value);
@@ -498,7 +511,8 @@ function onPanelAction(event) {
   else if (action === 'cmp-remove') compareSet(state.compare.filter(x => x !== id), {open: state.compare.length > 1});
   else if (action === 'cmp-clear') compareSet([], {open: false});
   else if (action === 'cmp-top') compareTop(value);
-  else if (action === 'cmp-similar') { const r = rowById(id); if (r) compareSet([r.id, ...buildNeighborhood(state.model, r).similar.map(x => x.row.id)]); }
+  else if (action === 'cmp-similar') { const r = rowById(id); const sim = state.profile?.rows.get(id)?.sim || []; if (r) compareSet([r.id, ...sim.map(x => x[0]).filter(x => rowById(x)).slice(0, 3)]); }
+  else if (action === 'goto-personas') { const sec = $('nb-personas'); if (sec) { sec.scrollIntoView({block: 'start', behavior: reduced() ? 'auto' : 'smooth'}); const h = sec.querySelector('h3'); h?.setAttribute('tabindex', '-1'); h?.focus({preventScroll: true}); } }
   else if (action === 'open-table') openTable();
   else if (action === 'open-record') openRecordFromList(+value);
   else if (action === 'open-compare') openInsights(true);

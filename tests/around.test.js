@@ -12,6 +12,7 @@ import {ROOT, load, readJSON, readBytes, sha256} from './helpers.js';
 import {decodeAround, glanceTiles, aroundGroups, venuesOf, sharedBy, lowLocated, levelOf, LEVEL_WORDS, aroundDistance, DISTANCES, pctFill} from '../js/around.js';
 import {buildNeighborhood} from '../js/profile.js';
 import {renderNeighborhood, highlightWords} from '../js/panel.js';
+import {decodeProfile} from '../js/personas.js';
 
 const raw = () => readJSON('data/around.json');
 const around = () => decodeAround(raw());
@@ -44,7 +45,7 @@ test('every neighbourhood: a figure pair for every dataset in scope and none out
       assert.ok(v[0] >= 0 && v[0] <= v[1], `${r.id} ${ds}: the 800 m figure holds the 400 m one`);
     }
   }
-  assert.equal(cells, 20641); // 0.8.0: 718 outlines × the 38 datasets in their provinces (20,641; 19,923 with 37 · 6,478 for 534 × 16 in 0.7.8; 5,747 for the 469 of 0.6.1; 5,533 for the 451 of 0.5.0; 4,806 for the 395 of 0.4.0)
+  assert.equal(cells, 20784); // 0.9.0: cinema gains points (0 → 4) and so a scope in 131 outlines, nail a province (12 more) — 20,784; 0.8.0: 718 outlines × the 38 datasets in their provinces (20,641; 19,923 with 37 · 6,478 for 534 × 16 in 0.7.8; 5,747 for the 469 of 0.6.1; 5,533 for the 451 of 0.5.0; 4,806 for the 395 of 0.4.0)
   assert.ok(!/"total"|"sum"/i.test(JSON.stringify(rows)), 'no total or sum anywhere');
 });
 
@@ -239,7 +240,10 @@ test('handoff/around: the plan byte for byte, the owner’s words verbatim, the 
   // 0.7.0 (2026-11-26 14:03–14:40): D-12 people figures, D-13 distances, D-14 the shared OSM file, D-15 business type and brand
   // 0.7.1 (2026-11-26 17:51): D-17 the roads, rail, water and the sea of the round maps, from the same OSM file
   // 0.7.5 (2026-11-27): D-18 ferries count as crossings, as the Shopping Center page counts them
-  assert.deepEqual(dec.decisions.slice(11).map(d => [d.id, d.status]), [...['D-12', 'D-13', 'D-14', 'D-15'].map(id => [id, 'decided']), ['D-16', 'authorJudgement'], ['D-17', 'decided'], ['D-18', 'decided']]);
+  assert.deepEqual(dec.decisions.slice(11).map(d => [d.id, d.status]), [...['D-12', 'D-13', 'D-14', 'D-15'].map(id => [id, 'decided']), ['D-16', 'authorJudgement'], ['D-17', 'decided'], ['D-18', 'decided'], ['D-19', 'decided']]);
+  // 0.9.0 (2026-11-29): D-19 ferries no longer count — recorded; its rebuild waits for the OpenStreetMap file of D-14
+  assert.ok(dec.ownerWords.some(w => w.verbatim.includes('«ไม่นับเรือ (แนะนำ)»')), 'D-19 in the owner’s words');
+  assert.equal(dec.decisions.find(d => d.id === 'D-19').applied.release, null, 'not applied until the rivers are rebuilt');
   assert.ok(dec.ownerWords.some(w => w.verbatim === 'คนอยู่ไม่น่าจะข้ามแม่น้ำจากบางกระเจ้ามาที่ปุณณวิถีได้นะครับ'), 'V7-09 in the owner’s words (07:09)');
   assert.ok(dec.ownerWords.some(w => w.verbatim === 'นับเรือแบบหน้าศูนย์การค้า'), 'D-18 in the owner’s words');
   assert.equal(dec.decisions.find(d => d.id === 'D-13').applied?.release, '0.7.5');
@@ -253,20 +257,20 @@ test('handoff/around: the plan byte for byte, the owner’s words verbatim, the 
   assert.deepEqual(inv, readJSON('handoff/product-brief.json').invariants);
 });
 
-test('a neighbourhood with no highlight says what there is, inside and within 800 m, by numbers of datasets (0.6.0: the fingerprint’s key)', () => {
+test('a neighbourhood with no highlight says what there is in words (0.9.0: the head’s price level and people, the figures’ tiles; no icon key)', () => {
   const {model} = load();
   const A = around();
+  const profile = decodeProfile(readJSON('data/profile.json'));
   const thin = model.rows.filter(r => !(r.hl || []).length);
   assert.equal(thin.length, 347); // 0.8.2: ตลาดโรงเกลือ back on the owner's rule outline (348 in 0.8.0); 0.8.0 (350 before places of worship joined): 718 outlines, of which 124 are trading sites without peers (205 for 534 in 0.7.8) (198 for the 469 of 0.6.1, 196 in 0.6.0), D-V2: highlights only on datasets with points for ≥ 90 % (183 with every dataset in 0.5.0)
   for (const r of thin) {
-    const html = renderNeighborhood(buildNeighborhood(model, r), model, {ctx: ctx(), around: A});
+    const html = renderNeighborhood(buildNeighborhood(model, r), model, {ctx: ctx(), around: A, profile});
     const head = html.slice(0, html.indexOf('</section>'));
-    const key = head.match(/<p class="fp-key">([\s\S]*?)<\/p>/)[1].replace(/<[^>]+>/g, ' ');
-    const n = {in: Object.values(r.c).filter(v => v > 0).length, out: model.datasets.filter(d => !(d.id in r.c)).length};
-    assert.match(key, new RegExp(`ในย่าน ${n.in} ชุด`), r.id);
-    const edge = model.datasets.filter(d => r.c[d.id] === 0 && A.rows.get(r.id).a[d.id][1] > 0).length;
-    if (edge) assert.match(key, new RegExp(`เฉพาะขอบเดินถึง 800 ม\\. ${edge}`), r.id);
-    if (n.out) assert.match(key, new RegExp(`ไม่มีข้อมูลในจังหวัด ${n.out}`), r.id);
+    assert.ok(!/fp-key|fp-cell/.test(head), `${r.id}: no icon key`);
+    assert.match(head, /<p class="pl-line[^"]*">/, `${r.id}: the price level, or why there is none`);
+    const tiles = html.slice(html.indexOf('<section class="metrics compact"'), html.indexOf('</section>', html.indexOf('<section class="metrics compact"')));
+    const n = Object.values(r.c).filter(v => v > 0).length;
+    assert.ok(tiles.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').includes(`${n.toLocaleString('th-TH')} ชุดที่มีในย่าน`), `${r.id}: the datasets present, in the tiles`);
     assert.ok(!/aha-copy|ยังไม่มีชุดข้อมูลไหนเด่นเกินเกณฑ์/.test(head), r.id);
   }
 });
